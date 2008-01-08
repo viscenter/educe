@@ -6,9 +6,8 @@ CXXFLAGS += `pkg-config --cflags opencv`
 CXXFLAGS += -I/usr/local/include/
 
 # Set up library paths and flags for OpenCV and Teem
-LDFLAGS += `pkg-config --libs opencv`
 LDFLAGS += -L/usr/local/lib/
-LIBS += -lcv -lcxcore -lhighgui
+LIBS += `pkg-config --libs opencv`
 LIBS += -lteem
 
 MAINSOURCES := $(foreach dir,.,$(notdir $(wildcard $(dir)/*.cpp)))
