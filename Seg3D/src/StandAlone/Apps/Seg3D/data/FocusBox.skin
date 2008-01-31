@@ -1,0 +1,18 @@
+<definition name="FocusBox">
+  <object name="Skinner::FocusRegion">
+
+    <signal name="FocusRegion::focus"
+            target="FocusBox::focus"/>
+
+    <signal name="FocusRegion::focus"
+            target="GLWindow::redraw_drawable"/>
+
+    <signal name="FocusRegion::unfocus"
+            target="FocusBox::unfocus"/>
+
+    <signal name="FocusRegion::unfocus"
+            target="GLWindow::redraw_drawable"/>
+
+    <object name="FocusBox::child"/>
+  </object>
+</definition>

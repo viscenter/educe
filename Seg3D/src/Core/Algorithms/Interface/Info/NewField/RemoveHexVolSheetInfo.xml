@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="RemoveHexVolSheet" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_edge_list">
+      <type>
+        <string default="No values present."/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="HexField" type="Field"/>
+    <output name="NewHexField" type="Field"/>
+    <output name="ExtractedHexes" type="Field"/>
+  </data>
+</algorithm>

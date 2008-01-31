@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="EvaluateLinAlgUnary" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_op">
+      <type>
+        <string default="Function"/>
+      </type>
+    </parameter>
+    <parameter name="p_function">
+      <type>
+        <string default="x+10"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input" type="Matrix"/>
+    <output name="Output" type="Matrix"/>
+  </data>
+</algorithm>

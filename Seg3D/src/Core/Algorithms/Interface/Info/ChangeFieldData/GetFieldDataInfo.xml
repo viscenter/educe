@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetFieldData" category="ChangeFieldData" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <output name="Data" type="Matrix"/>
+  </data>
+</algorithm>

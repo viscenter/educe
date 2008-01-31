@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReportBundleInfo" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_tclinfostring">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

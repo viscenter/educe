@@ -1,0 +1,8 @@
+<definition name="CancelButton">
+  <object name="ButtonRoundFlat">
+    <var name="Button::color" propagate="yes">#503030FF</var>
+    <var name="Button::Text::text" propagate="yes">Cancel</var>
+    <signal name="Button::clicked"
+            target="Cancel"/>
+  </object>
+</definition>

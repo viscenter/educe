@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReportColumnMatrixMisfit" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_have_ui">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_methodTCL">
+      <type>
+        <string default="CCinv"/>
+      </type>
+    </parameter>
+    <parameter name="p_pTCL">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Vec1" type="Matrix"/>
+    <input name="Vec2" type="Matrix"/>
+    <output name="Error Out" type="Matrix"/>
+  </data>
+</algorithm>

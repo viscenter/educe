@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateString" category="String" version="1.0">
+  <parameters>
+    <parameter name="p_inputstring">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+  <output name="Output" type="String"/>
+  </data>
+</algorithm>

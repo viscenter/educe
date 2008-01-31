@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetFileName" category="String" version="1.0">
+  <parameters>
+    <parameter name="p_filename_base">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_delay">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_pinned">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+  <output name="Full Filename" type="String"/>
+  </data>
+</algorithm>

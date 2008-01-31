@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="TransformMeshWithFunction" category="ChangeMesh" version="1.0">
+  <parameters>
+    <parameter name="p_function">
+      <type>
+        <string default="result = (Point) (Vector(x,y,z) * Vector(1.0, 2.0, 3.0));"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="Output Field" type="Field"/>
+  </data>
+</algorithm>

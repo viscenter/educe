@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CalculateFieldDataCompiled" category="ChangeFieldData" version="1.0">
+  <parameters>
+    <parameter name="p_outputdatatype">
+      <type>
+        <string default="port 0 input"/>
+      </type>
+    </parameter>
+    <parameter name="p_function">
+      <type>
+        <string default="result = v0 + v1 + v2;"/>
+      </type>
+    </parameter>
+    <parameter name="p_cache">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Function" type="String"/>
+    <input name="Input Field" type="Field"/>
+    <output name="Output Field" type="Field"/>
+  </data>
+</algorithm>

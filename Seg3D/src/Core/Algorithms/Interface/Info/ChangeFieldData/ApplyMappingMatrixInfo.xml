@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ApplyMappingMatrix" category="ChangeFieldData" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Source" type="Field"/>
+    <input name="Destination" type="Field"/>
+    <input name="Mapping" type="Matrix"/>
+    <output name="Output" type="Field"/>
+  </data>
+</algorithm>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetAllSegmentationBoundaries" category="NewField" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Segmentations" type="Nrrd"/>
+    <output name="Boundaries" type="Field"/>
+  </data>
+</algorithm>

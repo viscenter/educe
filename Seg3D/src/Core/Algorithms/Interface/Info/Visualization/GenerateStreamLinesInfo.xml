@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GenerateStreamLines" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_stepsize">
+      <type>
+        <double default="0.010000"/>
+      </type>
+    </parameter>
+    <parameter name="p_tolerance">
+      <type>
+        <double default="0.000100"/>
+      </type>
+    </parameter>
+    <parameter name="p_maxsteps">
+      <type>
+        <int default="2000"/>
+      </type>
+    </parameter>
+    <parameter name="p_direction">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_value">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_remove_colinear_pts">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_method">
+      <type>
+        <int default="4"/>
+      </type>
+    </parameter>
+    <parameter name="p_nthreads">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_auto_parameterize">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Vector Field" type="Field"/>
+    <input name="Seed Points" type="Field"/>
+    <output name="Streamlines" type="Field"/>
+  </data>
+</algorithm>

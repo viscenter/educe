@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertMeshCoordinateSystem" category="ChangeMesh" version="1.0">
+  <parameters>
+    <parameter name="p_oldsystem">
+      <type>
+        <string default="Cartesian"/>
+      </type>
+    </parameter>
+    <parameter name="p_newsystem">
+      <type>
+        <string default="Spherical"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="Output Field" type="Field"/>
+  </data>
+</algorithm>

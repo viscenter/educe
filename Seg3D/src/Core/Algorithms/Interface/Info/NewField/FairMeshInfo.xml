@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="FairMesh" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_iterations">
+      <type>
+        <int default="50"/>
+      </type>
+    </parameter>
+    <parameter name="p_method">
+      <type>
+        <string default="fast"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Mesh" type="Field"/>
+    <output name="Faired Mesh" type="Field"/>
+  </data>
+</algorithm>

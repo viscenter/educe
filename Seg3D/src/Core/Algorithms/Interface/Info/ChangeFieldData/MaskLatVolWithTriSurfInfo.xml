@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="MaskLatVolWithTriSurf" category="ChangeFieldData" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="LatVolField" type="Field"/>
+    <input name="TriSurfField" type="Field"/>
+    <output name="LatVol Mask" type="Field"/>
+  </data>
+</algorithm>

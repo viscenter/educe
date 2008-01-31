@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertFieldsToTexture" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_vmin">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_vmax">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_gmin">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_gmax">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_is_fixed">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_card_mem">
+      <type>
+        <int default="16"/>
+      </type>
+    </parameter>
+    <parameter name="p_card_mem_auto">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_histogram">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_gamma">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Value Field" type="Field"/>
+    <input name="Gradient Magnitude Field" type="Field"/>
+    <output name="Texture" type="Texture"/>
+    <output name="JointHistoGram" type="Nrrd"/>
+  </data>
+</algorithm>

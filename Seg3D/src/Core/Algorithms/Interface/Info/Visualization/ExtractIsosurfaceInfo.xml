@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ExtractIsosurface" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_isoval_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_isoval_max">
+      <type>
+        <double default="99.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_isoval">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_isoval_typed">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_isoval_quantity">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_range">
+      <type>
+        <string default="field"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_clusive">
+      <type>
+        <string default="exclusive"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_max">
+      <type>
+        <double default="100.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_list">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_isoval_list">
+      <type>
+        <string default="No values present."/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix_list">
+      <type>
+        <string default="No matrix present - execution needed."/>
+      </type>
+    </parameter>
+    <parameter name="p_algorithm">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_build_trisurf">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_build_geom">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_transparency">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_np">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_active_isoval_selection_tab">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_active_tab">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_update_type">
+      <type>
+        <string default="On Release"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_r">
+      <type>
+        <double default="0.400000"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_g">
+      <type>
+        <double default="0.200000"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_b">
+      <type>
+        <double default="0.900000"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_a">
+      <type>
+        <double default="0.900000"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <input name="Optional Color Map" type="ColorMap"/>
+    <input name="Optional Isovalues" type="Matrix"/>
+    <output name="Surface" type="Field"/>
+    <output name="Geometry" type="Geometry"/>
+    <output name="Mapping" type="Matrix"/>
+  </data>
+</algorithm>

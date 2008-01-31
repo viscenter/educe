@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SplitFileName" category="String" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Filename" type="String"/>
+    <output name="Pathname" type="String"/>
+    <output name="Filename Base" type="String"/>
+    <output name="Extension" type="String"/>
+    <output name="Filename" type="String"/>
+  </data>
+</algorithm>

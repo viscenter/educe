@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateVectorArray" category="DataArrayMath" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="X" type="Matrix"/>
+    <input name="Y" type="Matrix"/>
+    <input name="Z" type="Matrix"/>
+    <output name="Vector" type="Matrix"/>
+  </data>
+</algorithm>

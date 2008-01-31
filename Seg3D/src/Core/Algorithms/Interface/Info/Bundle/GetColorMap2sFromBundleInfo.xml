@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetColorMap2sFromBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_colormap21_name">
+      <type>
+        <string default="colormap21"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap22_name">
+      <type>
+        <string default="colormap22"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap23_name">
+      <type>
+        <string default="colormap23"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap24_name">
+      <type>
+        <string default="colormap24"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap25_name">
+      <type>
+        <string default="colormap25"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap26_name">
+      <type>
+        <string default="colormap26"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap2_selection">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+    <output name="colormap21" type="ColorMap2"/>
+    <output name="colormap22" type="ColorMap2"/>
+    <output name="colormap23" type="ColorMap2"/>
+    <output name="colormap24" type="ColorMap2"/>
+    <output name="colormap25" type="ColorMap2"/>
+    <output name="colormap26" type="ColorMap2"/>
+  </data>
+</algorithm>

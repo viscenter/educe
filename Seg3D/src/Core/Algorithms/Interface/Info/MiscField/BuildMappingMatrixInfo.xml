@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="BuildMappingMatrix" category="MiscField" version="1.0">
+  <parameters>
+    <parameter name="p_interpolation_basis">
+      <type>
+        <string default="linear"/>
+      </type>
+    </parameter>
+    <parameter name="p_map_source_to_single_dest">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_exhaustive_search">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_exhaustive_search_max_dist">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_np">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Source" type="Field"/>
+    <input name="Destination" type="Field"/>
+    <output name="Mapping" type="Matrix"/>
+  </data>
+</algorithm>

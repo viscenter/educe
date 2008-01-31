@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="TimeControls" category="Time" version="1.0">
+  <parameters>
+    <parameter name="p_execmode">
+      <type>
+        <string default="init"/>
+      </type>
+    </parameter>
+    <parameter name="p_scale_factor">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+  <output name="time" type="Time"/>
+  </data>
+</algorithm>

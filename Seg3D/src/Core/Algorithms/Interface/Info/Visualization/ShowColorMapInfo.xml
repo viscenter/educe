@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ShowColorMap" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_length">
+      <type>
+        <string default="half2"/>
+      </type>
+    </parameter>
+    <parameter name="p_side">
+      <type>
+        <string default="left"/>
+      </type>
+    </parameter>
+    <parameter name="p_numlabels">
+      <type>
+        <int default="5"/>
+      </type>
+    </parameter>
+    <parameter name="p_scale">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_numsigdigits">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_units">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_color_r">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_g">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_b">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_fontsize">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_extra_padding">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="ColorMap" type="ColorMap"/>
+    <output name="Geometry" type="Geometry"/>
+  </data>
+</algorithm>

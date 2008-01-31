@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ResizeMatrix" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_dim_m">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_dim_n">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Matrix" type="Matrix"/>
+    <input name="M" type="Matrix"/>
+    <input name="N" type="Matrix"/>
+    <output name="Matrix" type="Matrix"/>
+  </data>
+</algorithm>

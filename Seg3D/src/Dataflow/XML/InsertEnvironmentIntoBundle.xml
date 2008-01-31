@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="InsertEnvironmentIntoBundle" category="Bundle" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+      Export the environment to a bundle of strings.
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no"/>
+    <outputs>
+      <port>
+        <name>Environment</name>
+        <datatype>SCIRun::Bundle</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

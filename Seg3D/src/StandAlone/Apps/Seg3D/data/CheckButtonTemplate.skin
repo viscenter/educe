@@ -1,0 +1,38 @@
+<definition name="CheckButtonTemplate">
+  <object name="Skinner::Box">
+    <var name="CheckButton::state" propagate="yes" overwrite="no">0</var>
+    <var name="Button::color" propagate="yes" overwrite="no">#AAAAAAFF</var>
+    <var name="Button::color1" propagate="yes" overwrite="no">#777777FF</var>
+    <var name="Button::color2" propagate="yes" overwrite="no">#EEEEEEFF</var>
+
+    <var name="color">$Button::color</var>
+
+    <signal name="button_1_clicked" target="Arithmetic::invert_bool">
+      <var name="variable">$CheckButton::state</var>
+    </signal>
+
+    <signal name="button_1_clicked" target="Button::clicked"/>
+    <signal name="button_1_clicked" target="GLWindow::redraw_drawable"/>
+
+    <signal name="button_1_released" target="Button::released"/>
+    <signal name="button_1_released" target="GLWindow::redraw_drawable"/>
+
+    <object name="Skinner::Frame">
+      <var name="width" overwrite="no">3</var>
+      <var name="height" overwrite="no">3</var>
+      <var name="color1">$Button::color1</var>
+      <var name="color2">$Button::color2</var>
+      <var name="invert">$CheckButton::state</var>
+      <object name="Skinner::Frame">
+        <var name="width" overwrite="no">1</var>
+        <var name="height" overwrite="no">1</var>
+        <var name="color1">#00000000</var>
+        <var name="color2">#00000000</var>
+        <object name="CheckButtonTemplate::OffObject"/>
+        <object name="CheckButtonTemplate::OnObject">
+          <var name="visible">$CheckButton::state</var>
+        </object>
+      </object>
+    </object>
+  </object>
+</definition>

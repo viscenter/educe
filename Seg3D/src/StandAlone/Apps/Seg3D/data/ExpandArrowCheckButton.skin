@@ -1,0 +1,22 @@
+<definition name="ExpandArrowCheckButton">
+  <object name="CheckButtonTemplate">
+    <definition name="CheckButtonTemplate::OffObject">
+      <object name="Skinner::Arrow">
+        <var name="color">#000000FF</var>
+        <var name="degrees">0</var>
+        <var name="point_angle">60</var>
+      </object>
+    </definition>
+
+    <definition name="CheckButtonTemplate::OnObject">
+      <object name="Skinner::Box">
+        <var name="color">$Button::color</var>
+        <object name="Skinner::Arrow">
+          <var name="color">#000000FF</var>
+          <var name="degrees">270</var>
+          <var name="point_angle">60</var>
+        </object>
+      </object>
+    </definition>
+  </object>
+</definition>

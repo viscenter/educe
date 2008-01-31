@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateMatrix" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_rows">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_cols">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_data">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_clabel">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_rlabel">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+  <output name="matrix" type="Matrix"/>
+  </data>
+</algorithm>

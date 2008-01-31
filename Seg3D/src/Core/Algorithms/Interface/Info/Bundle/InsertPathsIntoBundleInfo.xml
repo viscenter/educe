@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InsertPathsIntoBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_path1_name">
+      <type>
+        <string default="path1"/>
+      </type>
+    </parameter>
+    <parameter name="p_path2_name">
+      <type>
+        <string default="path2"/>
+      </type>
+    </parameter>
+    <parameter name="p_path3_name">
+      <type>
+        <string default="path3"/>
+      </type>
+    </parameter>
+    <parameter name="p_path4_name">
+      <type>
+        <string default="path4"/>
+      </type>
+    </parameter>
+    <parameter name="p_path5_name">
+      <type>
+        <string default="path5"/>
+      </type>
+    </parameter>
+    <parameter name="p_path6_name">
+      <type>
+        <string default="path6"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace1">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace2">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace3">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace4">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace5">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace6">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundlename">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <input name="path1" type="Path"/>
+    <input name="path2" type="Path"/>
+    <input name="path3" type="Path"/>
+    <input name="path4" type="Path"/>
+    <input name="path5" type="Path"/>
+    <input name="path6" type="Path"/>
+    <output name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

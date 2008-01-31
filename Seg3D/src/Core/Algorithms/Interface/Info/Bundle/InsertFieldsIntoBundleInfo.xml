@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InsertFieldsIntoBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_field1_name">
+      <type>
+        <string default="field1"/>
+      </type>
+    </parameter>
+    <parameter name="p_field2_name">
+      <type>
+        <string default="field2"/>
+      </type>
+    </parameter>
+    <parameter name="p_field3_name">
+      <type>
+        <string default="field3"/>
+      </type>
+    </parameter>
+    <parameter name="p_field4_name">
+      <type>
+        <string default="field4"/>
+      </type>
+    </parameter>
+    <parameter name="p_field5_name">
+      <type>
+        <string default="field5"/>
+      </type>
+    </parameter>
+    <parameter name="p_field6_name">
+      <type>
+        <string default="field6"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace1">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace2">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace3">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace4">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace5">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace6">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundlename">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <input name="field1" type="Field"/>
+    <input name="field2" type="Field"/>
+    <input name="field3" type="Field"/>
+    <input name="field4" type="Field"/>
+    <input name="field5" type="Field"/>
+    <input name="field6" type="Field"/>
+    <output name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

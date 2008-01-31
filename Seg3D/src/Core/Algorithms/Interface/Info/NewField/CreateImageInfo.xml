@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateImage" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_sizex">
+      <type>
+        <int default="20"/>
+      </type>
+    </parameter>
+    <parameter name="p_sizey">
+      <type>
+        <int default="20"/>
+      </type>
+    </parameter>
+    <parameter name="p_sizez">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_z_value">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_auto_size">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_axis">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_padpercent">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_pos">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_data_at">
+      <type>
+        <string default="Nodes"/>
+      </type>
+    </parameter>
+    <parameter name="p_update_type">
+      <type>
+        <string default="On Release"/>
+      </type>
+    </parameter>
+    <parameter name="p_corigin_x">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_corigin_y">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_corigin_z">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_cnormal_x">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_cnormal_y">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_cnormal_z">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="Output Sample Field" type="Field"/>
+  </data>
+</algorithm>

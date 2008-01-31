@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReadHDF5File" category="DataIO" version="1.0">
+  <parameters>
+    <parameter name="p_have_HDF5">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_power_app">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_datasets">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_dumpname">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_ports">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_ndims">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_mergeData">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_assumeSVT">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_animate">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_animate_tab">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_basic_tab">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_extended_tab">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_playmode_tab">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_selectable_min">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_selectable_max">
+      <type>
+        <int default="100"/>
+      </type>
+    </parameter>
+    <parameter name="p_selectable_inc">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_range_min">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_range_max">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_playmode">
+      <type>
+        <string default="once"/>
+      </type>
+    </parameter>
+    <parameter name="p_current">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_execmode">
+      <type>
+        <string default="init"/>
+      </type>
+    </parameter>
+    <parameter name="p_delay">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_inc_amount">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_update_type">
+      <type>
+        <string default="On Release"/>
+      </type>
+    </parameter>
+    <parameter name="p_have_group">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_have_attributes">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_have_datasets">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_continuous">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_selectionString">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_regexp">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_allow_selection">
+      <type>
+        <string default="true"/>
+      </type>
+    </parameter>
+    <parameter name="p_read_error">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_max_dims">
+      <type>
+        <int default="6"/>
+      </type>
+    </parameter>
+    <parameter name="p_0_dim">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_0_start">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_0_start2">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_0_count">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_0_count2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_0_stride">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_0_stride2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_1_dim">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_1_start">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_1_start2">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_1_count">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_1_count2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_1_stride">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_1_stride2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_2_dim">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_2_start">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_2_start2">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_2_count">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_2_count2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_2_stride">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_2_stride2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_3_dim">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_3_start">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_3_start2">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_3_count">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_3_count2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_3_stride">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_3_stride2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_4_dim">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_4_start">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_4_start2">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_4_count">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_4_count2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_4_stride">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_4_stride2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_5_dim">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_5_start">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_5_start2">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_5_count">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_5_count2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_5_stride">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_5_stride2">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Full filename" type="String"/>
+    <input name="Current Index" type="Matrix"/>
+    <output name="Output 0 Nrrd" type="Nrrd"/>
+    <output name="Output 1 Nrrd" type="Nrrd"/>
+    <output name="Output 2 Nrrd" type="Nrrd"/>
+    <output name="Output 3 Nrrd" type="Nrrd"/>
+    <output name="Output 4 Nrrd" type="Nrrd"/>
+    <output name="Output 5 Nrrd" type="Nrrd"/>
+    <output name="Output 6 Nrrd" type="Nrrd"/>
+    <output name="Output 7 Nrrd" type="Nrrd"/>
+    <output name="Selected Index" type="Matrix"/>
+  </data>
+</algorithm>

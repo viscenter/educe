@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SelectAndSetFieldData3" category="ChangeFieldData" version="1.0">
+  <parameters>
+    <parameter name="p_selection1">
+      <type>
+        <string default="DATA &lt; A"/>
+      </type>
+    </parameter>
+    <parameter name="p_function1">
+      <type>
+        <string default="abs(DATA)"/>
+      </type>
+    </parameter>
+    <parameter name="p_selection2">
+      <type>
+        <string default="DATA &gt; A"/>
+      </type>
+    </parameter>
+    <parameter name="p_function2">
+      <type>
+        <string default="-abs(DATA)"/>
+      </type>
+    </parameter>
+    <parameter name="p_selection3">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_function3">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_selection4">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_function4">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_functiondef">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_format">
+      <type>
+        <string default="Scalar"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field1" type="Field"/>
+    <input name="Field2" type="Field"/>
+    <input name="Field3" type="Field"/>
+    <input name="Array" type="Matrix"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

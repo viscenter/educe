@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="EditMeshBoundingBox" category="ChangeMesh" version="1.0">
+  <parameters>
+    <parameter name="p_outputcenterx">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_outputcentery">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_outputcenterz">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_outputsizex">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_outputsizey">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_outputsizez">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_useoutputcenter">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_useoutputsize">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_scale">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_mode">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_real_scale">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_center_x">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_center_y">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_center_z">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_right_x">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_right_y">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_right_z">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_down_x">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_down_y">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_down_z">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_in_x">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_in_y">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_box_in_z">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="Output Field" type="Field"/>
+    <output name="Transformation Widget" type="Geometry"/>
+    <output name="Transformation Matrix" type="Matrix"/>
+  </data>
+</algorithm>

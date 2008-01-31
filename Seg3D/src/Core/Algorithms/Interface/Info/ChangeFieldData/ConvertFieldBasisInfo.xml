@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertFieldBasis" category="ChangeFieldData" version="1.0">
+  <parameters>
+    <parameter name="p_output_basis">
+      <type>
+        <string default="Linear"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input" type="Field"/>
+    <output name="Output" type="Field"/>
+    <output name="Mapping" type="Matrix"/>
+  </data>
+</algorithm>

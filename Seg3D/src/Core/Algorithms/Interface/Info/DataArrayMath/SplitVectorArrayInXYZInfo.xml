@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SplitVectorArrayInXYZ" category="DataArrayMath" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="VectorArray" type="Matrix"/>
+    <output name="X" type="Matrix"/>
+    <output name="Y" type="Matrix"/>
+    <output name="Z" type="Matrix"/>
+  </data>
+</algorithm>

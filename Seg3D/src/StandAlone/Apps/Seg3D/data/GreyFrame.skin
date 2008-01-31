@@ -1,0 +1,15 @@
+<definition name="GreyFrame">
+  <object name="Skinner::Frame">
+    <var name="GreyFrame::color" propagate="yes" overwrite="no">$background_color</var>
+    <var name="top-color">#c7c7c7FF</var>
+    <var name="left-color">#AFAFAFFF</var>
+    <var name="right-color">#606060FF</var>
+    <var name="bottom-color">#404040FF</var>
+    <var name="width">1</var>
+    <var name="height">1</var>
+    <object name="Skinner::Box">
+      <var name="color">$GreyFrame::color</var>
+      <object name="GreyFrame::child"/>
+    </object>
+  </object>
+</definition>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetSubmatrix" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_mincol">
+      <type>
+        <string default="---"/>
+      </type>
+    </parameter>
+    <parameter name="p_maxcol">
+      <type>
+        <string default="---"/>
+      </type>
+    </parameter>
+    <parameter name="p_minrow">
+      <type>
+        <string default="---"/>
+      </type>
+    </parameter>
+    <parameter name="p_maxrow">
+      <type>
+        <string default="---"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrow">
+      <type>
+        <string default="??"/>
+      </type>
+    </parameter>
+    <parameter name="p_ncol">
+      <type>
+        <string default="??"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Matrix" type="Matrix"/>
+    <input name="Optional Range Bounds" type="Matrix"/>
+    <output name="Output Matrix" type="Matrix"/>
+  </data>
+</algorithm>

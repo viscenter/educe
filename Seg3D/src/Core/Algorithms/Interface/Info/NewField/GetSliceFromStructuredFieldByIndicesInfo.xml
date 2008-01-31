@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetSliceFromStructuredFieldByIndices" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_axis">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_dims">
+      <type>
+        <int default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_dim_i">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_dim_j">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_dim_k">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_index_i">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_index_j">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_index_k">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_update_type">
+      <type>
+        <string default="Manual"/>
+      </type>
+    </parameter>
+    <parameter name="p_continuous">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <input name="Input Matrix" type="Matrix"/>
+    <output name="Output Field" type="Field"/>
+    <output name="Output Matrix" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="MapFieldDataToNodeCoordinate" category="ChangeMesh" version="1.0">
+  <parameters>
+    <parameter name="p_coord">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="Output Field" type="Field"/>
+  </data>
+</algorithm>

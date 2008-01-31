@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="TransformPlanarMesh" category="ChangeMesh" version="1.0">
+  <parameters>
+    <parameter name="p_axis">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_invert">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_trans_x">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_trans_y">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <input name="Index Matrix" type="Matrix"/>
+    <output name="Transformed Field" type="Field"/>
+  </data>
+</algorithm>

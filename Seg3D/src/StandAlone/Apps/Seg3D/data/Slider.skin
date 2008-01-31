@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE skinner PUBLIC "-//Skinner/Drawable DTD" "skinner.dtd">
+
+<definition name="Slider">
+  <object name="Skinner::Box">
+    <var name="Slider::resolution" overwrite="no"
+         propagate="yes">1.0</var>
+
+    <var name="Slider::vertical" overwrite="no" propagate="yes">0</var>
+
+    <var name="Slider::min" type="double"
+         propagate="yes" overwrite="no">0</var>
+    <var name="Slider::max" type="double"
+         propagate="yes" overwrite="no">100</var>
+
+    <var name="color">#00000000</var>
+    <signal name="button_1_clicked" target="GLWindow::redraw_drawable"/>
+
+    <object name="Skinner::Slider">
+      <var name="row">1</var>
+      <var name="col">1</var>
+
+      <object name="ClearBorder">
+        <var name="ClearBorder::width">1</var>
+        <var name="ClearBorder::height">1</var>
+
+        <object name="Shadow">
+          <var name="Shadow::bevel">7</var>
+          <var name="Shadow::color" propagate="yes">#000000FF</var>
+          <var name="Shadow::clear" propagate="yes">#000000FF</var>
+        </object>
+
+        <object name="ClearBorder">
+          <var name="ClearBorder::width">1</var>
+          <var name="ClearBorder::height">1</var>
+          <object name="Shadow">
+            <var name="Shadow::bevel">7</var>
+            <var name="Shadow::color" propagate="yes">#FFFFFFFF</var>
+            <var name="Shadow::clear" propagate="yes">#FFFFFFA0</var>
+          </object>
+        </object>
+      </object>
+
+      <object name="Slider::SliderButton">
+        <var name="SliderButton::width">40</var>
+        <object name="Shadow">
+          <var name="Shadow::bevel">7</var>
+          <var name="Shadow::color" propagate="yes">#00000080</var>
+          <var name="Shadow::clear" propagate="yes">#00000080</var>
+        </object>
+
+        <object name="ClearBorder">
+          <var name="ClearBorder::width">1</var>
+          <var name="ClearBorder::height">1</var>
+          <object name="Shadow">
+            <var name="Shadow::bevel">7</var>
+            <var name="Shadow::color" propagate="yes">#8080CCFF</var>
+            <var name="Shadow::clear" propagate="yes">#8080CC80</var>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+</definition>
+

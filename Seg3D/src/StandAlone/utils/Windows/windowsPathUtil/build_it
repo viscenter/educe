@@ -1,0 +1,21 @@
+#! /bin/tcsh
+
+#
+# Simple script to build the 'updatePath' executable via a Windows'
+# cygwin terminal.  Basically you just have to update the PATH to
+# include pointers to the Visual Studio Compiler (and SDK). If your
+# Visual Studio files aren't in the same place, you will need to
+# update this file.
+#
+
+setenv PATH /cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/Common7/IDE:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/VC/BIN:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/Common7/Tools:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/SDK/v2.0/bin:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/VC/VCPackages:$PATH
+
+cl -I "C:/Program Files/Microsoft Platform SDK for Windows Server 2003 R2/Include" \
+   -I "C:/Program Files//Microsoft Visual Studio 8/VC/include" \
+   /EHsc \
+   updatePath.cpp \
+   -link \
+   -LIBPATH:"C:/Program Files/Microsoft Visual Studio 8/VC/lib"  \
+   -LIBPATH:"C:/Program Files/Microsoft Platform SDK for Windows Server 2003 R2/Lib" \
+   advapi32.lib user32.lib
+

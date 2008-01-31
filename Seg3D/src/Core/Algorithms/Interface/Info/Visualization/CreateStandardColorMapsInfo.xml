@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateStandardColorMaps" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_mapName">
+      <type>
+        <string default="Rainbow"/>
+      </type>
+    </parameter>
+    <parameter name="p_gamma">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_resolution">
+      <type>
+        <int default="256"/>
+      </type>
+    </parameter>
+    <parameter name="p_reverse">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_faux">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_positionList">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_nodeList">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_width">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_height">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+  <output name="ColorMap" type="ColorMap"/>
+  </data>
+</algorithm>

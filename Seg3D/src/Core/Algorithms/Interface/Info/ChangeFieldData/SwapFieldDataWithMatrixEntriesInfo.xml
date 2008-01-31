@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SwapFieldDataWithMatrixEntries" category="ChangeFieldData" version="1.0">
+  <parameters>
+    <parameter name="p_preserve_scalar_type">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <input name="Input Matrix" type="Matrix"/>
+    <output name="Output Field" type="Field"/>
+    <output name="Output Matrix" type="Matrix"/>
+  </data>
+</algorithm>

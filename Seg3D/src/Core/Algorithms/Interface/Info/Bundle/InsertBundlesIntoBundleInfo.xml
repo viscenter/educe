@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InsertBundlesIntoBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_bundle1_name">
+      <type>
+        <string default="bundle1"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle2_name">
+      <type>
+        <string default="bundle2"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle3_name">
+      <type>
+        <string default="bundle3"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle4_name">
+      <type>
+        <string default="bundle4"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle5_name">
+      <type>
+        <string default="bundle5"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle6_name">
+      <type>
+        <string default="bundle6"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace1">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace2">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace3">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace4">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace5">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace6">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundlename">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <input name="bundle1" type="Bundle"/>
+    <input name="bundle2" type="Bundle"/>
+    <input name="bundle3" type="Bundle"/>
+    <input name="bundle4" type="Bundle"/>
+    <input name="bundle5" type="Bundle"/>
+    <input name="bundle6" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

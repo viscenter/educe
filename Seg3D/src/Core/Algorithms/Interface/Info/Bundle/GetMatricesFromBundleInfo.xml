@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetMatricesFromBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_matrix1_name">
+      <type>
+        <string default="matrix1"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix2_name">
+      <type>
+        <string default="matrix2"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix3_name">
+      <type>
+        <string default="matrix3"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix4_name">
+      <type>
+        <string default="matrix4"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix5_name">
+      <type>
+        <string default="matrix5"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix6_name">
+      <type>
+        <string default="matrix6"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd1">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd2">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd3">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd4">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd5">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd6">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix_selection">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+    <output name="matrix1" type="Matrix"/>
+    <output name="matrix2" type="Matrix"/>
+    <output name="matrix3" type="Matrix"/>
+    <output name="matrix4" type="Matrix"/>
+    <output name="matrix5" type="Matrix"/>
+    <output name="matrix6" type="Matrix"/>
+  </data>
+</algorithm>

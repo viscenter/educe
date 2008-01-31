@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertMatrixType" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_oldtype">
+      <type>
+        <string default="Same"/>
+      </type>
+    </parameter>
+    <parameter name="p_newtype">
+      <type>
+        <string default="Unknown"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrow">
+      <type>
+        <string default="??"/>
+      </type>
+    </parameter>
+    <parameter name="p_ncol">
+      <type>
+        <string default="??"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input" type="Matrix"/>
+    <output name="Output" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InsertMatricesIntoBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_matrix1_name">
+      <type>
+        <string default="matrix1"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix2_name">
+      <type>
+        <string default="matrix2"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix3_name">
+      <type>
+        <string default="matrix3"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix4_name">
+      <type>
+        <string default="matrix4"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix5_name">
+      <type>
+        <string default="matrix5"/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix6_name">
+      <type>
+        <string default="matrix6"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace1">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace2">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace3">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace4">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace5">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace6">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundlename">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <input name="matrix1" type="Matrix"/>
+    <input name="matrix2" type="Matrix"/>
+    <input name="matrix3" type="Matrix"/>
+    <input name="matrix4" type="Matrix"/>
+    <input name="matrix5" type="Matrix"/>
+    <input name="matrix6" type="Matrix"/>
+    <output name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

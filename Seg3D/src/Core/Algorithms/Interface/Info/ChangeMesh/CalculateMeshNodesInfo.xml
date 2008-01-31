@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CalculateMeshNodes" category="ChangeMesh" version="1.0">
+  <parameters>
+    <parameter name="p_function">
+      <type>
+        <string default="NEWPOS = 3*POS;"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <input name="Function" type="String"/>
+    <input name="Array" type="Matrix"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

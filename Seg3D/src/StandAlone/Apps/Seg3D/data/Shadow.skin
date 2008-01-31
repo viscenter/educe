@@ -1,0 +1,112 @@
+<definition name="Shadow">
+  <object name="Skinner::Grid">
+    <var name="Shadow::color" propagate="yes" overwrite="no">#000000FF</var>
+    <var name="Shadow::clear" propagate="yes" overwrite="no">#00000000</var>
+
+    <var name="Shadow::bevel" propagate="yes" overwrite="no">10</var>
+    <var name="Shadow::bevel1" propagate="yes" overwrite="no">$Shadow::bevel</var>
+    <var name="Shadow::bevel2" propagate="yes" overwrite="no">$Shadow::bevel</var>
+    <var name="rows">3</var>
+    <var name="cols">3</var>
+
+    <object name="Skinner::Gradient">
+      <var name="row">1</var>
+      <var name="col">1</var>
+      <var name="cell-width">$Shadow::bevel2</var>
+      <var name="cell-height">$Shadow::bevel2</var>
+      <var name="anchor">SE</var>
+      <var name="se-color">$Shadow::color</var>
+      <var name="ne-color">$Shadow::clear</var>
+      <var name="nw-color">$Shadow::clear</var>
+      <var name="sw-color">$Shadow::clear</var>
+    </object>
+
+    <object name="Skinner::Gradient">
+      <var name="row">1</var>
+      <var name="col">2</var>
+
+      <var name="cell-height">$Shadow::bevel2</var>
+
+      <var name="bottom-color">$Shadow::color</var>
+      <var name="top-color">$Shadow::clear</var>
+    </object>
+
+    <object name="Skinner::Gradient">
+      <var name="row">1</var>
+      <var name="col">3</var>
+
+      <var name="cell-width">$Shadow::bevel1</var>
+      <var name="cell-height">$Shadow::bevel2</var>
+
+      <var name="anchor">SW</var>
+      <var name="sw-color">$Shadow::color</var>
+      <var name="ne-color">$Shadow::clear</var>
+      <var name="nw-color">$Shadow::clear</var>
+      <var name="se-color">$Shadow::clear</var>
+    </object>
+
+    <object name="Skinner::Gradient">
+      <var name="row">2</var>
+      <var name="col">1</var>
+
+      <var name="cell-width">$Shadow::bevel2</var>
+
+      <var name="right-color">$Shadow::color</var>
+      <var name="left-color">$Shadow::clear</var>
+    </object>
+
+    <object name="Skinner::Box">
+      <var name="row">2</var>
+      <var name="col">2</var>
+      <var name="color">$Shadow::color</var>
+    </object>
+
+    <object name="Skinner::Gradient">
+      <var name="row">2</var>
+      <var name="col">3</var>
+
+      <var name="cell-width">$Shadow::bevel2</var>
+
+      <var name="left-color">$Shadow::color</var>
+      <var name="right-color">$Shadow::clear</var>
+    </object>
+
+    <object name="Skinner::Gradient">
+      <var name="row">3</var>
+      <var name="col">1</var>
+
+      <var name="cell-width">$Shadow::bevel2</var>
+      <var name="cell-height">$Shadow::bevel1</var>
+
+      <var name="anchor">NE</var>
+      <var name="ne-color">$Shadow::color</var>
+      <var name="sw-color">$Shadow::clear</var>
+      <var name="nw-color">$Shadow::clear</var>
+      <var name="se-color">$Shadow::clear</var>
+    </object>
+
+    <object name="Skinner::Gradient">
+      <var name="row">3</var>
+      <var name="col">2</var>
+
+      <var name="cell-height">$Shadow::bevel1</var>
+
+      <var name="top-color">$Shadow::color</var>
+      <var name="bottom-color">$Shadow::clear</var>
+    </object>
+
+    <object name="Skinner::Gradient">
+      <var name="row">3</var>
+      <var name="col">3</var>
+
+      <var name="cell-width">$Shadow::bevel1</var>
+      <var name="cell-height">$Shadow::bevel1</var>
+
+      <var name="anchor">NW</var>
+      <var name="nw-color">$Shadow::color</var>
+      <var name="ne-color">$Shadow::clear</var>
+      <var name="sw-color">$Shadow::clear</var>
+      <var name="se-color">$Shadow::clear</var>
+    </object>
+  </object>
+</definition>

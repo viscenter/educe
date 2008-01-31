@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CollectFields" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_buffersize">
+      <type>
+        <int default="20"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <input name="BufferSize" type="Matrix"/>
+    <output name="Fields" type="Field"/>
+  </data>
+</algorithm>

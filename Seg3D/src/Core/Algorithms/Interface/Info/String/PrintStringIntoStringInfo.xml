@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="PrintStringIntoString" category="String" version="1.0">
+  <parameters>
+    <parameter name="p_formatstring">
+      <type>
+        <string default="my string: %s"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Format" type="String"/>
+    <input name="Input" type="String"/>
+    <output name="Output" type="String"/>
+  </data>
+</algorithm>

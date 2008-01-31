@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ClipFieldToFieldOrWidget" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_clip_location">
+      <type>
+        <string default="cell"/>
+      </type>
+    </parameter>
+    <parameter name="p_clipmode">
+      <type>
+        <string default="replace"/>
+      </type>
+    </parameter>
+    <parameter name="p_autoexecute">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_autoinvert">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_execmode">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_center_x">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_center_y">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_center_z">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_right_x">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_right_y">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_right_z">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_down_x">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_down_y">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_down_z">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_in_x">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_in_y">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_in_z">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_scale">
+      <type>
+        <double default="-1.000000"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <input name="Clip Field" type="Field"/>
+    <output name="Selection Widget" type="Geometry"/>
+    <output name="Output Field" type="Field"/>
+  </data>
+</algorithm>

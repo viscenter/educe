@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReadColorMap" category="DataIO" version="1.0">
+  <parameters>
+    <parameter name="p_from_env">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Filename" type="String"/>
+    <output name="Output Data" type="ColorMap"/>
+    <output name="Filename" type="String"/>
+  </data>
+</algorithm>

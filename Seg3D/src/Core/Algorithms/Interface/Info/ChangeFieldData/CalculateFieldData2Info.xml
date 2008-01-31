@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CalculateFieldData2" category="ChangeFieldData" version="1.0">
+  <parameters>
+    <parameter name="p_function">
+      <type>
+        <string default="RESULT = abs(DATA1);"/>
+      </type>
+    </parameter>
+    <parameter name="p_format">
+      <type>
+        <string default="Scalar"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field1" type="Field"/>
+    <input name="Field2" type="Field"/>
+    <input name="Function" type="String"/>
+    <input name="Array" type="Matrix"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

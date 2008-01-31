@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SetFieldOrMeshStringProperty" category="MiscField" version="1.0">
+  <parameters>
+    <parameter name="p_prop">
+      <type>
+        <string default="units"/>
+      </type>
+    </parameter>
+    <parameter name="p_val">
+      <type>
+        <string default="cm"/>
+      </type>
+    </parameter>
+    <parameter name="p_meshprop">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input" type="Field"/>
+    <output name="Output" type="Field"/>
+  </data>
+</algorithm>

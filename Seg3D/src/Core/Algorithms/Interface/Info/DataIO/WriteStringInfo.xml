@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="WriteString" category="DataIO" version="1.0">
+  <parameters>
+    <parameter name="p_increment">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_current">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="String" type="String"/>
+    <input name="Filename" type="String"/>
+  </data>
+</algorithm>

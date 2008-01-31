@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ShowTextureVolume" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_sampling_rate_hi">
+      <type>
+        <double default="4.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_sampling_rate_lo">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_gradient_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_gradient_max">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_adaptive">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_cmap_size">
+      <type>
+        <int default="8"/>
+      </type>
+    </parameter>
+    <parameter name="p_sw_raster">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_render_style">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_alpha_scale">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_interp_mode">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_shading">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_ambient">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_diffuse">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_specular">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_shine">
+      <type>
+        <double default="30.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_light">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_blend_res">
+      <type>
+        <int default="8"/>
+      </type>
+    </parameter>
+    <parameter name="p_multi_level">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_use_stencil">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_invert_opacity">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_num_clipping_planes">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_show_clipping_widgets">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_level_on">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_level_vals">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_id">
+      <type>
+        <string default="ShowTextureVolumeAlg"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Texture" type="Texture"/>
+    <input name="ColorMap" type="ColorMap"/>
+    <input name="ColorMap2" type="ColorMap2"/>
+    <output name="Geometry" type="Geometry"/>
+    <output name="ColorMap" type="ColorMap"/>
+  </data>
+</algorithm>

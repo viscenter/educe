@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InsertHexVolSheetAlongSurface" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_side">
+      <type>
+        <string default="side1"/>
+      </type>
+    </parameter>
+    <parameter name="p_addlayer">
+      <type>
+        <string default="On"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="HexField" type="Field"/>
+    <input name="TriField" type="Field"/>
+    <output name="Side1Field" type="Field"/>
+    <output name="Side2Field" type="Field"/>
+  </data>
+</algorithm>

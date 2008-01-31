@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ExtractIsosurfaceByFunction" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_function">
+      <type>
+        <string default="result = sqrt(x*x + y*y);"/>
+      </type>
+    </parameter>
+    <parameter name="p_zero_checks">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_slice_value_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_slice_value_max">
+      <type>
+        <double default="99.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_slice_value">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_slice_value_typed">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_slice_value_quantity">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_range">
+      <type>
+        <string default="field"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_clusive">
+      <type>
+        <string default="exclusive"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_max">
+      <type>
+        <double default="100.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_quantity_list">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_slice_value_list">
+      <type>
+        <string default="No values present."/>
+      </type>
+    </parameter>
+    <parameter name="p_matrix_list">
+      <type>
+        <string default="No matrix present - execution needed."/>
+      </type>
+    </parameter>
+    <parameter name="p_algorithm">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_active_slice_value_selection_tab">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_active_tab">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_update_type">
+      <type>
+        <string default="On Release"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <input name="Optional Slice values" type="Matrix"/>
+    <output name="Output Field" type="Field"/>
+  </data>
+</algorithm>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReportMatrixColumnMeasure" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_method">
+      <type>
+        <string default="Sum"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Matrix" type="Matrix"/>
+    <output name="Vector" type="Matrix"/>
+  </data>
+</algorithm>

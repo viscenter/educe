@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReportFieldInfo" category="MiscField" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="NumNodes" type="Matrix"/>
+    <output name="NumElements" type="Matrix"/>
+    <output name="NumData" type="Matrix"/>
+    <output name="DataMin" type="Matrix"/>
+    <output name="DataMax" type="Matrix"/>
+    <output name="FieldSize" type="Matrix"/>
+    <output name="FieldCenter" type="Matrix"/>
+    <output name="Dimensions" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CalculateInsideWhichField" category="ChangeFieldData" version="1.0">
+  <parameters>
+    <parameter name="p_outputbasis">
+      <type>
+        <string default="same as input"/>
+      </type>
+    </parameter>
+    <parameter name="p_outputtype">
+      <type>
+        <string default="double"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <input name="Object" type="Field"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

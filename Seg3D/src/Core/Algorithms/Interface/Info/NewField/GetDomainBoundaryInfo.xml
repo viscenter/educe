@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetDomainBoundary" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_userange">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_minrange">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_maxrange">
+      <type>
+        <double default="255.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_usevalue">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_value">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_includeouterboundary">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_innerboundaryonly">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_noinnerboundary">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_disconnect">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <input name="MinValueValue" type="Matrix"/>
+    <input name="MaxValue" type="Matrix"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

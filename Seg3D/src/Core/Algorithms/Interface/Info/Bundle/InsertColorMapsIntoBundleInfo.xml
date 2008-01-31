@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InsertColorMapsIntoBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_colormap1_name">
+      <type>
+        <string default="colormap1"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap2_name">
+      <type>
+        <string default="colormap2"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap3_name">
+      <type>
+        <string default="colormap3"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap4_name">
+      <type>
+        <string default="colormap4"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap5_name">
+      <type>
+        <string default="colormap5"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap6_name">
+      <type>
+        <string default="colormap6"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace1">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace2">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace3">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace4">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace5">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace6">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundlename">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <input name="colormap1" type="ColorMap"/>
+    <input name="colormap2" type="ColorMap"/>
+    <input name="colormap3" type="ColorMap"/>
+    <input name="colormap4" type="ColorMap"/>
+    <input name="colormap5" type="ColorMap"/>
+    <input name="colormap6" type="ColorMap"/>
+    <output name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

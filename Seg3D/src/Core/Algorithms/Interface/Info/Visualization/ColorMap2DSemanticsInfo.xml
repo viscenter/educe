@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ColorMap2DSemantics" category="Visualization" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Input Colormap" type="ColorMap2"/>
+    <output name="Output Colormap" type="ColorMap2"/>
+  </data>
+</algorithm>

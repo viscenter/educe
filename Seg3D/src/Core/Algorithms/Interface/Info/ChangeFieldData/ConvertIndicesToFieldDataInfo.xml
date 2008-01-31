@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertIndicesToFieldData" category="ChangeFieldData" version="1.0">
+  <parameters>
+    <parameter name="p_outputtype">
+      <type>
+        <string default="double"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <input name="Data" type="Matrix"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

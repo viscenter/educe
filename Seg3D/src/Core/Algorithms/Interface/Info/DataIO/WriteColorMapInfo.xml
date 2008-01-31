@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="WriteColorMap" category="DataIO" version="1.0">
+  <parameters>
+    <parameter name="p_filetype">
+      <type>
+        <string default="Binary"/>
+      </type>
+    </parameter>
+    <parameter name="p_confirm">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_confirm_once">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_exporttype">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Data" type="ColorMap"/>
+    <input name="Filename" type="String"/>
+  </data>
+</algorithm>

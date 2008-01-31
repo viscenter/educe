@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="BuildNoiseColumnMatrix" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_snr">
+      <type>
+        <double default="10.000000"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Signal" type="Matrix"/>
+    <output name="Noise" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="JoinBundles" category="Bundle" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

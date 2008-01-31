@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GenerateSinglePointProbeFromField" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_main_frame">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_locx">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_locy">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_locz">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_value">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_node">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_edge">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_face">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_cell">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_show_value">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_show_node">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_show_edge">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_show_face">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_show_cell">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_probe_scale">
+      <type>
+        <double default="5.000000"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="GenerateSinglePointProbeFromField Widget" type="Geometry"/>
+    <output name="GenerateSinglePointProbeFromField Point" type="Field"/>
+    <output name="Element Index" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetPathsFromBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_path1_name">
+      <type>
+        <string default="path1"/>
+      </type>
+    </parameter>
+    <parameter name="p_path2_name">
+      <type>
+        <string default="path2"/>
+      </type>
+    </parameter>
+    <parameter name="p_path3_name">
+      <type>
+        <string default="path3"/>
+      </type>
+    </parameter>
+    <parameter name="p_path4_name">
+      <type>
+        <string default="path4"/>
+      </type>
+    </parameter>
+    <parameter name="p_path5_name">
+      <type>
+        <string default="path5"/>
+      </type>
+    </parameter>
+    <parameter name="p_path6_name">
+      <type>
+        <string default="path6"/>
+      </type>
+    </parameter>
+    <parameter name="p_path_selection">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+    <output name="path1" type="Path"/>
+    <output name="path2" type="Path"/>
+    <output name="path3" type="Path"/>
+    <output name="path4" type="Path"/>
+    <output name="path5" type="Path"/>
+    <output name="path6" type="Path"/>
+  </data>
+</algorithm>

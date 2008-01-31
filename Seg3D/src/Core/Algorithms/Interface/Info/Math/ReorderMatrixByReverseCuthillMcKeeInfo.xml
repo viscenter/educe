@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReorderMatrixByReverseCuthillMcKee" category="Math" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Matrix" type="Matrix"/>
+    <output name="Matrix" type="Matrix"/>
+    <output name="Mapping" type="Matrix"/>
+    <output name="InverseMapping" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,27 @@
+<definition name="CancelOKButtons">
+  <object name="Skinner::Grid">
+    <var name="rows">3</var>
+    <var name="cols">5</var>
+
+    <object name="CancelButton">
+      <var name="row">2</var>
+      <var name="col">2</var>
+      <var name="cell-width">75</var>
+      <var name="cell-height">25</var>
+      <var name="color">#FF0000FF</var>
+    </object>
+
+    <object name="Skinner::Collection">
+      <var name="row">2</var>
+      <var name="col">3</var>
+      <var name="cell-width">25</var>
+    </object>
+
+    <object name="OKButton">
+      <var name="row">2</var>
+      <var name="col">4</var>
+      <var name="cell-width">75</var>
+      <var name="cell-height">25</var>
+    </object>
+  </object>
+</definition>

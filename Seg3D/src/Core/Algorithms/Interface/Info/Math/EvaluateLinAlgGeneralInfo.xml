@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="EvaluateLinAlgGeneral" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_function">
+      <type>
+        <string default="o1 = i1 * 12;"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="i1" type="Matrix"/>
+    <input name="i2" type="Matrix"/>
+    <input name="i3" type="Matrix"/>
+    <input name="i4" type="Matrix"/>
+    <input name="i5" type="Matrix"/>
+    <output name="o1" type="Matrix"/>
+    <output name="o2" type="Matrix"/>
+    <output name="o3" type="Matrix"/>
+    <output name="o4" type="Matrix"/>
+    <output name="o5" type="Matrix"/>
+  </data>
+</algorithm>

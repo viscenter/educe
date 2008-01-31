@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InterfaceWithTetGen" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_switch">
+      <type>
+        <string default="pqYAz"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Main" type="Field"/>
+    <input name="Points" type="Field"/>
+    <input name="Region Attribs" type="Field"/>
+    <input name="Regions" type="Field"/>
+    <output name="TetVol" type="Field"/>
+  </data>
+</algorithm>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReportDataArrayInfo" category="DataArrayMath" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="DataArray" type="Matrix"/>
+    <output name="NumElements" type="Matrix"/>
+  </data>
+</algorithm>
