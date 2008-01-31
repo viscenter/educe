@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GeneratePointSamplesFromFieldOrWidget" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_wtype">
+      <type>
+        <string default="rake"/>
+      </type>
+    </parameter>
+    <parameter name="p_endpoints">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_maxseeds">
+      <type>
+        <double default="15.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_numseeds">
+      <type>
+        <int default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_rngseed">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_rnginc">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_clamp">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_autoexecute">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_dist">
+      <type>
+        <string default="uniuni"/>
+      </type>
+    </parameter>
+    <parameter name="p_whichtab">
+      <type>
+        <string default="Widget"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field to Sample" type="Field"/>
+    <output name="Samples" type="Field"/>
+    <output name="Sampling Widget" type="Geometry"/>
+  </data>
+</algorithm>

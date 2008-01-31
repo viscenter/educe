@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateLightForViewer" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_control_pos_saved">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_control_x">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_control_y">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_control_z">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_at_x">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_at_y">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_at_z">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_type">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_on">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+  <output name="Geometry" type="Geometry"/>
+  </data>
+</algorithm>

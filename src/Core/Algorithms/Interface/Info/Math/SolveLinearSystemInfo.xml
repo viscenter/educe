@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SolveLinearSystem" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_target_error">
+      <type>
+        <double default="0.001000"/>
+      </type>
+    </parameter>
+    <parameter name="p_flops">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_floprate">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_memrefs">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_memrate">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_orig_error">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_current_error">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_method">
+      <type>
+        <string default="Conjugate Gradient and Precond. (SCI)"/>
+      </type>
+    </parameter>
+    <parameter name="p_precond">
+      <type>
+        <string default="jacobi"/>
+      </type>
+    </parameter>
+    <parameter name="p_iteration">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_maxiter">
+      <type>
+        <int default="200"/>
+      </type>
+    </parameter>
+    <parameter name="p_use_previous_soln">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_emit_partial">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_emit_iter">
+      <type>
+        <int default="50"/>
+      </type>
+    </parameter>
+    <parameter name="p_status">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_np">
+      <type>
+        <int default="4"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Matrix" type="Matrix"/>
+    <input name="RHS" type="Matrix"/>
+    <output name="Solution" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InsertColorMap2sIntoBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_colormap21_name">
+      <type>
+        <string default="colormap21"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap22_name">
+      <type>
+        <string default="colormap22"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap23_name">
+      <type>
+        <string default="colormap23"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap24_name">
+      <type>
+        <string default="colormap24"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap25_name">
+      <type>
+        <string default="colormap25"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap26_name">
+      <type>
+        <string default="colormap26"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace1">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace2">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace3">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace4">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace5">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace6">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundlename">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <input name="colormap21" type="ColorMap2"/>
+    <input name="colormap22" type="ColorMap2"/>
+    <input name="colormap23" type="ColorMap2"/>
+    <input name="colormap24" type="ColorMap2"/>
+    <input name="colormap25" type="ColorMap2"/>
+    <input name="colormap26" type="ColorMap2"/>
+    <output name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

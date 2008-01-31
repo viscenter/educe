@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetStringsFromBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_string1_name">
+      <type>
+        <string default="string1"/>
+      </type>
+    </parameter>
+    <parameter name="p_string2_name">
+      <type>
+        <string default="string2"/>
+      </type>
+    </parameter>
+    <parameter name="p_string3_name">
+      <type>
+        <string default="string3"/>
+      </type>
+    </parameter>
+    <parameter name="p_string4_name">
+      <type>
+        <string default="string4"/>
+      </type>
+    </parameter>
+    <parameter name="p_string5_name">
+      <type>
+        <string default="string5"/>
+      </type>
+    </parameter>
+    <parameter name="p_string6_name">
+      <type>
+        <string default="string6"/>
+      </type>
+    </parameter>
+    <parameter name="p_string_selection">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+    <output name="string1" type="String"/>
+    <output name="string2" type="String"/>
+    <output name="string3" type="String"/>
+    <output name="string4" type="String"/>
+    <output name="string5" type="String"/>
+    <output name="string6" type="String"/>
+  </data>
+</algorithm>

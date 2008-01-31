@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ClipFieldByFunction" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_mode">
+      <type>
+        <string default="allnodes"/>
+      </type>
+    </parameter>
+    <parameter name="p_function">
+      <type>
+        <string default="return (x &lt; 0);"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Function" type="String"/>
+    <input name="Input" type="Field"/>
+    <output name="Clipped" type="Field"/>
+    <output name="Mapping" type="Matrix"/>
+    <output name="MaskVector" type="Nrrd"/>
+  </data>
+</algorithm>

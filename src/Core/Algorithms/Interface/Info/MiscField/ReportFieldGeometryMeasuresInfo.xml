@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReportFieldGeometryMeasures" category="MiscField" version="1.0">
+  <parameters>
+    <parameter name="p_simplexString">
+      <type>
+        <string default="Node"/>
+      </type>
+    </parameter>
+    <parameter name="p_xFlag">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_yFlag">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_zFlag">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_idxFlag">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_sizeFlag">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_normalsFlag">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="Output Measures Matrix" type="Matrix"/>
+  </data>
+</algorithm>

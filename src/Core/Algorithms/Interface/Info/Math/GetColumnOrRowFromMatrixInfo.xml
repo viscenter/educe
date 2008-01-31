@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetColumnOrRowFromMatrix" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_row_or_col">
+      <type>
+        <string default="row"/>
+      </type>
+    </parameter>
+    <parameter name="p_selectable_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_selectable_max">
+      <type>
+        <double default="100.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_selectable_inc">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_selectable_units">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_range_min">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_range_max">
+      <type>
+        <int default="100"/>
+      </type>
+    </parameter>
+    <parameter name="p_playmode">
+      <type>
+        <string default="once"/>
+      </type>
+    </parameter>
+    <parameter name="p_current">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_execmode">
+      <type>
+        <string default="init"/>
+      </type>
+    </parameter>
+    <parameter name="p_delay">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_inc_amount">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_send_amount">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_data_series_done">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Matrix" type="Matrix"/>
+    <input name="Weight Vector" type="Matrix"/>
+    <input name="Current Index" type="Matrix"/>
+    <output name="Vector" type="Matrix"/>
+    <output name="Selected Index" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateStructHex" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_sizex">
+      <type>
+        <int default="16"/>
+      </type>
+    </parameter>
+    <parameter name="p_sizey">
+      <type>
+        <int default="16"/>
+      </type>
+    </parameter>
+    <parameter name="p_sizez">
+      <type>
+        <int default="16"/>
+      </type>
+    </parameter>
+    <parameter name="p_padpercent">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_data_at">
+      <type>
+        <string default="Nodes"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="Output Sample Field" type="Field"/>
+  </data>
+</algorithm>

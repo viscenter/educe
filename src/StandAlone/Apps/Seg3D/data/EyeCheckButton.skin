@@ -1,0 +1,20 @@
+<definition name="EyeCheckButton">
+  <object name="CheckButtonTemplate">
+    <var name="ImageFrameButton::on_filename" propagate="yes" overwrite="no">icon-eyeopen.png</var>
+    <var name="ImageFrameButton::off_filename" propagate="yes" overwrite="no">icon-eyeclosed.png</var>
+
+    <definition name="CheckButtonTemplate::OffObject">
+      <object name="Skinner::Texture">
+        <var name="file">$ImageFrameButton::off_filename</var>
+        <var name="color">#FFFFFFFF</var>
+      </object>
+    </definition>
+
+    <definition name="CheckButtonTemplate::OnObject">
+      <object name="Skinner::Texture">
+        <var name="file">$ImageFrameButton::on_filename</var>
+        <var name="color">#FFFFFFFF</var>
+      </object>
+    </definition>
+  </object>
+</definition>

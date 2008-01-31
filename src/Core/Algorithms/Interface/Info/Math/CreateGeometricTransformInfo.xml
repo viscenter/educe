@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateGeometricTransform" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_rotate_x">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_rotate_y">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_rotate_z">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_rotate_theta">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_translate_x">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_translate_y">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_translate_z">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_scale_uniform">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_scale_x">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_scale_y">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_scale_z">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_shear_plane_a">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_shear_plane_b">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_shear_plane_c">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_widget_resizable">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_permute_x">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_permute_y">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_permute_z">
+      <type>
+        <int default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_pre_transform">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_which_transform">
+      <type>
+        <string default="translate"/>
+      </type>
+    </parameter>
+    <parameter name="p_widget_scale">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_ignoring_widget_changes">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Matrix" type="Matrix"/>
+    <output name="Matrix" type="Matrix"/>
+    <output name="Geometry" type="Geometry"/>
+  </data>
+</algorithm>

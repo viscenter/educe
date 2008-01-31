@@ -1,0 +1,142 @@
+<?xml version="1.0" ?><!DOCTYPE network  PUBLIC '-//SCIRun/Network DTD'  'network.dtd'><network bbox="{8 14 525 498}" creationDate="{Fri Mar 09 2007}" creationTime="{18:26:44}" geometry="{800x800+0+0}" name="{Main}" version="v3.1.0">
+  <note>{}</note>
+  <modules>
+    <module category="MiscField" id="m1" name="ReportFieldGeometryMeasures" package="SCIRun" version="1.0">
+      <position x="285" y="288"/>
+      <var name="simplexString" substitute="no" val="{Node}"/>
+      <var name="xFlag" substitute="no" val="{1}"/>
+      <var name="yFlag" substitute="no" val="{1}"/>
+      <var name="zFlag" substitute="no" val="{1}"/>
+      <var name="idxFlag" substitute="no" val="{1}"/>
+      <var name="sizeFlag" substitute="no" val="{1}"/>
+      <var name="numNbrsFlag" substitute="no" val="{1}"/>
+      <var name="normalsFlag" substitute="no" val="{1}"/>
+    </module>
+    <module category="Visualization" id="m2" name="CreateStandardColorMaps" package="SCIRun" version="1.0">
+      <position x="8" y="284"/>
+      <var name="mapName" substitute="no" val="{Rainbow}"/>
+      <var name="gamma" substitute="no" val="{0.0}"/>
+      <var name="resolution" substitute="no" val="{256}"/>
+      <var name="reverse" substitute="no" val="{0}"/>
+      <var name="faux" substitute="no" val="{0}"/>
+      <var name="positionList" substitute="no" val="{}"/>
+      <var name="nodeList" substitute="no" val="{}"/>
+      <var name="width" substitute="no" val="{1}"/>
+      <var name="height" substitute="no" val="{1}"/>
+    </module>
+    <module category="Render" id="m3" name="ViewScene" package="SCIRun" version="1.0">
+      <position x="105" y="454"/>
+      <gui_callback>
+        <callback>addViewer</callback>
+      </gui_callback>
+      <var name="ViewWindow_0-geometry" substitute="no" val="654x610+565+131"/>
+      <var name="ViewWindow_0-view-eyep-x" substitute="no" val="{2.69417255235}"/>
+      <var name="ViewWindow_0-view-eyep-y" substitute="no" val="{4.23472411922}"/>
+      <var name="ViewWindow_0-view-eyep-z" substitute="no" val="{1.81517184501}"/>
+      <var name="ViewWindow_0-view-lookat-x" substitute="no" val="{0.5}"/>
+      <var name="ViewWindow_0-view-lookat-y" substitute="no" val="{0.5}"/>
+      <var name="ViewWindow_0-view-lookat-z" substitute="no" val="{-0.5}"/>
+      <var name="ViewWindow_0-view-up-x" substitute="no" val="{-0.811844302629}"/>
+      <var name="ViewWindow_0-view-up-y" substitute="no" val="{0.565951947979}"/>
+      <var name="ViewWindow_0-view-up-z" substitute="no" val="{-0.143552153825}"/>
+      <var name="ViewWindow_0-view-fov" substitute="no" val="{20.0}"/>
+      <var name="ViewWindow_0-sr" substitute="no" val="{1}"/>
+      <var name="ViewWindow_0-do_stereo" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-ortho-view" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-trackViewWindow0" substitute="no" val="{1}"/>
+      <var name="ViewWindow_0-lock-view-window" substitute="no" val="{1}"/>
+      <var name="ViewWindow_0-raxes" substitute="no" val="{1}"/>
+      <var name="ViewWindow_0-ambient-scale" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-diffuse-scale" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-specular-scale" substitute="no" val="{0.4}"/>
+      <var name="ViewWindow_0-emission-scale" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-shininess-scale" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-polygon-offset-factor" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-polygon-offset-units" substitute="no" val="{0.0}"/>
+      <var name="ViewWindow_0-point-size" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-line-width" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-sbase" substitute="no" val="{0.4}"/>
+      <var name="ViewWindow_0-bgcolor-r" substitute="no" val="{0.0}"/>
+      <var name="ViewWindow_0-bgcolor-g" substitute="no" val="{0.0}"/>
+      <var name="ViewWindow_0-bgcolor-b" substitute="no" val="{0.0}"/>
+      <var name="ViewWindow_0-fogusebg" substitute="no" val="{1}"/>
+      <var name="ViewWindow_0-fogcolor-r" substitute="no" val="{0.0}"/>
+      <var name="ViewWindow_0-fogcolor-g" substitute="no" val="{0.0}"/>
+      <var name="ViewWindow_0-fogcolor-b" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-fog-start" substitute="no" val="{0.0}"/>
+      <var name="ViewWindow_0-fog-end" substitute="no" val="{0.714265}"/>
+      <var name="ViewWindow_0-fog-visibleonly" substitute="no" val="{1}"/>
+      <var name="ViewWindow_0-inertia_mag" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-inertia_x" substitute="no" val="{1.0}"/>
+      <var name="ViewWindow_0-inertia_y" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-currentvisual" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-autoav" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-caxes" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-global-light0" substitute="no" val="{1}"/>
+      <var name="ViewWindow_0-global-light1" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-global-light2" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-global-light3" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-lightColors" substitute="no" val="{{1.0 1.0 1.0} {1.0 1.0 1.0} {1.0 1.0 1.0} {1.0 1.0 1.0}}"/>
+      <var name="ViewWindow_0-lightVectors" substitute="no" val="{{ 0 0 1 } { 0 0 1 } { 0 0 1 } { 0 0 1 }}"/>
+      <var name="ViewWindow_0-global-light" substitute="no" val="{1}"/>
+      <var name="ViewWindow_0-global-fog" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-global-debug" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-global-clip" substitute="no" val="{1}"/>
+      <var name="ViewWindow_0-global-cull" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-global-dl" substitute="no" val="{0}"/>
+      <var name="ViewWindow_0-global-type" substitute="no" val="{Gouraud}"/>
+    </module>
+    <module category="Visualization" id="m4" name="ShowMatrix" package="SCIRun" version="1.0">
+      <position x="131" y="380"/>
+      <var name="grid_x" substitute="no" val="{10}"/>
+      <var name="grid_y" substitute="no" val="{10}"/>
+      <var name="grid_z" substitute="no" val="{10}"/>
+      <var name="xpos" substitute="no" val="{0.0}"/>
+      <var name="ypos" substitute="no" val="{0.0}"/>
+      <var name="xscale" substitute="no" val="{1.0}"/>
+      <var name="yscale" substitute="no" val="{2.0}"/>
+      <var name="3d_mode" substitute="no" val="{1}"/>
+      <var name="gmode" substitute="no" val="{1}"/>
+      <var name="showtext" substitute="no" val="{0}"/>
+      <var name="row_begin" substitute="no" val="{0}"/>
+      <var name="row_end" substitute="no" val="{399}"/>
+      <var name="rows" substitute="no" val="{10000}"/>
+      <var name="col_begin" substitute="no" val="{0}"/>
+      <var name="col_end" substitute="no" val="{8}"/>
+      <var name="cols" substitute="no" val="{10000}"/>
+      <var name="colormapmode" substitute="no" val="{0}"/>
+    </module>
+    <module category="ChangeFieldData" id="m5" name="CalculateFieldDataCompiled" package="SCIRun" version="1.0">
+      <position x="97" y="95"/>
+      <var name="outputdatatype" substitute="no" val="{port 0 input}"/>
+      <var name="function" substitute="no" val="{result = x + y + z; }"/>
+      <var name="cache" substitute="no" val="{0}"/>
+    </module>
+    <module category="NewField" id="m6" name="CreateImage" package="SCIRun" version="1.0">
+      <position x="59" y="14"/>
+      <var name="sizex" substitute="no" val="{20}"/>
+      <var name="sizey" substitute="no" val="{20}"/>
+      <var name="sizez" substitute="no" val="{2}"/>
+      <var name="z_value" substitute="no" val="{0}"/>
+      <var name="auto_size" substitute="no" val="{0}"/>
+      <var name="axis" substitute="no" val="{0}"/>
+      <var name="padpercent" substitute="no" val="{0.0}"/>
+      <var name="pos" substitute="no" val="{0.0}"/>
+      <var name="data-at" substitute="no" val="{Nodes}"/>
+      <var name="update_type" substitute="no" val="{On Release}"/>
+      <var name="corigin-x" substitute="no" val="{0.0}"/>
+      <var name="corigin-y" substitute="no" val="{0.0}"/>
+      <var name="corigin-z" substitute="no" val="{0.0}"/>
+      <var name="cnormal-x" substitute="no" val="{1.0}"/>
+      <var name="cnormal-y" substitute="no" val="{1.0}"/>
+      <var name="cnormal-z" substitute="no" val="{1.0}"/>
+    </module>
+  </modules>
+  <connections>
+    <connection from="m5" fromport="0" id="c1" to="m1" toport="0"/>
+    <connection from="m2" fromport="0" id="c2" to="m4" toport="0"/>
+    <connection from="m4" fromport="0" id="c3" to="m3" toport="0"/>
+    <connection from="m1" fromport="0" id="c4" to="m4" toport="1"/>
+    <connection from="m6" fromport="0" id="c5" to="m5" toport="1"/>
+  </connections>
+</network>

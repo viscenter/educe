@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SplitNodesByDomain" category="NewField" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <output name="SplitField" type="Field"/>
+  </data>
+</algorithm>

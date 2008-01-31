@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SolveMinNormLeastSqSystem" category="Math" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="BasisVec1" type="Matrix"/>
+    <input name="BasisVec2" type="Matrix"/>
+    <input name="BasisVec3" type="Matrix"/>
+    <input name="TargetVec" type="Matrix"/>
+    <output name="WeightVec(Col)" type="Matrix"/>
+    <output name="ResultVec(Col)" type="Matrix"/>
+  </data>
+</algorithm>

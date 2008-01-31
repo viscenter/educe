@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateViewerClockIcon" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_type">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_bbox">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_format">
+      <type>
+        <string default="%8.3f seconds"/>
+      </type>
+    </parameter>
+    <parameter name="p_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_max">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_current">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_size">
+      <type>
+        <int default="100"/>
+      </type>
+    </parameter>
+    <parameter name="p_location_x">
+      <type>
+        <double default="-0.968750"/>
+      </type>
+    </parameter>
+    <parameter name="p_location_y">
+      <type>
+        <double default="0.968750"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_r">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_g">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_b">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Time Matrix" type="Matrix"/>
+    <input name="Time Nrrd" type="Nrrd"/>
+    <output name="Clock" type="Geometry"/>
+  </data>
+</algorithm>

@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="utf-8"?>
+<definition name="Layers" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <object name="LabeledFrame">
+    <var name="LabeledFrame::name" propagate="yes">Volumes</var>
+    <xi:include href="LayerButton.skin" parse="xml"/>
+    <definition name="LabeledFrame::child">
+      <object name="ScrolledView">
+        <var name="ScrolledView::height" propagate="yes">4000</var>
+        <var name="ScrolledView::width" propagate="yes">500</var>
+        <definition name="ScrolledView::child">
+      <object name="Skinner::Grid">
+        <var name="rows">100</var>
+        <var name="cols">1</var>
+        <var name="text_bgcolor" propagate="yes">#FFFFFFFF</var>
+        <var name="text_fgcolor" propagate="yes">#000000FF</var>
+
+        <var name="buttonheight" propagate="yes">35</var>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">1</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">2</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">3</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">4</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">5</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">6</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">7</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">8</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">9</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">10</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">11</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">12</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">13</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">14</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">15</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">16</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">17</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">18</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">19</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">20</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">21</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">22</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">23</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">24</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">25</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">26</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">27</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">28</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">29</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">30</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">31</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">32</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">33</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">34</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">35</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">36</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">37</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">38</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">39</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">40</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">41</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">42</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">43</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">44</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">45</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">46</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">47</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">48</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">49</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">50</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">51</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">52</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">53</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">54</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">55</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">56</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">57</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">58</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">59</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">60</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">61</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">62</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">63</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">64</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">65</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">66</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">67</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">68</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">69</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">70</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">71</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">72</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">73</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">74</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">75</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">76</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">77</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">78</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">79</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">80</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">81</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">82</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">83</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">84</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">85</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">86</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">87</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">88</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">89</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">90</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">91</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">92</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">93</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">94</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">95</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">96</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">97</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">98</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">99</var>
+        </object>
+
+        <object name="LayerButton">
+          <var name="LayerButton::num">100</var>
+        </object>
+
+      </object>
+
+    </definition>
+  </object>
+</definition>
+  </object>
+</definition>

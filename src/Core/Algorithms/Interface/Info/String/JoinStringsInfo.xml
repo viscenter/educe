@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="JoinStrings" category="String" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="input" type="String"/>
+    <output name="Output" type="String"/>
+  </data>
+</algorithm>

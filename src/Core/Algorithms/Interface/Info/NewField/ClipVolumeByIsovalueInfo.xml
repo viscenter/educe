@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ClipVolumeByIsovalue" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_isoval_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_isoval_max">
+      <type>
+        <double default="99.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_isoval">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_lte">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_update_type">
+      <type>
+        <string default="On Release"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input" type="Field"/>
+    <input name="Optional Isovalue" type="Matrix"/>
+    <output name="Clipped" type="Field"/>
+    <output name="Mapping" type="Matrix"/>
+  </data>
+</algorithm>

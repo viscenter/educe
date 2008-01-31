@@ -1,0 +1,8 @@
+<definition name="OKButton">
+  <object name="ButtonRoundFlat">
+    <var name="Button::color" propagate="yes">#305030FF</var>
+    <var name="Button::Text::text" propagate="yes">Close</var>
+    <signal name="Button::clicked"
+            target="OK"/>
+  </object>
+</definition>

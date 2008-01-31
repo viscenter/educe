@@ -1,0 +1,3020 @@
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2004 Scientific Computing and Imaging Institute,
+   University of Utah.
+
+   
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/
+
+//    File   : RenderField.cc
+//    Author : Martin Cole
+//    Date   : Tue May 22 10:57:12 2001
+
+#include <Core/Algorithms/Visualization/RenderField.h>
+#include <Core/Events/DataManager.h>
+#include <Core/Thread/Time.h>
+
+namespace SCIRun {
+
+RenderFieldBase::RenderFieldBase() :
+  node_switch_(0),
+  edge_switch_(0),
+  face_switch_(0)
+{}
+
+RenderFieldBase::~RenderFieldBase()
+{}
+
+CompileInfoHandle
+RenderFieldBase::get_compile_info(const TypeDescription *ftd,
+				  const TypeDescription *ltd)
+{
+  static const string include_path(TypeDescription::cc_to_h(__FILE__));
+  static const string template_class_name("RenderField");
+  static const string base_class_name("RenderFieldBase");
+
+  string template_class_name0 = template_class_name;
+  const string fldname = ftd->get_name();
+  if ( fldname.find( "ImageMesh" ) != string::npos )
+  {
+    template_class_name0 += "Image";
+  }
+
+  CompileInfo *rval = scinew CompileInfo(template_class_name0 + "." +
+					 ftd->get_filename() + "." +
+					 ltd->get_filename() + ".",
+					 base_class_name, 
+					 template_class_name0, 
+					 ftd->get_name() + ", " +
+					 ltd->get_name());
+
+  rval->add_include(include_path);
+  ftd->fill_compile_info(rval);
+  return rval;
+}
+
+
+//! interface that does the dynamic compilation.
+
+
+GeomHandle
+RenderFieldV::render_mesh_nodes(FieldHandle field_handle, 
+				const string &display_mode,
+				double scale,
+				int resolution,
+				unsigned int render_state)
+{
+  return render_nodes(field_handle, display_mode,
+		      scale, resolution, render_state );
+}
+
+
+GeomHandle
+RenderFieldV::render_mesh_edges(FieldHandle field_handle,
+				const string &display_mode,
+				double scale,
+				int resolution,
+				unsigned int render_state,
+				unsigned int approx_div)
+{
+  VField *fld = field_handle->vfield();
+  VMesh  *mesh = field_handle->vmesh();
+  bool do_linear = ( fld->basis_order() < 2 &&
+		     mesh->basis_order() < 2 &&
+		     approx_div == 1);
+
+  if (do_linear) 
+  {
+    return render_edges_linear(field_handle, display_mode,
+			       scale, resolution, render_state);
+  } 
+  else 
+  {
+    return render_edges(field_handle, display_mode,
+			scale, resolution, render_state, approx_div);
+  }
+}
+
+
+GeomHandle
+RenderFieldV::render_mesh_faces(FieldHandle field_handle, 
+				ColorMapHandle colormap_handle,
+				unsigned int render_state,
+				unsigned int approx_div)
+{
+  VField *fld = field_handle->vfield();
+  VMesh  *mesh = field_handle->vmesh();
+  
+  if(mesh->is_regularmesh() && mesh->is_surface() &&
+     get_flag(render_state, USE_TEXTURE))
+  {
+    return render_faces_texture(field_handle, colormap_handle, render_state);
+  }
+
+  else
+  {
+    bool do_linear = (fld->basis_order() < 2 && mesh->basis_order() < 2 && approx_div == 1);
+    
+    if (do_linear)
+      return render_faces_linear(field_handle, render_state );
+    else
+      return render_faces(field_handle, render_state, approx_div);
+  }
+}
+
+
+GeomHandle
+RenderFieldV::render_nodes(FieldHandle field_handle, 
+			   const string &display_mode,
+			   double scale,
+			   int resolution,
+			   unsigned int render_state )
+{
+  VField *fld = field_handle->vfield();
+  VMesh  *mesh = field_handle->vmesh();
+
+  GeomPoints    *points;
+  GeomGlyphBase *glyphs;
+  GeomHandle data_switch;
+
+  // 0 Points 1 Spheres
+  bool points_p  = (display_mode != "Spheres");
+  bool spheres_p = (display_mode == "Spheres");
+
+  if (points_p) // Points
+  {
+    if (get_flag(render_state, USE_TRANSPARENCY))
+      points = scinew GeomTranspPoints();
+    else
+      points = scinew GeomPoints();
+
+    data_switch = scinew GeomDL(points);
+
+    points->setPointSize(resolution/5.0);
+  }
+  else if (spheres_p) // Spheres
+  {
+    if (get_flag(render_state, USE_TRANSPARENCY))
+      glyphs = scinew GeomTranspGlyph();
+    else
+      glyphs = scinew GeomGlyph();
+
+    data_switch = scinew GeomDL(glyphs->getObj());
+  }
+
+  unsigned int color_scheme = 0;
+  double scol;
+  MaterialHandle vcol(0);
+
+  if( fld->basis_order() < 0 ||
+      (fld->basis_order() == 0 && mesh->dimensionality() != 0) ||
+      get_flag(render_state, USE_DEFAULT_COLOR) )
+  {
+    color_scheme = 0; // Default color
+  }
+  else if (get_flag(render_state, USE_COLORMAP))
+  {
+    // Color map lookup using either a scalar value
+    // the vector magnitude, the tensor.
+    color_scheme = 1;
+  }
+  else // if (fld->basis_order() >= 1)
+  {
+    color_scheme = 2; // Value become RGB
+    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    if (get_flag(render_state, USE_TRANSPARENCY))
+      vcol->transparency = 0.75;
+    else
+      vcol->transparency = 1.0;
+  }
+
+  mesh->synchronize(Mesh::NODES_E);
+  
+  VMesh::Node::iterator iter;      mesh->begin(iter);  
+  VMesh::Node::iterator iter_end;  mesh->end(iter_end);  
+  while (iter != iter_end) 
+  {
+    Point p;
+    mesh->get_point(p, *iter);
+
+    if( color_scheme ) 
+    {
+      if (fld->is_scalar())
+      { 
+        double val; fld->get_value(val,*iter); 
+        value_to_color( color_scheme, val, scol, vcol );
+      }
+      if (fld->is_vector())
+      { 
+        Vector val; fld->get_value(val,*iter); 
+        value_to_color( color_scheme, val, scol, vcol );
+      }
+      if (fld->is_tensor())
+      { 
+        Tensor val; fld->get_value(val,*iter); 
+        value_to_color( color_scheme, val, scol, vcol );
+      }
+    }
+
+    if (points_p)
+    {  
+      if (color_scheme == 0)
+        points->add(p);
+      else if (color_scheme == 1)
+        points->add(p, scol);
+      else //if (color_scheme == 2)
+        points->add(p, vcol);
+    }
+    else if (spheres_p)
+    {
+      if (color_scheme == 0)
+        glyphs->add_sphere(p, scale, resolution, resolution);
+      else if (color_scheme == 1)
+        glyphs->add_sphere(p, scale, scol, resolution, resolution);
+      else //if (color_scheme == 2)
+        glyphs->add_sphere(p, scale, vcol, resolution, resolution);
+    }
+
+    ++iter;
+  }
+
+  return data_switch;
+}
+
+void
+RenderFieldV::add_edge_geom(GeomLines *lines,
+			    GeomGlyphBase *glyphs,
+			    const Point &p0, const Point &p1,
+			    const double radius,
+			    const int resolution,
+			    bool cylinders_p,
+			    unsigned int color_scheme,
+			    double scol0,
+			    double scol1,
+			    MaterialHandle& vcol0,
+			    MaterialHandle& vcol1)
+{
+  Vector vec = (Vector) (p1 - p0);
+
+  if (color_scheme == 0)
+  {
+    if (cylinders_p)
+      glyphs->add_cylinder(p0, vec, radius, radius, vec.length(), resolution );
+    else
+      lines->add(p0, p1);
+  }
+  else if (color_scheme == 1)
+  {
+    if (cylinders_p)
+      glyphs->add_cylinder(p0, vec, radius, radius, vec.length(),
+			   scol0, scol1, resolution);
+    else
+      lines->add(p0, scol0, p1, scol1);
+  }
+  else if (color_scheme == 2)
+  {
+    if ( cylinders_p )
+      glyphs->add_cylinder(p0, vec, radius, radius, vec.length(),
+			   vcol0, vcol1, resolution);
+    else
+      lines->add(p0, vcol0, p1, vcol1);
+  }
+}
+
+
+GeomHandle
+RenderFieldV::render_edges(FieldHandle field_handle,
+			   const string &edge_display_mode,
+			   double scale,
+			   int resolution,
+			   unsigned int render_state,
+			   unsigned div)
+{
+  VField *fld = field_handle->vfield();
+  VMesh  *mesh = field_handle->vmesh();
+
+  GeomLines*     lines;
+  GeomGlyphBase* glyphs;
+  GeomHandle data_switch;
+
+  // 0 Lines 1 Cylinders
+  bool lines_p = (edge_display_mode == "Lines");
+  bool cylinders_p = (edge_display_mode == "Cylinders");
+  
+  if (lines_p) // Lines
+  {
+    if (get_flag(render_state, USE_TRANSPARENCY))
+      lines = scinew GeomTranspLines;
+    else
+      lines = scinew GeomLines;
+
+    data_switch = scinew GeomDL(lines);
+
+    lines->setLineWidth(resolution/5.0);
+  }
+  else if (cylinders_p) // Cylinders
+  {
+    if (get_flag(render_state, USE_TRANSPARENCY))
+      glyphs = scinew GeomTranspGlyph();
+    else
+      glyphs = scinew GeomGlyph();
+
+    data_switch = scinew GeomDL(glyphs->getObj());
+  }
+
+  unsigned int color_scheme = 0;
+  double scol0, scol1;
+  MaterialHandle vcol0(0);
+  MaterialHandle vcol1(0);
+
+  if (fld->basis_order() < 0 ||
+      (fld->basis_order() == 0 && mesh->dimensionality() != 1) ||
+      get_flag(render_state, USE_DEFAULT_COLOR))
+  {
+    color_scheme = 0; // Default color
+  }
+  else if (get_flag(render_state, USE_COLORMAP))
+  {
+    // Color map lookup using either a scalar value
+    // the vector magnitude, the tensor.
+    color_scheme = 1;
+  }
+  else // if (fld->basis_order() >= 1)
+  {
+    color_scheme = 2; // Values become RGB
+    vcol0 = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol1 = scinew Material(Color(1.0, 1.0, 1.0));
+    if (get_flag(render_state, USE_TRANSPARENCY))
+      vcol0->transparency = vcol1->transparency = 0.75;
+    else
+      vcol0->transparency = vcol1->transparency = 1.0;
+  }
+
+#if defined(_MSC_VER) || defined(__ECC)
+  typedef hash_set<string> edge_ht_t;
+#else
+  typedef hash_set<string, str_hasher, equal_str> edge_ht_t;
+#endif
+  edge_ht_t rendered_edges; 
+
+  mesh->synchronize(Mesh::EDGES_E | Mesh::FACES_E | Mesh::CELLS_E);
+  VMesh::Elem::iterator eiter; mesh->begin(eiter);  
+  VMesh::Elem::iterator eiter_end; mesh->end(eiter_end);  
+  VMesh::Edge::array_type edges;
+  
+  while (eiter != eiter_end) 
+  {  
+    mesh->get_edges(edges, *eiter);
+
+    VMesh::Edge::array_type::iterator edge_iter;
+    edge_iter = edges.begin();
+    int ecount = 0;
+    while (edge_iter != edges.end()) 
+    {
+
+      VMesh::Node::array_type nodes;
+      VMesh::Edge::index_type eidx = *edge_iter++;
+
+      Point cntr;
+      mesh->get_center(cntr, eidx);
+      ostringstream pstr;  
+      pstr << setiosflags(ios::scientific);
+      pstr << setprecision(7); 
+      pstr << cntr.x() << cntr.y() << cntr.z();
+      
+      edge_ht_t::const_iterator it = rendered_edges.find(pstr.str());
+
+      if (it != rendered_edges.end()) 
+      {
+        ++ecount;
+        continue;
+      } 
+      else 
+      {
+        rendered_edges.insert(pstr.str());
+      }
+      // following print is useful for debugging edge ordering
+      //      cout << "elem: " << *eiter << " count " << ecount 
+      //	   << " edge" << eidx << std::endl;
+      VMesh::coords_array_type coords;
+      mesh->pwl_approx_edge(coords, *eiter, ecount++, div);
+      VMesh::coords_array_type::iterator coord_iter = coords.begin();
+      do 
+      {
+        VMesh::coords_type &c0 = *coord_iter++;
+        if (coord_iter == coords.end()) break;
+        VMesh::coords_type &c1 = *coord_iter;
+        Point p0, p1;      
+
+        // get the geometry at the approx.
+        mesh->interpolate(p0, c0, *eiter);
+        mesh->interpolate(p1, c1, *eiter);
+
+        // get the field variables values at the approx (if they exist)
+        if (color_scheme) 
+        {
+          if (fld->is_scalar())
+          {
+            double val0, val1;
+            fld->interpolate(val0, c0, *eiter);
+            fld->interpolate(val1, c1, *eiter);
+
+            value_to_color( color_scheme, val0, scol0, vcol0 );
+            value_to_color( color_scheme, val1, scol1, vcol1 );
+          }
+	  if (fld->is_vector())
+          {
+            Vector val0, val1;
+            fld->interpolate(val0, c0, *eiter);
+            fld->interpolate(val1, c1, *eiter);
+
+            value_to_color( color_scheme, val0, scol0, vcol0 );
+            value_to_color( color_scheme, val1, scol1, vcol1 );
+          }
+	  if (fld->is_tensor())
+          {
+            Tensor val0, val1;
+            fld->interpolate(val0, c0, *eiter);
+            fld->interpolate(val1, c1, *eiter);
+
+            value_to_color( color_scheme, val0, scol0, vcol0 );
+            value_to_color( color_scheme, val1, scol1, vcol1 );
+          }
+        }
+
+        add_edge_geom(lines, glyphs, p0, p1,
+		      scale, resolution, cylinders_p,
+		      color_scheme, scol0, scol1, vcol0, vcol1);
+	
+      } 
+      while (coords.size() > 1 && coord_iter != coords.end()); 
+    }
+    
+    ++eiter;
+  }
+  
+  return data_switch;
+}
+
+
+GeomHandle
+RenderFieldV::render_edges_linear(FieldHandle field_handle,
+				  const string &display_mode,
+				  double scale,
+				  int resolution,
+				  unsigned int render_state) 
+{
+  VField *fld = field_handle->vfield();
+  VMesh  *mesh = field_handle->vmesh();
+
+  GeomLines*     lines;
+  GeomGlyphBase* glyphs;
+  GeomHandle data_switch;
+
+  // 0 Lines 1 Cylinders
+  bool lines_p     = (display_mode == "Lines");
+  bool cylinders_p = (display_mode == "Cylinders");
+
+  if (lines_p) // Lines
+  {
+    if (get_flag(render_state, USE_TRANSPARENCY))
+    {
+      lines = scinew GeomTranspLines;
+      data_switch = lines;
+    }
+    else
+    {
+      lines = scinew GeomLines;
+      data_switch = scinew GeomDL(lines);
+    }
+
+    lines->setLineWidth(resolution/5.0);
+  }
+  else if (cylinders_p) // Cylinders
+  {
+    if (get_flag(render_state, USE_TRANSPARENCY))
+    {
+      glyphs = scinew GeomTranspGlyph();
+      data_switch = glyphs->getObj();
+    }
+    else
+    {
+      glyphs = scinew GeomGlyph();
+      data_switch = scinew GeomDL(glyphs->getObj());
+    }
+  }
+
+  unsigned int color_scheme = 0;
+  double scol0, scol1;
+  MaterialHandle vcol0(0);
+  MaterialHandle vcol1(0);
+
+  if (fld->basis_order() < 0 ||
+      (fld->basis_order() == 0 && mesh->dimensionality() != 1) ||
+      get_flag(render_state, USE_DEFAULT_COLOR))
+  {
+    color_scheme = 0; // Default color
+  }
+  else if (get_flag(render_state, USE_COLORMAP))
+  {
+    // Color map lookup using either a scalar value
+    // the vector magnitude, the tensor.
+    color_scheme = 1;
+  }
+  else //if (fld->basis_order() >= 0)
+  {
+    color_scheme = 2; // Vector values become RGB
+    vcol0 = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol1 = scinew Material(Color(1.0, 1.0, 1.0));
+    if (get_flag(render_state, USE_TRANSPARENCY))
+      vcol0->transparency = vcol1->transparency = 0.75;
+    else
+      vcol0->transparency = vcol1->transparency = 1.0;
+  }
+
+  mesh->synchronize(Mesh::EDGES_E);
+  VMesh::Edge::iterator eiter; mesh->begin(eiter);  
+  VMesh::Edge::iterator eiter_end; mesh->end(eiter_end);  
+ 
+  while (eiter != eiter_end) 
+  {  
+    VMesh::Node::array_type nodes;
+    mesh->get_nodes(nodes, *eiter);
+      
+    Point p0, p1;
+    mesh->get_point(p0, nodes[0]);
+    mesh->get_point(p1, nodes[1]);
+
+    if (fld->is_scalar())
+    {
+      double val0, val1;
+
+      if( color_scheme )
+      {
+        if (fld->basis_order() == 1)
+        {
+          fld->get_value(val0, nodes[0]);
+          fld->get_value(val1, nodes[1]);
+        }
+        else //if (mesh->dimensionality() == 1)
+        {
+          fld->get_value(val0, *eiter);
+
+          val1 = val0;
+        }
+
+        value_to_color( color_scheme, val0, scol0, vcol0 );
+        value_to_color( color_scheme, val1, scol1, vcol1 );
+      }
+    }
+    else if (fld->is_vector())
+    {
+      Vector val0, val1;
+
+      if( color_scheme )
+      {
+        if (fld->basis_order() == 1)
+        {
+          fld->get_value(val0, nodes[0]);
+          fld->get_value(val1, nodes[1]);
+        }
+        else //if (mesh->dimensionality() == 1)
+        {
+          fld->get_value(val0, *eiter);
+
+          val1 = val0;
+        }
+
+        value_to_color( color_scheme, val0, scol0, vcol0 );
+        value_to_color( color_scheme, val1, scol1, vcol1 );
+      }
+    }
+    else if (fld->is_tensor())
+    {
+      Tensor val0, val1;
+
+      if( color_scheme )
+      {
+        if (fld->basis_order() == 1)
+        {
+          fld->get_value(val0, nodes[0]);
+          fld->get_value(val1, nodes[1]);
+        }
+        else //if (mesh->dimensionality() == 1)
+        {
+          fld->get_value(val0, *eiter);
+
+          val1 = val0;
+        }
+
+        value_to_color( color_scheme, val0, scol0, vcol0 );
+        value_to_color( color_scheme, val1, scol1, vcol1 );
+      }
+    }
+    
+    add_edge_geom(lines, glyphs, p0, p1,
+		  scale, resolution, cylinders_p,
+		  color_scheme, scol0, scol1, vcol0, vcol1);
+
+    ++eiter;
+  }
+
+  return data_switch;
+}
+
+
+void
+RenderFieldV::add_face_geom(GeomFastTriangles *faces,
+			    GeomFastQuads *qfaces,
+			    const vector<Point>  &points,
+			    const vector<Vector> &normals,
+			    bool with_normals,
+			    unsigned int color_scheme,
+			    vector<double> &scols,
+			    vector<MaterialHandle> &vcols )
+{
+  if (color_scheme == 0)
+  {
+    if (points.size() == 4)
+    {
+      if (with_normals)
+      {
+        qfaces->add(points[0], normals[0],
+		    points[1], normals[1],
+		    points[2], normals[2],
+		    points[3], normals[3]);
+      }
+      else
+      {
+        qfaces->add(points[0], points[1], points[2], points[3]);
+      }
+    }
+    else
+    {
+      for (size_t i = 2; i < points.size(); i++)
+      {
+        if (with_normals)
+        {
+          faces->add(points[0],   normals[0],
+		     points[i-1], normals[i-1],
+		     points[i],   normals[i]);
+        }
+        else
+        {
+          faces->add(points[0], points[i-1], points[i]);
+        }
+      }
+    }    
+  }
+  else if (color_scheme == 1)
+  {
+    if (points.size() == 4)
+    {
+      if (with_normals)
+      {
+        qfaces->add(points[0], normals[0], scols[0],
+		    points[1], normals[1], scols[1],
+		    points[2], normals[2], scols[2],
+		    points[3], normals[3], scols[3]);
+      }
+      else
+      {
+        qfaces->add(points[0], scols[0],
+		    points[1], scols[1],
+		    points[2], scols[2],
+		    points[3], scols[3]);
+      }
+    }
+    else
+    {
+      for (size_t i = 2; i < points.size(); i++)
+      {
+        if (with_normals)
+        {
+          faces->add(points[0],   normals[0],   scols[0],
+		     points[i-1], normals[i-1], scols[i-1],
+		     points[i],   normals[i],   scols[i]);
+        }
+        else
+        {
+          faces->add(points[0],   scols[0],
+		     points[i-1], scols[i-1],
+		     points[i],   scols[i]);
+        }
+      }
+    }
+  }
+  else if (color_scheme == 2)
+  {
+    if (points.size() == 4)
+    {
+      if (with_normals)
+      {
+        qfaces->add(points[0], normals[0], vcols[0],
+		    points[1], normals[1], vcols[1],
+		    points[2], normals[2], vcols[2],
+		    points[3], normals[3], vcols[3]);
+      }
+      else
+      {
+        qfaces->add(points[0], vcols[0],
+		    points[1], vcols[1],
+		    points[2], vcols[2],
+		    points[3], vcols[3]);
+      }
+    }
+    else
+    {
+      for (size_t i = 2; i < points.size(); i++)
+      {
+        if (with_normals)
+        {
+          faces->add(points[0],   normals[0],   vcols[0],
+		     points[i-1], normals[i-1], vcols[i-1],
+		     points[i],   normals[i],   vcols[i]);
+        }
+        else
+        {
+          faces->add(points[0],   vcols[0],
+		     points[i-1], vcols[i-1],
+		     points[i],   vcols[i]);
+        }
+      }
+    }
+  }
+}
+
+
+GeomHandle 
+RenderFieldV::render_faces(FieldHandle field_handle,
+			   unsigned int render_state,
+			   unsigned int div)
+{
+  VField *fld = field_handle->vfield();
+  VMesh  *mesh = field_handle->vmesh();
+
+  const bool with_normals = (get_flag(render_state, USE_NORMALS)
+			     && mesh->has_normals());
+
+  GeomFastTriangles* tfaces;
+  GeomFastQuads* qfaces;
+  GeomGroup *grp = scinew GeomGroup();
+  GeomHandle face_switch = scinew GeomDL(grp);
+
+  if (get_flag(render_state, USE_TRANSPARENCY))
+  {
+    tfaces = scinew GeomTranspTriangles;
+    qfaces = scinew GeomTranspQuads;
+  }
+  else
+  {
+    tfaces = scinew GeomFastTriangles;
+    qfaces = scinew GeomFastQuads;
+  }
+
+  grp->add(tfaces);
+  grp->add(qfaces);
+
+  unsigned int color_scheme = 0;
+
+  vector<double> scols(20);
+  vector<MaterialHandle> vcols(20, (Material *) 0);
+
+  if( fld->basis_order() < 0 ||
+      get_flag(render_state, USE_DEFAULT_COLOR) )
+  {
+    color_scheme = 0; // Default color
+  }
+  else if (get_flag(render_state, USE_COLORMAP))
+  {
+    // Color map lookup using either a scalar value
+    // the vector magnitude, the tensor.
+    color_scheme = 1;
+  }
+  else // if( fld->basis_order() >= 0 )
+  {
+    color_scheme = 2; // Values become RGB
+  }
+
+  if( color_scheme >= 2 )
+  {
+    for (unsigned int i=0; i<20; i++)
+    {
+      vcols[i] = scinew Material(Color(1.0, 1.0, 1.0));
+
+      if (get_flag(render_state, USE_TRANSPARENCY))
+        vcols[i]->transparency = 0.75;
+      else
+        vcols[i]->transparency = 1.0;
+    }
+  }
+
+#if defined(_MSC_VER) || defined(__ECC)
+  typedef hash_set<string> face_ht_t;
+#else
+  typedef hash_set<string, str_hasher, equal_str> face_ht_t;
+#endif
+  face_ht_t rendered_faces; 
+  
+  mesh->synchronize(Mesh::FACES_E | Mesh::EDGES_E | Mesh::CELLS_E);
+  VMesh::Elem::iterator eiter; mesh->begin(eiter);  
+  VMesh::Elem::iterator eiter_end; mesh->end(eiter_end);  
+  while (eiter != eiter_end) 
+  {  
+    VMesh::Face::array_type face_indecies;
+    mesh->get_faces(face_indecies, *eiter);
+
+    VMesh::Face::array_type::iterator face_iter;
+    face_iter = face_indecies.begin();
+    int fcount = 0;
+    while (face_iter != face_indecies.end()) 
+    {
+      VMesh::Node::array_type nodes;
+      VMesh::Face::index_type fidx = *face_iter++;
+
+      Point cntr;
+      mesh->get_center(cntr, fidx);
+      ostringstream pstr;
+      pstr << setiosflags(ios::scientific);
+      pstr << setprecision(7); 
+      pstr << cntr.x() << cntr.y() << cntr.z();
+      
+      face_ht_t::const_iterator it = rendered_faces.find(pstr.str());
+
+      if (it != rendered_faces.end()) 
+      {
+        ++fcount;
+        continue;
+      } 
+      else 
+      {
+        rendered_faces.insert(pstr.str());
+      }
+
+      //coords organized as scanlines of quad/tri strips.
+      VMesh::coords_array2_type coords;
+      mesh->pwl_approx_face(coords, *eiter, fcount, div);
+
+      const int face_sz = mesh->num_nodes_per_face();
+      VMesh::coords_array2_type::iterator coord_iter = coords.begin();
+      while (coord_iter != coords.end()) 
+      {
+        VMesh::coords_array_type &sl = *coord_iter++;
+        VMesh::coords_array_type::iterator sliter = sl.begin();
+
+        for (size_t i = 0; i < sl.size() - 2; i++) 
+        {
+          if (face_sz == 3) 
+          {  // TRI STRIPS
+            VMesh::coords_array_type::iterator it0,it1;
+            
+            VMesh::coords_type &c0 = !i%2 ? sl[i] : sl[i+1];
+            VMesh::coords_type &c1 = !i%2 ? sl[i+1] : sl[i];
+            VMesh::coords_type &c2 = sl[i+2];
+
+            vector<Point> pnts(face_sz);
+            vector<Vector> norms(face_sz);
+            
+            if (fld->is_scalar())
+            {
+              vector<double> vals(face_sz);
+              mesh->interpolate(pnts[0], c0, *eiter);
+              mesh->interpolate(pnts[1], c1, *eiter);
+              mesh->interpolate(pnts[2], c2, *eiter);
+
+              if (with_normals) 
+              {	      
+                mesh->get_normal(norms[0], c0, *eiter, fcount);
+                mesh->get_normal(norms[1], c1, *eiter, fcount);
+                mesh->get_normal(norms[2], c2, *eiter, fcount);
+              }
+      
+              // get the field variables values at the approx (if they exist)
+              if (color_scheme) 
+              {
+                fld->interpolate(vals[0], c0, *eiter);
+                fld->interpolate(vals[1], c1, *eiter);
+                fld->interpolate(vals[2], c2, *eiter);
+
+                value_to_color( color_scheme, vals[0], scols[0], vcols[0] );
+                value_to_color( color_scheme, vals[1], scols[1], vcols[1] );
+                value_to_color( color_scheme, vals[2], scols[2], vcols[2] );
+              }
+
+              add_face_geom(tfaces, qfaces, pnts, norms, with_normals,
+			    color_scheme, scols, vcols);
+            }
+            
+            if (fld->is_vector())
+            {
+              vector<Vector> vals(face_sz);
+              mesh->interpolate(pnts[0], c0, *eiter);
+              mesh->interpolate(pnts[1], c1, *eiter);
+              mesh->interpolate(pnts[2], c2, *eiter);
+
+              if (with_normals) 
+              {	      
+                mesh->get_normal(norms[0], c0, *eiter, fcount);
+                mesh->get_normal(norms[1], c1, *eiter, fcount);
+                mesh->get_normal(norms[2], c2, *eiter, fcount);
+              }
+      
+              // get the field variables values at the approx (if they exist)
+              if (color_scheme) 
+              {
+                fld->interpolate(vals[0], c0, *eiter);
+                fld->interpolate(vals[1], c1, *eiter);
+                fld->interpolate(vals[2], c2, *eiter);
+
+                value_to_color( color_scheme, vals[0], scols[0], vcols[0] );
+                value_to_color( color_scheme, vals[1], scols[1], vcols[1] );
+                value_to_color( color_scheme, vals[2], scols[2], vcols[2] );
+              }
+
+              add_face_geom(tfaces, qfaces, pnts, norms, with_normals,
+			    color_scheme, scols, vcols);
+            }
+
+            if (fld->is_tensor())
+            {
+              vector<Tensor> vals(face_sz);
+              mesh->interpolate(pnts[0], c0, *eiter);
+              mesh->interpolate(pnts[1], c1, *eiter);
+              mesh->interpolate(pnts[2], c2, *eiter);
+
+              if (with_normals) 
+              {	      
+                mesh->get_normal(norms[0], c0, *eiter, fcount);
+                mesh->get_normal(norms[1], c1, *eiter, fcount);
+                mesh->get_normal(norms[2], c2, *eiter, fcount);
+              }
+      
+              // get the field variables values at the approx (if they exist)
+              if (color_scheme) 
+              {
+                fld->interpolate(vals[0], c0, *eiter);
+                fld->interpolate(vals[1], c1, *eiter);
+                fld->interpolate(vals[2], c2, *eiter);
+
+                value_to_color( color_scheme, vals[0], scols[0], vcols[0] );
+                value_to_color( color_scheme, vals[1], scols[1], vcols[1] );
+                value_to_color( color_scheme, vals[2], scols[2], vcols[2] );
+              }
+
+              add_face_geom(tfaces, qfaces, pnts, norms, with_normals,
+			    color_scheme, scols, vcols);
+            }
+                        
+          }
+          else 
+          { // QUADS
+
+            VMesh::coords_type &c0 = *sliter++;
+            if (sliter == sl.end()) break;
+            VMesh::coords_type &c1 = *sliter++;
+            if (sliter == sl.end()) break;
+            VMesh::coords_type &c2 = *sliter;
+            VMesh::coords_type &c3 = *(sliter + 1);
+
+            vector<Point> pnts(face_sz);
+            vector<Vector> norms(face_sz);
+
+            if (fld->is_scalar())
+            {
+              vector<double> vals(face_sz);
+            
+              // get the geometry at the approx.
+              mesh->interpolate(pnts[0], c2, *eiter);
+              mesh->interpolate(pnts[1], c3, *eiter);
+              mesh->interpolate(pnts[2], c1, *eiter);
+              mesh->interpolate(pnts[3], c0, *eiter);
+
+              if (with_normals) 
+              {	      
+                mesh->get_normal(norms[0], c2, *eiter, fcount);
+                mesh->get_normal(norms[1], c3, *eiter, fcount);
+                mesh->get_normal(norms[2], c1, *eiter, fcount);
+                mesh->get_normal(norms[3], c0, *eiter, fcount);
+              }
+
+              // get the field variables values at the approx (if they exist)
+              if (color_scheme) 
+              {
+                fld->interpolate(vals[0], c2, *eiter);
+                fld->interpolate(vals[1], c3, *eiter);
+                fld->interpolate(vals[2], c1, *eiter);
+                fld->interpolate(vals[3], c0, *eiter);
+
+                value_to_color( color_scheme, vals[0], scols[0], vcols[0] );
+                value_to_color( color_scheme, vals[1], scols[1], vcols[1] );
+                value_to_color( color_scheme, vals[2], scols[2], vcols[2] );
+                value_to_color( color_scheme, vals[3], scols[3], vcols[3] );
+              }
+
+              add_face_geom(tfaces, qfaces, pnts, norms, with_normals,
+			    color_scheme, scols, vcols);
+            }
+            
+            if (fld->is_vector())
+            {
+              vector<Vector> vals(face_sz);
+            
+              // get the geometry at the approx.
+              mesh->interpolate(pnts[0], c2, *eiter);
+              mesh->interpolate(pnts[1], c3, *eiter);
+              mesh->interpolate(pnts[2], c1, *eiter);
+              mesh->interpolate(pnts[3], c0, *eiter);
+
+              if (with_normals) 
+              {	      
+                mesh->get_normal(norms[0], c2, *eiter, fcount);
+                mesh->get_normal(norms[1], c3, *eiter, fcount);
+                mesh->get_normal(norms[2], c1, *eiter, fcount);
+                mesh->get_normal(norms[3], c0, *eiter, fcount);
+              }
+
+              // get the field variables values at the approx (if they exist)
+              if (color_scheme) 
+              {
+                fld->interpolate(vals[0], c2, *eiter);
+                fld->interpolate(vals[1], c3, *eiter);
+                fld->interpolate(vals[2], c1, *eiter);
+                fld->interpolate(vals[3], c0, *eiter);
+
+                value_to_color( color_scheme, vals[0], scols[0], vcols[0] );
+                value_to_color( color_scheme, vals[1], scols[1], vcols[1] );
+                value_to_color( color_scheme, vals[2], scols[2], vcols[2] );
+                value_to_color( color_scheme, vals[3], scols[3], vcols[3] );
+              }
+
+              add_face_geom(tfaces, qfaces, pnts, norms, with_normals,
+			    color_scheme, scols, vcols);
+            }
+
+            if (fld->is_tensor())
+            {
+              vector<Tensor> vals(face_sz);
+            
+              // get the geometry at the approx.
+              mesh->interpolate(pnts[0], c2, *eiter);
+              mesh->interpolate(pnts[1], c3, *eiter);
+              mesh->interpolate(pnts[2], c1, *eiter);
+              mesh->interpolate(pnts[3], c0, *eiter);
+
+              if (with_normals) 
+              {	      
+                mesh->get_normal(norms[0], c2, *eiter, fcount);
+                mesh->get_normal(norms[1], c3, *eiter, fcount);
+                mesh->get_normal(norms[2], c1, *eiter, fcount);
+                mesh->get_normal(norms[3], c0, *eiter, fcount);
+              }
+
+              // get the field variables values at the approx (if they exist)
+              if (color_scheme) 
+              {
+                fld->interpolate(vals[0], c2, *eiter);
+                fld->interpolate(vals[1], c3, *eiter);
+                fld->interpolate(vals[2], c1, *eiter);
+                fld->interpolate(vals[3], c0, *eiter);
+
+                value_to_color( color_scheme, vals[0], scols[0], vcols[0] );
+                value_to_color( color_scheme, vals[1], scols[1], vcols[1] );
+                value_to_color( color_scheme, vals[2], scols[2], vcols[2] );
+                value_to_color( color_scheme, vals[3], scols[3], vcols[3] );
+              }
+
+              add_face_geom(tfaces, qfaces, pnts, norms, with_normals,
+			    color_scheme, scols, vcols);
+            }        
+          }
+        }
+      }
+      ++fcount;
+    }
+    ++eiter;
+  }
+  return face_switch;
+}
+
+GeomHandle 
+RenderFieldV::render_faces_linear(FieldHandle field_handle,
+				  unsigned int render_state)
+{
+  VField *fld = field_handle->vfield();
+  VMesh  *mesh = field_handle->vmesh();
+
+  const bool with_normals = (get_flag(render_state, USE_NORMALS)
+			     && mesh->has_normals());
+
+  GeomFastTriangles* tfaces = 0;
+  GeomFastQuads* qfaces = 0;
+  GeomFastTrianglesTwoSided* ttfaces = 0;
+  GeomFastQuadsTwoSided* tqfaces =0 ;
+
+  GeomGroup *grp = scinew GeomGroup();
+  GeomHandle face_switch = scinew GeomDL(grp);
+
+  // Special case for cell centered data
+  if ((fld->basis_order() == 0) && (mesh->dimensionality() == 3))
+  {
+    if (get_flag(render_state, USE_TRANSPARENCY))
+    {
+      ttfaces = scinew GeomTranspTrianglesTwoSided;
+      tqfaces = scinew GeomTranspQuadsTwoSided;
+      grp->add(ttfaces);
+      grp->add(tqfaces);
+    }
+    else
+    {
+      ttfaces = scinew GeomFastTrianglesTwoSided;
+      tqfaces = scinew GeomFastQuadsTwoSided;
+      grp->add(ttfaces);
+      grp->add(tqfaces);
+    }
+  }
+  else
+  {
+    if (get_flag(render_state, USE_TRANSPARENCY))
+    {
+      tfaces = scinew GeomTranspTriangles;
+      qfaces = scinew GeomTranspQuads;
+      
+      grp->add(tfaces);
+      grp->add(qfaces);
+    }
+    else
+    {
+      tfaces = scinew GeomFastTriangles;
+      qfaces = scinew GeomFastQuads;
+    
+      grp->add(tfaces);
+      grp->add(qfaces);
+    }
+  }
+
+  unsigned int color_scheme = 0;
+  vector<double> svals(20);
+  vector<Vector> vvals(20);
+  vector<Tensor> tvals(20);
+
+  vector<MaterialHandle> vcols(20, (Material *)NULL);
+  vector<double> scols(20);
+
+  if( fld->basis_order() < 0 ||
+      get_flag(render_state, USE_DEFAULT_COLOR) )
+  {
+    color_scheme = 0; // Default color
+  }
+  else if (get_flag(render_state, USE_COLORMAP))
+  {
+    // Color map lookup using either a scalar value,
+    // the vector magnitude, the tensor.
+    color_scheme = 1;
+  }
+  else //if ( fld->basis_order() >= 0 )
+  {
+    color_scheme = 2; // Values become RGB
+
+    for (unsigned int i=0; i<20; i++)
+    {
+      vcols[i] = scinew Material(Color(1.0, 1.0, 1.0));
+
+      if (get_flag(render_state, USE_TRANSPARENCY))
+        vcols[i]->transparency = 0.75;
+      else
+        vcols[i]->transparency = 1.0;
+    }
+  }
+
+  if (with_normals) mesh->synchronize(Mesh::NORMALS_E);
+
+  mesh->synchronize(Mesh::FACES_E);
+  VMesh::Face::iterator fiter; mesh->begin(fiter);  
+  VMesh::Face::iterator fiter_end; mesh->end(fiter_end);  
+  VMesh::Node::array_type nodes;
+
+  while (fiter != fiter_end) 
+  {
+    mesh->get_nodes(nodes, *fiter); 
+ 
+    vector<Point> points(nodes.size());
+    vector<Vector> normals(nodes.size());
+
+    for (size_t i=0; i<nodes.size(); i++)
+      mesh->get_point(points[i], nodes[i]);
+
+    if (with_normals) 
+    {
+      for (size_t i=0; i<nodes.size(); i++)
+        mesh->get_normal(normals[i], nodes[i]);
+    }
+
+    // Element data (Cells) so two sided faces.
+    if (fld->basis_order() == 0 && mesh->dimensionality() == 3)
+    {
+      VMesh::Elem::array_type cells;
+      mesh->get_elems(cells,*fiter);
+      
+      if (fld->is_scalar())
+      {
+        fld->get_value(svals[0], cells[0]);
+
+        if (cells.size() > 1)
+          fld->get_value(svals[1], cells[1]);
+        else
+          svals[1] = svals[0];
+
+        if (color_scheme == 0)
+        {
+          if (nodes.size() == 4)
+          {
+            if (with_normals)
+              tqfaces->add(points[0], normals[0],
+			   points[1], normals[1],
+			   points[2], normals[2],
+			   points[3], normals[3]);
+            else
+              tqfaces->add(points[0], points[1], points[2], points[3]);
+          }
+          else
+          {
+            for (size_t i=2; i<nodes.size(); i++)
+            {
+              if (with_normals)
+                ttfaces->add(points[0],   normals[0],
+			     points[i-1], normals[i-1],
+			     points[i],   normals[i]);
+              else
+                ttfaces->add(points[0], points[i-1], points[i]);
+            }
+          }
+        }
+        else if (color_scheme == 1)
+        {
+          to_double(svals[0], scols[0]);
+          to_double(svals[1], scols[1]);
+
+          if (nodes.size() == 4)
+          {
+            if (with_normals)
+              tqfaces->add(points[0], normals[0], scols[0], scols[1],
+			   points[1], normals[1], scols[0], scols[1],
+			   points[2], normals[2], scols[0], scols[1],
+			   points[3], normals[3], scols[0], scols[1]);
+            else
+              tqfaces->add(points[0], scols[0], scols[1],
+			   points[1], scols[0], scols[1],
+			   points[2], scols[0], scols[1],
+			   points[3], scols[0], scols[1]);
+          }
+          else
+          {
+            for (size_t i=2; i<nodes.size(); i++)
+            {
+              if (with_normals)
+                ttfaces->add(points[0],   normals[0],   scols[0], scols[1],
+			     points[i-1], normals[i-1], scols[0], scols[1],
+			     points[i],   normals[i],   scols[0], scols[1]);
+              else
+                ttfaces->add(points[0],   scols[0], scols[1],
+			     points[i-1], scols[0], scols[1],
+			     points[i],   scols[0], scols[1]);
+            }
+          }
+        }
+        else //if (color_scheme >= 2)
+        {
+          to_color(svals[0], vcols[0]->diffuse);
+          to_color(svals[1], vcols[1]->diffuse);
+
+          if (nodes.size() == 4)
+          {
+            if (with_normals)
+              tqfaces->add(points[0], normals[0], vcols[0], vcols[1],
+			   points[1], normals[1], vcols[0], vcols[1],
+			   points[2], normals[2], vcols[0], vcols[1],
+			   points[3], normals[3], vcols[0], vcols[1]);
+            else
+              tqfaces->add(points[0], vcols[0], vcols[1],
+			   points[1], vcols[0], vcols[1],
+			   points[2], vcols[0], vcols[1],
+			   points[3], vcols[0], vcols[1]);
+          }
+          else
+          {
+            for (size_t i=2; i<nodes.size(); i++)
+            {
+              if (with_normals)
+                ttfaces->add(points[0],   normals[0],   vcols[0], vcols[1],
+			     points[i-1], normals[i-1], vcols[0], vcols[1],
+			     points[i],   normals[i],   vcols[0], vcols[1]);
+              else
+                ttfaces->add(points[0],   vcols[0], vcols[1],
+			     points[i-1], vcols[0], vcols[1],
+			     points[i],   vcols[0], vcols[1]);
+            }
+          }
+        }
+      }  
+        
+      if (fld->is_vector())
+      {
+        fld->get_value(vvals[0], cells[0]);
+
+        if (cells.size() > 1)
+          fld->get_value(vvals[1], cells[1]);
+        else
+          svals[1] = svals[0];
+
+        if (color_scheme == 0)
+        {
+          if (nodes.size() == 4)
+          {
+            if (with_normals)
+              tqfaces->add(points[0], normals[0],
+			   points[1], normals[1],
+			   points[2], normals[2],
+			   points[3], normals[3]);
+            else
+              tqfaces->add(points[0], points[1], points[2], points[3]);
+          }
+          else
+          {
+            for (size_t i=2; i<nodes.size(); i++)
+            {
+              if (with_normals)
+                ttfaces->add(points[0],   normals[0],
+			     points[i-1], normals[i-1],
+			     points[i],   normals[i]);
+              else
+                ttfaces->add(points[0], points[i-1], points[i]);
+            }
+          }
+        }
+        else if (color_scheme == 1)
+        {
+          to_double(vvals[0], scols[0]);
+          to_double(vvals[1], scols[1]);
+
+          if (nodes.size() == 4)
+          {
+            if (with_normals)
+              tqfaces->add(points[0], normals[0], scols[0], scols[1],
+			   points[1], normals[1], scols[0], scols[1],
+			   points[2], normals[2], scols[0], scols[1],
+			   points[3], normals[3], scols[0], scols[1]);
+            else
+              tqfaces->add(points[0], scols[0], scols[1],
+			   points[1], scols[0], scols[1],
+			   points[2], scols[0], scols[1],
+			   points[3], scols[0], scols[1]);
+          }
+          else
+          {
+            for (size_t i=2; i<nodes.size(); i++)
+            {
+              if (with_normals)
+                ttfaces->add(points[0],   normals[0],   scols[0], scols[1],
+			     points[i-1], normals[i-1], scols[0], scols[1],
+			     points[i],   normals[i],   scols[0], scols[1]);
+              else
+                ttfaces->add(points[0],   scols[0], scols[1],
+			     points[i-1], scols[0], scols[1],
+			     points[i],   scols[0], scols[1]);
+            }
+          }
+        }
+        else //if (color_scheme >= 2)
+        {
+          to_color(vvals[0], vcols[0]->diffuse);
+          to_color(vvals[1], vcols[1]->diffuse);
+
+          if (nodes.size() == 4)
+          {
+            if (with_normals)
+              tqfaces->add(points[0], normals[0], vcols[0], vcols[1],
+			   points[1], normals[1], vcols[0], vcols[1],
+			   points[2], normals[2], vcols[0], vcols[1],
+			   points[3], normals[3], vcols[0], vcols[1]);
+            else
+              tqfaces->add(points[0], vcols[0], vcols[1],
+			   points[1], vcols[0], vcols[1],
+			   points[2], vcols[0], vcols[1],
+			   points[3], vcols[0], vcols[1]);
+          }
+          else
+          {
+            for (size_t i=2; i<nodes.size(); i++)
+            {
+              if (with_normals)
+                ttfaces->add(points[0],   normals[0],   vcols[0], vcols[1],
+			     points[i-1], normals[i-1], vcols[0], vcols[1],
+			     points[i],   normals[i],   vcols[0], vcols[1]);
+              else
+                ttfaces->add(points[0],   vcols[0], vcols[1],
+			     points[i-1], vcols[0], vcols[1],
+			     points[i],   vcols[0], vcols[1]);
+            }
+          }
+        }
+      }        
+
+      if (fld->is_tensor())
+      {
+        fld->get_value(tvals[0], cells[0]);
+
+        if (cells.size() > 1)
+          fld->get_value(tvals[1], cells[1]);
+        else
+          svals[1] = svals[0];
+
+        if (color_scheme == 0)
+        {
+          if (nodes.size() == 4)
+          {
+            if (with_normals)
+              tqfaces->add(points[0], normals[0],
+			   points[1], normals[1],
+			   points[2], normals[2],
+			   points[3], normals[3]);
+            else
+              tqfaces->add(points[0], points[1], points[2], points[3]);
+          }
+          else
+          {
+            for (size_t i=2; i<nodes.size(); i++)
+            {
+              if (with_normals)
+                ttfaces->add(points[0],   normals[0],
+			     points[i-1], normals[i-1],
+			     points[i],   normals[i]);
+              else
+                ttfaces->add(points[0], points[i-1], points[i]);
+            }
+          }
+        }
+        else if (color_scheme == 1)
+        {
+          to_double(tvals[0], scols[0]);
+          to_double(tvals[1], scols[1]);
+
+          if (nodes.size() == 4)
+          {
+            if (with_normals)
+              tqfaces->add(points[0], normals[0], scols[0], scols[1],
+			   points[1], normals[1], scols[0], scols[1],
+			   points[2], normals[2], scols[0], scols[1],
+			   points[3], normals[3], scols[0], scols[1]);
+            else
+              tqfaces->add(points[0], scols[0], scols[1],
+			   points[1], scols[0], scols[1],
+			   points[2], scols[0], scols[1],
+			   points[3], scols[0], scols[1]);
+          }
+          else
+          {
+            for (size_t i=2; i<nodes.size(); i++)
+            {
+              if (with_normals)
+                ttfaces->add(points[0],   normals[0],   scols[0], scols[1],
+			     points[i-1], normals[i-1], scols[0], scols[1],
+			     points[i],   normals[i],   scols[0], scols[1]);
+              else
+                ttfaces->add(points[0],   scols[0], scols[1],
+			     points[i-1], scols[0], scols[1],
+			     points[i],   scols[0], scols[1]);
+            }
+          }
+        }
+        else //if (color_scheme >= 2)
+        {
+          to_color(tvals[0], vcols[0]->diffuse);
+          to_color(tvals[1], vcols[1]->diffuse);
+
+          if (nodes.size() == 4)
+          {
+            if (with_normals)
+              tqfaces->add(points[0], normals[0], vcols[0], vcols[1],
+			   points[1], normals[1], vcols[0], vcols[1],
+			   points[2], normals[2], vcols[0], vcols[1],
+			   points[3], normals[3], vcols[0], vcols[1]);
+            else
+              tqfaces->add(points[0], vcols[0], vcols[1],
+			   points[1], vcols[0], vcols[1],
+			   points[2], vcols[0], vcols[1],
+			   points[3], vcols[0], vcols[1]);
+          }
+          else
+          {
+            for (size_t i=2; i<nodes.size(); i++)
+            {
+              if (with_normals)
+                ttfaces->add(points[0],   normals[0],   vcols[0], vcols[1],
+			     points[i-1], normals[i-1], vcols[0], vcols[1],
+			     points[i],   normals[i],   vcols[0], vcols[1]);
+              else
+                ttfaces->add(points[0],   vcols[0], vcols[1],
+			     points[i-1], vcols[0], vcols[1],
+			     points[i],   vcols[0], vcols[1]);
+            }
+          }
+        }
+      }        
+    }
+    else if (color_scheme == 0)
+    {
+      if (nodes.size() == 4)
+      {
+        if (with_normals)
+          qfaces->add(points[0], normals[0],
+		      points[1], normals[1],
+		      points[2], normals[2],
+		      points[3], normals[3]);
+        else
+          qfaces->add(points[0], points[1], points[2], points[3]);
+      }
+      else
+      {
+        for (size_t i=2; i<nodes.size(); i++)
+        {
+          if (with_normals)
+            tfaces->add(points[0],   normals[0],
+			points[i-1], normals[i-1],
+			points[i],   normals[i]);
+          else
+            tfaces->add(points[0], points[i-1], points[i]);
+        }
+      }
+    }
+
+    // Data at nodes
+    else if (fld->basis_order() == 1)
+    {
+      if (fld->is_scalar())
+      {
+        for (unsigned int i=0; i<nodes.size(); i++)
+        {
+          fld->get_value(svals[i], nodes[i]);
+          value_to_color( color_scheme, svals[i], scols[i], vcols[i] );
+        }
+      }
+      if (fld->is_vector())
+      {
+        for (size_t i=0; i<nodes.size(); i++)
+        {
+          fld->get_value(vvals[i], nodes[i]);
+          value_to_color( color_scheme, vvals[i], scols[i], vcols[i] );
+        }
+      }      
+      if (fld->is_tensor())
+      {
+        for (size_t i=0; i<nodes.size(); i++)
+        {
+          fld->get_value(tvals[i], nodes[i]);
+          value_to_color( color_scheme, tvals[i], scols[i], vcols[i] );
+        }
+      }
+            
+      if (color_scheme == 1)
+      {
+        if (nodes.size() == 4)
+        {
+          if (with_normals)
+            qfaces->add(points[0], normals[0], scols[0],
+                        points[1], normals[1], scols[1],
+                        points[2], normals[2], scols[2],
+                        points[3], normals[3], scols[3]);
+          else
+            qfaces->add(points[0], scols[0],
+                        points[1], scols[1],
+                        points[2], scols[2],
+                        points[3], scols[3]);
+        }
+        else
+        {
+          for (size_t i=2; i<nodes.size(); i++)
+          {
+            if (with_normals)
+              tfaces->add(points[0],   normals[0],   scols[0],
+			  points[i-1], normals[i-1], scols[i-1],
+			  points[i],   normals[i],   scols[i]);
+            else
+              tfaces->add(points[0],   scols[0],
+			  points[i-1], scols[i-1],
+			  points[i],   scols[i]);
+          }
+        }
+      }
+      else //if (color_scheme >= 2)
+      {
+        if (nodes.size() == 4)
+        {
+          if (with_normals)
+            qfaces->add(points[0], normals[0], vcols[0],
+                        points[1], normals[1], vcols[1],
+                        points[2], normals[2], vcols[2],
+                        points[3], normals[3], vcols[3]);
+          else
+            qfaces->add(points[0], vcols[0],
+                        points[1], vcols[1],
+                        points[2], vcols[2],
+                        points[3], vcols[3]);
+        }
+        else
+        {
+          for (size_t i=2; i<nodes.size(); i++)
+          {
+            if (with_normals)
+              tfaces->add(points[0],   normals[0],   vcols[0],
+			  points[i-1], normals[i-1], vcols[i-1],
+			  points[i],   normals[i],   vcols[i]);
+            else
+              tfaces->add(points[0],   vcols[0],
+			  points[i-1], vcols[i-1],
+			  points[i],   vcols[i]);
+          }
+        }
+      }
+    }
+
+    // Element data (faces)
+    else if (fld->basis_order() == 0 && mesh->dimensionality() == 2)
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->get_value(val, *fiter);
+        value_to_color( color_scheme, val, scols[0], vcols[0] );
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->get_value(val, *fiter);
+        value_to_color( color_scheme, val, scols[0], vcols[0] );
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->get_value(val, *fiter);
+        value_to_color( color_scheme, val, scols[0], vcols[0] );
+      }
+      
+      if (color_scheme == 1)
+      {
+        if (nodes.size() == 4)
+        {
+          if (with_normals)
+            qfaces->add(points[0], normals[0], scols[0],
+                        points[1], normals[1], scols[0],
+                        points[2], normals[2], scols[0],
+                        points[3], normals[3], scols[0]);
+          else
+            qfaces->add(points[0], scols[0],
+                        points[1], scols[0],
+                        points[2], scols[0],
+                        points[3], scols[0]);
+        }
+        else
+        {
+          for (size_t i=2; i<nodes.size(); i++)
+          {
+            if (with_normals)
+              tfaces->add(points[0],   normals[0],   scols[0],
+			  points[i-1], normals[i-1], scols[0],
+			  points[i],   normals[i],   scols[0]);
+            else
+              tfaces->add(points[0],   scols[0],
+			  points[i-1], scols[0],
+			  points[i],   scols[0]);
+          }
+        }
+      }
+      else //if (color_scheme >= 2)
+      {
+        if (nodes.size() == 4)
+        {
+          if (with_normals)
+            qfaces->add(points[0], normals[0], vcols[0],
+                        points[1], normals[1], vcols[0],
+                        points[2], normals[2], vcols[0],
+                        points[3], normals[3], vcols[0]);
+          else
+            qfaces->add(points[0], vcols[0],
+                        points[1], vcols[0],
+                        points[2], vcols[0],
+                        points[3], vcols[0]);
+        }
+        else
+        {
+          for (size_t i=2; i<nodes.size(); i++)
+          {
+            if (with_normals)
+              tfaces->add(points[0],   normals[0],   vcols[0],
+			  points[i-1], normals[i-1], vcols[0],
+			  points[i],   normals[i],   vcols[0]);
+            else
+              tfaces->add(points[0],   vcols[0],
+			  points[i-1], vcols[0],
+			  points[i],   vcols[0]);
+          }
+        }
+      }
+    }
+
+    ++fiter;     
+  }
+
+  return face_switch;
+}
+
+
+GeomHandle
+RenderFieldImageV::render_faces_texture(FieldHandle field_handle,
+					ColorMapHandle colormap_handle,
+					unsigned int render_state)
+{
+  VField *fld = field_handle->vfield();
+  VMesh  *mesh = field_handle->vmesh();
+
+  GeomHandle texture_face;
+  float tex_coords[8];
+  float pos_coords[12];
+  const int colorbytes = 4;
+
+  GeomTexRectangle *tr = scinew GeomTexRectangle();
+  texture_face = tr;
+
+  VMesh::size_type ni = mesh->get_ni();
+  VMesh::size_type nj = mesh->get_nj();
+
+  // Set up the texture parameters, power of 2 dimensions.
+  int width = Pow2(ni);
+  int height = Pow2(nj);
+
+  // Use for the texture coordinates 
+  double tmin_x, tmax_x, tmin_y, tmax_y;
+
+  // Create texture array 
+  unsigned char * texture = new unsigned char[colorbytes*width*height];
+
+  //***************************************************
+  // we need to find the corners of the square in space
+  // use the node indices to grab the corner points
+  
+  Point p1, p2, p3, p4;
+  mesh->get_center(p1, VMesh::Node::index_type(0));
+  pos_coords[0] = p1.x();
+  pos_coords[1] = p1.y();
+  pos_coords[2] = p1.z();
+
+  mesh->get_center(p2, VMesh::Node::index_type(ni-1));
+  pos_coords[3] = p2.x();
+  pos_coords[4] = p2.y();
+  pos_coords[5] = p2.z();
+
+  mesh->get_center(p3, VMesh::Node::index_type(ni*(nj-1)));
+  pos_coords[6] = p3.x();
+  pos_coords[7] = p3.y();
+  pos_coords[8] = p3.z();
+
+  mesh->get_center(p4, VMesh::Node::index_type((ni-1) + ni*(nj-1)));
+  pos_coords[9] = p4.x();
+  pos_coords[10] = p4.y();
+  pos_coords[11] = p4.z();
+
+  if ( fld->basis_order() == 1)
+  {
+    tr->interpolate(true);
+
+    tmin_x = 0.5/static_cast<double>(width);
+    tmax_x = (static_cast<double>(ni)- 0.5)/static_cast<double>(width);
+    tmin_y = 0.5/static_cast<double>(height);
+    tmax_y = (static_cast<double>(nj)-0.5)/static_cast<double>(height);
+
+    tex_coords[0] = tmin_x; tex_coords[1] = tmin_y;
+    tex_coords[2] = tmax_x; tex_coords[3] = tmin_y;
+    tex_coords[4] = tmax_x; tex_coords[5] = tmax_y;
+    tex_coords[6] = tmin_x; tex_coords[7] = tmax_y;
+
+    VMesh::Node::iterator niter; mesh->begin(niter);  
+    VMesh::Node::iterator niter_end; mesh->end(niter_end);  
+    VMesh::Node::array_type nodes;
+    while(niter != niter_end )
+    {
+      // Convert data values to double.
+      double dval;
+
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->get_value(val, *niter);
+        to_double(val, dval);
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->get_value(val, *niter);
+        to_double(val, dval);
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->get_value(val, *niter);
+        to_double(val, dval);
+      }
+      
+      // Compute index into texture array.
+      const int idx = (*niter) *colorbytes;
+      
+      // Compute the ColorMap index and retreive the color.
+      const double cmin = colormap_handle->getMin();
+      const double cmax = colormap_handle->getMax();
+      const double index = Clamp((dval - cmin)/(cmax - cmin), 0.0, 1.0);
+      float r,g,b,a;
+      colormap_handle->get_color(index, r, g, b, a);
+      const float zro = 0.0;
+      const float one = 1.0;
+
+      // Fill the texture.
+      texture[idx  ] = (unsigned char)(Clamp(r, zro, one)*255);
+      texture[idx+1] = (unsigned char)(Clamp(g, zro, one)*255);
+      texture[idx+2] = (unsigned char)(Clamp(b, zro, one)*255);
+      texture[idx+3] = (unsigned char)(Clamp(a, zro, one)*255);
+      ++niter;
+    }
+  }
+  else if( fld->basis_order() == 0)
+  {
+    tr->interpolate( false );
+    tmin_x = 0.0;
+    tmax_x = (ni-1)/static_cast<double>(width);
+    tmin_y = 0.0;
+    tmax_y = (nj-1)/static_cast<double>(height);
+    tex_coords[0] = tmin_x; tex_coords[1] = tmin_y;
+    tex_coords[2] = tmax_x; tex_coords[3] = tmin_y;
+    tex_coords[4] = tmax_x; tex_coords[5] = tmax_y;
+    tex_coords[6] = tmin_x; tex_coords[7] = tmax_y;
+
+    VMesh::Face::iterator fiter; mesh->begin(fiter);  
+    VMesh::Face::iterator fiter_end; mesh->end(fiter_end);  
+
+    while (fiter != fiter_end)
+    {
+      double dval;
+      if (fld->is_scalar())
+      {
+	double val;
+	fld->value(val, *fiter);
+	to_double(val, dval);
+      }
+      if (fld->is_vector())
+      {
+	Vector val;
+	fld->value(val, *fiter);
+	to_double(val, dval);
+      }
+      if (fld->is_tensor())
+      {
+	Tensor val;
+	fld->value(val, *fiter);
+	to_double(val, dval);
+      }
+     
+      // Compute index into texture array.
+      const int idx = (*fiter) *colorbytes;
+      // Compute the ColorMap index and retreive the color.
+      const double cmin = colormap_handle->getMin();
+      const double cmax = colormap_handle->getMax();
+      const double index = Clamp((dval - cmin)/(cmax - cmin), 0.0, 1.0);
+      float r,g,b,a;
+      colormap_handle->get_color(index, r, g, b, a);
+      const float zro = 0.0;
+      const float one = 1.0;
+
+      // Fill the texture.
+      texture[idx  ] = (unsigned char)(Clamp(r, zro, one)*255);
+      texture[idx+1] = (unsigned char)(Clamp(g, zro, one)*255);
+      texture[idx+2] = (unsigned char)(Clamp(b, zro, one)*255);
+      texture[idx+3] = (unsigned char)(Clamp(a, zro, one)*255);
+      ++fiter;
+    }
+  }
+
+  // Set normal for lighting.
+  Vector normal = Cross( p2 - p1, p4 - p1 );
+  normal.normalize();
+  float n[3];
+  n[0] = normal.x(); n[1] = normal.y(); n[2] = normal.z();
+  tr->set_normal( n );
+
+  tr->set_transparency( get_flag(render_state,
+				 RenderStateBase::USE_TRANSPARENCY) );
+  tr->set_coords(tex_coords, pos_coords);
+  tr->set_texture( texture, colorbytes, width, height );
+
+  delete [] texture;
+  return texture_face;
+}
+
+
+GeomHandle 
+RenderFieldV::render_text(FieldHandle field_handle,
+			  ColorMapHandle colormap_handle,
+			  bool use_colormap,
+			  bool use_default_color,
+			  bool backface_cull_p,
+			  int fontsize,
+			  int precision,
+			  bool render_locations,
+			  bool render_data,
+			  bool render_nodes,
+			  bool render_edges,
+			  bool render_faces,
+			  bool render_cells,
+			  bool always_visible)
+{
+  GeomGroup *texts = scinew GeomGroup;
+  GeomHandle text_switch = scinew GeomSwitch(texts);
+
+  if (render_data)
+  {
+    texts->add(render_text_data(field_handle, colormap_handle, 
+				use_colormap,
+				use_default_color,
+				backface_cull_p,
+				fontsize, precision, always_visible));
+  }
+  if (render_nodes)
+  {
+    texts->add(render_text_nodes(field_handle, colormap_handle, 
+				 use_colormap,
+				 use_default_color,
+				 backface_cull_p,
+				 fontsize, precision, 
+				 render_locations, always_visible));
+  }
+  if (render_edges)
+  {
+    texts->add(render_text_edges(field_handle, colormap_handle, 
+				 use_colormap,
+				 use_default_color,
+				 fontsize, precision, 
+				 render_locations, always_visible));
+  }
+  if (render_faces)
+  {
+    texts->add(render_text_faces(field_handle, colormap_handle, 
+				 use_colormap,
+				 use_default_color,
+				 fontsize, precision, 
+				 render_locations, always_visible));
+  }
+  if (render_cells)
+  {
+    texts->add(render_text_cells(field_handle, colormap_handle, 
+				 use_colormap,
+				 use_default_color,
+				 fontsize, precision, 
+				 render_locations, always_visible));
+  }
+  return text_switch;
+}
+
+
+GeomHandle 
+RenderFieldV::render_text_data(FieldHandle field_handle,
+			       ColorMapHandle colormap_handle, 
+			       bool use_color_map,
+			       bool use_default_color,
+			       bool backface_cull_p,
+			       int fontsize,
+			       int precision,
+			       bool always_visible)
+{
+  if (backface_cull_p && field_handle->basis_order() == 1)
+  {
+    return render_text_data_nodes(field_handle, colormap_handle, use_color_map,
+				  use_default_color,
+				  backface_cull_p, fontsize,
+				  precision, always_visible);
+  }
+
+  VField* fld = field_handle->vfield();
+  VMesh* mesh = field_handle->vmesh();
+
+  GeomTexts *texts = scinew GeomTexts();
+  if (always_visible) texts->set_always_visible();
+  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  texts->set_font_index(fontsize);
+
+  std::ostringstream buffer;
+  buffer.precision(precision);
+
+  unsigned int color_scheme = 0;
+  double scol;
+  Color vcol;
+
+  if( use_default_color )
+    color_scheme = 0;
+  else if( use_color_map )
+    color_scheme = 1;
+  else {
+    color_scheme = 2;
+  }
+
+  if (fld->basis_order() == 0)
+  {
+    VMesh::Elem::iterator iter, end;
+    mesh->begin(iter);
+    mesh->end(end);
+    Point p;
+    
+    while (iter != end)
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+
+        fld->get_value(val, *iter);
+
+        mesh->get_center(p, *iter);
+
+        buffer.str("");
+        to_buffer(val, buffer);
+
+        if (color_scheme == 0 )
+        {
+          texts->add(buffer.str(), p);
+        }
+        else if (color_scheme == 2 )
+        {
+          to_color(val, vcol);
+          texts->add(buffer.str(), p, vcol);
+        }
+        else
+        {
+          to_double(val, scol);
+          // Compute the ColorMap index and retreive the color.
+          const double cmin = colormap_handle->getMin();
+          const double cmax = colormap_handle->getMax();
+          const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+          float r,g,b,a;
+          colormap_handle->get_color(index, r, g, b, a);
+          const Color c(r, g, b);
+        
+          texts->add(buffer.str(), p, c);
+        }
+      }
+      else if (fld->is_vector())
+      {
+        Vector val;
+
+        fld->get_value(val, *iter);
+
+        mesh->get_center(p, *iter);
+
+        buffer.str("");
+        to_buffer(val, buffer);
+
+        if (color_scheme == 0 )
+        {
+          texts->add(buffer.str(), p);
+        }
+        else if (color_scheme == 2 )
+        {
+          to_color(val, vcol);
+          texts->add(buffer.str(), p, vcol);
+        }
+        else
+        {
+          to_double(val, scol);
+          // Compute the ColorMap index and retreive the color.
+          const double cmin = colormap_handle->getMin();
+          const double cmax = colormap_handle->getMax();
+          const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+          float r,g,b,a;
+          colormap_handle->get_color(index, r, g, b, a);
+          const Color c(r, g, b);
+
+          texts->add(buffer.str(), p, c);
+        }
+      }      
+      else if (fld->is_tensor())
+      {
+        Tensor val;
+
+        fld->get_value(val, *iter);
+
+        mesh->get_center(p, *iter);
+
+        buffer.str("");
+        to_buffer(val, buffer);
+
+        if (color_scheme == 0 )
+        {
+          texts->add(buffer.str(), p);
+        }
+        else if (color_scheme == 2 )
+        {
+          to_color(val, vcol);
+          texts->add(buffer.str(), p, vcol);
+        }
+        else
+        {
+          to_double(val, scol);
+          // Compute the ColorMap index and retreive the color.
+          const double cmin = colormap_handle->getMin();
+          const double cmax = colormap_handle->getMax();
+          const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+          float r,g,b,a;
+          colormap_handle->get_color(index, r, g, b, a);
+          const Color c(r, g, b);
+
+          texts->add(buffer.str(), p, c);
+        }
+      }
+      ++iter;
+    }
+  }
+  else if (fld->basis_order() == 1)
+  {
+    VMesh::Node::iterator iter, end;
+    mesh->begin(iter);
+    mesh->end(end);
+    Point p;
+    
+    while (iter != end)
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+
+        fld->get_value(val, *iter);
+
+        mesh->get_center(p, *iter);
+
+        buffer.str("");
+        to_buffer(val, buffer);
+
+        if (color_scheme == 0 )
+        {
+          texts->add(buffer.str(), p);
+        }
+        else if (color_scheme == 2 )
+        {
+          to_color(val, vcol);
+          texts->add(buffer.str(), p, vcol);
+        }
+        else
+        {
+          to_double(val, scol);
+          // Compute the ColorMap index and retreive the color.
+          const double cmin = colormap_handle->getMin();
+          const double cmax = colormap_handle->getMax();
+          const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+          float r,g,b,a;
+          colormap_handle->get_color(index, r, g, b, a);
+          const Color c(r, g, b);
+
+          texts->add(buffer.str(), p, c);
+        }
+      }
+      else if (fld->is_vector())
+      {
+        Vector val;
+
+        fld->get_value(val, *iter);
+
+        mesh->get_center(p, *iter);
+
+        buffer.str("");
+        to_buffer(val, buffer);
+
+        if (color_scheme == 0 )
+        {
+          texts->add(buffer.str(), p);
+        }
+        else if (color_scheme == 2 )
+        {
+          to_color(val, vcol);
+          texts->add(buffer.str(), p, vcol);
+        }
+        else
+        {
+          to_double(val, scol);
+          // Compute the ColorMap index and retreive the color.
+          const double cmin = colormap_handle->getMin();
+          const double cmax = colormap_handle->getMax();
+          const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+          float r,g,b,a;
+          colormap_handle->get_color(index, r, g, b, a);
+          const Color c(r, g, b);
+
+          texts->add(buffer.str(), p, c);
+        }
+      }      
+      else if (fld->is_tensor())
+      {
+        Tensor val;
+
+        fld->get_value(val, *iter);
+
+        mesh->get_center(p, *iter);
+
+        buffer.str("");
+        to_buffer(val, buffer);
+
+        if (color_scheme == 0 )
+        {
+          texts->add(buffer.str(), p);
+        }
+        else if (color_scheme == 2 )
+        {
+          to_color(val, vcol);
+          texts->add(buffer.str(), p, vcol);
+        }
+        else
+        {
+          to_double(val, scol);
+          // Compute the ColorMap index and retreive the color.
+          const double cmin = colormap_handle->getMin();
+          const double cmax = colormap_handle->getMax();
+          const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+          float r,g,b,a;
+          colormap_handle->get_color(index, r, g, b, a);
+          const Color c(r, g, b);
+        
+          texts->add(buffer.str(), p, c);
+        }
+      }
+      ++iter;
+    }
+  }
+
+
+
+  
+  return text_switch;
+}
+
+
+GeomHandle 
+RenderFieldV::render_text_data_nodes(FieldHandle field_handle,
+				     ColorMapHandle colormap_handle,
+				     bool use_color_map,
+				     bool use_default_color,
+				     bool backface_cull_p,
+				     int fontsize,
+				     int precision,
+				     bool always_visible)
+{
+  VField *fld = field_handle->vfield();
+  VMesh* mesh = field_handle->vmesh();
+
+  GeomTexts *texts = 0;
+  GeomTextsCulled *ctexts = 0;
+  GeomHandle text_switch = 0;
+  const bool culling_p = backface_cull_p && mesh->has_normals();
+  if (culling_p)
+  {
+    mesh->synchronize(Mesh::NORMALS_E);
+    ctexts = scinew GeomTextsCulled();
+    text_switch = scinew GeomSwitch(ctexts);
+    ctexts->set_font_index(fontsize);
+  }
+  else
+  {
+    texts = scinew GeomTexts();
+    if (always_visible) texts->set_always_visible();
+    text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+    texts->set_font_index(fontsize);
+  }
+
+  std::ostringstream buffer;
+  buffer.precision(precision);
+
+  unsigned int color_scheme = 0;
+  double scol;
+  Color vcol;
+
+  if( fld->basis_order() < 0 ||
+      (fld->basis_order() == 0 && mesh->dimensionality() != 0) ||
+      use_default_color )
+    color_scheme = 0;
+  else if( use_color_map )
+    color_scheme = 1;
+  else
+    color_scheme = 2;
+
+  VMesh::Node::iterator iter, end;
+  mesh->begin(iter);
+  mesh->end(end);
+  Point p;
+  Vector n;
+  
+  while (iter != end) 
+  {
+    if (fld->is_scalar())
+    {
+      double val;
+      fld->get_value(val, *iter);
+      mesh->get_center(p, *iter);
+      
+      buffer.str("");
+      to_buffer(val, buffer);
+
+      if (color_scheme == 0)
+      {
+        if (culling_p)
+        {
+          mesh->get_normal(n, *iter);
+          ctexts->add(buffer.str(), p, n);
+        }
+        else
+        {
+          texts->add(buffer.str(), p);
+        }
+      }
+      else if (color_scheme == 2)
+      {
+        to_color( val, vcol );
+        if (culling_p)
+        {
+          mesh->get_normal(n, *iter);
+          ctexts->add(buffer.str(), p, n, vcol);
+        }
+        else
+        {
+          texts->add(buffer.str(), p, vcol);
+        }
+      }
+      else
+      {
+        to_double(val, scol);	
+        // Compute the ColorMap index and retreive the color.
+        const double cmin = colormap_handle->getMin();
+        const double cmax = colormap_handle->getMax();
+        const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+        float r,g,b,a;
+        colormap_handle->get_color(index, r, g, b, a);
+        const Color c(r, g, b);
+        
+        if (culling_p)
+        {
+          mesh->get_normal(n, *iter);
+          ctexts->add(buffer.str(), p, n, c);
+        }
+        else
+        {
+          texts->add(buffer.str(), p, c);
+        }
+      }
+    }
+    
+    if (fld->is_vector())
+    {
+      Vector val;
+      fld->get_value(val, *iter);
+      mesh->get_center(p, *iter);
+      
+      buffer.str("");
+      to_buffer(val, buffer);
+
+      if (color_scheme == 0)
+      {
+        if (culling_p)
+        {
+          mesh->get_normal(n, *iter);
+          ctexts->add(buffer.str(), p, n);
+        }
+        else
+        {
+          texts->add(buffer.str(), p);
+        }
+      }
+      else if (color_scheme == 2)
+      {
+        to_color( val, vcol );
+        if (culling_p)
+        {
+          mesh->get_normal(n, *iter);
+          ctexts->add(buffer.str(), p, n, vcol);
+        }
+        else
+        {
+          texts->add(buffer.str(), p, vcol);
+        }
+      }
+      else
+      {
+        to_double(val, scol);	
+        // Compute the ColorMap index and retreive the color.
+        const double cmin = colormap_handle->getMin();
+        const double cmax = colormap_handle->getMax();
+        const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+        float r,g,b,a;
+        colormap_handle->get_color(index, r, g, b, a);
+        const Color c(r, g, b);
+        
+        if (culling_p)
+        {
+          mesh->get_normal(n, *iter);
+          ctexts->add(buffer.str(), p, n, c);
+        }
+        else
+        {
+          texts->add(buffer.str(), p, c);
+        }
+      }
+    }
+
+    if (fld->is_tensor())
+    {
+      Tensor val;
+      fld->get_value(val, *iter);
+      mesh->get_center(p, *iter);
+      
+      buffer.str("");
+      to_buffer(val, buffer);
+
+      if (color_scheme == 0)
+      {
+        if (culling_p)
+        {
+          mesh->get_normal(n, *iter);
+          ctexts->add(buffer.str(), p, n);
+        }
+        else
+        {
+          texts->add(buffer.str(), p);
+        }
+      }
+      else if (color_scheme == 2)
+      {
+        to_color( val, vcol );
+        if (culling_p)
+        {
+          mesh->get_normal(n, *iter);
+          ctexts->add(buffer.str(), p, n, vcol);
+        }
+        else
+        {
+          texts->add(buffer.str(), p, vcol);
+        }
+      }
+      else
+      {
+        to_double(val, scol);	
+        // Compute the ColorMap index and retreive the color.
+        const double cmin = colormap_handle->getMin();
+        const double cmax = colormap_handle->getMax();
+        const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+        float r,g,b,a;
+        colormap_handle->get_color(index, r, g, b, a);
+        const Color c(r, g, b);
+        
+        if (culling_p)
+        {
+          mesh->get_normal(n, *iter);
+          ctexts->add(buffer.str(), p, n, c);
+        }
+        else
+        {
+          texts->add(buffer.str(), p, c);
+        }
+      }
+    }
+            
+    ++iter;
+  }
+
+  return text_switch;
+}
+
+
+GeomHandle 
+RenderFieldV::render_text_nodes(FieldHandle field_handle,
+				ColorMapHandle colormap_handle,
+				bool use_color_map,
+				bool use_default_color,
+				bool backface_cull_p,
+				int fontsize,
+				int precision,
+				bool render_locations,
+				bool always_visible)
+{
+  VField *fld = field_handle->vfield();
+  VMesh* mesh = field_handle->vmesh();
+
+  GeomTexts *texts = 0;
+  GeomTextsCulled *ctexts = 0;
+  GeomHandle text_switch = 0;
+
+  const bool culling_p = backface_cull_p && mesh->has_normals();
+  if (culling_p)
+  {
+    mesh->synchronize(Mesh::NORMALS_E);
+    ctexts = scinew GeomTextsCulled();
+    text_switch = scinew GeomSwitch(ctexts);
+    ctexts->set_font_index(fontsize);
+  }
+  else
+  {
+    texts = scinew GeomTexts();
+    if (always_visible) texts->set_always_visible();
+    text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+    texts->set_font_index(fontsize);
+  }
+
+  unsigned int color_scheme = 0;
+  double scol;
+  Color vcol;
+
+  if( (fld->basis_order() <  0) ||
+      (fld->basis_order() == 0 && mesh->dimensionality() != 0) ||
+      use_default_color )
+    color_scheme = 0;
+  else if( use_color_map )
+    color_scheme = 1;
+  else
+    color_scheme = 2;
+
+  ostringstream buffer;
+  buffer.precision(precision);
+  VMesh::Node::iterator iter, end;
+  
+  mesh->begin(iter);
+  mesh->end(end);
+  Point p;
+  Vector n;
+  while (iter != end)
+  {
+    mesh->get_center(p, *iter);
+
+    buffer.str("");
+    if (render_locations)
+    {
+      buffer << p;
+    }
+    else
+    {
+      (*iter).str_render(buffer);
+    }
+
+    if (color_scheme == 0)
+    {
+      if (culling_p)
+      {
+        mesh->get_normal(n, *iter);
+        ctexts->add(buffer.str(), p, n);
+      }
+      else
+      {
+        texts->add(buffer.str(), p);
+      }
+    }
+    else if (color_scheme == 2)
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->value(val, *iter);
+        to_color( val, vcol );
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->value(val, *iter);
+        to_color( val, vcol );
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->value(val, *iter);
+        to_color( val, vcol );
+      }
+      if (culling_p)
+      {
+        mesh->get_normal(n, *iter);
+        ctexts->add(buffer.str(), p, n, vcol);
+      }
+      else
+      {
+        texts->add(buffer.str(), p, vcol);
+      }
+    }
+    else
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->get_value(val, *iter);
+        to_double(val, scol);
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->get_value(val, *iter);
+        to_double(val, scol);
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->get_value(val, *iter);
+        to_double(val, scol);
+      }
+      // Compute the ColorMap index and retreive the color.
+      const double cmin = colormap_handle->getMin();
+      const double cmax = colormap_handle->getMax();
+      const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+      float r,g,b,a;
+      colormap_handle->get_color(index, r, g, b, a);
+      const Color c(r, g, b);
+        
+      if (culling_p)
+      {
+        mesh->get_normal(n, *iter);
+        ctexts->add(buffer.str(), p, n, c);
+      }
+      else
+      {
+        texts->add(buffer.str(), p, c);
+      }
+    }
+    ++iter;
+  }
+  return text_switch;
+}
+
+
+GeomHandle 
+RenderFieldV::render_text_edges(FieldHandle field_handle,
+				ColorMapHandle colormap_handle,
+				bool use_color_map,
+				bool use_default_color,
+				int fontsize,
+				int precision,
+				bool render_locations,
+				bool always_visible)
+{
+  VField *fld = field_handle->vfield();
+  VMesh* mesh = field_handle->vmesh();
+
+  mesh->synchronize(Mesh::EDGES_E);
+
+  GeomTexts *texts = scinew GeomTexts;
+  if (always_visible) texts->set_always_visible();
+  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  texts->set_font_index(fontsize);
+
+  ostringstream buffer;
+  buffer.precision(precision);
+
+  unsigned int color_scheme = 0;
+  double scol;
+  Color vcol;
+
+  if( fld->basis_order() != 0 || mesh->dimensionality() != 1 ||
+      use_default_color )
+    color_scheme = 0;
+  else if( use_color_map )
+    color_scheme = 1;
+  else
+    color_scheme = 2;
+
+  VMesh::Edge::iterator iter, end;
+  mesh->begin(iter);
+  mesh->end(end);
+  Point p;
+  while (iter != end)
+  {
+    mesh->get_center(p, *iter);
+
+    buffer.str("");
+    if (render_locations)
+    {
+      buffer << p;
+    }
+    else
+    {
+      buffer << (int)(*iter);
+    }
+
+    if (color_scheme == 0)
+    {
+      texts->add(buffer.str(), p);
+    }
+    else if (color_scheme == 2)
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->get_value(val, *iter);
+        to_color(val, vcol);
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->get_value(val, *iter);
+        to_color(val, vcol);
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->get_value(val, *iter);
+        to_color(val, vcol);
+      }
+      
+      texts->add(buffer.str(), p, vcol);
+    }
+    else
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->get_value(val, *iter);
+        to_double(val, scol);
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->get_value(val, *iter);
+        to_double(val, scol);
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->get_value(val, *iter);
+        to_double(val, scol);
+      }
+      
+      // Compute the ColorMap index and retreive the color.
+      const double cmin = colormap_handle->getMin();
+      const double cmax = colormap_handle->getMax();
+      const double index = Clamp((scol - scol)/(cmax - cmin), 0.0, 1.0);
+      float r,g,b,a;
+      colormap_handle->get_color(index, r, g, b, a);
+      const Color c(r, g, b);
+      
+      texts->add(buffer.str(), p, c);
+    }
+ 
+    ++iter;
+  }
+  return text_switch;
+}
+
+GeomHandle 
+RenderFieldV::render_text_faces(FieldHandle field_handle,
+				ColorMapHandle colormap_handle,
+				bool use_color_map,
+				bool use_default_color,
+				int fontsize,
+				int precision,
+				bool render_locations,
+				bool always_visible)
+{
+  VField *fld = field_handle->vfield();
+  VMesh* mesh = field_handle->vmesh();
+
+  mesh->synchronize(Mesh::FACES_E);
+
+  GeomTexts *texts = scinew GeomTexts;
+  if (always_visible) texts->set_always_visible();
+  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  texts->set_font_index(fontsize);
+
+  ostringstream buffer;
+  buffer.precision(precision);
+
+  unsigned int color_scheme = 0;
+  Color vcol;
+
+  if( fld->basis_order() != 0 || mesh->dimensionality() != 2 ||
+      use_default_color )
+    color_scheme = 0;
+  else if( use_color_map )
+    color_scheme = 1;
+  else
+    color_scheme = 2;
+
+  VMesh::Face::iterator iter, end;
+  mesh->begin(iter);
+  mesh->end(end);
+  Point p;
+  while (iter != end)
+  {
+    mesh->get_center(p, *iter);
+
+    buffer.str("");
+    if (render_locations)
+    {
+      buffer << p;
+    }
+    else
+    {
+      (*iter).str_render(buffer);
+    }
+
+    if (color_scheme == 0)
+    {
+      texts->add(buffer.str(), p);
+    }
+    else if (color_scheme == 2)
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->value(val, *iter);
+        to_color(val, vcol);
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->get_value(val, *iter);
+        to_color(val, vcol);
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->value(val, *iter);
+        to_color(val, vcol);
+      }
+      texts->add(buffer.str(), p, vcol);
+    }
+    else
+    {
+      double dval = 0.0;
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->value(val, *iter);
+        to_double(val, dval);
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->value(val, *iter);
+        to_double(val, dval);
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->value(val, *iter);
+        to_double(val, dval);
+      }      
+      // Compute the ColorMap index and retreive the color.
+      const double cmin = colormap_handle->getMin();
+      const double cmax = colormap_handle->getMax();
+      const double index = Clamp((dval - cmin)/(cmax - cmin), 0.0, 1.0);
+      float r,g,b,a;
+      colormap_handle->get_color(index, r, g, b, a);
+      const Color c(r, g, b);
+      
+      texts->add(buffer.str(), p, c);
+    }
+
+    ++iter;
+  }
+  return text_switch;
+}
+
+
+GeomHandle 
+RenderFieldV::render_text_cells(FieldHandle field_handle,
+				ColorMapHandle colormap_handle,
+				bool use_color_map,
+				bool use_default_color,
+				int fontsize,
+				int precision,
+				bool render_locations,
+				bool always_visible)
+{
+  VField *fld = field_handle->vfield();
+  VMesh* mesh = field_handle->vmesh();
+
+  mesh->synchronize(Mesh::CELLS_E);
+
+  GeomTexts *texts = scinew GeomTexts;
+  if (always_visible) texts->set_always_visible();
+  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  texts->set_font_index(fontsize);
+
+  ostringstream buffer;
+  buffer.precision(precision);
+
+  unsigned int color_scheme = 0;
+  double scol;
+  Color vcol;
+
+  if( fld->basis_order() != 0 ||
+      use_default_color )
+    color_scheme = 0;
+  else if( use_color_map )
+    color_scheme = 1;
+  else {
+    color_scheme = 2;
+  }
+
+  VMesh::Cell::iterator iter, end;
+  mesh->begin(iter);
+  mesh->end(end);
+  Point p;
+  while (iter != end)
+  {
+    mesh->get_center(p, *iter);
+
+    buffer.str("");
+    if (render_locations)
+    {
+      buffer << p;
+    }
+    else
+    {
+      (*iter).str_render(buffer);
+    }
+
+    if (color_scheme == 0)
+    {
+      texts->add(buffer.str(), p);
+    }
+    else if (color_scheme == 2)
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->get_value(val, *iter);
+        to_color(val, vcol);
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->get_value(val, *iter);
+        to_color(val, vcol);
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->get_value(val, *iter);
+        to_color(val, vcol);
+      }
+      texts->add(buffer.str(), p, vcol);
+    }
+    else
+    {
+      if (fld->is_scalar())
+      {
+        double val;
+        fld->get_value(val, *iter);
+        to_double(val, scol);
+      }
+      if (fld->is_vector())
+      {
+        Vector val;
+        fld->get_value(val, *iter);
+        to_double(val, scol);
+      }
+      if (fld->is_tensor())
+      {
+        Tensor val;
+        fld->get_value(val, *iter);
+        to_double(val, scol);
+      }
+      // Compute the ColorMap index and retreive the color.
+      const double cmin = colormap_handle->getMin();
+      const double cmax = colormap_handle->getMax();
+      const double index = Clamp((scol - cmin)/(cmax - cmin), 0.0, 1.0);
+      float r,g,b,a;
+      colormap_handle->get_color(index, r, g, b, a);
+      const Color c(r, g, b);
+      
+      texts->add(buffer.str(), p, c);
+    }
+
+    ++iter;
+  }
+  return text_switch;
+}
+
+} // end namespace SCIRun
+

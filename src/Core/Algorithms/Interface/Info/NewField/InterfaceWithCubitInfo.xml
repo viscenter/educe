@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InterfaceWithCubit" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_cubitdir">
+      <type>
+        <string default="."/>
+      </type>
+    </parameter>
+    <parameter name="p_ncdump">
+      <type>
+        <string default="ncdump"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <input name="PointCloudField" type="Field"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

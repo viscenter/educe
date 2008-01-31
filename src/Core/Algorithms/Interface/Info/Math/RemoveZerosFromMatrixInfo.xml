@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="RemoveZerosFromMatrix" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_row_or_col">
+      <type>
+        <string default="row"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Matrix" type="Matrix"/>
+    <output name="Matrix" type="Matrix"/>
+  </data>
+</algorithm>

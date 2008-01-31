@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertQuadSurfToTriSurf" category="ChangeMesh" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="QuadSurf" type="Field"/>
+    <output name="TriSurf" type="Field"/>
+  </data>
+</algorithm>

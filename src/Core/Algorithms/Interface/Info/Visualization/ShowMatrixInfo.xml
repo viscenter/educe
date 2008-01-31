@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ShowMatrix" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_xpos">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_ypos">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_xscale">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_yscale">
+      <type>
+        <double default="2.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_3d_mode">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_gmode">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_showtext">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_row_begin">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_rows">
+      <type>
+        <int default="10000"/>
+      </type>
+    </parameter>
+    <parameter name="p_col_begin">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_cols">
+      <type>
+        <int default="10000"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormapmode">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="ColorMap" type="ColorMap"/>
+    <input name="Matrix" type="Matrix"/>
+    <output name="Geometry" type="Geometry"/>
+  </data>
+</algorithm>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="GetNetworkFileName" category="String" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+      Get the network filename
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no"/>
+    <outputs>
+      <port>
+        <name>String</name>
+        <datatype>SCIRun::String</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CoregisterPointClouds" category="MiscField" version="1.0">
+  <parameters>
+    <parameter name="p_allowScale">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_allowRotate">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_allowTranslate">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_seed">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_iters">
+      <type>
+        <int default="1000"/>
+      </type>
+    </parameter>
+    <parameter name="p_misfitTol">
+      <type>
+        <double default="0.001000"/>
+      </type>
+    </parameter>
+    <parameter name="p_method">
+      <type>
+        <string default="Analytic"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Fixed PointCloudField" type="Field"/>
+    <input name="Mobile PointCloudField" type="Field"/>
+    <input name="DistanceField From Fixed" type="Field"/>
+    <output name="Transform" type="Matrix"/>
+  </data>
+</algorithm>

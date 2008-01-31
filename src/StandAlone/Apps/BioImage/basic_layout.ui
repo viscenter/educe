@@ -1,0 +1,471 @@
+<ui version="4.0" >
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1144</width>
+    <height>624</height>
+   </rect>
+  </property>
+  <property name="mouseTracking" >
+   <bool>true</bool>
+  </property>
+  <property name="focusPolicy" >
+   <enum>Qt::StrongFocus</enum>
+  </property>
+  <property name="windowTitle" >
+   <string>Uber SRViewer Test App</string>
+  </property>
+  <widget class="QWidget" name="centralwidget" >
+   <property name="sizePolicy" >
+    <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <layout class="QGridLayout" >
+    <item rowspan="2" row="0" column="0" >
+     <widget class="SQViewerWidget" native="1" name="sr_viewer" >
+      <property name="sizePolicy" >
+       <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize" >
+       <size>
+        <width>444</width>
+        <height>250</height>
+       </size>
+      </property>
+      <property name="cursor" >
+       <cursorShape>CrossCursor</cursorShape>
+      </property>
+      <property name="mouseTracking" >
+       <bool>true</bool>
+      </property>
+      <property name="focusPolicy" >
+       <enum>Qt::StrongFocus</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" colspan="2" >
+     <widget class="QTextBrowser" name="textBrowser" >
+      <property name="sizePolicy" >
+       <sizepolicy vsizetype="Preferred" hsizetype="MinimumExpanding" >
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize" >
+       <size>
+        <width>0</width>
+        <height>100</height>
+       </size>
+      </property>
+      <property name="maximumSize" >
+       <size>
+        <width>16777215</width>
+        <height>100</height>
+       </size>
+      </property>
+      <property name="html" >
+       <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Heres &lt;span style=" font-weight:600; color:#ff8c00;">some&lt;/span> text&lt;/p>&lt;/body>&lt;/html></string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1" >
+     <widget class="QDockWidget" name="dockWidget" >
+      <property name="windowModality" >
+       <enum>Qt::NonModal</enum>
+      </property>
+      <property name="sizePolicy" >
+       <sizepolicy vsizetype="Minimum" hsizetype="Preferred" >
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="floating" >
+       <bool>false</bool>
+      </property>
+      <property name="windowTitle" >
+       <string>Control Dock</string>
+      </property>
+      <widget class="QWidget" name="dockWidgetContents" >
+       <layout class="QVBoxLayout" >
+        <item>
+         <widget class="QTabWidget" name="tabWidget" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="MinimumExpanding" hsizetype="Preferred" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="currentIndex" >
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="cmap2_tab" >
+           <attribute name="title" >
+            <string>ColorMap2</string>
+           </attribute>
+           <layout class="QGridLayout" >
+            <item row="0" column="0" colspan="5" >
+             <widget class="SQCM2ViewWidget" native="1" name="cm2edit_wid" >
+              <property name="sizePolicy" >
+               <sizepolicy vsizetype="MinimumExpanding" hsizetype="Minimum" >
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize" >
+               <size>
+                <width>512</width>
+                <height>64</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" >
+             <widget class="QPushButton" name="add_rectangle_button" >
+              <property name="text" >
+               <string>Add Rectangle</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1" >
+             <widget class="QPushButton" name="add_triangle_button" >
+              <property name="text" >
+               <string>Add Triangle</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2" >
+             <widget class="QPushButton" name="delete_button" >
+              <property name="text" >
+               <string>Delete</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3" >
+             <widget class="QPushButton" name="color_button" >
+              <property name="text" >
+               <string>Set Color</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="4" >
+             <spacer>
+              <property name="orientation" >
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" >
+               <size>
+                <width>141</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="2" column="0" colspan="5" >
+             <widget class="QGroupBox" name="groupBox_2" >
+              <property name="sizePolicy" >
+               <sizepolicy vsizetype="Minimum" hsizetype="Expanding" >
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize" >
+               <size>
+                <width>16777215</width>
+                <height>100</height>
+               </size>
+              </property>
+              <property name="title" >
+               <string>Histogram Opacity</string>
+              </property>
+              <layout class="QHBoxLayout" >
+               <item>
+                <widget class="QSlider" name="histo_slide" >
+                 <property name="maximum" >
+                  <number>1000</number>
+                 </property>
+                 <property name="singleStep" >
+                  <number>5</number>
+                 </property>
+                 <property name="pageStep" >
+                  <number>20</number>
+                 </property>
+                 <property name="value" >
+                  <number>500</number>
+                 </property>
+                 <property name="orientation" >
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="tickPosition" >
+                  <enum>QSlider::TicksAbove</enum>
+                 </property>
+                 <property name="tickInterval" >
+                  <number>20</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="histo_edit" >
+                 <property name="sizePolicy" >
+                  <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maxLength" >
+                  <number>5</number>
+                 </property>
+                 <property name="frame" >
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="cmap1_tab" >
+           <attribute name="title" >
+            <string>ColorMap1</string>
+           </attribute>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Minimum" hsizetype="Expanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize" >
+           <size>
+            <width>16777215</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="title" >
+           <string>Volume Sample Rate</string>
+          </property>
+          <layout class="QHBoxLayout" >
+           <item>
+            <widget class="QSlider" name="sr_slide" >
+             <property name="maximum" >
+              <number>1000</number>
+             </property>
+             <property name="singleStep" >
+              <number>5</number>
+             </property>
+             <property name="pageStep" >
+              <number>20</number>
+             </property>
+             <property name="value" >
+              <number>500</number>
+             </property>
+             <property name="orientation" >
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition" >
+              <enum>QSlider::TicksAbove</enum>
+             </property>
+             <property name="tickInterval" >
+              <number>20</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="sr_edit" >
+             <property name="sizePolicy" >
+              <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maxLength" >
+              <number>5</number>
+             </property>
+             <property name="frame" >
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_3" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Minimum" hsizetype="Expanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize" >
+           <size>
+            <width>16777215</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="title" >
+           <string>Volume Opacity</string>
+          </property>
+          <layout class="QHBoxLayout" >
+           <item>
+            <widget class="QSlider" name="vol_opac_slide" >
+             <property name="maximum" >
+              <number>1000</number>
+             </property>
+             <property name="singleStep" >
+              <number>5</number>
+             </property>
+             <property name="pageStep" >
+              <number>20</number>
+             </property>
+             <property name="value" >
+              <number>500</number>
+             </property>
+             <property name="orientation" >
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition" >
+              <enum>QSlider::TicksAbove</enum>
+             </property>
+             <property name="tickInterval" >
+              <number>20</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="vol_opac_edit" >
+             <property name="sizePolicy" >
+              <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maxLength" >
+              <number>5</number>
+             </property>
+             <property name="frame" >
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1144</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile" >
+    <property name="title" >
+     <string>File</string>
+    </property>
+    <addaction name="actionQuit" />
+    <addaction name="actionOpen" />
+    <addaction name="actionAbout" />
+   </widget>
+   <widget class="QMenu" name="menuEditors" >
+    <property name="title" >
+     <string>Editors</string>
+    </property>
+   </widget>
+   <addaction name="menuFile" />
+   <addaction name="menuEditors" />
+  </widget>
+  <widget class="QStatusBar" name="statusbar" />
+  <action name="actionQuit" >
+   <property name="text" >
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionAbout" >
+   <property name="text" >
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionOpen" >
+   <property name="text" >
+    <string>Open</string>
+   </property>
+  </action>
+  <action name="actionFacesToggle" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="checked" >
+    <bool>true</bool>
+   </property>
+   <property name="icon" >
+    <iconset>../cibc/SCIRun/bin/vtkconvertdata.png</iconset>
+   </property>
+   <property name="text" >
+    <string>FacesToggle</string>
+   </property>
+  </action>
+  <action name="actionColorMap_2D" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>ColorMap 2D</string>
+   </property>
+  </action>
+  <action name="actionColorMap_1D" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>ColorMap 1D</string>
+   </property>
+  </action>
+  <action name="AddRectangleWidgetAction" >
+   <property name="text" >
+    <string>Add Rectangle</string>
+   </property>
+   <property name="menuRole" >
+    <enum>QAction::ApplicationSpecificRole</enum>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SQViewerWidget</class>
+   <extends>QWidget</extends>
+   <header>SQViewerWidget</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SQCM2ViewWidget</class>
+   <extends>QWidget</extends>
+   <header>SQCM2ViewWidget</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

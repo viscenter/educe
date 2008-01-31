@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateAndEditColorMap" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_rgbhsv">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_rgb_points">
+      <type>
+        <string default="0 0.05 0.1 0 1 0.95 0.9 1 "/>
+      </type>
+    </parameter>
+    <parameter name="p_alpha_points">
+      <type>
+        <string default="0 0 0 0.25 0.5 0.5 0.8 0.75 0.8 1 "/>
+      </type>
+    </parameter>
+    <parameter name="p_resolution">
+      <type>
+        <int default="256"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="ColorMap" type="ColorMap"/>
+    <output name="ColorMap" type="ColorMap"/>
+    <output name="Geometry" type="Geometry"/>
+  </data>
+</algorithm>

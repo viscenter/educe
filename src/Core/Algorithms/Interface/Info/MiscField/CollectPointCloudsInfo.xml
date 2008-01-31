@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CollectPointClouds" category="MiscField" version="1.0">
+  <parameters>
+    <parameter name="p_num_fields">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Point Cloud" type="Field"/>
+    <output name="Curve" type="Field"/>
+  </data>
+</algorithm>

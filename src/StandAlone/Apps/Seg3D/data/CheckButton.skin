@@ -1,0 +1,17 @@
+<definition name="CheckButton">
+  <object name="CheckButtonTemplate">
+    <definition name="CheckButtonTemplate::OnObject">
+      <object name="Skinner::Text">
+        <var name="text">X</var>
+        <var name="size">13</var>
+        <var name="fgcolor">#000000FF</var>
+        <var name="anchor">C</var>
+      </object>
+    </definition>
+
+    <definition name="CheckButtonTemplate::OffObject">
+      <object name="Skinner::Collection"/>
+    </definition>
+
+  </object>
+</definition>

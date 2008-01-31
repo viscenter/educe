@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SetFieldData" category="ChangeFieldData" version="1.0">
+  <parameters>
+    <parameter name="p_keepscalartype">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <input name="Matrix Data" type="Matrix"/>
+    <input name="Nrrd Data" type="Nrrd"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

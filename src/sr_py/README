@@ -1,0 +1,7 @@
+To import sr_py you need to set:
+
+export PYTHONPATH=<path to...>SCIRun/bin/lib
+
+#The logic for setting this env var by default lives in TCL :( 
+#for now set this by hand.
+export SCIRUN_ON_THE_FLY_LIBS_DIR=<path to...>SCIRun/bin/on-the-fly-libs/

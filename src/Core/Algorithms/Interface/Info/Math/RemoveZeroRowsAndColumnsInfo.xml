@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="RemoveZeroRowsAndColumns" category="Math" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Matrix" type="Matrix"/>
+    <output name="ReducedMatrix" type="Matrix"/>
+    <output name="LeftMapping" type="Matrix"/>
+    <output name="RightMapping" type="Matrix"/>
+  </data>
+</algorithm>

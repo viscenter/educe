@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateAndEditColorMap2D" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_histo">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_selected_widget">
+      <type>
+        <int default="-1"/>
+      </type>
+    </parameter>
+    <parameter name="p_selected_object">
+      <type>
+        <int default="-1"/>
+      </type>
+    </parameter>
+    <parameter name="p_num_entries">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_marker">
+      <type>
+        <string default="end"/>
+      </type>
+    </parameter>
+
+    <parameter name="p_cm2view_targ">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+
+    <parameter name="p_id">
+      <type>
+        <string default="cm2edit_alg"/>
+      </type>
+    </parameter>
+
+  </parameters>
+  <data>
+    <input name="Input Colormap" type="ColorMap2"/>
+    <input name="Histogram" type="Nrrd"/>
+    <output name="Output Colormap" type="ColorMap2"/>
+  </data>
+</algorithm>

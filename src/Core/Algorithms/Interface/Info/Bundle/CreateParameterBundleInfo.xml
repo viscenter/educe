@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateParameterBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_data">
+      <type>
+        <string default="0 'example field' string 'example' '' 0 'example scalar' scalar 1.0 '' "/>
+      </type>
+    </parameter>
+    <parameter name="p_new_field_count">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_update_all">
+      <type>
+        <string default="::SCIRun_Bundle_CreateParameterBundle_0 update_all_data"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+  <output name="ParameterList" type="Bundle"/>
+  </data>
+</algorithm>

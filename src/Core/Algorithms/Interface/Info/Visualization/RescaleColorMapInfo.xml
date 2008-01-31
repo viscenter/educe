@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="RescaleColorMap" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_main_frame">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_isFixed">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_max">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_makeSymmetric">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="ColorMap" type="ColorMap"/>
+    <input name="Field" type="Field"/>
+    <output name="ColorMap" type="ColorMap"/>
+  </data>
+</algorithm>

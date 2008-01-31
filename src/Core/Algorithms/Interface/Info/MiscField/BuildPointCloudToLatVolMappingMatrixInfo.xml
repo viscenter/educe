@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="BuildPointCloudToLatVolMappingMatrix" category="MiscField" version="1.0">
+  <parameters>
+    <parameter name="p_epsilon">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="PointCloudField" type="Field"/>
+    <input name="LatVolField" type="Field"/>
+    <output name="MappingMatrix" type="Matrix"/>
+  </data>
+</algorithm>

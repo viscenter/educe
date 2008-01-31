@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReportScalarFieldStats" category="MiscField" version="1.0">
+  <parameters>
+    <parameter name="p_min">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_max">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_mean">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_median">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_sigma">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_is_fixed">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_nbuckets">
+      <type>
+        <int default="256"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+  </data>
+</algorithm>

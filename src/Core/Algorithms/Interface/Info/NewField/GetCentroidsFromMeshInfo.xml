@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetCentroidsFromMesh" category="NewField" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="TetVolField" type="Field"/>
+    <output name="PointCloudField" type="Field"/>
+  </data>
+</algorithm>

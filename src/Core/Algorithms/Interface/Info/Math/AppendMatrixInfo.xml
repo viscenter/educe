@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="AppendMatrix" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_row_or_column">
+      <type>
+        <string default="row"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="BaseMatrix" type="Matrix"/>
+    <input name="AppendMatrix" type="Matrix"/>
+    <output name="Matrix" type="Matrix"/>
+  </data>
+</algorithm>

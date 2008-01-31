@@ -1,0 +1,10 @@
+<definition name="GrabFocusRegion">
+  <object name="Skinner::FocusRegion">
+    <signal name="FocusRegion::focus"
+            target="FocusGrab::Grab"/>
+
+    <signal name="FocusRegion::unfocus"
+            target="FocusGrab::Ungrab"/>
+  </object>
+</definition>
+

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="DecomposeTensorArrayIntoEigenVectors" category="DataArrayMath" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="TensorArray" type="Matrix"/>
+    <output name="EigenVector1" type="Matrix"/>
+    <output name="EigenVector2" type="Matrix"/>
+    <output name="EigenVector3" type="Matrix"/>
+    <output name="EigenValue1" type="Matrix"/>
+    <output name="EigenValue2" type="Matrix"/>
+    <output name="EigenValue3" type="Matrix"/>
+  </data>
+</algorithm>

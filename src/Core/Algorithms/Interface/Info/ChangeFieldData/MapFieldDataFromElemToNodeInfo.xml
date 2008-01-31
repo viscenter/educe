@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="MapFieldDataFromElemToNode" category="ChangeFieldData" version="1.0">
+  <parameters>
+    <parameter name="p_method">
+      <type>
+        <string default="Interpolate"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

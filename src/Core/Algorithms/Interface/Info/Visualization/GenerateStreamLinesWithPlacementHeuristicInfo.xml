@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GenerateStreamLinesWithPlacementHeuristic" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_numsl">
+      <type>
+        <int default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_numpts">
+      <type>
+        <int default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_minper">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_maxper">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_ming">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_maxg">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_numsamples">
+      <type>
+        <int default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_method">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_stepsize">
+      <type>
+        <double default="0.010000"/>
+      </type>
+    </parameter>
+    <parameter name="p_stepout">
+      <type>
+        <int default="100"/>
+      </type>
+    </parameter>
+    <parameter name="p_maxsteps">
+      <type>
+        <int default="10000"/>
+      </type>
+    </parameter>
+    <parameter name="p_minmag">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_direction">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Source" type="Field"/>
+    <input name="Weighting" type="Field"/>
+    <input name="Flow" type="Field"/>
+    <input name="Compare" type="Field"/>
+    <input name="Seed points" type="Field"/>
+    <output name="Streamlines" type="Field"/>
+    <output name="Render" type="Field"/>
+  </data>
+</algorithm>

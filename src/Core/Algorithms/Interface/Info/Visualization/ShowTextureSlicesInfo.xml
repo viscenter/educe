@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ShowTextureSlices" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_control_pos_saved">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_drawX">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_drawY">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_drawZ">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_drawView">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_interp_mode">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_draw_phi_0">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_draw_phi_1">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_phi_0">
+      <type>
+        <double default="30.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_phi_1">
+      <type>
+        <double default="60.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_multi_level">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_color_changed">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_colors">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_level_on">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_outline_levels">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_use_stencil">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Texture" type="Texture"/>
+    <input name="ColorMap" type="ColorMap"/>
+    <input name="ColorMap2" type="ColorMap2"/>
+    <output name="Geometry" type="Geometry"/>
+    <output name="ColorMap" type="ColorMap"/>
+  </data>
+</algorithm>

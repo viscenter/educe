@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InsertStringsIntoBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_string1_name">
+      <type>
+        <string default="string1"/>
+      </type>
+    </parameter>
+    <parameter name="p_string2_name">
+      <type>
+        <string default="string2"/>
+      </type>
+    </parameter>
+    <parameter name="p_string3_name">
+      <type>
+        <string default="string3"/>
+      </type>
+    </parameter>
+    <parameter name="p_string4_name">
+      <type>
+        <string default="string4"/>
+      </type>
+    </parameter>
+    <parameter name="p_string5_name">
+      <type>
+        <string default="string5"/>
+      </type>
+    </parameter>
+    <parameter name="p_string6_name">
+      <type>
+        <string default="string6"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace1">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace2">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace3">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace4">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace5">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace6">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <input name="string1" type="String"/>
+    <input name="string2" type="String"/>
+    <input name="string3" type="String"/>
+    <input name="string4" type="String"/>
+    <input name="string5" type="String"/>
+    <input name="string6" type="String"/>
+    <output name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

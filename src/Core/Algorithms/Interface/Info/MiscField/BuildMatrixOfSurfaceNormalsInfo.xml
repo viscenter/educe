@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="BuildMatrixOfSurfaceNormals" category="MiscField" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Surface Field" type="Field"/>
+    <output name="Nodal Surface Normals" type="Matrix"/>
+  </data>
+</algorithm>

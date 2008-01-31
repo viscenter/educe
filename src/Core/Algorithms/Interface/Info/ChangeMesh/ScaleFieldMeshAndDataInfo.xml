@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ScaleFieldMeshAndData" category="ChangeMesh" version="1.0">
+  <parameters>
+    <parameter name="p_datascale">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_geomscale">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_usegeomcenter">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <input name="GeomScaleFactor" type="Matrix"/>
+    <input name="DataScaleFactor" type="Matrix"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

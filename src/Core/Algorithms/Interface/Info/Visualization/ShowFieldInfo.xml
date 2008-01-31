@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ShowField" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_nodes_on">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_nodes_transparency"> 
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_nodes_color_type">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_nodes_display_type">
+      <type>
+        <string default="Points"/>
+      </type>
+    </parameter>
+    <parameter name="p_edges_on">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_edges_transparency">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_edges_color_type">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_edges_display_type">
+      <type>
+        <string default="Lines"/>
+      </type>
+    </parameter>
+    <parameter name="p_faces_on">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_faces_transparency">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_faces_color_type">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_faces_normals">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_faces_usetexture">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_on">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_color_type">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_color_r">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_color_g">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_color_b">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_backface_cull">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_always_visible">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_fontsize">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_precision">
+      <type>
+        <int default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_render_locations">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_show_data">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_show_nodes">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_show_edges">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_show_faces">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_show_cells">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_def_color_r">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_def_color_g">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_def_color_b">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_def_color_a">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_nodes_scale">
+      <type>
+        <double default="0.030000"/>
+      </type>
+    </parameter>
+    <parameter name="p_nodes_scaleNV">
+      <type>
+        <double default="0.030000"/>
+      </type>
+    </parameter>
+    <parameter name="p_edges_scale">
+      <type>
+        <double default="0.150000"/>
+      </type>
+    </parameter>
+    <parameter name="p_edges_scaleNV">
+      <type>
+        <double default="0.150000"/>
+      </type>
+    </parameter>
+    <parameter name="p_active_tab">
+      <type>
+        <string default="Nodes"/>
+      </type>
+    </parameter>
+    <parameter name="p_interactive_mode">
+      <type>
+        <string default="Interactive"/>
+      </type>
+    </parameter>
+    <parameter name="p_show_progress">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_field_name">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_field_name_override">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_nodes_resolution">
+      <type>
+        <int default="6"/>
+      </type>
+    </parameter>
+    <parameter name="p_edges_resolution">
+      <type>
+        <int default="6"/>
+      </type>
+    </parameter>
+    <parameter name="p_approx_div">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_use_default_size">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Mesh" type="Field"/>
+    <input name="ColorMap" type="ColorMap"/>
+    <output name="Scene Graph" type="Geometry"/>
+  </data>
+</algorithm>

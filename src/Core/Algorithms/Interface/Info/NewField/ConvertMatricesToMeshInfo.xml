@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertMatricesToMesh" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_fieldname">
+      <type>
+        <string default="Created Field"/>
+      </type>
+    </parameter>
+    <parameter name="p_meshname">
+      <type>
+        <string default="Created Mesh"/>
+      </type>
+    </parameter>
+    <parameter name="p_fieldbasetype">
+      <type>
+        <string default="TetVolField"/>
+      </type>
+    </parameter>
+    <parameter name="p_datatype">
+      <type>
+        <string default="double"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Mesh Elements" type="Matrix"/>
+    <input name="Mesh Positions" type="Matrix"/>
+    <input name="Mesh Normals" type="Matrix"/>
+    <output name="Output Field" type="Field"/>
+  </data>
+</algorithm>

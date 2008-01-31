@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GeneratePointSamplesFromField" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_num_seeds">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_probe_scale">
+      <type>
+        <double default="5.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_send">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_widget">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_red">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_green">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_blue">
+      <type>
+        <double default="0.500000"/>
+      </type>
+    </parameter>
+    <parameter name="p_auto_execute">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="GeneratePointSamplesFromField Widget" type="Geometry"/>
+    <output name="GeneratePointSamplesFromField Point" type="Field"/>
+  </data>
+</algorithm>

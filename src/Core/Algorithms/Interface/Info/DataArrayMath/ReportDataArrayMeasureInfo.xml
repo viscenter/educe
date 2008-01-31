@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReportDataArrayMeasure" category="DataArrayMath" version="1.0">
+  <parameters>
+    <parameter name="p_measure">
+      <type>
+        <string default="Sum"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Array" type="Matrix"/>
+    <output name="Measure" type="Matrix"/>
+  </data>
+</algorithm>

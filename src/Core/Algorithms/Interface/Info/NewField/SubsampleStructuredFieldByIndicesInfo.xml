@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SubsampleStructuredFieldByIndices" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_power_app">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_wrap">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_dims">
+      <type>
+        <int default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_dim_i">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_dim_j">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_dim_k">
+      <type>
+        <int default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_start_i">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_start_j">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_start_k">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_stop_i">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_stop_j">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_stop_k">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_stride_i">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_stride_j">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_stride_k">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_wrap_i">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_wrap_j">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_wrap_k">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <input name="Input Matrix" type="Matrix"/>
+    <output name="Output Field" type="Field"/>
+    <output name="Output Matrix" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertMappingMatrixToMaskVector" category="Math" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="MappingMatrix" type="Matrix"/>
+    <output name="MaskVector" type="Nrrd"/>
+  </data>
+</algorithm>

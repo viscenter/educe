@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateDataArrayFromIndices" category="DataArrayMath" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Indices" type="Matrix"/>
+    <input name="Template" type="Matrix"/>
+    <output name="DataArray" type="Matrix"/>
+  </data>
+</algorithm>

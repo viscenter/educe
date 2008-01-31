@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertLatVolDataFromElemToNode" category="ChangeFieldData" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Elem Field" type="Field"/>
+    <output name="Node Field" type="Field"/>
+  </data>
+</algorithm>

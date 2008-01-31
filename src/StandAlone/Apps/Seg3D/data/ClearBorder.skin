@@ -1,0 +1,11 @@
+<definition name="ClearBorder">
+  <object name="Skinner::Frame">
+    <var name="ClearBorder::size" overwrite="no" propagate="yes">5</var>
+    <var name="ClearBorder::width" overwrite="no" propagate="yes">$ClearBorder::size</var>
+    <var name="ClearBorder::height" overwrite="no" propagate="yes">$ClearBorder::size</var>
+    <var name="width">$ClearBorder::width</var>
+    <var name="height">$ClearBorder::height</var>
+    <var name="color1">#00000000</var>
+    <var name="color2">#00000000</var>
+  </object>
+</definition>

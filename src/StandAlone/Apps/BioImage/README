@@ -1,0 +1,21 @@
+This is not a finished product, much of the gui isnt hooked up, but you
+can load a nrrd (make it an 8 bit nrrd for now) and add rectangles to
+the editor. I just wanted this committed so it is backed up with my
+maching being flaky.  I like the docked editor dialog, try it out.
+
+In order to run, you must have Python and PyQt, QT  installed. you must
+turn on BUILD_SR_PY in cmake, and you must set the following env vars.
+
+your builds on-the-fly-libs dir:
+SCIRUN_ON_THE_FLY_LIBS_DIR=<full path to your
+SCIRun/bin/on-the-fly-libs>
+
+You must set your PYTHONPATH env var to your builds sr_py dir:
+PYTHONPATH=<full path to your
+SCIRun/bin/lib>mjc@cuervo /scratch/mjc/cibc/SCIRun/
+
+cd to CIRun/src/StandAlone/Apps/BioImage
+
+and type:
+
+python main_app.py

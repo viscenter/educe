@@ -1,0 +1,10 @@
+<definition name="ImageFrameButton">
+  <object name="FrameButtonTemplate">
+    <definition name="FrameButtonTemplate::child">
+      <object name="Skinner::Texture">
+        <var name="file">$ImageFrameButton::filename</var>
+        <var name="color">#FFFFFFFF</var>
+      </object>
+    </definition>
+  </object>
+</definition>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="MergeFields" category="NewField" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Container Mesh" type="Field"/>
+    <input name="Insert Field" type="Field"/>
+    <output name="Combined Field" type="Field"/>
+    <output name="Extended Insert Field" type="Field"/>
+    <output name="Combined To Extended Mapping" type="Matrix"/>
+  </data>
+</algorithm>

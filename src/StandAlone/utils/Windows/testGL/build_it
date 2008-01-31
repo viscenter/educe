@@ -1,0 +1,31 @@
+#! /bin/tcsh
+
+#
+# Simple script to build the 'testGL' executable via a Windows'
+# cygwin terminal.  Basically you just have to update the PATH to
+# include pointers to the Visual Studio Compiler (and SDK). If your
+# Visual Studio files aren't in the same place, you will need to
+# update this file.
+#
+# NOTE: You will need to have a glew library that you can link 
+# against... perhaps you have one in SCIRun... or you can just
+# get the download from off the internet.  To use this script,
+# you need to have a directory named "glew" which contains
+# bin, include, and lib.  (This is the default if you download
+# and unpack glew.)  You must also copy glew32.lib and glew32.dll
+# into the directory that you run testGL from... otherwise
+# the program just seems to return without doing anything...sigh.
+#
+
+setenv PATH /cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/Common7/IDE:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/VC/BIN:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/Common7/Tools:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/SDK/v2.0/bin:/cygdrive/c/Program\ Files/Microsoft\ Visual\ Studio\ 8/VC/VCPackages:$PATH
+
+cl -I "C:/Program Files/Microsoft Platform SDK for Windows Server 2003 R2/Include" \
+   -I "C:/Program Files//Microsoft Visual Studio 8/VC/include" \
+   /EHsc \
+   testGL.cpp \
+   -link \
+   -LIBPATH:"C:glew/lib"  \
+   -LIBPATH:"C:/Program Files/Microsoft Visual Studio 8/VC/lib"  \
+   -LIBPATH:"C:/Program Files/Microsoft Platform SDK for Windows Server 2003 R2/Lib" \
+   opengl32.lib glu32.lib advapi32.lib user32.lib glew32.lib gdi32.lib 
+

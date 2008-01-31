@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ShowMeshBoundingBox" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_sizex">
+      <type>
+        <int default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_sizey">
+      <type>
+        <int default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_sizez">
+      <type>
+        <int default="10"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <output name="Scene Graph" type="Geometry"/>
+  </data>
+</algorithm>

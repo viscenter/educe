@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReportMatrixInfo" category="Math" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="Input" type="Matrix"/>
+    <output name="NumRows" type="Matrix"/>
+    <output name="NumCols" type="Matrix"/>
+    <output name="NumElements" type="Matrix"/>
+  </data>
+</algorithm>

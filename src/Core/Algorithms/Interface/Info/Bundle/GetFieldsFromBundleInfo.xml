@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetFieldsFromBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_field1_name">
+      <type>
+        <string default="field1"/>
+      </type>
+    </parameter>
+    <parameter name="p_field2_name">
+      <type>
+        <string default="field2"/>
+      </type>
+    </parameter>
+    <parameter name="p_field3_name">
+      <type>
+        <string default="field3"/>
+      </type>
+    </parameter>
+    <parameter name="p_field4_name">
+      <type>
+        <string default="field4"/>
+      </type>
+    </parameter>
+    <parameter name="p_field5_name">
+      <type>
+        <string default="field5"/>
+      </type>
+    </parameter>
+    <parameter name="p_field6_name">
+      <type>
+        <string default="field6"/>
+      </type>
+    </parameter>
+    <parameter name="p_field_selection">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+    <output name="field1" type="Field"/>
+    <output name="field2" type="Field"/>
+    <output name="field3" type="Field"/>
+    <output name="field4" type="Field"/>
+    <output name="field5" type="Field"/>
+    <output name="field6" type="Field"/>
+  </data>
+</algorithm>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+
+<component name="ColorMap2DSemantics" category="Visualization" optional="true">
+  <overview>
+    <authors>
+      <author>Josh Stratton</author>
+    </authors>
+    <summary>
+      Incorporates parameters from saved 2D transfer functions and provides a semantic interface for controlling a new 2D transfer function with the same primitives
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+	<name>Input Colormap</name>
+	<datatype>SCIRun::ColorMap2</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+	<name>Output Colormap</name>
+	<datatype>SCIRun::ColorMap2</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

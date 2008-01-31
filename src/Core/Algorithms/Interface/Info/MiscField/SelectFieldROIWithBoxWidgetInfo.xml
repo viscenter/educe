@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SelectFieldROIWithBoxWidget" category="MiscField" version="1.0">
+  <parameters>
+    <parameter name="p_stampvalue">
+      <type>
+        <int default="100"/>
+      </type>
+    </parameter>
+    <parameter name="p_runmode">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="Selection Widget" type="Geometry"/>
+    <output name="Output Field" type="Field"/>
+  </data>
+</algorithm>

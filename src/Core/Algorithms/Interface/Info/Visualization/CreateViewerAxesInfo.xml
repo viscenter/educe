@@ -1,0 +1,749 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateViewerAxes" category="Visualization" version="1.0">
+  <parameters>
+    <parameter name="p_precision">
+      <type>
+        <string default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_squash">
+      <type>
+        <string default="0.7"/>
+      </type>
+    </parameter>
+    <parameter name="p_valuerez">
+      <type>
+        <string default="72"/>
+      </type>
+    </parameter>
+    <parameter name="p_labelrez">
+      <type>
+        <string default="72"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_absolute">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_divisions">
+      <type>
+        <string default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_offset">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_range_first">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_range_second">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_min_absolute">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_max_absolute">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_minplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_maxplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_lines">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_minticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_maxticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_minlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_maxlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_minvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_maxvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_width">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_tickangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_ticktilt">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_ticksize">
+      <type>
+        <string default="5"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_labelangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_labelheight">
+      <type>
+        <string default="6"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_valuesize">
+      <type>
+        <string default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_0_Axis_valuesquash">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_absolute">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_divisions">
+      <type>
+        <string default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_offset">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_range_first">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_range_second">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_min_absolute">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_max_absolute">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_minplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_maxplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_lines">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_minticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_maxticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_minlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_maxlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_minvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_maxvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_width">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_tickangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_ticktilt">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_ticksize">
+      <type>
+        <string default="5"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_labelangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_labelheight">
+      <type>
+        <string default="6"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_valuesize">
+      <type>
+        <string default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_01_1_Axis_valuesquash">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_absolute">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_divisions">
+      <type>
+        <string default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_offset">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_range_first">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_range_second">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_min_absolute">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_max_absolute">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_minplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_maxplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_lines">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_minticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_maxticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_minlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_maxlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_minvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_maxvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_width">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_tickangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_ticktilt">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_ticksize">
+      <type>
+        <string default="5"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_labelangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_labelheight">
+      <type>
+        <string default="6"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_valuesize">
+      <type>
+        <string default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_0_Axis_valuesquash">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_absolute">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_divisions">
+      <type>
+        <string default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_offset">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_range_first">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_range_second">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_min_absolute">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_max_absolute">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_minplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_maxplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_lines">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_minticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_maxticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_minlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_maxlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_minvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_maxvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_width">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_tickangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_ticktilt">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_ticksize">
+      <type>
+        <string default="5"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_labelangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_labelheight">
+      <type>
+        <string default="6"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_valuesize">
+      <type>
+        <string default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_02_2_Axis_valuesquash">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_absolute">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_divisions">
+      <type>
+        <string default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_offset">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_range_first">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_range_second">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_min_absolute">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_max_absolute">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_minplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_maxplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_lines">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_minticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_maxticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_minlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_maxlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_minvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_maxvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_width">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_tickangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_ticktilt">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_ticksize">
+      <type>
+        <string default="5"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_labelangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_labelheight">
+      <type>
+        <string default="6"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_valuesize">
+      <type>
+        <string default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_1_Axis_valuesquash">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_absolute">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_divisions">
+      <type>
+        <string default="10"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_offset">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_range_first">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_range_second">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_min_absolute">
+      <type>
+        <string default="0.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_max_absolute">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_minplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_maxplane">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_lines">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_minticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_maxticks">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_minlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_maxlabel">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_minvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_maxvalue">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_width">
+      <type>
+        <string default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_tickangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_ticktilt">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_ticksize">
+      <type>
+        <string default="5"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_labelangle">
+      <type>
+        <string default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_labelheight">
+      <type>
+        <string default="6"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_valuesize">
+      <type>
+        <string default="3"/>
+      </type>
+    </parameter>
+    <parameter name="p_Plane_12_2_Axis_valuesquash">
+      <type>
+        <string default="1.0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Field" type="Field"/>
+    <output name="Axes" type="Geometry"/>
+  </data>
+</algorithm>

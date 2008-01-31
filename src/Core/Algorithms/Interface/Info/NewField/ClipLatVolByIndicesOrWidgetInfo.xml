@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ClipLatVolByIndicesOrWidget" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_use_text_bbox">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_min_x">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_min_y">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_min_z">
+      <type>
+        <double default="0.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_max_x">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_max_y">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+    <parameter name="p_text_max_z">
+      <type>
+        <double default="1.000000"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Field" type="Field"/>
+    <output name="Selection Widget" type="Geometry"/>
+    <output name="Output Field" type="Field"/>
+    <output name="MaskVector" type="Nrrd"/>
+  </data>
+</algorithm>

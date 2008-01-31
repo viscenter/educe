@@ -1,0 +1,51 @@
+<definition name="MenuList">
+  <object name="MenuManager::MenuList">
+    <var name="ThisMenuID" propagate="yes">$id</var>
+    <var name="ThisMenuIDVisible" propagate="yes">$visible</var>
+    <var name="MenuList::hide_on_unfocus"
+         propagate="yes" overwrite="no">1</var>
+    <object name="GrabFocusRegion">
+      <var name="focus" >0</var>
+      <var name="visible" propagate="yes">$ThisMenuIDVisible</var>
+
+      <signal name="GrabFocusRegion::unfocus"
+              target="Arithmetic::continue_if">
+        <var name="value">$MenuList::hide_on_unfocus</var>
+      </signal>
+
+      <signal name="GrabFocusRegion::unfocus"
+              target="MenuManager::hide_MenuList">
+        <var name="id">$ThisMenuID</var>
+      </signal>
+
+      <signal name="GrabFocusRegion::unfocus"
+              target="GLWindow::mark_redraw"/>
+
+      <object name="ShadowedBox">
+        <var name="invert">1</var>
+        <var name="width">2</var>
+        <var name="height">2</var>
+        <var name="ShadowedBox::inside" propagate="yes">#000000A0</var>
+        <var name="ShadowedBox::outside" propagate="yes">#00000000</var>
+        <var name="ShadowedBox::shadow_N_size" propagate="yes">0</var>
+        <var name="ShadowedBox::shadow_E_size" propagate="yes">10</var>
+        <var name="ShadowedBox::shadow_W_size" propagate="yes">0</var>
+        <var name="ShadowedBox::shadow_S_size" propagate="yes">10</var>
+        <definition name="ShadowedBox::child">
+          <object name="Skinner::Frame">
+            <var name="top-color">#A8A8A8FF</var>
+            <var name="left-color">#868686FF</var>
+            <var name="right-color">#404040FF</var>
+            <var name="bottom-color">#2E2E2EFF</var>
+            <var name="width">1</var>
+            <var name="height">1</var>
+
+            <object name="MenuList::child"/>
+          </object>
+
+        </definition>
+      </object>
+    </object>
+  </object>
+</definition>
+

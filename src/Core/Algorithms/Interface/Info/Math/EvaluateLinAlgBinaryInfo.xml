@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="EvaluateLinAlgBinary" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_op">
+      <type>
+        <string default="Mult"/>
+      </type>
+    </parameter>
+    <parameter name="p_function">
+      <type>
+        <string default="x+y"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="A" type="Matrix"/>
+    <input name="B" type="Matrix"/>
+    <output name="Output" type="Matrix"/>
+  </data>
+</algorithm>

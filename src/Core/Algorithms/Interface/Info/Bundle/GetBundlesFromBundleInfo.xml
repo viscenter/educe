@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetBundlesFromBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_bundle1_name">
+      <type>
+        <string default="bundle1"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle2_name">
+      <type>
+        <string default="bundle2"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle3_name">
+      <type>
+        <string default="bundle3"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle4_name">
+      <type>
+        <string default="bundle4"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle5_name">
+      <type>
+        <string default="bundle5"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle6_name">
+      <type>
+        <string default="bundle6"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundle_selection">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+    <output name="bundle1" type="Bundle"/>
+    <output name="bundle2" type="Bundle"/>
+    <output name="bundle3" type="Bundle"/>
+    <output name="bundle4" type="Bundle"/>
+    <output name="bundle5" type="Bundle"/>
+    <output name="bundle6" type="Bundle"/>
+  </data>
+</algorithm>

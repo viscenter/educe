@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateTensorArray" category="DataArrayMath" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="EigenVector1" type="Matrix"/>
+    <input name="EigenVector2" type="Matrix"/>
+    <input name="EigenValue1" type="Matrix"/>
+    <input name="EigenValue2" type="Matrix"/>
+    <input name="EigenValue3" type="Matrix"/>
+    <output name="TensorArray" type="Matrix"/>
+  </data>
+</algorithm>

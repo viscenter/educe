@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CreateDataArray" category="DataArrayMath" version="1.0">
+  <parameters>
+    <parameter name="p_function">
+      <type>
+        <string default="RESULT = abs(A);"/>
+      </type>
+    </parameter>
+    <parameter name="p_format">
+      <type>
+        <string default="Scalar"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Size" type="Matrix"/>
+    <input name="Function" type="String"/>
+    <input name="Array" type="Matrix"/>
+    <output name="DataArray" type="Matrix"/>
+  </data>
+</algorithm>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="InsertNrrdsIntoBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_nrrd1_name">
+      <type>
+        <string default="nrrd1"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd2_name">
+      <type>
+        <string default="nrrd2"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd3_name">
+      <type>
+        <string default="nrrd3"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd4_name">
+      <type>
+        <string default="nrrd4"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd5_name">
+      <type>
+        <string default="nrrd5"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd6_name">
+      <type>
+        <string default="nrrd6"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace1">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace2">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace3">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace4">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace5">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_replace6">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+    <parameter name="p_bundlename">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <input name="nrrd1" type="Nrrd"/>
+    <input name="nrrd2" type="Nrrd"/>
+    <input name="nrrd3" type="Nrrd"/>
+    <input name="nrrd4" type="Nrrd"/>
+    <input name="nrrd5" type="Nrrd"/>
+    <input name="nrrd6" type="Nrrd"/>
+    <output name="bundle" type="Bundle"/>
+  </data>
+</algorithm>

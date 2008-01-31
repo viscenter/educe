@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ManageFieldSeries" category="MiscField" version="1.0">
+  <parameters>
+    <parameter name="p_num_ports">
+      <type>
+        <string default="2"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input" type="Field"/>
+    <output name="Output 0" type="Field"/>
+    <output name="Output 1" type="Field"/>
+    <output name="Output 2" type="Field"/>
+    <output name="Output 3" type="Field"/>
+  </data>
+</algorithm>

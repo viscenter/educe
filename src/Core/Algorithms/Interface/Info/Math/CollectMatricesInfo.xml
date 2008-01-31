@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="CollectMatrices" category="Math" version="1.0">
+  <parameters>
+    <parameter name="p_append">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_row">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_front">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Optional BaseMatrix" type="Matrix"/>
+    <input name="SubMatrix" type="Matrix"/>
+    <output name="CompositeMatrix" type="Matrix"/>
+  </data>
+</algorithm>

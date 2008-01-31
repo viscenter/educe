@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetColorMapsFromBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_colormap1_name">
+      <type>
+        <string default="colormap1"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap2_name">
+      <type>
+        <string default="colormap2"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap3_name">
+      <type>
+        <string default="colormap3"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap4_name">
+      <type>
+        <string default="colormap4"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap5_name">
+      <type>
+        <string default="colormap5"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap6_name">
+      <type>
+        <string default="colormap6"/>
+      </type>
+    </parameter>
+    <parameter name="p_colormap_selection">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+    <output name="colormap1" type="ColorMap"/>
+    <output name="colormap2" type="ColorMap"/>
+    <output name="colormap3" type="ColorMap"/>
+    <output name="colormap4" type="ColorMap"/>
+    <output name="colormap5" type="ColorMap"/>
+    <output name="colormap6" type="ColorMap"/>
+  </data>
+</algorithm>

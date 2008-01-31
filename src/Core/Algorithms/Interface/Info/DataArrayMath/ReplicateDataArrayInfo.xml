@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ReplicateDataArray" category="DataArrayMath" version="1.0">
+  <parameters>
+    <parameter name="p_size">
+      <type>
+        <int default="1"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="DataArray" type="Matrix"/>
+    <input name="Size" type="Matrix"/>
+    <output name="DataArray" type="Matrix"/>
+  </data>
+</algorithm>

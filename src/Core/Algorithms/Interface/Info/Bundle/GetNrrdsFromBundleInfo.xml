@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GetNrrdsFromBundle" category="Bundle" version="1.0">
+  <parameters>
+    <parameter name="p_nrrd1_name">
+      <type>
+        <string default="nrrd1"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd2_name">
+      <type>
+        <string default="nrrd2"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd3_name">
+      <type>
+        <string default="nrrd3"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd4_name">
+      <type>
+        <string default="nrrd4"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd5_name">
+      <type>
+        <string default="nrrd5"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd6_name">
+      <type>
+        <string default="nrrd6"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd1">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd2">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd3">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd4">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd5">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_transposenrrd6">
+      <type>
+        <int default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_nrrd_selection">
+      <type>
+        <string default=""/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="bundle" type="Bundle"/>
+    <output name="bundle" type="Bundle"/>
+    <output name="nrrd1" type="Nrrd"/>
+    <output name="nrrd2" type="Nrrd"/>
+    <output name="nrrd3" type="Nrrd"/>
+    <output name="nrrd4" type="Nrrd"/>
+    <output name="nrrd5" type="Nrrd"/>
+    <output name="nrrd6" type="Nrrd"/>
+  </data>
+</algorithm>
