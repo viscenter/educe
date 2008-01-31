@@ -72,17 +72,17 @@ echo
 install_source_dir=`pwd`
 cd $DIR/src
 
-if test -d $DIR/src/freetype-2.1.10; then
+if test -d $DIR/src/freetype-2.3.5; then
     if test "$DO_NOT_UNTAR" != "yes"; then
         echo "It appears that Freetype has already been untarred.  Do you wish to untar it again? (y/n)"
         read answer
         echo
         if test "$answer" = "y"; then
-            $TAR zxf $install_source_dir/Tarballs/freetype-2.1.10.tar.gz
+            $TAR zxf $install_source_dir/Tarballs/freetype-2.3.5.tar.gz
         fi
     fi
 else
-    $TAR zxf $install_source_dir/Tarballs/freetype-2.1.10.tar.gz
+    $TAR zxf $install_source_dir/Tarballs/freetype-2.3.5.tar.gz
 fi
 
 ############
@@ -101,7 +101,7 @@ fi
 ############
 # Configure: 
 
-cd $DIR/src/freetype-2.1.10
+cd $DIR/src/freetype-2.3.5
 
 # Specifying the GNUMAKE variable is necessary on SGI.
 GNUMAKE=$MAKE ./configure $SHARED_LIBS_FLAG --prefix=$DIR $BITS_FLAG \
