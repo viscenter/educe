@@ -41,6 +41,7 @@
 
 #include <StandAlone/Apps/Seg3D/Seg3DFrame.h>
 #include <StandAlone/Apps/Seg3D/WXOpenGLContext.h>
+#include <StandAlone/Apps/Seg3D/plugins.h>
 #include <Core/Malloc/Allocator.h>
 #include <Core/Events/EventManager.h>
 #include <Core/Events/BaseEvent.h>
@@ -340,7 +341,14 @@ Seg3DFrame::Init()
   // ITK menu dialog
   winMenu = new wxMenu;
 
-  // Data enhancers.
+	// Plugins
+	
+	// winMenu->Append(MENU_PLUGIN_START, _T("Test"));
+	LoadPlugins(winMenu);
+
+  winMenu->AppendSeparator();
+  
+	// Data enhancers.
   winMenu->Append(MENU_FILTER_C_A_D_F, _T("Curvature &Anisotropic Diffusion Filter"));
   winMenu->Append(MENU_FILTER_MEDIAN_FILTER, _T("Median Filter"));
   winMenu->Append(MENU_FILTER_DISCRETE_GAUSSIAN_FILTER, _T("Discrete Gaussian Filter"));
