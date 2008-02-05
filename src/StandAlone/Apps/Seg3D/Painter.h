@@ -227,6 +227,7 @@ private:
 
   CatcherFunction_t     StartBrushTool;
   CatcherFunction_t     StartCropTool;
+  CatcherFunction_t     StartCropCylinder;
   CatcherFunction_t     StartFloodFillTool;
 
 public:

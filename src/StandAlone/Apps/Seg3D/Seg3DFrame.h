@@ -29,6 +29,7 @@ class ITKNeighbourhoodConnectedFilter;
 class ITKBinaryDilateErodeFilter;
 class ITKThresholdSegmentationLevelSetFilter;
 class CropVolume;
+class CropVolCylinder;
 class FlipTool;
 class ResampleTool;
 class MedianFilterTool;
@@ -58,6 +59,7 @@ enum
     MENU_TOOL_AUTOVIEW = 300,
     MENU_TOOL_PAINT_BRUSH,
     MENU_TOOL_CROP_VOLUME,
+    MENU_TOOL_CROP_CYLINDER,
     MENU_TOOL_ISOSURFACE,
     MENU_TOOL_SET_VRTARGET,
     MENU_TOOL_FLIP,
@@ -141,6 +143,7 @@ public:
   void ToolCrop( wxCommandEvent& WXUNUSED(event) );
 
   void ToolCropVolume( wxCommandEvent& WXUNUSED(event) );
+  void ToolCropCylinder( wxCommandEvent& WXUNUSED(event) );
   void ToolFlip( wxCommandEvent& WXUNUSED(event) );
 
   void ToolFlipC( wxCommandEvent& WXUNUSED(event) );
@@ -184,6 +187,7 @@ public:
 
   BrushPanel* brushPanel_;
   CropVolume* cropVolume_;
+  CropVolCylinder* cropCylinder_;
   FlipTool* flipTools_;
   ResampleTool* resampleTool_;
   MedianFilterTool* medianFilterTool_;

@@ -93,6 +93,7 @@ SET(Seg3D_SRCS
   BrushFloodFill.cc 
   CLUTLevelsTool.cc
   CropTool.cc
+  CropCylinder.cc
   FloodfillTool.cc
   FloodFillCopyTool.cc
   ITKConnectedImageFilterTool.cc
@@ -135,6 +136,7 @@ SET(Seg3D_SRCS
   GuiCode/itkbinarydilateerodefilter.cpp
   GuiCode/itkthresholdsegmentationlevelsetfilter.cpp
   GuiCode/cropvolume.cpp
+  GuiCode/cropvolcylinder.cpp
   GuiCode/cursorinformation.cpp
   GuiCode/fliptool.cpp
   GuiCode/resampletool.cpp
