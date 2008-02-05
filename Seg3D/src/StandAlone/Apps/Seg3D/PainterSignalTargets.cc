@@ -32,6 +32,7 @@
 
 #include <StandAlone/Apps/Seg3D/Painter.h>
 #include <StandAlone/Apps/Seg3D/CropTool.h>
+#include <StandAlone/Apps/Seg3D/CropCylinder.h>
 #include <StandAlone/Apps/Seg3D/BrushTool.h>
 #include <StandAlone/Apps/Seg3D/ITKConfidenceConnectedImageFilterTool.h>
 #include <StandAlone/Apps/Seg3D/ITKCurvatureAnisotropicDiffusionImageFilterTool.h>
@@ -129,6 +130,7 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
     
   REGISTER_CATCHER_TARGET(Painter::StartBrushTool);
   REGISTER_CATCHER_TARGET(Painter::StartCropTool);
+  REGISTER_CATCHER_TARGET(Painter::StartCropCylinder);
   REGISTER_CATCHER_TARGET(Painter::StartFloodFillTool);
 
   REGISTER_CATCHER_TARGET(Painter::Autoview);
@@ -250,6 +252,14 @@ BaseTool::propagation_state_e
 Painter::StartCropTool(event_handle_t &event)
 {
   tm_.set_tool(new CropTool(this), 25);
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e 
+Painter::StartCropCylinder(event_handle_t &event)
+{
+  tm_.set_tool(new CropCylinder(this), 25);
   return CONTINUE_E;
 }
 

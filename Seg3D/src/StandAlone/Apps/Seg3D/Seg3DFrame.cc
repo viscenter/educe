@@ -57,6 +57,7 @@
 #include <StandAlone/Apps/Seg3D/GuiCode/itkneighbourhoodconnectedfilter.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/itkthresholdsegmentationlevelsetfilter.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/cropvolume.h>
+#include <StandAlone/Apps/Seg3D/GuiCode/cropvolcylinder.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/brushpanel.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/cursorinformation.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/fliptool.h>
@@ -114,6 +115,7 @@ BEGIN_EVENT_TABLE(Seg3DFrame, wxFrame)
   EVT_MENU(MENU_TOOL_AUTOVIEW, Seg3DFrame::ToolAutoview)
   EVT_MENU(MENU_TOOL_PAINT_BRUSH, Seg3DFrame::ToolPaintBrush)
   EVT_MENU(MENU_TOOL_CROP_VOLUME, Seg3DFrame::ToolCropVolume)
+  EVT_MENU(MENU_TOOL_CROP_CYLINDER, Seg3DFrame::ToolCropCylinder)
   EVT_MENU(MENU_TOOL_ISOSURFACE, Seg3DFrame::ToolIsosurface)
   EVT_MENU(MENU_TOOL_SET_VRTARGET, Seg3DFrame::ToolSetVRTarget)
   EVT_MENU(MENU_TOOL_FLIP, Seg3DFrame::ToolFlip)
@@ -184,7 +186,13 @@ Seg3DFrame::Seg3DFrame(const std::string& target, wxFrame *frame,
   tools_sizer->Show(cropVolume_, false);
   tools_sizer->Layout();
   
-  // new wx median filter volume
+	// new wx crop cylinder
+  cropCylinder_ = scinew CropVolCylinder(toolsPanel_);
+  tools_sizer->Add(cropCylinder_, 0, 0, 0);
+  tools_sizer->Show(cropCylinder_, false);
+  tools_sizer->Layout();
+  
+	// new wx median filter volume
   medianFilterTool_ = scinew MedianFilterTool(toolsPanel_);
   tools_sizer->Add(medianFilterTool_, 0, 0, 0);
   tools_sizer->Show(medianFilterTool_, false);
@@ -319,6 +327,7 @@ Seg3DFrame::Init()
   winMenu->Append(MENU_TOOL_AUTOVIEW, _T("&Autoview All"));
   winMenu->Append(MENU_TOOL_PAINT_BRUSH, _T("&Paint Brush"));
   winMenu->Append(MENU_TOOL_CROP_VOLUME, _T("&Crop Tool"));
+  winMenu->Append(MENU_TOOL_CROP_CYLINDER, _T("Crop C&ylinder"));
   winMenu->Append(MENU_TOOL_ISOSURFACE, _T("&Isosurface Labels"));
   winMenu->Append(MENU_TOOL_SET_VRTARGET, _T("Set Volume &Rendering Target"));
   winMenu->Append(MENU_TOOL_FLIP, _T("&Flip Tool"));
@@ -793,6 +802,11 @@ Seg3DFrame::ToolCropVolume( wxCommandEvent& WXUNUSED(event) )
   ShowTool(cropVolume_, "Painter::StartCropTool", "Crop Tool");
 }
 
+void
+Seg3DFrame::ToolCropCylinder( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(cropCylinder_, "Painter::StartCropCylinder", "Crop Cylinder");
+}
 
 void
 Seg3DFrame::ToolFlip( wxCommandEvent& WXUNUSED(event) )
