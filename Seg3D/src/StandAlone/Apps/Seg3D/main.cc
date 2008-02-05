@@ -36,6 +36,7 @@
 #include <Core/Skinner/Window.h>
 #include <StandAlone/Apps/Seg3D/Seg3DFrame.h>
 #include <StandAlone/Apps/Seg3D/Painter.h>
+#include <StandAlone/Apps/Seg3D/config.h>
 
 #include <Core/Events/EventManager.h>
 
@@ -54,11 +55,6 @@ using namespace SCIRun;
 #include <wx/stdpaths.h>
 #include <wx/xrc/xmlres.h>
 #include <wx/fs_zip.h>
-
-
-// Where to look for the data directory
-#define DATAPATH "./data"
-//#define DATAPATH "/usr/share/Seg3D/1.9.0/data"
 
 class Seg3D : public wxApp 
 {
