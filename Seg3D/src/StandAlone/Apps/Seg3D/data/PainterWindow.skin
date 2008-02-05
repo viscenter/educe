@@ -32,7 +32,7 @@
               <var name="visible">$PainterWindow::visible</var>
               <var name="PainterWindow::show_tools" propagate="yes" overwrite="no">0</var>
               <var name="SliceWindow::GridVisible"
-                   propagate="yes" overwrite="no" type="bool">1</var>
+                   propagate="yes" overwrite="no" type="bool">0</var>
 
               <var name="SliceWindow::SlicesVisible"
                    propagate="yes" type="bool">1</var>
