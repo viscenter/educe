@@ -37,6 +37,7 @@
 #include <StandAlone/Apps/Seg3D/Seg3DFrame.h>
 #include <StandAlone/Apps/Seg3D/Painter.h>
 #include <StandAlone/Apps/Seg3D/config.h>
+#include <StandAlone/Apps/Seg3D/plugins.h>
 
 #include <Core/Events/EventManager.h>
 
@@ -96,7 +97,9 @@ Seg3D::OnInit()
                        wxSIMPLE_BORDER|wxFRAME_NO_TASKBAR);
   }
   wxYield();
-#endif
+#endif // _DEBUG
+	
+	ScanPlugins();
 
   // TODO: May be bad cast somewhere or another.
   create_sci_environment(0, (char *)argv[0]);  
