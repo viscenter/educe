@@ -29,7 +29,7 @@ PluginManager::ScanPlugins(std::string directory)
 }
 
 void
-PluginManager::LoadPlugins(wxMenu * menu)
+PluginManager::LoadPlugins(wxMenu * menu, int type)
 {
 	std::vector<fs::path> scanned_plugins = ScanPlugins( DATAPATH "/plugins" );
 
@@ -50,7 +50,9 @@ PluginManager::LoadPlugins(wxMenu * menu)
 			}
 			else {
 				plugins[thiswxid].gp = plugin_create();
-				menu->Append(thiswxid, _T(plugins[thiswxid].gp->get_menu_string().c_str()));
+				if(plugins[thiswxid].gp->get_type() == type) {
+					menu->Append(thiswxid, _T(plugins[thiswxid].gp->get_menu_string().c_str()));
+				}
 			}
 		}
 

@@ -7,6 +7,9 @@ class ExamplePlugin : public GenericPlugin {
 		virtual std::string get_menu_string() const {
 			return "ExamplePlugin";
 		}
+		virtual int get_type() const {
+			return PLUGIN_FILTER;
+		}
 };
 
 extern "C" GenericPlugin* create() {
