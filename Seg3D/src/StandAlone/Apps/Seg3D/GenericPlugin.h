@@ -3,12 +3,18 @@
 
 #include <string>
 
+// Bump when the GenericPlugin API is changed
+#define PLUGIN_VERSION 00000001
+
+#define CHECK_PLUGIN_VERSION extern "C" int check_plugin_version(int i){return i != PLUGIN_VERSION;}
+typedef int check_plugin_version_t(int);
+
+namespace SCIRun {
+
 enum plugin_types {
 	PLUGIN_FILTER, // segmentation
 	PLUGIN_TOOL
 };
-
-namespace SCIRun {
 
 class GenericPlugin {
 	public:

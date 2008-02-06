@@ -1,5 +1,7 @@
 #include "GenericPlugin.h"
 
+CHECK_PLUGIN_VERSION
+
 namespace SCIRun {
 
 class ExamplePlugin : public GenericPlugin {
