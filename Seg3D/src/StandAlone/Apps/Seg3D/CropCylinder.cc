@@ -304,6 +304,29 @@ CropCylinder::draw_gl(SliceWindow &window)
   GLdouble *colors[5] = { lt_yellow, yellow, black, grey, white };
   GLdouble widths[5] = { 11, 9.0, 7.0, 5.0, 1.0 }; 
 
+	Point vd = painter_->current_volume_->index_to_world(painter_->current_volume_->max_index());
+
+	double radius = vd(0) < vd(1) ? vd(0) : vd(1);
+	double thickness = radius / 100;
+	radius /= 2.0;
+
+	static GLUquadricObj *qobj = gluNewQuadric();
+
+	glEnable(GL_LINE_SMOOTH);
+	
+	glColor4d(1.0,0.76,0.1,0.6);
+
+	gluQuadricDrawStyle(qobj, GLU_FILL);
+	gluQuadricNormals(qobj, GLU_FLAT);
+
+	glTranslated(vd(0)/2.0,vd(1)/2.0,0.0);
+	glPushMatrix();
+	gluDisk(qobj, radius-thickness, radius+thickness, 50, 10);
+	glPopMatrix();
+
+  glDisable(GL_LINE_SMOOTH);
+	
+	/*
   glEnable(GL_LINE_SMOOTH);
   for (int pass = 2; pass < 5; ++pass) {
     glColor4dv(colors[pass]);
@@ -338,6 +361,7 @@ CropCylinder::draw_gl(SliceWindow &window)
     }
     glEnd();
   }
+	*/
 
   glDisable(GL_POINT_SMOOTH);
 

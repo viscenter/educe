@@ -64,6 +64,7 @@ private:
   void                update_from_gui();
   Painter *           painter_;
   int                 pick_;
+  int                 radius;
   vector<int>         minmax_[2];
   vector<Skinner::Var<double> >         gui_minmax_[2];
   vector<int>         pick_minmax_[2];

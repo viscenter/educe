@@ -111,6 +111,7 @@ public:
     wxSpinCtrl* mSpinMaxY;
     wxSpinCtrl* mSpinMinZ;
     wxSpinCtrl* mSpinMaxZ;
+    wxSpinCtrl* mSpinRadius;
 ////@end CropVolCylinder member variables
 };
 
