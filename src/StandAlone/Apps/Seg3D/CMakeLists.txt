@@ -176,6 +176,7 @@ SET(Seg3D_LIBS
   ITKBasicFilters
   ITKIO 
   boost_filesystem
+	dl
 )
 
 IF(X11_FOUND)

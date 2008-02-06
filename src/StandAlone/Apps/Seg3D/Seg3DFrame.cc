@@ -344,7 +344,7 @@ Seg3DFrame::Init()
 	// Plugins
 	
 	// winMenu->Append(MENU_PLUGIN_START, _T("Test"));
-	LoadPlugins(winMenu);
+	PluginManager(MENU_PLUGIN_START).LoadPlugins(winMenu);
 
   winMenu->AppendSeparator();
   
