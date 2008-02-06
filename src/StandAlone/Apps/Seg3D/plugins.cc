@@ -20,7 +20,6 @@ PluginManager::ScanPlugins(std::string directory)
 				++dir_itr )
 		{
 			if(fs::is_regular(dir_itr->status())) {
-				std::cout << dir_itr->path() << "\n";
 				plugins.push_back(dir_itr->path());
 			}
 		}
@@ -34,6 +33,7 @@ PluginManager::LoadPlugins(wxMenu * menu, int type)
 	std::vector<fs::path> scanned_plugins = ScanPlugins( DATAPATH "/plugins" );
 
 	for(unsigned int i = 0; i < scanned_plugins.size(); i++) {
+		std::cout << scanned_plugins[i] << '\n';
 		int thiswxid = curwxid++;
 		void * thisdl = dlopen(scanned_plugins[i].string().c_str(), RTLD_LAZY);
 		if(!thisdl) {
@@ -41,17 +41,27 @@ PluginManager::LoadPlugins(wxMenu * menu, int type)
 		}
 		else {
 			dlerror(); // reset errors
-			plugins[thiswxid] = Plugin(scanned_plugins[i], thisdl); // add plugin
-			
-			create_t* plugin_create = (create_t*) dlsym(thisdl, "create");
+			check_plugin_version_t* plugin_version_mismatch = (check_plugin_version_t*) dlsym(thisdl, "check_plugin_version");
 			const char * dlsym_error = dlerror();
 			if(dlsym_error) {
-				cerr << "Cannot load symbol create: " << dlsym_error << '\n';
+				cerr << "Cannot load symbol check_plugin_version: " << dlsym_error << '\n';
+			}
+			else if(plugin_version_mismatch(PLUGIN_VERSION)) {
+				cerr << "Plugin version mismatch, skipping\n";
 			}
 			else {
-				plugins[thiswxid].gp = plugin_create();
-				if(plugins[thiswxid].gp->get_type() == type) {
-					menu->Append(thiswxid, _T(plugins[thiswxid].gp->get_menu_string().c_str()));
+				plugins[thiswxid] = Plugin(scanned_plugins[i], thisdl); // add plugin
+				
+				create_t* plugin_create = (create_t*) dlsym(thisdl, "create");
+				const char * dlsym_error = dlerror();
+				if(dlsym_error) {
+					cerr << "Cannot load symbol create: " << dlsym_error << '\n';
+				}
+				else {
+					plugins[thiswxid].gp = plugin_create();
+					if(plugins[thiswxid].gp->get_type() == type) {
+						menu->Append(thiswxid, _T(plugins[thiswxid].gp->get_menu_string().c_str()));
+					}
 				}
 			}
 		}
