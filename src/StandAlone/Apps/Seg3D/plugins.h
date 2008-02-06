@@ -41,7 +41,7 @@ class PluginManager {
 		int curwxid;
 	public:
 		PluginManager(int wxid) { curwxid = wxid; }
-		void LoadPlugins(wxMenu * menu);
+		void LoadPlugins(wxMenu * menu, int type);
 };
 
 }

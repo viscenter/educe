@@ -3,6 +3,11 @@
 
 #include <string>
 
+enum plugin_types {
+	PLUGIN_FILTER, // segmentation
+	PLUGIN_TOOL
+};
+
 namespace SCIRun {
 
 class GenericPlugin {
@@ -11,6 +16,7 @@ class GenericPlugin {
 		virtual ~GenericPlugin() {}
 
 		virtual std::string get_menu_string() const = 0;
+		virtual int get_type() const = 0;
 };
 
 typedef GenericPlugin* create_t();
