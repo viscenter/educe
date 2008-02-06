@@ -120,6 +120,7 @@ void CropVolCylinder::Init()
     mSpinMaxY = NULL;
     mSpinMinZ = NULL;
     mSpinMaxZ = NULL;
+    mSpinRadius = NULL;
 ////@end CropVolCylinder member initialisation
 }
 
@@ -139,6 +140,7 @@ void CropVolCylinder::CreateControls()
     mSpinMaxY = XRCCTRL(*this, "SPIN_MAX_Y", wxSpinCtrl);
     mSpinMinZ = XRCCTRL(*this, "SPIN_MIN_Z", wxSpinCtrl);
     mSpinMaxZ = XRCCTRL(*this, "SPIN_MAX_Z", wxSpinCtrl);
+    mSpinRadius = XRCCTRL(*this, "SPIN_RADIUS", wxSpinCtrl);
 ////@end CropVolCylinder content construction
 
     // Set up a reasonable default range.

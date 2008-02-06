@@ -321,6 +321,16 @@ CropTool::draw_gl(SliceWindow &window)
   glLineWidth(1.0);
   glDisable(GL_LINE_SMOOTH);
 
+//	printf("Drawing line loop between:\n"
+//			"\t%g, %g, %g\n"
+//			"\t%g, %g, %g\n"
+//			"\t%g, %g, %g\n"
+//			"\t%g, %g, %g\n",
+//			ll(0),ll(1),ll(2),
+//			lr(0),lr(1),lr(2),
+//			ur(0),ur(1),ur(2),
+//			ul(0),ul(1),ul(2));
+
   widths[0] = 10.0;
   widths[1] = 6.0;
   widths[2] = 2.0;
