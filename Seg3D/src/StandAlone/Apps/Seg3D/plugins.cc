@@ -32,7 +32,7 @@ LoadPlugins(wxMenu * menu)
 	std::vector<fs::path> plugins = ScanPlugins();
 
 	for(unsigned int i = 0; i < plugins.size(); i++) {
-		menu->Append(MENU_PLUGIN_START+i, _T(plugins[i].leaf()));
+		menu->Append(MENU_PLUGIN_START+i, _T(plugins[i].leaf().c_str()));
 	}
 }
 
