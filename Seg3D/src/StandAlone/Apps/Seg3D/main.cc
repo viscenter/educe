@@ -99,8 +99,6 @@ Seg3D::OnInit()
   wxYield();
 #endif // _DEBUG
 	
-	ScanPlugins();
-
   // TODO: May be bad cast somewhere or another.
   create_sci_environment(0, (char *)argv[0]);  
 
