@@ -21,12 +21,7 @@ class ExampleFilterPlugin : public FilterPlugin {
 		virtual void run_filter() const {	}
 };
 
-extern "C" GenericPlugin* create() {
-	return (GenericPlugin*)new ExampleFilterPlugin;
-}
-
-extern "C" void destroy(GenericPlugin* g) {
-	delete g;
-}
+EXPORT_CREATE_FUNCTION(ExampleFilterPlugin)
+EXPORT_DELETE_FUNCTION(ExampleFilterPlugin)
 
 }

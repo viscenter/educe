@@ -7,6 +7,14 @@
 #define PLUGIN_VERSION 00000003
 
 #define SET_PLUGIN_VERSION extern "C" const int plugin_version = PLUGIN_VERSION
+#define EXPORT_CREATE_FUNCTION(T) extern "C" \
+	GenericPlugin* create() { \
+	return new T; \
+	}
+#define EXPORT_DELETE_FUNCTION(T) extern "C" \
+	void destroy(GenericPlugin* g) { \
+	delete g; \
+	}
 
 namespace SCIRun {
 

@@ -15,12 +15,7 @@ class ExamplePlugin : public GenericPlugin {
 		}
 };
 
-extern "C" GenericPlugin* create() {
-	return new ExamplePlugin;
-}
-
-extern "C" void destroy(GenericPlugin* g) {
-	delete g;
-}
+EXPORT_CREATE_FUNCTION(ExamplePlugin)
+EXPORT_DELETE_FUNCTION(ExamplePlugin)
 
 }
