@@ -12,6 +12,9 @@ class ExamplePlugin : public GenericPlugin {
 		virtual int get_type() const {
 			return PLUGIN_FILTER;
 		}
+		virtual void menu_event() const {
+			printf("Hello from ExamplePlugin\n");
+		}
 };
 
 extern "C" GenericPlugin* create() {

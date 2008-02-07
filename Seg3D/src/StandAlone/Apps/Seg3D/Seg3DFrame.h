@@ -4,6 +4,7 @@
 #include <StandAlone/Apps/Seg3D/WXOpenGLContext.h>
 #include <StandAlone/Apps/Seg3D/Painter.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/seg3devents.h>
+#include <StandAlone/Apps/Seg3D/plugins.h>
 
 #include <sci_gl.h>
 
@@ -88,11 +89,11 @@ enum
     MENU_FILTER_MASK_AND,
     MENU_FILTER_MASK_OR,
 
-		MENU_PLUGIN_START,
-
     MENU_HELP_UNDO,
     MENU_HELP_INDEX, // TODO: Fix later (wxID_HELP or wxID_HELP_INDEX?),
     MENU_HELP_ABOUT = wxID_ABOUT,
+		
+		MENU_PLUGIN_START = 500
 
     // Don't add any here without setting the value correctly.
 };
@@ -155,6 +156,8 @@ public:
   void ToolResetCLUT( wxCommandEvent& WXUNUSED(event) );
   void ToolSetMaskLayer( wxCommandEvent& WXUNUSED(event) );
   void ToolClearMaskLayer( wxCommandEvent& WXUNUSED(event) );
+
+	void PluginEvent( wxCommandEvent& event );
 
   void Filter_CADF( wxCommandEvent& WXUNUSED(event) );
   void Filter_CCF( wxCommandEvent& WXUNUSED(event) );
@@ -220,6 +223,8 @@ private:
   static void PainterShowVisibleItem(const string &id, const string &group);
 
   wxString CurrentDocPath;
+
+	PluginManager* plugin_manager_;
 
   wxPanel* toolsPanel_;
   wxPanel* infoPanel_;

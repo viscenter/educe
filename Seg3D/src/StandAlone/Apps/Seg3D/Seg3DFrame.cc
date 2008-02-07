@@ -264,6 +264,8 @@ Seg3DFrame::Seg3DFrame(const std::string& target, wxFrame *frame,
 
   current_tool_ = NULL;
 
+	plugin_manager_ = new PluginManager(MENU_PLUGIN_START);
+
   Init();
 }
 
@@ -344,7 +346,7 @@ Seg3DFrame::Init()
 	// Plugins
 	
 	// winMenu->Append(MENU_PLUGIN_START, _T("Test"));
-	PluginManager(MENU_PLUGIN_START).LoadPlugins(winMenu,PLUGIN_FILTER);
+	plugin_manager_->LoadPlugins(winMenu,PLUGIN_FILTER,(wxFrame*)this);
 
   winMenu->AppendSeparator();
   
@@ -868,6 +870,12 @@ Seg3DFrame::ToolClearMaskLayer( wxCommandEvent& WXUNUSED(event) )
   SetStatusText("Cleared the mask layer.");
 }
 
+void
+Seg3DFrame::PluginEvent( wxCommandEvent& event )
+{
+	printf("PluginEvent called\n");
+	plugin_manager_->HandleEvent(event);
+}
 
 void
 Seg3DFrame::Filter_CADF( wxCommandEvent& WXUNUSED(event) )

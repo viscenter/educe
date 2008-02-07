@@ -4,7 +4,7 @@
 #include <string>
 
 // Bump when the GenericPlugin API is changed
-#define PLUGIN_VERSION 00000001
+#define PLUGIN_VERSION 00000002
 
 #define SET_PLUGIN_VERSION extern "C" const int plugin_version = PLUGIN_VERSION
 
@@ -22,6 +22,7 @@ class GenericPlugin {
 
 		virtual std::string get_menu_string() const = 0;
 		virtual int get_type() const = 0;
+		virtual void menu_event( ) const = 0; 
 };
 
 typedef GenericPlugin* create_t();
