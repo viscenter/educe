@@ -28,7 +28,7 @@ PluginManager::ScanPlugins(std::string directory)
 }
 
 void
-PluginManager::LoadPlugins(wxMenu * menu, int type)
+PluginManager::LoadPlugins(wxMenu * menu, int type, wxFrame * frame)
 {
 	std::vector<fs::path> scanned_plugins = ScanPlugins( DATAPATH "/plugins" );
 
@@ -61,13 +61,17 @@ PluginManager::LoadPlugins(wxMenu * menu, int type)
 					plugins[thiswxid].gp = plugin_create();
 					if(plugins[thiswxid].gp->get_type() == type) {
 						menu->Append(thiswxid, _T(plugins[thiswxid].gp->get_menu_string().c_str()));
+						frame->Connect(thiswxid, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(Seg3DFrame::PluginEvent) );
 					}
 				}
 			}
 		}
-
-		// menu->Append(MENU_PLUGIN_START+i, _T(plugins[i].leaf().c_str()));
 	}
+}
+
+void
+PluginManager::HandleEvent(wxCommandEvent& event) {
+	plugins[event.GetId()].gp->menu_event();
 }
 
 }
