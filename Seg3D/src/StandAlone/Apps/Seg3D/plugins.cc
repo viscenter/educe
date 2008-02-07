@@ -41,12 +41,12 @@ PluginManager::LoadPlugins(wxMenu * menu, int type)
 		}
 		else {
 			dlerror(); // reset errors
-			check_plugin_version_t* plugin_version_mismatch = (check_plugin_version_t*) dlsym(thisdl, "check_plugin_version");
+			int* plugin_version = (int*) dlsym(thisdl, "plugin_version");
 			const char * dlsym_error = dlerror();
 			if(dlsym_error) {
-				cerr << "Cannot load symbol check_plugin_version: " << dlsym_error << '\n';
+				cerr << "Cannot load symbol plugin_version: " << dlsym_error << '\n';
 			}
-			else if(plugin_version_mismatch(PLUGIN_VERSION)) {
+			else if((*plugin_version) != PLUGIN_VERSION) {
 				cerr << "Plugin version mismatch, skipping\n";
 			}
 			else {
