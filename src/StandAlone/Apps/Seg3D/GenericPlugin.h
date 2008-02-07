@@ -6,8 +6,7 @@
 // Bump when the GenericPlugin API is changed
 #define PLUGIN_VERSION 00000001
 
-#define CHECK_PLUGIN_VERSION extern "C" int check_plugin_version(int i){return i != PLUGIN_VERSION;}
-typedef int check_plugin_version_t(int);
+#define SET_PLUGIN_VERSION extern "C" const int plugin_version = PLUGIN_VERSION
 
 namespace SCIRun {
 

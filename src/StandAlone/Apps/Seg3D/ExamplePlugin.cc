@@ -1,6 +1,6 @@
 #include "GenericPlugin.h"
 
-CHECK_PLUGIN_VERSION
+SET_PLUGIN_VERSION;
 
 namespace SCIRun {
 
