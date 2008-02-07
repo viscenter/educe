@@ -3,8 +3,8 @@
 
 #include <string>
 
-// Bump when the GenericPlugin API is changed
-#define PLUGIN_VERSION 00000002
+// Bump when the plugin API is changed
+#define PLUGIN_VERSION 00000003
 
 #define SET_PLUGIN_VERSION extern "C" const int plugin_version = PLUGIN_VERSION
 
@@ -12,7 +12,8 @@ namespace SCIRun {
 
 enum plugin_types {
 	PLUGIN_FILTER, // segmentation
-	PLUGIN_TOOL
+	PLUGIN_TOOL,
+	PLUGIN_GENERIC
 };
 
 class GenericPlugin {
@@ -21,7 +22,7 @@ class GenericPlugin {
 		virtual ~GenericPlugin() {}
 
 		virtual std::string get_menu_string() const = 0;
-		virtual int get_type() const = 0;
+		virtual int get_type() const { return PLUGIN_GENERIC; }
 		virtual void menu_event( ) const = 0; 
 };
 

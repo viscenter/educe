@@ -875,6 +875,9 @@ Seg3DFrame::PluginEvent( wxCommandEvent& event )
 {
 	printf("PluginEvent called\n");
 	plugin_manager_->HandleEvent(event);
+	ShowTool(optionless_, "Painter::PluginFilter", 
+			plugin_manager_->GetPluginTitle(event.GetId()).c_str());
+	optionless_->SetShowProgress(true);
 }
 
 void
