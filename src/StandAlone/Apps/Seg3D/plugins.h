@@ -43,6 +43,7 @@ class PluginManager {
 		PluginManager(int wxid) { curwxid = wxid; }
 		void LoadPlugins(wxMenu * menu, int type, wxFrame * frame);
 		void HandleEvent(wxCommandEvent& event);
+		std::string GetPluginTitle(int id);
 };
 
 }

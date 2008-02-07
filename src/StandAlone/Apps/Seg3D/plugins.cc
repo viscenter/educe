@@ -74,4 +74,9 @@ PluginManager::HandleEvent(wxCommandEvent& event) {
 	plugins[event.GetId()].gp->menu_event();
 }
 
+std::string
+PluginManager::GetPluginTitle(int id) {
+	return plugins[id].gp->get_menu_string();
+}
+
 }
