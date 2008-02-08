@@ -875,8 +875,34 @@ Seg3DFrame::PluginEvent( wxCommandEvent& event )
 {
 	printf("PluginEvent called\n");
 	plugin_manager_->HandleEvent(event);
-	ShowTool(optionless_, "Painter::PluginFilter", 
-			plugin_manager_->GetPluginTitle(event.GetId()).c_str());
+
+	// Begin ShowTool
+	// Clean up the current panel.
+  HideTool();
+
+  // Set the current tool to this one.
+  current_tool_ = optionless_;
+
+  // Reset the progress meter.
+  SCIRun::Painter::update_progress(0);
+
+  // Set the title text.
+  tool_label0_->SetLabel(plugin_manager_->GetPluginTitle(event.GetId()).c_str());
+  tool_label1_->SetLabel("");
+
+  // Display the new tool panel.
+  optionless_->Show();
+  this->toolsPanel_->GetSizer()->Show(optionless_, true);
+  this->toolsPanel_->GetSizer()->Layout();
+
+  // Tell the skinner side which tool is active.
+	SCIRun::ThrowSkinnerSignalEvent *tsse =
+      new SCIRun::ThrowSkinnerSignalEvent("Painter::PluginFilter");
+  tsse->add_var("Painter::PluginFilter::id", SCIRun::to_string(event.GetId()));
+  SCIRun::Painter::ThrowSkinnerSignal(tsse,true);
+  // End ShowTool
+
+	// optionless_->SetSkinnerCallback("Painter::PluginFilter");
 	optionless_->SetShowProgress(true);
 }
 

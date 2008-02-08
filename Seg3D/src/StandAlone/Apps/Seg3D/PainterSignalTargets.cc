@@ -51,6 +51,7 @@
 #include <StandAlone/Apps/Seg3D/SessionWriter.h>
 #include <StandAlone/Apps/Seg3D/VolumeOps.h>
 #include <StandAlone/Apps/Seg3D/VolumeFilter.h>
+#include <StandAlone/Apps/Seg3D/FilterPlugin.h>
 
 #include <sci_comp_warn_fixes.h>
 #include <iostream>
@@ -181,7 +182,9 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
 
   REGISTER_CATCHER_TARGET(Painter::RebuildLayers);
 
-  REGISTER_CATCHER_TARGET(Painter::ITKOtsuFilter);
+  REGISTER_CATCHER_TARGET(Painter::PluginFilter);
+  
+	REGISTER_CATCHER_TARGET(Painter::ITKOtsuFilter);
   REGISTER_CATCHER_TARGET(Painter::ITKHoleFillFilter);
   REGISTER_CATCHER_TARGET(Painter::FloodFillCopyFilter);
   REGISTER_CATCHER_TARGET(Painter::LabelInvertFilter);
@@ -631,6 +634,23 @@ Painter::HistoEqFilter(event_handle_t &event)
   return CONTINUE_E;
 }
 
+BaseTool::propagation_state_e
+Painter::PluginFilter(event_handle_t &event)
+{
+	
+	int wxid =
+		atoi(get_vars()->get_string("Painter::PluginFilter::id").c_str());
+	std::cerr << "Painter got ID: " <<  wxid << '\n' <<
+		"Title: " << global_seg3dframe_pointer_->plugin_manager_->GetPluginTitle(wxid) << '\n';
+	FilterPlugin * fp = (FilterPlugin*)global_seg3dframe_pointer_->plugin_manager_->GetPluginInstance(wxid);
+	fp->set_painter(this);
+	printf("FP addr inside painter: %x\n",fp);
+	tm_.set_tool( fp, 25 );
+	
+	// tm_.set_tool( new FilterPlugin(this), 25 );
+	return CONTINUE_E;
+	// return fp->process_event(event);
+}
 
 BaseTool::propagation_state_e 
 Painter::ITKOtsuFilter(event_handle_t &event)

@@ -28,7 +28,8 @@ class Plugin {
 		fs::path fullpath;
 		void * dlpointer;
 	public:
-		GenericPlugin * gp;
+		void * gp;
+		create_t * plugin_creator;
 		Plugin() {}
 		Plugin(fs::path fp, void * dlp) { fullpath = fp; dlpointer = dlp; }
 		// SetPluginInstance(GenericPlugin * instance) { gp = instance; }
@@ -44,6 +45,7 @@ class PluginManager {
 		void LoadPlugins(wxMenu * menu, int type, wxFrame * frame);
 		void HandleEvent(wxCommandEvent& event);
 		std::string GetPluginTitle(int id);
+		void* GetPluginInstance(int id);
 };
 
 }

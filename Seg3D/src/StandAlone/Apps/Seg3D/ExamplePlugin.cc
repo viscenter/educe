@@ -15,7 +15,7 @@ class ExamplePlugin : public GenericPlugin {
 		}
 };
 
-EXPORT_CREATE_FUNCTION(ExamplePlugin)
-EXPORT_DELETE_FUNCTION(ExamplePlugin)
+EXPORT_CREATE_FUNCTION(GenericPlugin, ExamplePlugin)
+EXPORT_DELETE_FUNCTION(GenericPlugin, ExamplePlugin)
 
 }

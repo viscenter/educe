@@ -59,8 +59,11 @@ PluginManager::LoadPlugins(wxMenu * menu, int type, wxFrame * frame)
 				}
 				else {
 					plugins[thiswxid].gp = plugin_create();
-					if(plugins[thiswxid].gp->get_type() == type) {
-						menu->Append(thiswxid, _T(plugins[thiswxid].gp->get_menu_string().c_str()));
+					plugins[thiswxid].plugin_creator = plugin_create;
+					GenericPlugin * thisgp = (GenericPlugin *) plugins[thiswxid].gp;
+					printf("FP addr inside PM: %x\n",thisgp);
+					if(thisgp->get_type() == type) {
+						menu->Append(thiswxid, _T(thisgp->get_menu_string().c_str()));
 						frame->Connect(thiswxid, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(Seg3DFrame::PluginEvent) );
 					}
 				}
@@ -71,12 +74,17 @@ PluginManager::LoadPlugins(wxMenu * menu, int type, wxFrame * frame)
 
 void
 PluginManager::HandleEvent(wxCommandEvent& event) {
-	plugins[event.GetId()].gp->menu_event();
+	((GenericPlugin *)plugins[event.GetId()].gp)->menu_event();
 }
 
 std::string
 PluginManager::GetPluginTitle(int id) {
-	return plugins[id].gp->get_menu_string();
+	return ((GenericPlugin*)plugins[id].gp)->get_menu_string();
+}
+
+void *
+PluginManager::GetPluginInstance(int id) {
+	return plugins[id].plugin_creator();
 }
 
 }
