@@ -217,7 +217,9 @@ private:
   BaseTool::propagation_state_e SaveSession(const string &filename);
   BaseTool::propagation_state_e SaveVolume(const string &filename);
 
-  CatcherFunction_t     ITKOtsuFilter;
+  CatcherFunction_t     PluginFilter;
+  
+	CatcherFunction_t     ITKOtsuFilter;
   CatcherFunction_t     ITKHoleFillFilter;
   CatcherFunction_t     FloodFillCopyFilter;
   

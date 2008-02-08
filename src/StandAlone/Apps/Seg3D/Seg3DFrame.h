@@ -212,6 +212,8 @@ public:
   void HideTool();
   wxPanel *CurrentToolPanel();
 
+	PluginManager* plugin_manager_;
+
 private:
   void OnCloseWindow(wxCloseEvent &event);
   void OnStatusBarTextChange(wxCommandEvent &event);
@@ -223,8 +225,6 @@ private:
   static void PainterShowVisibleItem(const string &id, const string &group);
 
   wxString CurrentDocPath;
-
-	PluginManager* plugin_manager_;
 
   wxPanel* toolsPanel_;
   wxPanel* infoPanel_;

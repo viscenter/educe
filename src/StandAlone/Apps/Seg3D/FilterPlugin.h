@@ -7,13 +7,19 @@
 
 namespace SCIRun {
 
-	class FilterPlugin : public virtual GenericPlugin, public virtual BaseTool {
-		public:
-			virtual propagation_state_e process_event(event_handle_t) const = 0;
-			virtual int get_type() const { return PLUGIN_FILTER; }
-		private:
-			virtual void run_filter() const = 0;
+	class FilterPlugin : public virtual BaseTool, public virtual GenericPlugin {
+		protected:
 			Painter *	painter_;	
+		public:
+			FilterPlugin(Painter * ip = NULL) : painter_(ip) {}
+			virtual BaseTool::propagation_state_e process_event(event_handle_t) { printf("Processing event inside FilterPlugin\n"); return CONTINUE_E; }
+			virtual int get_type() const { return PLUGIN_FILTER; }
+			virtual void set_painter(Painter * ip) { painter_ = ip; }
+			virtual std::string get_menu_string() const { return "FilterPlugin"; }
+			virtual void menu_event() const { printf("TPME\n"); }
+
+		private:
+			virtual void run_filter() const { printf("Running FilterPlugin\n"); }
 	};
 
 }
