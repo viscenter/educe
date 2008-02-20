@@ -177,6 +177,9 @@ SET(Seg3D_LIBS
   ITKIO 
   boost_filesystem
 	dl
+	cv
+	cxcore
+	highgui
 )
 
 IF(X11_FOUND)
