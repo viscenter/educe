@@ -12,6 +12,9 @@
 #include <wx/glcanvas.h>
 #include <wx/help.h>
 
+#include <opencv/cv.h>
+#include <opencv/cxcore.h>
+
 #if !wxUSE_GLCANVAS
 #error Need WX GL Canvas!
 #endif
@@ -115,6 +118,7 @@ DECLARE_EVENT_TYPE(wxEVT_COMMAND_COLOUR_PICKER, -101)
 DECLARE_EVENT_TYPE(wxEVT_COMMAND_HIDE_TOOL, -102)
 DECLARE_EVENT_TYPE(wxEVT_COMMAND_OK_DIALOG, -103)
 DECLARE_EVENT_TYPE(wxEVT_COMMAND_LAYER_DELETE_DIALOG, -104)
+DECLARE_EVENT_TYPE(wxEVT_COMMAND_UNWRAP_WINDOW, -105)
 
 
 class Seg3DFrame : public wxFrame
@@ -213,6 +217,7 @@ public:
   wxPanel *CurrentToolPanel();
 
 	PluginManager* plugin_manager_;
+	IplImage * unwrapped_image_;
 
 private:
   void OnCloseWindow(wxCloseEvent &event);
@@ -221,6 +226,7 @@ private:
   void OnHideTool(wxCommandEvent &event);
   void OnOKDialog(wxCommandEvent &event);
   void OnLayerDeleteDialog(wxCommandEvent &event);
+  void OnUnwrapWindow(wxCommandEvent &event);
 
   static void PainterShowVisibleItem(const string &id, const string &group);
 
