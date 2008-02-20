@@ -156,8 +156,6 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 
 			painter_->set_status("Running scroll unwrapping filter.");
 
-			painter_->volume_lock_.lock();
-
 			NrrdDataHandle source_label = painter_->mask_volume_->nrrd_handle_;
 			NrrdDataHandle source_data = painter_->current_volume_->nrrd_handle_;
 
@@ -182,6 +180,8 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 					*dst = *src;
 				}
 			}
+			
+			painter_->update_progress(25);
 
 			printf("Axis dimensions: %d x %d x %d\n",masked->nrrd_->axis[1].size,
 					masked->nrrd_->axis[2].size,masked->nrrd_->axis[3].size);
@@ -203,6 +203,8 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 
 			nrrdRangeNix(range);
 
+			painter_->update_progress(50);
+
 			int width = mquantized->axis[1].size,
 				height = mquantized->axis[2].size,
 				slices = mquantized->axis[3].size;
@@ -211,10 +213,8 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 	
 			for(int i = 0; i < slices; i++) {
 				radial_sample(width, height, ((char*)(mquantized->data))+(width * height * i), ((char*)(dquantized->data))+(width * height * i), unwrapped, i);
-				painter_->update_progress(i/slices);
+				painter_->update_progress(((float)i/(float)slices)*100);
 			}
-
-			painter_->volume_lock_.unlock();
 
 			init_window(unwrapped);
 			printf("Init'd win\n");
@@ -224,29 +224,6 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 
 			nrrdNuke(mquantized);
 			nrrdNuke(dquantized);
-			/*
-			painter_->volume_lock_.lock();
-
-			// Save the source
-			NrrdVolumeHandle source_volume = painter_->current_volume_;
-
-			// Make a new label volume.
-			NrrdDataHandle nrrdh = VolumeOps::create_clear_nrrd(painter_->current_volume_->nrrd_handle_, LabelNrrdType);
-			const string name = painter_->unique_layer_name(painter_->current_volume_->name_ + " Scroll Label");
-			painter_->volumes_.push_back(new NrrdVolume(painter_, name, nrrdh, 1));
-			painter_->current_volume_ = painter_->volumes_.back();
-			painter_->rebuild_layer_buttons();
-			painter_->volume_lock_.unlock();
-
-			painter_->update_progress(50);
-	
- 		  VolumeFilter<itk::OtsuThresholdImageFilter< ITKImageFloat3D, ITKImageLabel3D > > filter;
-			filter.set_volume(painter_->current_volume_);
-			filter->SetOutsideValue(1);
-			filter->SetInsideValue(0);
-
-			filter(source_volume->nrrd_handle_);
-			*/
 
 			painter_->update_progress(100);
 			painter_->extract_all_window_slices();
