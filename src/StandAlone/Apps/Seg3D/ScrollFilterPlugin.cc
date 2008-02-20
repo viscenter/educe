@@ -67,8 +67,11 @@ class ScrollFilterPlugin : public FilterPlugin {
 			filter(source_volume->nrrd_handle_);
 
 			painter_->update_progress(100);
+			
+			painter_->mask_volume_ = painter_->current_volume_;
 
 			painter_->extract_all_window_slices();
+			painter_->rebuild_layer_buttons();
 			painter_->redraw_all();
 
 			painter_->hide_tool_panel();
