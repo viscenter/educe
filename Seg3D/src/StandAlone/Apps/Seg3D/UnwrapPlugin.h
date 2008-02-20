@@ -11,9 +11,9 @@
 #include <wx/tokenzr.h>
 #include <wx/fs_zip.h>
 
-#include <cv.h>
-#include <cxcore.h>
-#include <highgui.h>
+#include <opencv/cv.h>
+#include <opencv/cxcore.h>
+#include <opencv/highgui.h>
 
 namespace SCIRun {
 
@@ -35,13 +35,28 @@ namespace SCIRun {
 				cvSet(test, cvScalar(128));
 				*/
 
+				IplImage * myIm;
+
+				if(cvIm->nChannels == 3) {
+					myIm = cvIm;
+				}
+				else {
+					printf("Size: %d %d\n",cvIm->width,cvIm->height);
+					myIm = cvCreateImage(cvSize(cvIm->width,cvIm->height),8,3);
+					cvCvtColor(cvIm, myIm, CV_GRAY2BGR);
+				}
+
 				unsigned char * rawData;
 				int step = 0;
 				CvSize roiSize;
-				cvGetRawData( cvIm, &rawData, &step, &roiSize );
+				cvGetRawData( myIm, &rawData, &step, &roiSize );
 
-				wxImage wxi = wxImage(cvIm->width, cvIm->height, rawData, true);
-				bmap = wxBitmap(wxi.Scale(cvIm->width,cvIm->height));
+				wxImage wxi = wxImage(myIm->width, myIm->height, rawData, true);
+				bmap = wxBitmap(wxi.Scale(myIm->width,myIm->height));
+
+				if(cvIm->nChannels != 3) {
+					cvReleaseImage(&myIm);
+				}
 
 				update_image();
 			}
@@ -56,7 +71,6 @@ namespace SCIRun {
 				wxFrame(frame, wxID_ANY, title, pos, size, style) {
 					printf("UnwrapPluginWindow shown\n");
 					scroll = new UnwrappedView(this);
-					// scroll->set_image();
 				}
 	};
 
@@ -64,6 +78,11 @@ namespace SCIRun {
 		protected:
 			Painter *	painter_;
 			UnwrapPluginWindow * unwrap_win_;
+			void init_window(IplImage * im) {
+				wxCommandEvent wxevent(wxEVT_COMMAND_UNWRAP_WINDOW);
+				wxevent.SetClientData(im);
+				wxPostEvent(painter_->global_seg3dframe_pointer_, wxevent);
+			}
 		public:
 			UnwrapPlugin(Painter * ip = NULL) : painter_(ip) {}
 			virtual BaseTool::propagation_state_e process_event(event_handle_t) { printf("Processing event inside UnwrapPlugin\n"); return CONTINUE_E; }

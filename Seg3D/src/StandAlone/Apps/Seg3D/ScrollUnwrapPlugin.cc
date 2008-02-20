@@ -49,11 +49,6 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 			return CONTINUE_E;
 		}
 	private:
-		void init_window(IplImage * im) {
-			unwrap_win_ = new UnwrapPluginWindow(_T("Unwrapped View"), painter_->global_seg3dframe_pointer_, wxDefaultPosition, wxSize(900,750));
-			unwrap_win_->scroll->set_image(im);
-			unwrap_win_->Show(true);
-		}	
 		CvPoint calc_ray_outer(float theta, CvPoint center)
 		{
 			CvPoint result;
@@ -61,25 +56,31 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 			float dx = hyp * cos(theta);
 			float dy = hyp * sin(theta);
 
-			result.x = center.x - dx;
-			result.y = center.y - dy;
+			result.x = center.x - (int)dx;
+			result.y = center.y - (int)dy;
 
 			return result;
 		}
 
-		void radial_sample(int width, int height, char* data, IplImage *unwrapped, int slice)
+		void radial_sample(int width, int height, char* data, char* ddata, IplImage *unwrapped, int slice)
 		{
 			IplImage *cvcast = cvCreateImageHeader(cvSize(width, height),
 					IPL_DEPTH_8U, 1);
 			cvcast->imageData = data;
+			
+			IplImage *cvcastd = cvCreateImageHeader(cvSize(width, height),
+					IPL_DEPTH_8U, 1);
+			cvcastd->imageData = ddata;
 
-			// cvSaveImage("slice.png",cvcast);
+			//cvSaveImage("slicem.png",cvcast);
+			//cvSaveImage("sliced.png",cvcastd);
 			int cx = width/2;
 			int cy = height/2;
 
 			CvPoint center = cvPoint(cx,cy);
 
 			unsigned char* linebuf;
+			unsigned char* dlinebuf;
 			for(int sample = 0; sample < RADIAL_SAMPLES; sample++) {
 				float theta = ((float)sample)*((2.0*PI)/(float)RADIAL_SAMPLES);
 				CvPoint outer = calc_ray_outer(theta, center);
@@ -87,30 +88,47 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 				// printf("%g:\t%d,%d\n", theta*(180.0/PI), outer.x, outer.y);
 				cvClipLine(cvSize(width, height), &outer, &center);
 				int linesize = abs(center.x-outer.x)+abs(center.y-outer.y)+1;
+				
 				linebuf = (unsigned char*)malloc(linesize);
+				dlinebuf = (unsigned char*)malloc(linesize);
+				
 				cvSampleLine(cvcast,outer,center,linebuf,4);
+				
+				cvSampleLine(cvcastd,outer,center,dlinebuf,4);
 				
 				IplImage *castline = cvCreateImageHeader(cvSize(linesize,1), IPL_DEPTH_8U, 1);
 				castline->imageData = (char*)linebuf;
 
+				IplImage *dcastline = cvCreateImageHeader(cvSize(linesize,1), IPL_DEPTH_8U, 1);
+				dcastline->imageData = (char*)dlinebuf;
+				/*
 				IplImage *sobel = cvCreateImage(cvSize(linesize,1), IPL_DEPTH_8U, 1);
 
 				cvSobel(castline, sobel, 1, 0, 3);
+				*/
 
 				int layer = 0;
 				for(int i = 0; (i < linesize) && (layer < MAX_LAYERS); i++) {
 					// printf(" %d,", (int)cvGetReal1D(sobel,i));
-					if((int)cvGetReal1D(sobel,i) > SOBEL_THRESH) {
+					if((int)cvGetReal1D(castline,i) > 0) {
 						int max = 0, max_i = 0;
-						for(; i < linesize; i++) {
-							int curval = (int)cvGetReal1D(sobel,i);
-							if(curval == 0) break;
+						int min = 255, min_i = 0;
+						int j = i;
+						i -= 2;
+						for(; (i < linesize) && (j < linesize); i++, j++) {
+							int maskval = (int)cvGetReal1D(castline,j);
+							int curval = (int)cvGetReal1D(dcastline,i);
+							if(maskval == 0) break;
 							if(curval > max) {
 								max = curval;
 								max_i = i;
 							}
+							if(curval < min) {
+								min = curval;
+								min_i = i;
+							}
 						}
-						cvSetReal2D(unwrapped,slice,(layer*RADIAL_SAMPLES)+sample,cvGetReal1D(castline,max_i));
+						cvSetReal2D(unwrapped,slice,(layer*RADIAL_SAMPLES)+sample,cvGetReal1D(dcastline,max_i));
 						// printf("%d\t",max);
 						layer++;
 					}
@@ -122,20 +140,27 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 				sprintf(filename,"line%03d.png",(int)(theta*(180.0/PI)));
 				cvSaveImage(filename,sobel);
 				*/
-				
+
 				cvReleaseImageHeader(&castline);
-				cvReleaseImage(&sobel);
+				cvReleaseImageHeader(&dcastline);
+				// cvReleaseImage(&sobel);
 
 				free(linebuf);
+				free(dlinebuf);
 			}
+			cvReleaseImageHeader(&cvcast);
+			cvReleaseImageHeader(&cvcastd);
 		}
 		virtual void run_filter() {	
 			printf("Scroll Unwrapping run\n");
 
 			painter_->set_status("Running scroll unwrapping filter.");
 
+			painter_->volume_lock_.lock();
+
 			NrrdDataHandle source_label = painter_->mask_volume_->nrrd_handle_;
 			NrrdDataHandle source_data = painter_->current_volume_->nrrd_handle_;
+
 
 			const label_type mlabel = painter_->mask_volume_->label_;
 
@@ -152,7 +177,7 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 			float *dst = (float*)masked->nrrd_->data;
 			float *src = (float*)source_data->nrrd_->data;
 			label_type *labeld = (label_type*)source_label->nrrd_->data;
-			for(size_t i = 0; i < datasize; ++i, ++dst, ++labeld, ++*src) {
+			for(size_t i = 0; i < datasize; ++i, ++dst, ++labeld, ++src) {
 				if((*labeld & mlabel)) {
 					*dst = *src;
 				}
@@ -161,21 +186,44 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 			printf("Axis dimensions: %d x %d x %d\n",masked->nrrd_->axis[1].size,
 					masked->nrrd_->axis[2].size,masked->nrrd_->axis[3].size);
 
-			int width = masked->nrrd_->axis[1].size,
-				height = masked->nrrd_->axis[2].size,
-				slices = masked->nrrd_->axis[3].size;
+			NrrdRange *range = nrrdRangeNewSet(masked->nrrd_,0);
+			printf("min: %g\tmax: %g\n", range->min, range->max);
+			Nrrd *mquantized = nrrdNew();
+			
+			nrrdQuantize(mquantized,masked->nrrd_,range,8);
+
+			nrrdRangeNix(range);
+
+			range = nrrdRangeNewSet(source_data->nrrd_,0);
+			printf("min: %g\tmax: %g\n", range->min, range->max);
+			Nrrd *dquantized = nrrdNew();
+			
+			nrrdQuantize(dquantized,source_data->nrrd_,range,8);
+			//nrrdSave("quantized.nrrd",masked->nrrd_,NULL); 
+
+			nrrdRangeNix(range);
+
+			int width = mquantized->axis[1].size,
+				height = mquantized->axis[2].size,
+				slices = mquantized->axis[3].size;
 
 			IplImage *unwrapped = cvCreateImage(cvSize(RADIAL_SAMPLES*MAX_LAYERS, slices), IPL_DEPTH_8U, 1);
 	
 			for(int i = 0; i < slices; i++) {
-				radial_sample(width, height, ((char*)(masked->nrrd_->data))+(width * height * i), unwrapped, i);
+				radial_sample(width, height, ((char*)(mquantized->data))+(width * height * i), ((char*)(dquantized->data))+(width * height * i), unwrapped, i);
+				painter_->update_progress(i/slices);
 			}
 
+			painter_->volume_lock_.unlock();
+
 			init_window(unwrapped);
+			printf("Init'd win\n");
 			
 			cvSaveImage("unwrapped.png",unwrapped);
-			cvReleaseImage(&unwrapped);
+			//cvReleaseImage(&unwrapped);
 
+			nrrdNuke(mquantized);
+			nrrdNuke(dquantized);
 			/*
 			painter_->volume_lock_.lock();
 

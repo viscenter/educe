@@ -42,6 +42,7 @@
 #include <StandAlone/Apps/Seg3D/Seg3DFrame.h>
 #include <StandAlone/Apps/Seg3D/WXOpenGLContext.h>
 #include <StandAlone/Apps/Seg3D/plugins.h>
+#include <StandAlone/Apps/Seg3D/UnwrapPlugin.h>
 #include <Core/Malloc/Allocator.h>
 #include <Core/Events/EventManager.h>
 #include <Core/Events/BaseEvent.h>
@@ -99,6 +100,7 @@ BEGIN_EVENT_TABLE(Seg3DFrame, wxFrame)
   EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_HIDE_TOOL, Seg3DFrame::OnHideTool)
   EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_OK_DIALOG, Seg3DFrame::OnOKDialog)
   EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_LAYER_DELETE_DIALOG, Seg3DFrame::OnLayerDeleteDialog)
+  EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_UNWRAP_WINDOW, Seg3DFrame::OnUnwrapWindow)
 
   EVT_MENU(MENU_FILE_LOAD_VOLUME, Seg3DFrame::FileLoadVolume)
   EVT_MENU(MENU_FILE_LOAD_SESSION, Seg3DFrame::FileLoadSession)
@@ -502,12 +504,22 @@ Seg3DFrame::OnLayerDeleteDialog(wxCommandEvent &event)
   }    
 }
 
+void
+Seg3DFrame::OnUnwrapWindow(wxCommandEvent &event)
+{
+	UnwrapPluginWindow * unwrap_win = new UnwrapPluginWindow(_T("Unwrapped View"), Painter::global_seg3dframe_pointer_,
+		wxDefaultPosition, wxDefaultSize);
+	unwrap_win->scroll->set_image((IplImage*)event.GetClientData());
+	unwrap_win->Show(true);
+}
+
 
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_STATUS_BAR_TEXT_CHANGE)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_COLOUR_PICKER)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_HIDE_TOOL)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_OK_DIALOG)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LAYER_DELETE_DIALOG)
+DEFINE_EVENT_TYPE(wxEVT_COMMAND_UNWRAP_WINDOW)
 
 
 void
