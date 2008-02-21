@@ -184,6 +184,8 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
 
   REGISTER_CATCHER_TARGET(Painter::PluginFilter);
   
+	REGISTER_CATCHER_TARGET(Painter::UnwrapProbe);
+  
 	REGISTER_CATCHER_TARGET(Painter::ITKOtsuFilter);
   REGISTER_CATCHER_TARGET(Painter::ITKHoleFillFilter);
   REGISTER_CATCHER_TARGET(Painter::FloodFillCopyFilter);
@@ -650,6 +652,25 @@ Painter::PluginFilter(event_handle_t &event)
 	// tm_.set_tool( new FilterPlugin(this), 25 );
 	return CONTINUE_E;
 	// return fp->process_event(event);
+}
+	
+BaseTool::propagation_state_e
+Painter::UnwrapProbe(event_handle_t &event)
+{
+	for (SliceWindows::iterator i = windows_.begin(); i != windows_.end(); ++i) {
+    //(*i)->set_probe();
+		(*i)->center_ = Point(0,0,0);
+		(*i)->recompute_slices_ = true;
+		(*i)->autoview(current_volume_);
+  }
+  redraw_all();
+  redraw_all();
+
+	/*
+	pointer_pos_ = Point(0,0,0);
+	set_probe();
+	*/
+	
 }
 
 BaseTool::propagation_state_e 

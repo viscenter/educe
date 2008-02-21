@@ -60,7 +60,18 @@ namespace SCIRun {
 
 				update_image();
 			}
+			void OnMouse(wxMouseEvent& event) {
+				printf("Location: %d, %d\n",event.GetX(),event.GetY());
+				Painter::ThrowSkinnerSignal("Painter::UnwrapProbe");
+				event.Skip();
+			}
+		private:
+			DECLARE_EVENT_TABLE();
 	};
+
+	BEGIN_EVENT_TABLE(UnwrappedView, wxScrolledWindow)
+		EVT_LEFT_DOWN(UnwrappedView::OnMouse)
+	END_EVENT_TABLE()
 
 	class UnwrapPluginWindow : public wxFrame {
 		public:

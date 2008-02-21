@@ -219,6 +219,8 @@ private:
 
   CatcherFunction_t     PluginFilter;
   
+	CatcherFunction_t     UnwrapProbe;
+  
 	CatcherFunction_t     ITKOtsuFilter;
   CatcherFunction_t     ITKHoleFillFilter;
   CatcherFunction_t     FloodFillCopyFilter;
