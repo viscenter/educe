@@ -213,7 +213,7 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 	
 			for(int i = 0; i < slices; i++) {
 				radial_sample(width, height, ((char*)(mquantized->data))+(width * height * i), ((char*)(dquantized->data))+(width * height * i), unwrapped, i);
-				painter_->update_progress(((float)i/(float)slices)*100);
+				painter_->update_progress((int)(((float)i/(float)slices)*100));
 			}
 
 			init_window(unwrapped);
