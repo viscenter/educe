@@ -657,9 +657,15 @@ Painter::PluginFilter(event_handle_t &event)
 BaseTool::propagation_state_e
 Painter::UnwrapProbe(event_handle_t &event)
 {
+	const int x = atoi(get_vars()->get_string("Painter::UnwrapProbe::x").c_str());
+	const int y = atoi(get_vars()->get_string("Painter::UnwrapProbe::y").c_str());
+	const int z = atoi(get_vars()->get_string("Painter::UnwrapProbe::z").c_str());
+
+	printf("Painter got: %d,%d,%d\n",x,y,z);
+
 	for (SliceWindows::iterator i = windows_.begin(); i != windows_.end(); ++i) {
     //(*i)->set_probe();
-		(*i)->center_ = Point(0,0,0);
+		(*i)->center_ = Point(x,y,z);
 		(*i)->recompute_slices_ = true;
 		(*i)->autoview(current_volume_);
   }

@@ -62,7 +62,7 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 			return result;
 		}
 
-		void radial_sample(int width, int height, char* data, char* ddata, IplImage *unwrapped, int slice)
+		void radial_sample(int width, int height, char* data, char* ddata, IplImage *unwrapped, CvMat *plookup, int slice)
 		{
 			IplImage *cvcast = cvCreateImageHeader(cvSize(width, height),
 					IPL_DEPTH_8U, 1);
@@ -128,6 +128,10 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 								min_i = i;
 							}
 						}
+						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+0] = max_i;
+						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+1] = 0;
+						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+2] = slice;
+						//cvSet2D(plookup,slice,(layer*RADIAL_SAMPLES)+sample,cvScalar(0,0,slice));
 						cvSetReal2D(unwrapped,slice,(layer*RADIAL_SAMPLES)+sample,cvGetReal1D(dcastline,max_i));
 						// printf("%d\t",max);
 						layer++;
@@ -210,17 +214,22 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 				slices = mquantized->axis[3].size;
 
 			IplImage *unwrapped = cvCreateImage(cvSize(RADIAL_SAMPLES*MAX_LAYERS, slices), IPL_DEPTH_8U, 1);
+			CvMat *plookup = cvCreateMat(slices,RADIAL_SAMPLES*MAX_LAYERS,CV_32SC3);
 	
 			for(int i = 0; i < slices; i++) {
-				radial_sample(width, height, ((char*)(mquantized->data))+(width * height * i), ((char*)(dquantized->data))+(width * height * i), unwrapped, i);
+				radial_sample(width, height, ((char*)(mquantized->data))+(width * height * i), ((char*)(dquantized->data))+(width * height * i), unwrapped, plookup, i);
 				painter_->update_progress((int)(((float)i/(float)slices)*100));
 			}
 
-			init_window(unwrapped);
+			struct Unwrapping *unwrapping = (struct Unwrapping*)malloc(sizeof(struct Unwrapping));
+			unwrapping->point_lookup = plookup;
+			unwrapping->referenced_volume = painter_->current_volume_->nrrd_handle_->nrrd_;
+
+			init_window(unwrapping);
 			printf("Init'd win\n");
 			
 			cvSaveImage("unwrapped.png",unwrapped);
-			//cvReleaseImage(&unwrapped);
+			cvReleaseImage(&unwrapped);
 
 			nrrdNuke(mquantized);
 			nrrdNuke(dquantized);
