@@ -60,6 +60,8 @@ namespace SCIRun {
 				printf("min: %g\tmax: %g\n", range->min, range->max);
 				Nrrd *curnrrd = nrrdNew();
 			
+				printf("Ref vol head: %x\n",*(unwrapped->referenced_volume));
+			
 				nrrdQuantize(curnrrd,unwrapped->referenced_volume,range,8);
 
 				nrrdRangeNix(range);
@@ -70,19 +72,42 @@ namespace SCIRun {
 
 				int (*nrrdlup)(const void *, size_t I) = nrrdILookup[curnrrd->type];
 
+				IplImage *cvcast = cvCreateImageHeader(cvSize(width, height),
+					IPL_DEPTH_8U, 1);
+
 				for(int y = 0; y < cvIm->height; y++) {
 					for(int x = 0; x < cvIm->width; x++) {
-
+						/*
 						CvScalar lup = cvGet2D(cvIm,y,x);
 						int sx = (int)lup.val[0];
 						int sy = (int)lup.val[1];
 						int sz = (int)lup.val[2];
-						cvSet2D(myIm,y,x,cvScalarAll(
-							nrrdlup(curnrrd->data,sz*(width*height)+sy*width+sx)
-									));
+						*/
+
+						int sx = cvIm->data.i[y*3*cvIm->width+x*3+0];
+						int sy = cvIm->data.i[y*3*cvIm->width+x*3+1];
+						int sz = cvIm->data.i[y*3*cvIm->width+x*3+2];
+
+						cvcast->imageData = ((char*)(curnrrd->data))+(width * height * sz);
+						cvSet2D(myIm,y,x,
+							cvScalarAll(cvGetReal2D(cvcast,sy,sx))
+							// cvScalarAll(nrrdlup(curnrrd->data,sz*(width*height)+sy*width+sx))
+									);
+
+						/*
+						if((y == 230) && (x == 420)) {
+							printf("Shown val at %d,%d,%d: %d\n",sx,sy,sz,
+									cvGetReal2D(cvcast,sy,sx)
+									//nrrdlup(curnrrd->data,sz*(width*height)+sy*width+sx)
+									);
+						}
+						*/
 					}
 				}
 
+				cvReleaseImageHeader(&cvcast);
+
+				cvSaveImage("unwrapped-shown.png",myIm);
 				nrrdNuke(curnrrd);
 
 				unsigned char * rawData;
@@ -105,17 +130,19 @@ namespace SCIRun {
 					CalcUnscrolledPosition(xx,yy,&x,&y);
 					if((x >= 0) && (y >= 0) && 
 							(x < vol_lookup->width) && (y < vol_lookup->height)) {
-						printf("Location: %d, %d\n",x,y);
+						// printf("Location: %d, %d\n",x,y);
 						//CvScalar lup = cvGet2D(vol_lookup,event.GetY(),event.GetX());
 						int xx = vol_lookup->data.i[y*3*vol_lookup->width+x*3+0];
 						int yy = vol_lookup->data.i[y*3*vol_lookup->width+x*3+1];
 						int zz = vol_lookup->data.i[y*3*vol_lookup->width+x*3+2];
 
+						/*
 						printf("LUP: %d, %d, %d\n",
 								xx,
 								yy,
 								zz
 								);
+						*/
 
 						SCIRun::ThrowSkinnerSignalEvent *tsse =
 							new SCIRun::ThrowSkinnerSignalEvent("Painter::UnwrapProbe");
