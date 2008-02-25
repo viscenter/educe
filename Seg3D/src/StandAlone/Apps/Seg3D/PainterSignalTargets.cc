@@ -661,7 +661,7 @@ Painter::UnwrapProbe(event_handle_t &event)
 	const int y = atoi(get_vars()->get_string("Painter::UnwrapProbe::y").c_str());
 	const int z = atoi(get_vars()->get_string("Painter::UnwrapProbe::z").c_str());
 
-	printf("Painter got: %d,%d,%d\n",x,y,z);
+	//printf("Painter got: %d,%d,%d\n",x,y,z);
 
 	for (SliceWindows::iterator i = windows_.begin(); i != windows_.end(); ++i) {
     //(*i)->set_probe();
