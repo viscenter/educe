@@ -61,6 +61,21 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 
 			return result;
 		}
+		CvPoint get_coordinate_from_position(IplImage *image, CvLineIterator li, int p)
+		{
+			CvPoint result;
+			int offset;
+
+			for(int i = 0; i < p; i++) {
+				CV_NEXT_LINE_POINT(li);
+			}
+
+			offset = li.ptr - (uchar*)(image->imageData);
+			result.y = offset/image->widthStep;
+			result.x = (offset - result.y * image->widthStep)/(sizeof(uchar));
+
+			return result;
+		}
 
 		void radial_sample(int width, int height, char* data, char* ddata, IplImage *unwrapped, CvMat *plookup, int slice)
 		{
@@ -93,6 +108,9 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 				dlinebuf = (unsigned char*)malloc(linesize);
 				
 				cvSampleLine(cvcast,outer,center,linebuf,4);
+				
+				CvLineIterator curline;
+				cvInitLineIterator(cvcast,outer,center,&curline,4);
 				
 				cvSampleLine(cvcastd,outer,center,dlinebuf,4);
 				
@@ -128,13 +146,15 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 								min_i = i;
 							}
 						}
-						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+0] = max_i;
-						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+1] = 0;
+						CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,max_i);
+						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+0] = sampledpoint.x;
+						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+1] = sampledpoint.y;
 						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+2] = slice;
 						//cvSet2D(plookup,slice,(layer*RADIAL_SAMPLES)+sample,cvScalar(0,0,slice));
 						cvSetReal2D(unwrapped,slice,(layer*RADIAL_SAMPLES)+sample,cvGetReal1D(dcastline,max_i));
 						// printf("%d\t",max);
 						layer++;
+						i += 10;
 					}
 				}
 				// printf("\n");

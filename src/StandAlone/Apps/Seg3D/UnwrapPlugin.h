@@ -99,8 +99,10 @@ namespace SCIRun {
 			}
 			void OnMouse(wxMouseEvent& event) {
 				if(event.LeftIsDown()) {
-					int x = event.GetX();
-					int y = event.GetY();
+					int xx = event.GetX();
+					int yy = event.GetY();
+					int x,y;
+					CalcUnscrolledPosition(xx,yy,&x,&y);
 					if((x >= 0) && (y >= 0) && 
 							(x < vol_lookup->width) && (y < vol_lookup->height)) {
 						printf("Location: %d, %d\n",x,y);
