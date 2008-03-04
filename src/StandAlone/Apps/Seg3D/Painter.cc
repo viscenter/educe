@@ -84,6 +84,7 @@
 
 #include <StandAlone/Apps/Seg3D/ITKThresholdImageFilterTool.h>
 #include <StandAlone/Apps/Seg3D/ITKDiscreteGaussianImageFilterTool.h>
+#include <itkGDCMSeriesFileNames.h>
 
 // needed for Painter::maker
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
@@ -272,6 +273,30 @@ Painter::opacity_up()
 
 
 void
+Painter::current_layer_up()
+{
+  if (!current_volume_.get_rep()) return;
+
+  volume_lock_.lock();
+  int pos = 0;
+  int i;
+  for (i = 0; i < (int)layer_buttons_.size(); i++)
+  {
+    if (layer_buttons_[i]->volume_ == current_volume_)
+    {
+      pos = i+1;
+    }
+    if (layer_buttons_[i]->volume_.get_rep() == 0) break;
+  }
+  if (pos == i) pos = 0;
+  current_volume_ = layer_buttons_[pos]->volume_;
+  volume_lock_.unlock();
+
+  rebuild_layer_buttons();
+}
+
+
+void
 Painter::current_layer_down()
 {
   if (!current_volume_.get_rep()) return;
@@ -296,26 +321,60 @@ Painter::current_layer_down()
 
 
 void
-Painter::current_layer_up()
+Painter::move_layer_up()
 {
   if (!current_volume_.get_rep()) return;
 
+  bool redraw = false;
   volume_lock_.lock();
-  int pos = 0;
-  int i;
-  for (i = 0; i < (int)layer_buttons_.size(); i++)
+  for (int i = 1; i < (int)volumes_.size(); i++)
   {
-    if (layer_buttons_[i]->volume_ == current_volume_)
+    if (volumes_[i] == current_volume_)
     {
-      pos = i+1;
+      NrrdVolumeHandle tmp = volumes_[i];
+      volumes_[i] = volumes_[i-1];
+      volumes_[i-1] = tmp;
+      redraw = true;
+      break;
     }
-    if (layer_buttons_[i]->volume_.get_rep() == 0) break;
   }
-  if (pos == i) pos = 0;
-  current_volume_ = layer_buttons_[pos]->volume_;
   volume_lock_.unlock();
 
-  rebuild_layer_buttons();
+  if (redraw)
+  {
+    rebuild_layer_buttons();
+    extract_all_window_slices();
+    redraw_all();
+  }
+}
+
+
+void
+Painter::move_layer_down()
+{
+  if (!current_volume_.get_rep()) return;
+
+  bool redraw = false;
+  volume_lock_.lock();
+  for (int i = 0; i < (int)volumes_.size()-1; i++)
+  {
+    if (volumes_[i] == current_volume_)
+    {
+      NrrdVolumeHandle tmp = volumes_[i];
+      volumes_[i] = volumes_[i+1];
+      volumes_[i+1] = tmp;
+      redraw = true;
+      break;
+    }
+  }
+  volume_lock_.unlock();
+  
+  if (redraw)
+  {
+    rebuild_layer_buttons();
+    extract_all_window_slices();
+    redraw_all();
+  }
 }
 
 
@@ -409,7 +468,7 @@ Painter::copy_current_layer(string suff)
   if (!current_volume_.get_rep()) return 0;
   NrrdDataHandle nrrdh = current_volume_->nrrd_handle_;
   nrrdh.detach(); // Copies the layer memory to the new layer
-  return make_layer(current_volume_->name_+suff,nrrdh,current_volume_->label_);
+  return make_layer(current_volume_->name_+suff, nrrdh, current_volume_->label_);
 }
 
 
@@ -460,14 +519,41 @@ Painter::get_filename_series(string filename)
 
   vector<string> files;
   try {
-    typedef itk::DICOMSeriesFileNames series_t;
+    typedef itk::GDCMSeriesFileNames series_t;
     series_t::Pointer names = series_t::New();
-    names->SetDirectory(dfile.first);
-    names->SetFileNameSortingOrder(series_t::SortByImageNumber);
-    files = names->GetFileNames();
-  } catch (...) {
+    names->SetInputDirectory(dfile.first);
+    vector<string> series = names->GetSeriesUIDs();
+    bool found = false;
+    for (size_t i = 0; i < series.size(); i++)
+    {
+      files = names->GetFileNames(series[i]);
+      if (dfile.second == "")
+      {
+        // If the user picked the directory, open the first available series.
+        found = true;
+        break;
+      }
+      for (size_t j = 0; j < files.size(); j++)
+      {
+        // If the user picked a file, open the series that contains
+        // that particular file.
+        pair<string, string> dfile2 = split_filename(files[j]);
+        if (dfile2.second == dfile.second)
+        {
+          found = true;
+          break;
+        }
+      }
+      if (found) break;
+    }
+    if (!found) { files.clear(); }
   }
-  if (files.empty()) {
+  catch (...)
+  {
+  }
+
+  if (files.empty())
+  {
     files = GetFilenamesInSequence(dfile.first, dfile.second);
     sort (files.begin(), files.end());
     vector<string> files2;

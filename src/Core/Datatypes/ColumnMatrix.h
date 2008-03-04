@@ -91,6 +91,9 @@ public:
   virtual void put(index_type row, index_type col, double val);
   virtual void add(index_type row, index_type col, double val);
   
+  virtual double min();
+  virtual double max();
+    
   virtual void getRowNonzeros(index_type r, 
                               Array1<index_type>& idx, 
                               Array1<double>& val);

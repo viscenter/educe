@@ -334,13 +334,10 @@ BrushTool::pointer_motion(int b, int x, int y, unsigned int m, int t)
   }
 
   vol->lock.lock();
-  vector<int> index = vol->world_to_index(painter_->pointer_pos_);
-  if (!vol->index_valid(index)) {
-    vol->lock.unlock();
-    return CONTINUE_E;
-  }
 
-  if (b == 1 || (slice_.get_rep() && b == 3 && vol->label_)) {
+  if (b == 1 || (slice_.get_rep() && b == 3 && vol->label_))
+  {
+    vector<int> index = vol->world_to_index(painter_->pointer_pos_);
     index.erase(index.begin()+axis_);
     if (line(slice_->nrrd_handle_->nrrd_, radius_,
              last_index_[1], last_index_[2],
@@ -355,6 +352,7 @@ BrushTool::pointer_motion(int b, int x, int y, unsigned int m, int t)
     vol->lock.unlock();
     return STOP_E;
   }
+
   vol->lock.unlock();
 
   return CONTINUE_E;
@@ -575,11 +573,6 @@ bool
 BrushTool::line(Nrrd *nrrd, double radius,
                 int x0, int y0, int x1, int y1, bool first)
 {
-  if (x0 < 0 || x0 >= (int) nrrd->axis[1].size || 
-      x1 < 0 || x1 >= (int) nrrd->axis[1].size || 
-      y0 < 0 || y0 >= (int) nrrd->axis[2].size || 
-      y1 < 0 || y1 >= (int) nrrd->axis[2].size) return false;
-
   int dx = x1 - x0;
   int dy = y1 - y0;
   int sx = 1;

@@ -46,30 +46,15 @@ vector field.
   <io>
     <inputs lastportdynamic="no">
       <port>
-	<name>Input Field</name>
+	<name>Field</name>
 	<datatype>SCIRun::Field</datatype>
       </port>
     </inputs>
     <outputs>
       <port>
-	<name>Output CalculateGradients</name>
+	<name>Field</name>
 	<datatype>SCIRun::Field</datatype>
       </port>
     </outputs>
   </io>
-  <nets>
-    <net id="CalculateGradients">
-      <title>CalculateGradients Regression Test</title>
-
-      <p>Compute the gradient of a scalar field, then display the
-gradient using uniformly sized cones colored by the data values from
-the original field.  See also <modref package="SCIRun"
-name="ChangeFieldBasis"/>, <modref package="SCIRun"
-name="DirectMapping"/>.</p>
-
-      <p>This network can be found at
-src/nets/Modules/ChangeFieldData/CalculateGradients.net.</p>
-
-    </net>
-  </nets>
 </component>

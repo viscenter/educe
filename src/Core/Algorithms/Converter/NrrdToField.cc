@@ -170,13 +170,27 @@ bool NrrdToFieldAlgoT::NrrdToField(ProgressReporter* pr,NrrdDataHandle input, Fi
           max[p] -= cor;
         }
       }     
+    }    
+    
+    if (sd > 0)
+    {
+      if (airExists(nrrd->spaceOrigin[0])) Origin.x(nrrd->spaceOrigin[0]); else Origin.x(0.0);
+      for (size_t p=0; p<dim && p < 3;p++)
+        if (airExists(nrrd->axis[p].spaceDirection[0])) SpaceDir[p].x(nrrd->axis[p].spaceDirection[0]); else SpaceDir[p].x(0.0);
+    }
+
+    if (sd > 1)
+    {
+      if (airExists(nrrd->spaceOrigin[1])) Origin.y(nrrd->spaceOrigin[1]); else Origin.y(0.0);
+      for (size_t p=0; p<dim && p < 3;p++)
+        if (airExists(nrrd->axis[p].spaceDirection[1])) SpaceDir[p].y(nrrd->axis[p].spaceDirection[1]); else SpaceDir[p].y(0.0);
     }
     
-    for (int q=0 ; q<sd && q < 3; q++)
+    if (sd > 2)
     {
-      if (airExists(nrrd->spaceOrigin[q])) Origin[q] = nrrd->spaceOrigin[q]; else Origin[q] = 0.0;
+      if (airExists(nrrd->spaceOrigin[2])) Origin.z(nrrd->spaceOrigin[2]); else Origin.z(0.0);
       for (size_t p=0; p<dim && p < 3;p++)
-        if (airExists(nrrd->axis[p].spaceDirection[q])) SpaceDir[p][q] = nrrd->axis[p].spaceDirection[q]; else SpaceDir[p][q] = 0.0;
+        if (airExists(nrrd->axis[p].spaceDirection[2])) SpaceDir[p].z(nrrd->axis[p].spaceDirection[2]); else SpaceDir[p].z(0.0);
     }
   
     if (dim == 1) 
@@ -187,8 +201,7 @@ bool NrrdToFieldAlgoT::NrrdToField(ProgressReporter* pr,NrrdDataHandle input, Fi
     {
       SpaceDir[2] = Cross(SpaceDir[0],SpaceDir[1]);
     }
-
-
+ 
     tf.load_basis(Point(Origin),SpaceDir[0],SpaceDir[1],SpaceDir[2]);
   
     use_tf = true;

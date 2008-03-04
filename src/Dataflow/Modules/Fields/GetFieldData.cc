@@ -26,20 +26,29 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+//! Include the algorithm
+#include <Core/Algorithms/Fields/FieldData/GetFieldData.h>
+
+//! The module class
 #include <Dataflow/Network/Module.h>
-#include <Core/Datatypes/Field.h>
-#include <Core/Datatypes/Matrix.h>
+
+//! We need to define the ports used
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
-#include <Core/Algorithms/Converter/ConvertToNrrd.h>
+#include <Dataflow/Network/Ports/NrrdPort.h>
 
 namespace SCIRun {
 
 class GetFieldData : public Module {
-public:
-  GetFieldData(GuiContext*);
-  virtual void execute();
+  public:
+    //! constructor and execute function
+    GetFieldData(GuiContext*);
+    virtual void execute();
+  
+  private:
+    //! Define algorithms needed
+    SCIRunAlgo::GetFieldDataAlgo algo_;
+  
 };
 
 
@@ -47,56 +56,46 @@ DECLARE_MAKER(GetFieldData)
 GetFieldData::GetFieldData(GuiContext* ctx)
   : Module("GetFieldData", ctx, Source, "ChangeFieldData", "SCIRun")
 {
+  //! Forward error messages;
+  algo_.set_progress_reporter(this);
 }
 
 void GetFieldData::execute()
 {
-  FieldHandle field_input_handle;
-  if(!(get_input_handle("Field",field_input_handle,true))) return;
+  //! Define dataflow handles:
+  FieldHandle input;
+  MatrixHandle matrixdata(0);
+  NrrdDataHandle nrrddata(0);
+  
+  //! Get data from port:
+  if(!(get_input_handle("Field",input,true))) return;
 
-  if (field_input_handle->basis_order() == -1)
-  {
-    error("No data in input field.");
+  //! Data is only computed if the output port is connected:
+  bool need_matrix_data = oport_connected("Matrix Data");
+  bool need_nrrd_data   = oport_connected("Nrrd Data");
 
-    return;
-  }
-
-
+  //! Only do work if needed:
   if (inputs_changed_ ||
-      (!oport_cached("Matrix Data") &&
-       !oport_cached("Nrrd Data")))
-  {
-    SCIRunAlgo::FieldsAlgo algo(this);
-    
-    if( get_oport("Matrix Data")->nconnections() )
+      (!oport_cached("Matrix Data") && need_matrix_data) ||
+      (!oport_cached("Nrrd Data") && need_nrrd_data))
+  {    
+    if( need_matrix_data) 
     {
-      MatrixHandle matrix_output_handle;
-
-      if(!(algo.GetFieldData(field_input_handle,
-			     matrix_output_handle))) return;
-      
-      send_output_handle("Matrix Data", matrix_output_handle);
+      //! Run algorithm
+      if(!(algo_.run(input,matrixdata))) return;
     }
 
-    if( get_oport("Nrrd Data")->nconnections() )
+    if(need_nrrd_data )
     {
-      NrrdDataHandle null_nrrddata_handle = 0, nrrddata_output_handle;
-
-      const TypeDescription *td = field_input_handle->get_type_description();
-      CompileInfoHandle ci = ConvertToNrrdBase::get_compile_info(td);
-      Handle<ConvertToNrrdBase> algo;
-      if (!module_dynamic_compile(ci, algo)) return;  
-      
-      algo->convert_to_nrrd(field_input_handle,
-			    null_nrrddata_handle,
-			    null_nrrddata_handle,
-			    nrrddata_output_handle,
-			    false, false, true,
-			    "");
-
-      // Set the Nrrd names and send them.
-      send_output_handle("Nrrd Data", nrrddata_output_handle);
+      //! Run algorithm
+      if(!(algo_.run(input,nrrddata))) return;
     }
+
+    //! If port is not connected at time of execute, send down a null handle
+    //! send data downstream:
+    send_output_handle("Matrix Data", matrixdata);
+    send_output_handle("Nrrd Data", nrrddata);
+
   }
 }
 

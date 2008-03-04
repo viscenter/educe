@@ -39,15 +39,14 @@
 #include <Core/Datatypes/ITKDatatype.h>
 #include <Core/Thread/ThreadLock.h>
 #include <StandAlone/Apps/Seg3D/VolumeFilter.h>
-#include <StandAlone/Apps/Seg3D/ITKConnectedImageFilterTool.h>
+#include <StandAlone/Apps/Seg3D/SeedTool.h>
 
 namespace SCIRun {
 
 class Painter;
 class NrrdVolume;
   
-class ITKNeighborhoodConnectedImageFilterTool : 
-    public ITKConnectedImageFilterTool
+class ITKNeighborhoodConnectedImageFilterTool : public SeedTool
 {
 public:
   ITKNeighborhoodConnectedImageFilterTool(Painter *painter);

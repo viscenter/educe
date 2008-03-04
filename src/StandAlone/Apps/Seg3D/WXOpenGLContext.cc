@@ -443,24 +443,18 @@ unsigned int WXOpenGLContext::KeyToSkinner(int wxkeycode)
 
 void WXOpenGLContext::OnChar( wxKeyEvent &event )
 {
-    // Propagate the key event upwards.
-    wxKeyEvent key( wxEVT_KEY_DOWN );
-    key.m_shiftDown = event.m_shiftDown;
-    key.m_controlDown = event.m_controlDown;
-    key.m_altDown = event.m_altDown;
-    key.m_metaDown = event.m_metaDown;
-    key.m_keyCode = event.m_keyCode;
-    key.m_x = event.m_x;
-    key.m_y = event.m_y;
-    
-    KeyEvent *sci_event = new KeyEvent();
-    sci_event->set_key_state(KeyEvent::KEY_PRESS_E);
+    unsigned int modifiers = 0;
+    if (event.ShiftDown())    modifiers |= EventModifiers::SHIFT_E;
+    if (event.ControlDown())  modifiers |= EventModifiers::CONTROL_E;
+    if (event.AltDown())      modifiers |= EventModifiers::ALT_E;
+
+    const unsigned int keyval = KeyToSkinner( event.GetKeyCode() );
+
+    KeyEvent *sci_event =
+      new KeyEvent(KeyEvent::KEY_PRESS_E, modifiers, keyval);
 
     int time = static_cast<int>( event.GetTimestamp() );
     sci_event->set_time(time);
-    
-    unsigned int keyval = KeyToSkinner( event.GetKeyCode() );
-    sci_event->set_keyval( keyval );
 
     EventManager::add_event(sci_event);
 

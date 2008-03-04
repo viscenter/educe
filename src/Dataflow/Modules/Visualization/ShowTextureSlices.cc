@@ -207,7 +207,7 @@ ShowTextureSlices::execute()
   }
 
   if(!control_widget_){
-    control_widget_=scinew PointWidget(this, &control_lock_, 0.2);
+    control_widget_= scinew PointWidget(this, &control_lock_, 0.2);
     control_widget_->Connect(ogeom_);
     
     double minx,miny,minz;

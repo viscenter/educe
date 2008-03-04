@@ -503,43 +503,44 @@ Thread::detach()
 void
 Thread::exitAll(int code)
 {
+  // We should not need this
   if (getenv("SCIRUN_EXIT_CRASH_WORKAROUND"))
   {
     raise(SIGKILL);
   }
   
-  if (initialized && !exiting)
+  if (Thread::isInitialized() && !exiting)
   {
     lock_scheduler(); // we are about to quit don't unlock.
-    CleanupManager::call_callbacks();
-    exiting = true;
+    exiting = true; // Indicate that we are exiting
     
-    if (initialized)
+    CleanupManager::call_callbacks();
+    
+    // Stop all of the other threads before we die, because
+    // global destructors may destroy primitives that other
+    // threads are using...
+    Thread* me = Thread::self();
+    for (int i = 0;i<numActive;i++)
     {
-      // Stop all of the other threads before we die, because
-      // global destructors may destroy primitives that other
-      // threads are using...
-      Thread* me = Thread::self();
-      for (int i = 0;i<numActive;i++)
+      Thread_private* t = active[i];
+      if (t->thread != me)
       {
-        Thread_private* t = active[i];
-        if (t->thread != me)
+        t->exiting = true;
+        // send signal to thread.
+        pthread_kill(t->threadid, SIGUSR2);
+        // wait for signal handler to finish with the thread.
+        int numtries = 10000;
+        while (--numtries && !t->is_blocked) 
         {
-          t->exiting = true;
-	  // send signal to thread.
-          pthread_kill(t->threadid, SIGUSR2);
-	  // wait for signal handler to finish with the thread.
-	  int numtries = 100000;
-	  while (--numtries && !t->is_blocked) {
-	    //std::cerr << "not blocked: " << t->threadid << std::endl;
-	    sched_yield();
-	  }
-	  if (!numtries){
-	    std::cerr << std::endl << std::endl
-		      << "Thread id: " << t->threadid << " named: " 
-		      << t->thread->getThreadName() 
-		      << "is slow to stop, giving up." << std::endl;
-	  }
+          // wait for checking again
+          sched_yield();
+        }
+        if (!numtries)
+        {
+          std::cerr << std::endl << std::endl
+              << "Thread id: " << t->threadid << " named: " 
+              << t->thread->getThreadName() 
+              << "is slow to stop, giving up." << std::endl;
         }
       }
     }
@@ -554,33 +555,36 @@ static
 void
 handle_abort_signals(int sig, siginfo_t* info, void* context)
 {
-  // Set default handler.
-  struct sigaction action;
-  sigemptyset(&action.sa_mask);
-  action.sa_handler = SIG_DFL;
-  action.sa_flags = 0;
-  if (sigaction(sig, &action, NULL) == -1)
-    throw ThreadError(std::string("sigaction failed")
-		      +strerror(errno));
+  if (Thread::isInitialized())
+  {
+    // Set default handler.
+    struct sigaction action;
+    sigemptyset(&action.sa_mask);
+    action.sa_handler = SIG_DFL;
+    action.sa_flags = 0;
+    if (sigaction(sig, &action, NULL) == -1)
+      throw ThreadError(std::string("sigaction failed")
+            +strerror(errno));
 
-  Thread* self = Thread::self();
-  const char* tname = self?self->getThreadName():"idle or main";
-  string signam = Core_Thread_signal_name(sig, info->si_addr);
+    Thread* self = Thread::self();
+    const char* tname = self?self->getThreadName():"idle or main";
+    string signam = Core_Thread_signal_name(sig, info->si_addr);
 
-  std::cerr << std::endl
-	    << "Thread \"" << tname << "\" (id: " << self->priv_->threadid 
-	    << ", pid: " << getpid() << ") " << std::endl 
-	    << "\tcaught signal " << signam 
-	    << std::endl << "\t...handle_abort_signals..." << std::endl;
+    std::cerr << std::endl
+        << "Thread \"" << tname << "\" (id: " << self->priv_->threadid 
+        << ", pid: " << getpid() << ") " << std::endl 
+        << "\tcaught signal " << signam 
+        << std::endl << "\t...handle_abort_signals..." << std::endl;
 
-  Thread::niceAbort();
+    Thread::niceAbort();
 
-  // Restore this handler.
-  action.sa_sigaction = handle_abort_signals;
-  action.sa_flags = SA_SIGINFO;
-  if (sigaction(sig, &action, NULL) == -1)
-    throw ThreadError(std::string("sigaction failed")
-		      +strerror(errno));
+    // Restore this handler.
+    action.sa_sigaction = handle_abort_signals;
+    action.sa_flags = SA_SIGINFO;
+    if (sigaction(sig, &action, NULL) == -1)
+      throw ThreadError(std::string("sigaction failed")
+            +strerror(errno));
+  }
 }
 
 
@@ -620,30 +624,35 @@ handle_quit(int sig, struct sigcontext* ctx)
 handle_quit(int sig)
 #endif
 {
-  // Try to acquire a lock.  If we can't, then assume that somebody
-  // else already caught the signal...
-  Thread* self = Thread::self();
-  if (self == 0)
-    return; // This is an idle thread...
-  if (!(control_c_sema.tryDown()))
+  if (Thread::isInitialized())
   {
-    control_c_sema.down();
+    // Try to acquire a lock.  If we can't, then assume that somebody
+    // else already caught the signal...
+    Thread* self = Thread::self();
+    if (self == 0)
+      return; // This is an idle thread...
+      
+    if (!(control_c_sema.tryDown()))
+    {
+      control_c_sema.down();
+      control_c_sema.up();
+      return;
+    }
+
+    // Otherwise, we got the semaphore and handle the interrupt
+    const char* tname = self?self->getThreadName():"main?";
+
+    // Kill all of the threads.
+    string signam = Core_Thread_signal_name(sig, 0);
+    std::cerr << std::endl << std::endl
+        << "Thread \"" << tname << "\" (id: " << self->priv_->threadid 
+        << ", pid: " << getpid() << ") " << std::endl 
+        << "\tcaught signal " << signam 
+        << std::endl << "\t...handle_quit..." << std::endl;
+
+    Thread::niceAbort(); // Enter the monitor
     control_c_sema.up();
   }
-
-  // Otherwise, we got the semaphore and handle the interrupt
-  const char* tname = self?self->getThreadName():"main?";
-
-  // Kill all of the threads.
-  string signam = Core_Thread_signal_name(sig, 0);
-  std::cerr << std::endl << std::endl
-	    << "Thread \"" << tname << "\" (id: " << self->priv_->threadid 
-	    << ", pid: " << getpid() << ") " << std::endl 
-	    << "\tcaught signal " << signam 
-	    << std::endl << "\t...handle_quit..." << std::endl;
-
-  Thread::niceAbort(); // Enter the monitor
-  control_c_sema.up();
 }
 
 
@@ -659,10 +668,12 @@ handle_siguser2(int)
   {
     // This can happen if the thread is just started and hasn't had
     // the opportunity to call setspecific for the thread id yet
-    for (int i = 0;i<numActive;i++) {
-      if (pthread_self() == active[i]->threadid) {
-	self = active[i]->thread;
-	break;
+    for (int i = 0;i<numActive;i++) 
+    {
+      if (pthread_self() == active[i]->threadid) 
+      {
+        self = active[i]->thread;
+        break;
       }
     }
   }
@@ -673,8 +684,8 @@ handle_siguser2(int)
   self->priv_->is_blocked = true;
   self->priv_->block_sema.down();
   
-//   //! Make sure the thread will not revive
-//   if (exiting) for (;;) sched_yield();
+  //   //! Make sure the thread will not revive
+  //   if (exiting) for (;;) sched_yield();
   
   //! If not exiting tell we are running again
   self->priv_->is_blocked = false;

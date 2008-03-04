@@ -57,8 +57,8 @@ CreateDataArrayFromIndices::execute()
   
   if (inputs_changed_ || !oport_cached("DataArray"))
   {    
-    DenseMatrix *temp = Template->dense();
-    DenseMatrix *indices = Index->dense();
+    MatrixHandle temp = Template->dense();
+    MatrixHandle indices = Index->dense();
     
     if (temp == 0)
     {
@@ -72,13 +72,13 @@ CreateDataArrayFromIndices::execute()
       return;
     }
     
-    int temp_m = temp->nrows(); 
-    int temp_n = temp->ncols();
+    Matrix::size_type temp_m = temp->nrows(); 
+    Matrix::size_type temp_n = temp->ncols();
     double* temp_data = temp->get_data_pointer();
 
-    int indices_m = temp->nrows(); 
-    int indices_n = temp->ncols();
-    double* indices_data = temp->get_data_pointer();
+    Matrix::size_type indices_m = indices->nrows(); 
+    Matrix::size_type indices_n = indices->ncols();
+    double* indices_data = indices->get_data_pointer();
     
     if (temp_data == 0)
     {
@@ -116,17 +116,17 @@ CreateDataArrayFromIndices::execute()
     Array = scinew DenseMatrix(indices_m,temp_n);
     double* array_data = Array->get_data_pointer();
     
-    for (int p = 0; p < indices_m; p++)
+    for (Matrix::index_type p = 0; p < indices_m; p++)
     {
-      int index = static_cast<int>(indices_data[p]);
-      if ((index < 0)&&(index >= temp_m))
+      Matrix::index_type index = static_cast<Matrix::index_type>(indices_data[p]);
+      if ((index < 0)||(index >= temp_m))
       {
-        for (int q = 0; q < temp_n ;q++) array_data[q] = 0.0;
+        for (Matrix::index_type q = 0; q < temp_n ;q++) array_data[p*temp_n+q] = 0.0;
       }
       else
       {
         double* t_data = temp_data + temp_n*index;
-        for (int q = 0; q < temp_n ;q++) array_data[q] = t_data[q];
+        for (Matrix::index_type q = 0; q < temp_n ;q++) array_data[p*temp_n+q] = t_data[q];
       }
     }  
     

@@ -45,8 +45,7 @@ namespace SCIRun {
 
 ITKNeighborhoodConnectedImageFilterTool::
 ITKNeighborhoodConnectedImageFilterTool(Painter *painter) :
-  ITKConnectedImageFilterTool("ITKNeighborhoodConnectedImageFilterTool",
-                              painter)
+  SeedTool("ITKNeighborhoodConnectedImageFilterTool", painter)
 {
 }
 
@@ -59,12 +58,25 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
     return;
   }
 
-  painter_->start_progress();
-
-  painter_->volume_lock_.lock();
+  if (seeds_.empty())
+  {
+    painter_->set_status("No seed points were selected.");
+    return;
+  }
 
   // Save the source.
+  painter_->volume_lock_.lock();
   NrrdVolumeHandle source_volume = painter_->current_volume_;
+
+  vector<vector<int> > iseeds;
+  convert_seeds_to_indices(iseeds, source_volume);
+
+  if (iseeds.empty())
+  {
+    painter_->set_status("All of the seed points were outside the volume.");
+    painter_->volume_lock_.unlock();
+    return;
+  }
 
   // Make a new label volume.
   const string name = painter_->current_volume_->name_ + " Neighborhood Connected";
@@ -72,6 +84,8 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
 
   painter_->rebuild_layer_buttons();
   painter_->volume_lock_.unlock();
+
+  painter_->start_progress();
 
   label_type value = painter_->current_volume_->label_;
 
@@ -84,13 +98,6 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
   float *srcdata = (float *)snrrd->nrrd_->data;
   label_type *dstdata = (label_type *)dnrrd->nrrd_->data;
 
-  for (size_t i = 0; i < seeds_.size(); ++i) {
-    if (!volume_->index_valid(seeds_[i])) {
-      painter_->set_status("Invalid seed point, please place seeds again.");
-      return;
-    }
-  }
-
   // Array to hold which indices to visit next
   vector<vector<int> > todo[2];
   int current = 0;
@@ -98,13 +105,14 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
   // Add the seeds.
   float min, max;
   unsigned int axes = 0;
-  for (size_t i = 0; i < seeds_.size(); ++i) {
-    const float fillval = srcdata[VolumeOps::index_to_offset(snrrd->nrrd_, seeds_[i])];
+  for (size_t i = 0; i < iseeds.size(); ++i) {
+    const float fillval =
+      srcdata[VolumeOps::index_to_offset(snrrd->nrrd_, iseeds[i])];
 
     // Push back the seed point
-    todo[current].push_back(seeds_[i]);
+    todo[current].push_back(iseeds[i]);
     
-    if (!axes) { axes = seeds_[i].size(); }
+    if (!axes) { axes = iseeds[i].size(); }
 
     if (i == 0)
     {
@@ -120,18 +128,18 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
   // Allocated a nrrd to mark where the flood fill has visited
   NrrdDataHandle done_handle = new NrrdData();
   size_t size[NRRD_DIM_MAX];
-  size[0] = volume_->nrrd_handle_->nrrd_->axis[0].size;
-  size[1] = volume_->nrrd_handle_->nrrd_->axis[1].size;
-  size[2] = volume_->nrrd_handle_->nrrd_->axis[2].size;
-  size[3] = volume_->nrrd_handle_->nrrd_->axis[3].size;
+  size[0] = source_volume->nrrd_handle_->nrrd_->axis[0].size;
+  size[1] = source_volume->nrrd_handle_->nrrd_->axis[1].size;
+  size[2] = source_volume->nrrd_handle_->nrrd_->axis[2].size;
+  size[3] = source_volume->nrrd_handle_->nrrd_->axis[3].size;
   nrrdAlloc_nva(done_handle->nrrd_, nrrdTypeUChar, 4, size);
 
   // Set the visited nrrd to empty.
   memset(done_handle->nrrd_->data, 0, 
-         volume_->nrrd_handle_->nrrd_->axis[0].size *
-         volume_->nrrd_handle_->nrrd_->axis[1].size *
-         volume_->nrrd_handle_->nrrd_->axis[2].size * 
-         volume_->nrrd_handle_->nrrd_->axis[3].size);
+         source_volume->nrrd_handle_->nrrd_->axis[0].size *
+         source_volume->nrrd_handle_->nrrd_->axis[1].size *
+         source_volume->nrrd_handle_->nrrd_->axis[2].size * 
+         source_volume->nrrd_handle_->nrrd_->axis[3].size);
 
   // Copy the mask into the visited array so that it won't be visited.
   // TODO:  Seed points aren't masked properly.
@@ -184,7 +192,7 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
           neighbor_index[a] = neighbor_index[a] + dir;
 
           // Bail if this index is outside the volume
-          if (!volume_->index_valid(neighbor_index)) continue;
+          if (!source_volume->index_valid(neighbor_index)) continue;
           
           const size_t offset =
             VolumeOps::index_to_offset(snrrd->nrrd_, neighbor_index);
@@ -209,7 +217,6 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
   }
   painter_->finish_progress();
 
-  volume_->set_dirty();
   painter_->extract_all_window_slices();
   painter_->redraw_all();
 

@@ -45,7 +45,7 @@
 #include <sci_gl.h>
 #include <sci_defs/x11_defs.h>
 #include <sci_defs/bits_defs.h>
-
+#include <Core/Geom/GeomResourceManager.h>
 
 #if defined(_WIN32)
 #  include <Core/Geom/Win32OpenGLContext.h>
@@ -232,6 +232,8 @@ GLWindow::process_event(event_handle_t &event)
       context_->unlock();
       return CONTINUE_E;
     }
+
+    GeomResourceManager::delete_pending_objects();
 
     const int vpw = context_->width();
     const int vph = context_->height();

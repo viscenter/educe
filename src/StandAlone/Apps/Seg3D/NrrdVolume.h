@@ -93,9 +93,7 @@ public:
                                           NrrdDataHandle nrrdh = 0);
   NrrdVolumeHandle    create_child_label_volume(unsigned int label=0);
 
-private:
   unsigned int        compute_label_mask(unsigned int label = 0);
-public:
 
   // Generates a VolumeSlice class if Plane intersects the volume,
   // Returns 0 if the Plane does not intersect the volume

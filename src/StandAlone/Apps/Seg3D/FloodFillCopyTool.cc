@@ -9,9 +9,8 @@ namespace SCIRun {
 
 
 FloodFillCopyTool::FloodFillCopyTool(Painter *painter)
-  : ITKConnectedImageFilterTool("FloodFillCopyTool::", painter)
+  : SeedTool("FloodFillCopyTool::", painter)
 {
-  set_just_one_seed_mode(true);
 }
 
 
@@ -23,9 +22,9 @@ FloodFillCopyTool::run_filter()
     return;
   }
 
-  if (seeds_.size() < 1)
+  if (seeds_.empty())
   {
-    painter_->set_status("Flood fill copy requires a seed point.");
+    painter_->set_status("Flood fill copy requires at least one seed point.");
     return;
   }
 
@@ -33,6 +32,16 @@ FloodFillCopyTool::run_filter()
 
   // Save off the source.
   NrrdVolumeHandle source_volume = painter_->current_volume_;
+
+  vector<vector<int> > iseeds;
+  convert_seeds_to_indices(iseeds, source_volume);
+
+  if (iseeds.empty())
+  {
+    painter_->set_status("All of the seed points were outside the volume.");
+    painter_->volume_lock_.unlock();
+    return;
+  }
 
   // Make a new label volume
   const string name = painter_->current_volume_->name_ + " Threshold";
@@ -67,7 +76,7 @@ FloodFillCopyTool::run_filter()
                              painter_->current_volume_->label_,
                              source_volume->nrrd_handle_,
                              source_volume->label_,
-                             mnrrd, mlabel, false, seeds_);
+                             mnrrd, mlabel, false, iseeds);
 
   painter_->update_progress(90);
 

@@ -173,8 +173,8 @@ public:
                                    VMesh::Elem::index_type idx,
                                    double* Ji) const;
                                    
-  virtual double  scaled_jacobian_metric(const VMesh::Elem::index_type) const;
-  virtual double  jacobian_metric(const VMesh::Elem::index_type) const;  
+  virtual double  scaled_jacobian_metric(VMesh::Elem::index_type) const;
+  virtual double  jacobian_metric(VMesh::Elem::index_type) const;  
   
   virtual double find_closest_elem(Point &result,
                                    VMesh::Elem::index_type& elem, 
@@ -1589,7 +1589,7 @@ public:
                                    VMesh::Elem::index_type idx,
                                    double* Ji) const;
 
-  virtual double scaled_jacobian_metric(const VMesh::Elem::index_type idx) const;
+  virtual double scaled_jacobian_metric(VMesh::Elem::index_type idx) const;
   virtual double jacobian_metric(VMesh::Elem::index_type idx) const;
 
   virtual void get_interpolate_weights(const Point& point, 

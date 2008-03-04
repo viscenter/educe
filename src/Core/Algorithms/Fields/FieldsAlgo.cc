@@ -28,6 +28,11 @@
 
 
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
+
+#include <Core/Algorithms/Fields/Mapping/MapFieldDataFromElemToNode.h>
+#include <Core/Algorithms/Fields/Mapping/MapFieldDataFromNodeToElem.h>
+
+
 #include <Core/Algorithms/Fields/ApplyMappingMatrix.h>
 #include <Core/Algorithms/Fields/ApplyDilateFilterToFieldData.h>
 #include <Core/Algorithms/Fields/ApplyErodeFilterToFieldData.h>
@@ -39,19 +44,17 @@
 #include <Core/Algorithms/Fields/MapCurrentDensityOntoField.h>
 #include <Core/Algorithms/Fields/GetDomainBoundary.h>
 #include <Core/Algorithms/Fields/DistanceField.h>
-#include <Core/Algorithms/Fields/Mapping/MapFieldDataFromElemToNode.h>
-#include <Core/Algorithms/Fields/Mapping/MapFieldDataFromNodeToElem.h>
-#include <Core/Algorithms/Fields/GetFieldBoundary.h>
+#include <Core/Algorithms/Fields/MeshDerivatives/GetFieldBoundary.h>
 #include <Core/Algorithms/Fields/FindClosestNodeByValue.h>
 #include <Core/Algorithms/Fields/FindClosestNode.h>
 #include <Core/Algorithms/Fields/GatherFields.h>
-#include <Core/Algorithms/Fields/GetFieldData.h>
+#include <Core/Algorithms/Fields/FieldData/GetFieldData.h>
 #include <Core/Algorithms/Fields/GetFieldNodes.h>
 #include <Core/Algorithms/Fields/GetFieldDataMinMax.h>
 #include <Core/Algorithms/Fields/GetFieldMeasure.h>
 #include <Core/Algorithms/Fields/GetFieldInfo.h>
 #include <Core/Algorithms/Fields/CalculateIsInsideField.h>
-#include <Core/Algorithms/Fields/ConvertIndicesToFieldData.h>
+#include <Core/Algorithms/Fields/FieldData/ConvertIndicesToFieldData.h>
 #include <Core/Algorithms/Fields/CalculateLinkBetweenOppositeFieldBoundaries.h>
 #include <Core/Algorithms/Fields/CalculateFieldDataCompiled.h>
 #include <Core/Algorithms/Fields/ClipFieldByFunction.h>
@@ -65,7 +68,7 @@
 #include <Core/Algorithms/Fields/RemoveUnusedNodes.h>
 #include <Core/Algorithms/Fields/ProjectPointsOntoMesh.h>
 #include <Core/Algorithms/Fields/ScaleFieldMeshAndData.h>
-#include <Core/Algorithms/Fields/SetFieldData.h>
+#include <Core/Algorithms/Fields/FieldData/SetFieldData.h>
 #include <Core/Algorithms/Fields/SetFieldNodes.h>
 #include <Core/Algorithms/Fields/SplitNodesByDomain.h>
 #include <Core/Algorithms/Fields/SplitByConnectedRegion.h>
@@ -77,7 +80,7 @@
 #include <Core/Algorithms/Fields/CreateFieldFromMesh.h>
 #include <Core/Algorithms/Fields/CreateMeshFromNrrd.h>
 #include <Core/Algorithms/Fields/CollectPointClouds.h>
-#include <Core/Algorithms/Fields/RefineMesh.h>
+#include <Core/Algorithms/Fields/RefineMesh/RefineMesh.h>
 #include <Core/Algorithms/Fields/GetMeshQualityField.h>
 #include <Core/Algorithms/Fields/ApplyTriSurfPhaseFilter.h>
 #include <Core/Algorithms/Fields/TracePoints.h>
@@ -282,7 +285,8 @@ FieldsAlgo::GetFieldBoundary(FieldHandle input,
 			     MatrixHandle& mapping)
 {
   GetFieldBoundaryAlgo algo;
-  return(algo.GetFieldBoundary(pr_,input,output,mapping));
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,output,mapping));
 }
 
 
@@ -297,32 +301,39 @@ FieldsAlgo::GetFieldInfo(FieldHandle input,
 
 
 bool
-FieldsAlgo::GetFieldData(FieldHandle& input, MatrixHandle& data)
+FieldsAlgo::GetFieldData(FieldHandle input, MatrixHandle& data)
 {
   GetFieldDataAlgo algo;
-  return(algo.GetFieldData(pr_,input,data));
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,data));
 }
 
 
 bool
-FieldsAlgo::SetFieldData(FieldHandle& input,
+FieldsAlgo::SetFieldData(FieldHandle input,
 			 FieldHandle& output,
-			 MatrixHandle& data,
+			 MatrixHandle data,
 			 bool keepscalartype)
 {
   SetFieldDataAlgo algo;
-  return(algo.SetFieldData(pr_,input,output,data,keepscalartype));
+  algo.set_progress_reporter(pr_);
+  if (keepscalartype && input->vfield()) 
+    algo.set_option("scalardatatype",input->vfield()->get_data_type());
+  return(algo.run(input,data,output));
 }
 
 
 bool
-FieldsAlgo::SetFieldData(FieldHandle& input,
+FieldsAlgo::SetFieldData(FieldHandle input,
 			 FieldHandle& output,
-			 NrrdDataHandle& data,
+			 NrrdDataHandle data,
 			 bool keepscalartype)
 {
   SetFieldDataAlgo algo;
-  return(algo.SetFieldData(pr_,input,output,data,keepscalartype));
+  algo.set_progress_reporter(pr_);
+  if (keepscalartype && input->vfield()) 
+    algo.set_option("scalardatatype",input->vfield()->get_data_type());
+  return(algo.run(input,data,output));
 }
 
 
@@ -372,7 +383,7 @@ FieldsAlgo::MapFieldDataFromNodeToElem(FieldHandle input,
   MapFieldDataFromNodeToElemAlgo algo;
   algo.set_progress_reporter(pr_);
   algo.set_option("method",method);
-  return(algo.map_data(input,output));
+  return(algo.run(input,output));
 }
 
 
@@ -384,7 +395,7 @@ FieldsAlgo::MapFieldDataFromElemToNode(FieldHandle input,
   MapFieldDataFromElemToNodeAlgo algo;
   algo.set_progress_reporter(pr_);
   algo.set_option("method",method);
-  return(algo.map_data(input,output));
+  return(algo.run(input,output));
 }
 
 bool
@@ -488,7 +499,9 @@ FieldsAlgo::ConvertIndicesToFieldData(FieldHandle input, FieldHandle& output,
 				      MatrixHandle data, std::string datatype)
 {
   ConvertIndicesToFieldDataAlgo algo;
-  return(algo.ConvertIndicesToFieldData(pr_, input, output, data, datatype));
+  algo.set_progress_reporter(pr_);
+  algo.set_option("datatype",datatype);
+  return(algo.run(input, data, output));
 }
 
 
@@ -1047,7 +1060,14 @@ FieldsAlgo::RefineMesh(FieldHandle input,
 		       string select, 
 		       double isoval)
 {
-  return(RefineMeshAlgo::RefineMesh(pr_,input,output,method,select,isoval));
+  RefineMeshAlgo algo;
+  
+  algo.set_progress_reporter(pr_);
+  algo.set_option("select",select);
+  algo.set_scalar("isoval",isoval);
+  if (method == "convex") algo.set_bool("hex_convex",true);
+  
+  return(algo.run(input,output));
 }
 
 

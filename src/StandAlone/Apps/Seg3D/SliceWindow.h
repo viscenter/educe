@@ -66,7 +66,9 @@ public:
   CatcherFunction_t     redraw;
   CatcherFunction_t     do_PointerEvent;
   CatcherFunction_t     process_event;
-
+  CatcherFunction_t     copy_current_slice_up;
+  CatcherFunction_t     copy_current_slice_down;
+  CatcherFunction_t     punch_current_slice;
 
   void                  setup_gl_view();
   void                  move_slice(int amount);
@@ -93,15 +95,15 @@ public:
   GeomIndexedGroup*     get_geom_group();
 
   Painter *             painter_;
-  string				name_;
-  VolumeSlices_t		slices_;
+  string		name_;
+  VolumeSlices_t	slices_;
   bool                  recompute_slices_;
 
   Point                 center_;
   Vector                normal_;
 
   int                   axis_;
-  Skinner::Var<double>		zoom_;
+  Skinner::Var<double>	zoom_;
   int                   slab_min_;
   int                   slab_max_;
       
@@ -121,6 +123,8 @@ public:
   GeomHandle            geom_switch_;
   GeomIndexedGroup *    geom_group_;
 
+  // -1 for down, +1 for up, 0 for all.
+  BaseTool::propagation_state_e copy_current_slice(int dir);
 };
 
 

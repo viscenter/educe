@@ -26,35 +26,29 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-/*
- *  GetCentroidsFromMesh.cc:
- *
- *  Written by:
- *   moulding
- *   TODAY'S DATE HERE
- *
- */
+//! Include the algorithm
+#include <Core/Algorithms/Fields/MeshDerivatives/GetCentroids.h>
 
+//! The module class
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
-#include <Dataflow/Modules/Fields/GetCentroidsFromMesh.h>
-#include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Network/NetworkEditor.h>
-#include <Core/Util/DynamicCompilation.h>
-#include <math.h>
 
-#include <vector>
-#include <iostream>
+//! We need to define the ports used
+#include <Dataflow/Network/Ports/FieldPort.h>
 
 namespace SCIRun {
 
 using namespace std;
 
 class GetCentroidsFromMesh : public Module {
-public:
-  GetCentroidsFromMesh(GuiContext* ctx);
-  virtual ~GetCentroidsFromMesh();
-  virtual void execute();
+  public:
+    GetCentroidsFromMesh(GuiContext* ctx);  
+    virtual void execute();
+
+  private:  
+    SCIRunAlgo::GetCentroidsAlgo algo_;
+    
+  private:
+    GuiString component_;
 };
 
 
@@ -62,56 +56,29 @@ DECLARE_MAKER(GetCentroidsFromMesh)
 
 
 GetCentroidsFromMesh::GetCentroidsFromMesh(GuiContext* ctx)
-  : Module("GetCentroidsFromMesh", ctx, Filter, "NewField", "SCIRun")
+  : Module("GetCentroidsFromMesh", ctx, Filter, "NewField", "SCIRun"),
+    component_(get_ctx()->subVar("component"),"elem")
 {
+  //! Forward errors to the module
+  algo_.set_progress_reporter(this);
 }
-
-
-GetCentroidsFromMesh::~GetCentroidsFromMesh()
-{
-}
-
-
 
 void
 GetCentroidsFromMesh::execute()
 {
-  FieldHandle ifieldhandle;
-  if (!get_input_handle("TetVolField", ifieldhandle)) return;
+  FieldHandle input, output;
+  if (!get_input_handle("Field", input)) return;
 
-  const TypeDescription *ftd = ifieldhandle->get_type_description();
-  CompileInfoHandle ci = GetCentroidsFromMeshAlgo::get_compile_info(ftd);
-  Handle<GetCentroidsFromMeshAlgo> algo;
-  if (!DynamicCompilation::compile(ci, algo, this)) return;
+  if (inputs_changed_ && !oport_cached("Field"))
+  {
+    //! Set the component we want to extract
+    algo_.set_option("centroid",component_.get());
 
-  FieldHandle ofieldhandle(algo->execute(this, ifieldhandle));
-  
-  send_output_handle("PointCloudField", ofieldhandle);
-}
-
-
-
-CompileInfoHandle
-GetCentroidsFromMeshAlgo::get_compile_info(const TypeDescription *field_td)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("GetCentroidsFromMeshAlgoT");
-  static const string base_class_name("GetCentroidsFromMeshAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       field_td->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       field_td->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_basis_include("Core/Basis/Constant.h");
-  rval->add_mesh_include("Core/Datatypes/PointCloudMesh.h");
-  field_td->fill_compile_info(rval);
-  return rval;
+    //! Run the algorithm
+    if(!(algo_.run(input,output))) return;
+    
+    send_output_handle("Field", output);
+  }
 }
 
 } // End namespace SCIRun

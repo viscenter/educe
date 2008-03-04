@@ -60,7 +60,6 @@ MarchingCubesAlg::get_h_file_path()
 CompileInfoHandle
 MarchingCubesAlg::get_compile_info(const TypeDescription *td) 
 {
-
   string subname;
   string subinc;
   string sname = td->get_name("", "");
@@ -102,12 +101,14 @@ MarchingCubesAlg::get_compile_info(const TypeDescription *td)
     out_mesh_inc = "../src/Core/Datatypes/CurveMesh.h";
     out_basis_inc = "../src/Core/Basis/CrvLinearLgn.h";
   } else if (sname.find("QuadSurfMesh") != string::npos ||
+	     sname.find("StructQuadSurfMesh") != string::npos ||
 	     sname.find("ImageMesh") != string::npos) {
     subname.append("QuadMC<" + td->get_name() + "> ");
     subinc.append(QuadMCBase::get_h_file_path());
     out_mesh_inc = "../src/Core/Datatypes/CurveMesh.h";
     out_basis_inc = "../src/Core/Basis/CrvLinearLgn.h";
-  } else if (sname.find("CurveMesh") != string::npos) {
+  } else if (sname.find("CurveMesh") != string::npos ||
+	     sname.find("StructCurveMesh") != string::npos) {
     subname.append("EdgeMC<" + td->get_name() + "> ");
     subinc.append(EdgeMCBase::get_h_file_path());
     out_mesh_inc = "../src/Core/Datatypes/PointCloudMesh.h";

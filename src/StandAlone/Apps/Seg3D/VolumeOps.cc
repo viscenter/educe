@@ -387,32 +387,30 @@ VolumeOps::nrrd_mean_and_deviation(NrrdDataHandle &nrrdh,
 {
   Nrrd *nrrd = nrrdh->nrrd_;
   Nrrd *mask = maskh->nrrd_;
-  double mean = 0;
-  double squared = 0;
-  unsigned int n = 0;
-  ASSERT(nrrd->dim > 3 && mask->dim > 3 &&
-         nrrd->axis[0].size == mask->axis[0].size &&
+
+  ASSERT(nrrd->dim > 3 && mask->dim > 3);
+  ASSERT(nrrd->axis[0].size == mask->axis[0].size &&
          nrrd->axis[1].size == mask->axis[1].size &&
          nrrd->axis[2].size == mask->axis[2].size &&
-         nrrd->axis[3].size == mask->axis[3].size &&
-         nrrd->type == nrrdTypeFloat &&
-         mask->type == nrrdTypeFloat);
-
-  size_t size = nrrd->axis[0].size;
-  for (unsigned int a = 1; a < nrrd->dim; ++a)
-    size *= nrrd->axis[a].size;
+         nrrd->axis[3].size == mask->axis[3].size);
+  ASSERT(nrrd->type == nrrdTypeFloat);
+  ASSERT(mask->type == nrrdTypeFloat);
 
   float *src = (float *)nrrd->data;
   float *test = (float *)mask->data;
 
+  double mean = 0;
+  double squared = 0;
+  unsigned int n = 0;
   float min = AIR_POS_INF;
   float max = AIR_NEG_INF;
 
+  const size_t size = nrrd_elem_count(nrrdh);
   for (size_t i = 0; i < size; ++i)
   {
     if (test[i] > 0.0) {
       mean += src[i];
-      squared += src[i]*src[i];
+      squared += src[i] * src[i];
       min = Min(min, src[i]);
       max = Max(max, src[i]);
 

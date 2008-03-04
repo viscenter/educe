@@ -28,36 +28,28 @@
 
 
 
-/*
- *  CalculateGradients.cc:  Unfinished modules
- *
- *  Written by:
- *   Michael Callahan
- *   Department of Computer Science
- *   University of Utah
- *   March 2001
- *
- *  Copyright (C) 2001 SCI Group
- */
+//! Include the algorithm
+#include <Core/Algorithms/Fields/FieldData/CalculateGradients.h>
 
+//! The module class
 #include <Dataflow/Network/Module.h>
+
+//! We need to define the ports used
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Containers/Handle.h>
-#include <Core/Datatypes/Field.h>
-#include <Core/Datatypes/VField.h>
-#include <Core/Datatypes/Mesh.h>
-#include <Core/Datatypes/VMesh.h>
-#include <Core/Datatypes/FieldInformation.h>
+#include <Dataflow/Network/Ports/MatrixPort.h>
+
 
 
 namespace SCIRun {
 
 class CalculateGradients : public Module
 {
-public:
-  CalculateGradients(GuiContext* ctx);
-  virtual void execute();
+  public:
+    CalculateGradients(GuiContext* ctx);
+    virtual void execute();
 
+  private:
+    SCIRunAlgo::CalculateGradientsAlgo algo_;
 };
 
 
@@ -66,68 +58,25 @@ DECLARE_MAKER(CalculateGradients)
 CalculateGradients::CalculateGradients(GuiContext* ctx)
   : Module("CalculateGradients", ctx, Filter, "ChangeFieldData", "SCIRun")
 {
+  //! Forward errors to the module
+  algo_.set_progress_reporter(this);
 }
 
 void
 CalculateGradients::execute()
 {
   FieldHandle input;
+  FieldHandle output;
 
-  get_input_handle( "Input Field", input, true );
+  get_input_handle( "Field", input, true );
 
-  if( inputs_changed_ || !oport_cached("Output CalculateGradients") )
+  if( inputs_changed_ || !oport_cached("Field") )
   {
-    FieldInformation fi(input);
-    
-    if ((!(fi.is_scalar()))||(!(fi.field_basis_order() > 0)))
-    {
-      error( "This module only works on scalar data that is located on the nodes of the mesh");
-      return;   
-    }
-    
-    fi.make_constantdata();
-    fi.make_vector();
-    FieldHandle output = CreateField(fi,input->mesh());
-    if (output.get_rep() == 0)
-     {
-      error( "CalculateGradient: Could not create output field");
-      return;
-    }
-
-    VMesh* mesh = output->vmesh();
-    VField* field = output->vfield();
-    VField* ifield = input->vfield();
-    
-    // Calculate center coordinates
-    VMesh::coords_array_type ca;
-    mesh->get_element_vertices(ca);
-    
-    VMesh::coords_type center;
-    (ca[0].size());
-    for (size_t k=0; k<ca.size(); k++) 
-    {
-      for (size_t p=0; p<center.size();p++) center[p] += ca[k][p];
-    }
-    for (size_t p=0; p<center.size();p++) center[p] *= 1.0/static_cast<double>(ca.size());
-    
-    field->resize_values();
-    
-    VMesh::Elem::iterator it, it_end;
-    mesh->begin(it);
-    mesh->end(it_end);
+    //! Run algorithm
+    if (!(algo_.run(input,output))) return;
   
-    while (it != it_end)
-    {
-      StackVector<double,3> grad;
-      ifield->gradient(grad,center,*it);
-      
-      Vector v(grad[0],grad[1],grad[2]);
-      field->set_value(v,*it);
-      ++it;
-    }
-  
-    // Send the data downstream
-    send_output_handle( "Output CalculateGradients", output,true);
+    //! Send the data downstream
+    send_output_handle( "Field", output,true);
   }
 }
 

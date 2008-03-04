@@ -66,8 +66,6 @@ public:
   virtual void execute();
 
 private:
-  FieldHandle  field_output_handle_;
-  MatrixHandle matrix_output_handle_;
   GeomHandle   geometry_output_handle_;
 
   //! GUI variables
@@ -110,8 +108,6 @@ DECLARE_MAKER(ExtractIsosurface)
 ExtractIsosurface::ExtractIsosurface(GuiContext* context) : 
   Module("ExtractIsosurface", context, Filter, "Visualization", "SCIRun"), 
 
-  field_output_handle_(0),
-  matrix_output_handle_(0),
   geometry_output_handle_(0),
 
   gui_iso_value_min_(context->subVar("isoval-min"),  0.0),
@@ -384,21 +380,31 @@ ExtractIsosurface::execute()
   }
 
   // Decide if an interpolant will be computed for the output field.
-  MatrixOPort *omatrix_port = (MatrixOPort *) get_oport("Mapping");
+  MatrixOPort *omatrix_port = (MatrixOPort *) get_oport("Node Mapping");
 
-  const bool build_interp =
+  const bool build_node_interp =
     gui_build_field_.get() && omatrix_port->nconnections();
 
-  if( (gui_build_field_.get() && !field_output_handle_.get_rep()) ||
+  // Decide if an interpolant will be computed for the output field.
+  omatrix_port = (MatrixOPort *) get_oport("Cell Mapping");
+
+  const bool build_cell_interp =
+    gui_build_field_.get() && omatrix_port->nconnections();
+
+
+  if( (gui_build_field_.get() && !oport_cached("Surface")) ||
       (gui_build_geom_.get()  && !geometry_output_handle_.get_rep()) ||
-      (build_interp           && !matrix_output_handle_.get_rep()) ||
+      (gui_build_geom_.get()  && !oport_cached("Geometry")) ||
+      (build_node_interp      && !oport_cached("Node Mapping")) ||
+      (build_cell_interp      && !oport_cached("Cell Mapping")) ||
       inputs_changed_  ) {
 
     update_state(Executing);
 
-    vector<GeomHandle > geometry_handles;
     vector<FieldHandle> field_handles;
-    vector<MatrixHandle> interpolant_handles;
+    vector<GeomHandle > geometry_handles;
+    vector<MatrixHandle> node_interpolant_handles;
+    vector<MatrixHandle> cell_interpolant_handles;
 
     const TypeDescription *td = field_input_handle->get_type_description();
 
@@ -418,16 +424,21 @@ ExtractIsosurface::execute()
 	  mc_alg->set_np(np);
 	  mc_alg->set_field( field_input_handle.get_rep() );
 
-	  for (unsigned int iv=0; iv<isovals.size(); iv++)  {
+	  for (unsigned int iv=0; iv<isovals.size(); iv++)
+	  {
 	    mc_alg->search( isovals[iv],
 			    gui_build_field_.get(),
 			    gui_build_geom_.get(),
 			    gui_transparency_.get() );
 	    geometry_handles.push_back( mc_alg->get_geom() );
-	    for (int i = 0 ; i < np; i++) {
+	    for (int i = 0 ; i < np; i++)
+	    {
 	      field_handles.push_back( mc_alg->get_field(i) );
-	      if (build_interp)
-		interpolant_handles.push_back( mc_alg->get_interpolant(i) );
+
+	      if (build_node_interp)
+		node_interpolant_handles.push_back( mc_alg->get_interpolant(i) );
+	      if (build_cell_interp)
+		cell_interpolant_handles.push_back( mc_alg->get_parent_cells(i) );
 	    }
 	  }
 	  mc_alg->release();
@@ -454,8 +465,8 @@ ExtractIsosurface::execute()
 							 gui_build_geom_.get(),
 							 gui_transparency_.get() ) );
 	    field_handles.push_back(noise_alg->get_field());
-	    if (build_interp)
-	      interpolant_handles.push_back(noise_alg->get_interpolant());
+	    if (build_node_interp)
+	      node_interpolant_handles.push_back( noise_alg->get_interpolant() );
 	  }
 	  noise_alg->release();
 	}
@@ -501,9 +512,11 @@ ExtractIsosurface::execute()
 	  field_handles[i]->set_property("name", string("ExtractIsosurface"), false);
       }
 
+      FieldHandle field_output_handle;
+
       // Single field.
       if (field_handles.size() == 1)
-	field_output_handle_ = field_handles[0];
+	field_output_handle = field_handles[0];
 
       // Multiple field_handles.
       else {
@@ -514,26 +527,45 @@ ExtractIsosurface::execute()
 	Handle<ExtractIsosurfaceAlgo> algo;
 	if (!module_dynamic_compile(ci, algo)) return;
 	
-	field_output_handle_ = algo->execute(field_handles);
+	field_output_handle = algo->execute(field_handles);
       }
 
-      // Get the output interpolant handle.
-      if (build_interp) {
-	if (interpolant_handles[0].get_rep()) {
-	  if (interpolant_handles.size() == 1)
-	    matrix_output_handle_ = interpolant_handles[0];
+      // Send the isosurface field downstream
+      send_output_handle( "Surface", field_output_handle );
+
+      // Get the output node interpolant handle.
+      if (build_node_interp) {
+	if (node_interpolant_handles[0].get_rep())
+	{
+	  MatrixHandle node_matrix_output_handle;
+
+	  if (node_interpolant_handles.size() == 1)
+	    node_matrix_output_handle = node_interpolant_handles[0];
 	  else
-	    matrix_output_handle_ = append_sparse_matrices(interpolant_handles);
+	    node_matrix_output_handle = append_sparse_matrices(node_interpolant_handles);
+
+	  send_output_handle( "Node Mapping", node_matrix_output_handle );
 	}
 	else
 	  warning("Interpolant not computed for this input field type and data location.");
-      } else
-	matrix_output_handle_ = 0;
+      }
 
-    } else {
+      // Get the output cell interpolant handle.
+      if (build_cell_interp) {
+	if (cell_interpolant_handles[0].get_rep())
+	{
+	  MatrixHandle cell_matrix_output_handle;
 
-      field_output_handle_ = 0;
-      matrix_output_handle_ = 0;
+	  if (cell_interpolant_handles.size() == 1)
+	    cell_matrix_output_handle = cell_interpolant_handles[0];
+	  else
+	    cell_matrix_output_handle = append_sparse_matrices(cell_interpolant_handles);
+
+	  send_output_handle( "Cell Mapping", cell_matrix_output_handle );
+	}
+	else
+	  warning("Interpolant not computed for this input field type and data location.");
+      }
     }
 
     // Merged the geometry results.
@@ -573,11 +605,6 @@ ExtractIsosurface::execute()
 
     send_output_handle( "Geometry", geometry_output_handle_, fldname );
   }
-    
-  // Send the isosurface field downstream
-  send_output_handle( "Surface", field_output_handle_, true );
-  send_output_handle( "Mapping", matrix_output_handle_, true );
-
 }
 
 } // End namespace SCIRun

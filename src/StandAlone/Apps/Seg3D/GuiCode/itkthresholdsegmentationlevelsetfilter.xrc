@@ -257,22 +257,10 @@
                 <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT</flag>
                 <border>5</border>
                 <object class="wxGridSizer">
-                    <cols>2</cols>
+                    <cols>1</cols>
                     <rows>1</rows>
                     <vgap>0</vgap>
                     <hgap>0</hgap>
-                    <object class="sizeritem">
-                        <flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
-                        <border>5</border>
-                        <object class="wxButton" name="SET_SEEDLAYER_BUTTON">
-                            <font>
-                                <size>8</size>
-                                <family>swiss</family>
-                                <face>Arial</face>
-                            </font>
-                            <label>Set Seed Layer</label>
-                        </object>
-                    </object>
                     <object class="sizeritem">
                         <flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
                         <border>5</border>
@@ -317,25 +305,6 @@
                                 <face>Arial</face>
                             </font>
                             <label>Close</label>
-                        </object>
-                    </object>
-                </object>
-            </object>
-            <object class="sizeritem">
-                <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxLEFT|wxRIGHT</flag>
-                <border>5</border>
-                <object class="wxGridSizer">
-                    <cols>1</cols>
-                    <rows>1</rows>
-                    <vgap>0</vgap>
-                    <hgap>0</hgap>
-                    <object class="sizeritem">
-                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP</flag>
-                        <border>5</border>
-                        <object class="wxGauge" name="ID_GAUGE">
-                            <size>150,-1</size>
-                            <value>0</value>
-                            <range>100</range>
                         </object>
                     </object>
                 </object>

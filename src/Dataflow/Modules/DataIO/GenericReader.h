@@ -166,6 +166,7 @@ GenericReader<HType>::execute()
       !oport_cached(0) ||
       !oport_cached("Filename") )
   {
+  
     old_filemodification_ = new_filemodification;
 
     HType handle;
@@ -207,6 +208,7 @@ GenericReader<HType>::execute()
     shandle = (StringHandle) scinew String(gui_filename_.get());
     send_output_handle("Filename", shandle);
   }
+
 }
 
 } // End namespace SCIRun

@@ -156,6 +156,8 @@ bool DataIOAlgo::ReadBundle(std::string filename, BundleHandle& bundle, std::str
   return (true);
 }
 
+Mutex Teem_Lock_("Teem Lock");
+
 
 bool DataIOAlgo::ReadNrrd(std::string filename, NrrdDataHandle& nrrd, std::string importer)
 {
@@ -175,12 +177,14 @@ bool DataIOAlgo::ReadNrrd(std::string filename, NrrdDataHandle& nrrd, std::strin
     {
       nrrd = scinew NrrdData;
       if (nrrd.get_rep() == 0) return (false);
-      
+     
+      Teem_Lock_.lock(); 
       if (nrrdLoad(nrrd->nrrd_, airStrdup(filename.c_str()), 0)) 
       {
         char *err = biffGetDone(NRRD);
         error("Could not read nrrd '" + filename + "' because teem crashed for the following reason: " + err);
         free(err);
+        Teem_Lock_.unlock(); 
         return (false);
       }
       
@@ -191,6 +195,8 @@ bool DataIOAlgo::ReadNrrd(std::string filename, NrrdDataHandle& nrrd, std::strin
               airExists(nrrd->nrrd_->axis[i].max)))
                 nrrdAxisInfoMinMaxSet(nrrd->nrrd_, i, nrrdCenterNode);
       }
+      Teem_Lock_.unlock(); 
+
       return (true); 
     }
   }

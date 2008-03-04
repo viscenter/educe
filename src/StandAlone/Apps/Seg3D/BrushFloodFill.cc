@@ -45,7 +45,7 @@ namespace SCIRun {
 
 BrushFloodFill::
 BrushFloodFill(Painter *painter) :
-  ITKConnectedImageFilterTool("BrushFloodFill", painter),
+  SeedTool("BrushFloodFill", painter),
   value_(0),
   erase_(false)
 {
@@ -57,34 +57,9 @@ BrushFloodFill(Painter *painter) :
 void
 BrushFloodFill::run_filter()
 {
-  if (!volume_.get_rep()) 
-    return;
-
-  for (size_t i = 0; i < seeds_.size(); ++i) {
-    if (!volume_->index_valid(seeds_[i])) {
-      painter_->set_status("Invalid seed point, please place seeds again.");
-      return;
-    }
-  }
-
-  NrrdDataHandle mnrrd;
-  unsigned int mlabel = 0;
-  if (painter_->mask_volume_.get_rep())
-  {
-    mnrrd = painter_->mask_volume_->nrrd_handle_;
-    mlabel = painter_->mask_volume_->label_;
-  }
-
-  flood_fill(painter_,
-             painter_->current_volume_->nrrd_handle_,
-             painter_->current_volume_->label_,
-             painter_->current_volume_->nrrd_handle_,
-             painter_->current_volume_->label_,
-             mnrrd, mlabel, erase_, seeds_);
-
-  volume_->set_dirty();
-  painter_->extract_all_window_slices();
-  painter_->redraw_all();
+  // This function should not be run directly.  We don't finish it,
+  // rather it is called multiple times interactively while painting.
+  cout << "BrushFloodFill should not be run directly.\n";
 }
 
 
@@ -93,7 +68,7 @@ BrushFloodFill::flood_fill(Painter *painter,
                            NrrdDataHandle dnrrd, unsigned int dlabel,
                            NrrdDataHandle snrrd, unsigned int slabel,
                            NrrdDataHandle mnrrd, unsigned int mlabel,
-                           bool erase, seeds_t &seeds)
+                           bool erase, const vector<vector<int> > &seeds)
 {
   // Depth first search using a double buffered queue (vector) for the
   // expanding edge.
@@ -216,19 +191,29 @@ BrushFloodFill::flood_fill_slice(bool erase)
     return STOP_E;
   }
 
-  if (seeds_.size() == 0)
+  if (seeds_.empty())
   {
     painter_->set_status("Use the middle mouse button to set the seed point.");
     return STOP_E;
   }
 
+  if (last_seed_window_ == NULL) return STOP_E;
+
   painter_->volume_lock_.lock();
 
   // Get the current volume.
   NrrdVolumeHandle &vol = painter_->current_volume_;
-  vol->lock.lock();
 
-  if (last_seed_window_ == NULL) return STOP_E;
+  vector<vector<int> > seeds;
+  convert_seeds_to_indices(seeds, vol);
+  if (seeds.empty())
+  {
+    painter_->set_status("The seed point is outside of the volume.");
+    painter_->volume_lock_.unlock();
+    return STOP_E;
+  }
+
+  vol->lock.lock();
 
   // Get the slice.
   SliceWindow *window = last_seed_window_;
@@ -258,8 +243,6 @@ BrushFloodFill::flood_fill_slice(bool erase)
 
   // Put this slice back
   const int axis = slice->get_axis();
-
-  vector<vector<int> > seeds = seeds_;
   for (size_t i = 0; i < seeds.size(); i++)
   {
     seeds[i].erase(seeds[i].begin() + axis);
@@ -311,7 +294,7 @@ BrushFloodFill::flood_fill_slice(bool erase)
   return STOP_E;
 }
 
-
+#if 0
 BaseTool::propagation_state_e
 BrushFloodFill::flood_fill_volume(bool erase)
 {
@@ -336,6 +319,6 @@ BrushFloodFill::flood_fill_volume(bool erase)
 
   return CONTINUE_E;
 }
-
+#endif
 
 }

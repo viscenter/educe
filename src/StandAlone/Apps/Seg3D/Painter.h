@@ -83,7 +83,6 @@
 #  include <itkImageFileReader.h>
 #  include <itkImageSeriesReader.h>
 #  include <itkImportImageFilter.h>
-#  include <itkDICOMSeriesFileNames.h>
 #  include <itkImageIOBase.h>
 #  include <itkCommand.h>
 #  include <itkThresholdSegmentationLevelSetImageFilter.h>
@@ -186,11 +185,15 @@ public:
 
   void                  current_layer_up();
   void                  current_layer_down();
+
+  void                  move_layer_up();
+  void                  move_layer_down();
+
   void                  opacity_up();
   void                  opacity_down();
   NrrdVolumeHandle      find_volume_by_name(const string &, NrrdVolumeHandle parent=0);
 
-  int                   isosurface_label_volumes(NrrdVolumes &, GeomGroup *);
+  int                   isosurface_label_volumes(NrrdVolumes &vols);
   string		unique_layer_name(string);
   string		unique_layer_name_from_filename(string);
 
@@ -233,6 +236,7 @@ private:
   CatcherFunction_t     StartCropTool;
   CatcherFunction_t     StartCropCylinder;
   CatcherFunction_t     StartFloodFillTool;
+  CatcherFunction_t     StartPolylineTool;
 
 public:
   CatcherFunction_t     Autoview;
@@ -267,7 +271,8 @@ private:
 public:
   CatcherFunction_t     ShowVolumeRendering2;
 private:
-  CatcherFunction_t     ShowIsosurface;
+  CatcherFunction_t     ShowOneIsosurface;
+  CatcherFunction_t     ShowAllIsosurfaces;
   CatcherFunction_t     AbortFilterOn;
 
   CatcherFunction_t     LoadVolume;
@@ -289,7 +294,9 @@ private:
 
   CatcherFunction_t     FloodFillLayer;
   CatcherFunction_t     FloodFillClear;
-
+  
+  CatcherFunction_t     RasterPolyline;
+  
   CatcherFunction_t     ResetCLUT;
   CatcherFunction_t     UpdateBrushRadius;
 

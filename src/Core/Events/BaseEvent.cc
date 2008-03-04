@@ -146,6 +146,7 @@ KeyEvent::KeyEvent(unsigned int key_state,
   keyval_(keyval),
   key_str_(key_string)
 {
+  modifiers_ = modifiers;
 }
 
 

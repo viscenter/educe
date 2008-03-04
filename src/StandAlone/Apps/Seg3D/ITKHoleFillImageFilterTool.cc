@@ -9,17 +9,8 @@ namespace SCIRun {
 
 
 ITKHoleFillImageFilterTool::ITKHoleFillImageFilterTool(Painter *painter)
-  : ITKConnectedImageFilterTool("ITKHoleFillImageFilterTool::", painter)
+  : SeedTool("ITKHoleFillImageFilterTool::", painter)
 {
-  set_just_one_seed_mode(true);
-
-  // Set a default seed.
-  seed_t seed;
-  seed.push_back(0);
-  seed.push_back(0);
-  seed.push_back(0);
-  seed.push_back(0);
-  seeds_.push_back(seed);
 }
 
 
@@ -51,6 +42,20 @@ ITKHoleFillImageFilterTool::run_filter()
     mlabel = painter_->mask_volume_->label_;
   }
 
+  vector<vector<int> > iseeds;
+  convert_seeds_to_indices(iseeds, source_volume);
+
+  // Set a default seed if none are set.
+  if (iseeds.empty())
+  {
+    vector<int> iseed;
+    iseed.push_back(0);
+    iseed.push_back(0);
+    iseed.push_back(0);
+    iseed.push_back(0);
+    iseeds.push_back(iseed);
+  }
+
   painter_->start_progress();
 
   // Flood fill the outer area.
@@ -59,7 +64,7 @@ ITKHoleFillImageFilterTool::run_filter()
                              painter_->current_volume_->label_,
                              source_volume->nrrd_handle_,
                              source_volume->label_,
-                             mnrrd, mlabel, false, seeds_);
+                             mnrrd, mlabel, false, iseeds);
 
   painter_->update_progress(80);
 

@@ -40,7 +40,6 @@ SET(Core_Algorithms_Fields_SRCS
   ClipBySelectionMask.cc
   ClipFieldByFunction.cc
   ClipFieldWithSeed.cc
-  ConvertIndicesToFieldData.cc
   ConvertMappingMatrixToFieldData.cc
   ConvertMeshToTetVol.cc
   ConvertMeshToTriSurf.cc
@@ -58,8 +57,6 @@ SET(Core_Algorithms_Fields_SRCS
   GatherFields.cc
   GetBoundingBox.cc
   GetDomainBoundary.cc
-  GetFieldBoundary.cc
-  GetFieldData.cc
   GetFieldNodes.cc
   GetFieldDataMinMax.cc
   GetFieldInfo.cc
@@ -70,10 +67,8 @@ SET(Core_Algorithms_Fields_SRCS
   MergeFields.cc
   MergeMeshes.cc
   ProjectPointsOntoMesh.cc
-  RefineMesh.cc
   RemoveUnusedNodes.cc
   ScaleFieldMeshAndData.cc
-  SetFieldData.cc
   SetFieldNodes.cc
   SplitNodesByDomain.cc
   SplitByConnectedRegion.cc
@@ -83,13 +78,19 @@ SET(Core_Algorithms_Fields_SRCS
   TransformMeshWithFunction.cc
 )
 
-
 SET(Core_Algorithms_Fields_SRCS ${Core_Algorithms_Fields_SRCS}
+  FieldData/CalculateGradients.cc
+  FieldData/ConvertFieldDataType.cc
+  FieldData/ConvertFieldBasisType.cc
+  FieldData/ConvertIndicesToFieldData.cc
+  FieldData/GetFieldData.cc
+  FieldData/SetFieldData.cc
   Mapping/MapFieldDataFromElemToNode.cc
   Mapping/MapFieldDataFromNodeToElem.cc
+  MeshDerivatives/GetCentroids.cc
+  MeshDerivatives/GetFieldBoundary.cc
+  RefineMesh/RefineMesh.cc
 )
-
-MESSAGE(STATUS "${Core_Algorithms_Fields_SRCS}")
 
 SCIRUN_ADD_LIBRARY(Core_Algorithms_Fields ${Core_Algorithms_Fields_SRCS})
 

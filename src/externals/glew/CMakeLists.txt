@@ -1,7 +1,7 @@
 INCLUDE_DIRECTORIES(include)
 
 # -- Specify the library target sci_glew. --
-ADD_LIBRARY(sci_glew glew.c)
+SCIRUN_ADD_LIBRARY(sci_glew glew.c)
 
 TARGET_LINK_LIBRARIES(sci_glew ${GL_LIBRARY})
 

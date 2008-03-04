@@ -217,7 +217,12 @@ VolumeFilter<FilterType>::filter_callback(itk::Object *object,
   if (typeid(itk::ProgressEvent) == typeid(event))
   {
     update_progress();
-#if 0
+  }
+
+  if (typeid(itk::IterationEvent) == typeid(event))
+  {
+    update_progress();
+
     if (volume_.get_rep()) {
       if (volume_->lock.try_lock()) {
         ITKDatatypeHandle imgh = new ITKDatatype();
@@ -233,12 +238,6 @@ VolumeFilter<FilterType>::filter_callback(itk::Object *object,
         volume_->lock.unlock();        
       }
     }
-#endif
-  }
-
-  if (typeid(itk::IterationEvent) == typeid(event))
-  {
-    std::cerr << "Filter Iteration: " << progress_ * 100.0 << "\n";
   }
 
   if (abort_) {

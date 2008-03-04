@@ -65,7 +65,7 @@ void value_to_color( unsigned int color_scheme,
   if (color_scheme == 1)
     to_double(val, scol);
   // Set the color based on the value.
-  else //if (color_scheme == 2)
+  else if (color_scheme == 2)
     to_color(val, vcol->diffuse);
 }
 

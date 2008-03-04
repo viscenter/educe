@@ -76,27 +76,7 @@ MapFieldDataFromNodeToElemT(MapFieldDataFromNodeToElemAlgo* algo,
   mesh->size(sz);
   Field::index_type cnt = 0, c = 0;
 
-  if (method == "interpolate")
-  {
-    VMesh::coords_type center;
-    mesh->get_element_center(center);
-    DATA val(0);
-    
-    while (it != eit)
-    {
-      ifield->interpolate(val,center,*it);
-      ofield->set_value(val,*it);
-      ++it;
-      cnt++; 
-      if (cnt==1000) 
-      { 
-        cnt=0; c+=1000; 
-        algo->update_progress(c,sz); 
-        if (algo->check_abort()) break;
-      }
-    }  
-  }
-  else if (method == "average")
+  if ((method == "average") || (method == "interpolate"))
   {
     DATA tval(0);
     
@@ -246,7 +226,7 @@ MapFieldDataFromNodeToElemT(MapFieldDataFromNodeToElemAlgo* algo,
 
 bool 
 MapFieldDataFromNodeToElemAlgo::
-map_data(FieldHandle input, FieldHandle& output)
+run(FieldHandle input, FieldHandle& output)
 {
   algo_start("MapFieldData",true);
   

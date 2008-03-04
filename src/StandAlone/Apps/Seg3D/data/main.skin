@@ -20,6 +20,9 @@
   <var name="Painter::SetLabelColor::b" type="double" propagate="yes">0</var>
   <var name="Painter::SetLabelColor::layername" type="string" propagate="yes"></var>
 
+  <var name="Painter::HistoEq::bins" type="int" propagate="yes">1</var>
+  <var name="Painter::HistoEq::alpha" type="double" propagate="yes">1.0</var>
+
   <var name="ITKCurvatureAnisotropicDiffusionImageFilterTool::numberOfIterations" type="int" propagate="yes">5</var>
   <var name="ITKCurvatureAnisotropicDiffusionImageFilterTool::timeStep" type="double" propagate="yes">0.0625</var>
   <var name="ITKCurvatureAnisotropicDiffusionImageFilterTool::conductanceParameter" type="double" propagate="yes">5.0</var>

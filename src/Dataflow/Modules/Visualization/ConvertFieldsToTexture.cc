@@ -56,7 +56,7 @@ ConvertFieldsToTexture::ConvertFieldsToTexture(GuiContext* ctx, const std::strin
   gui_gminval_(get_ctx()->subVar("gmin"), 0),
   gui_gmaxval_(get_ctx()->subVar("gmax"), 1),
   gui_fixed_(get_ctx()->subVar("is_fixed"), 0),
-  gui_card_mem_(get_ctx()->subVar("card_mem"), 16),
+  gui_card_mem_(get_ctx()->subVar("card_mem"), 64),
   gui_card_mem_auto_(get_ctx()->subVar("card_mem_auto"), 1),
   gui_histogram_(get_ctx()->subVar("histogram"),1),
   gui_gamma_(get_ctx()->subVar("gamma"),0.5),
@@ -76,12 +76,16 @@ ConvertFieldsToTexture::create_scaled_value_nrrd(T* value, unsigned char* nrrd,
   T minval = static_cast<T>(fmin); 
   T maxval = static_cast<T>(fmax);
 
+  double factor =  1.0;
+  if (maxval > minval) factor = 1.0/(maxval-minval);
+
   for(size_t i=0; i<sz; i++)
   {
     T val = value[i];
     if (val < minval) val = minval;
     else if (val > maxval) val = maxval;
-    nrrd[i] = static_cast<unsigned char>((255*(value[i]-minval))/(maxval-minval));
+
+    nrrd[i] = static_cast<unsigned char>((255*(value[i]-minval))*factor);
     
   }
 }
@@ -94,13 +98,17 @@ ConvertFieldsToTexture::create_scaled_value_normal_nrrd(T* value, Vector* normal
   T minval = static_cast<T>(fmin); 
   T maxval = static_cast<T>(fmax);
 
+  double factor =  1.0;
+  if (maxval > minval) factor = 1.0/(maxval-minval);
+    
   for(size_t i=0; i<sz; i++)
   {
     T val = value[i];
     if (val < minval) val = minval;
     else if (val > maxval) val = maxval;
     Vector norm = normal[i].normal();
-    nrrd[4*i+3] = static_cast<unsigned char>((255*(value[i]-minval))/(maxval-minval));
+
+    nrrd[4*i+3] = static_cast<unsigned char>((255*(value[i]-minval))*factor);
     nrrd[i*4] = static_cast<unsigned char>(norm.x()*127.5 + 127.5);
     nrrd[i*4+1] = static_cast<unsigned char>(norm.y()*127.5 + 127.5);
     nrrd[i*4+2] = static_cast<unsigned char>(norm.z()*127.5 + 127.5);
@@ -111,12 +119,16 @@ void
 ConvertFieldsToTexture::create_scaled_gradient_magnitude_nrrd(Vector* gradient, unsigned char* nrrd, 
             size_t sz, double fmin, double fmax )
 {
+  double factor =  1.0;
+  if (fmax > fmin) factor = 1.0/(fmax-fmin);
+
   for(size_t i=0; i<sz; i++)
   {
     double len = gradient[i].length();
     if (len < fmin) len = fmin;
     else if (len > fmax) len = fmax;
-    nrrd[i] = static_cast<unsigned char>((255*(len-fmin))/(fmax-fmin));
+
+    nrrd[i] = static_cast<unsigned char>((255*(len-fmin))*factor);
   }
 }
 

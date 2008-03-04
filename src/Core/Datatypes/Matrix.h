@@ -111,6 +111,9 @@ public:
   virtual double  get(index_type, index_type) const = 0;
   virtual void    put(index_type r, index_type c, double val) = 0;
   virtual void    add(index_type r, index_type c, double val) = 0;
+  
+  virtual double  min() = 0;
+  virtual double  max() = 0;
 
   // getRowNonzerosNocopy returns:
   //   vals = The values.  They are not guaranteed 
@@ -122,7 +125,7 @@ public:
   //     to walk in vals.  For example vals (and cols) should be
   //     accessed as vals[3*stride] to get the fourth value.  As of this
   //     time all the matrices return 1 for this value.
-  //   For example usage see Dataflow/Modules/Fields/ApplyMappingMatrix.h
+  //   For example usage see Dataflow/Modules/Fields/AxpplyMappingMatrix.h
   virtual void getRowNonzerosNoCopy(index_type r, index_type &size, 
                                     index_type &stride,
                                     index_type *&cols, double *&vals) = 0;

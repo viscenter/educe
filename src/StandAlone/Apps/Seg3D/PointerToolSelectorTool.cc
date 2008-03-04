@@ -73,10 +73,10 @@ PointerToolSelectorTool::pointer_down(int button, int x, int y,
     break;
     
   case 2:
-    if (modifiers & EventModifiers::SHIFT_E)
-      tm_.set_tool(new PainterAutoviewTool(painter_), 100);
-    else
-      tm_.set_tool(new ProbeTool(painter_), 100);    
+    //if (modifiers & EventModifiers::SHIFT_E)
+    //      tm_.set_tool(new PainterAutoviewTool(painter_), 100);
+    //    else
+    tm_.set_tool(new ProbeTool(painter_), 100);    
     break;
 
   case 3:

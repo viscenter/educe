@@ -62,7 +62,8 @@ SET(Core_Geom_SRCS
   GeomPolyline.cc	                
   GeomQMesh.cc		                
   GeomQuads.cc		                
-  GeomRenderMode.cc	                
+  GeomRenderMode.cc
+  GeomResourceManager.cc
   GeomScene.cc		                
   GeomSphere.cc		                
   GeomSticky.cc		                

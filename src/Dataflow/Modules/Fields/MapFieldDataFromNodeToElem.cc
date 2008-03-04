@@ -26,12 +26,15 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+//! Include the algorithm
+#include <Core/Algorithms/Fields/Mapping/MapFieldDataFromNodeToElem.h>
+
+//! The module class
 #include <Dataflow/Network/Module.h>
-#include <Core/Datatypes/Field.h>
-#include <Core/Datatypes/Matrix.h>
+
+//! We need to define the ports used
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
 
 namespace SCIRun {
 
@@ -41,8 +44,10 @@ class MapFieldDataFromNodeToElem : public Module {
     virtual void execute();
 
   private:
-    GuiString method_;
+    SCIRunAlgo::MapFieldDataFromNodeToElemAlgo algo_;
 
+  private:
+    GuiString method_;
 };
 
 
@@ -52,30 +57,32 @@ MapFieldDataFromNodeToElem::MapFieldDataFromNodeToElem(GuiContext* ctx)
   : Module("MapFieldDataFromNodeToElem", ctx, Source, "ChangeFieldData", "SCIRun"),
     method_(get_ctx()->subVar("method"))
 {
+  //! Forward errors to the module
+  algo_.set_progress_reporter(this);
 }
 
 
 void
 MapFieldDataFromNodeToElem::execute()
 {
-  // define input handles:
+  //! define input/output handles:
   FieldHandle input;
   FieldHandle output;
   
-  // get data from ports:
+  //! get data from ports:
   if (!(get_input_handle("Field",input,true))) return;
   
   // Only do work if needed:
   if (inputs_changed_ || method_.changed() || !oport_cached("Field"))
   {
-    std::string method = method_.get();
-    SCIRunAlgo::FieldsAlgo algo(this);
-  
-    // Actual algorithm:
-    if(!(algo.MapFieldDataFromNodeToElem(input,output,method))) return;
-  
-    // Send data downstream:
-    send_output_handle("Field",output);
+    //! Set the method to use
+    algo_.set_option("method",method_.get());
+    
+    //! Run the algorithm
+    if (!(algo_.run(input,output))) return;
+ 
+    //! send data downstream:
+    send_output_handle("Field", output); 
   }
 }
 

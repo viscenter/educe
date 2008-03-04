@@ -96,7 +96,6 @@ SET(Seg3D_SRCS
   CropCylinder.cc
   FloodfillTool.cc
   FloodFillCopyTool.cc
-  ITKConnectedImageFilterTool.cc
   ITKNeighborhoodConnectedImageFilterTool.cc
   ITKConfidenceConnectedImageFilterTool.cc
   ITKCurvatureAnisotropicDiffusionImageFilterTool.cc
@@ -116,7 +115,9 @@ SET(Seg3D_SRCS
   PanTool.cc 
   ProbeTool.cc 
   PointerToolSelectorTool.cc
+  PolylineTool.cc
   StatisticsTool.cc
+  SeedTool.cc
   Seg3DFrame.cc
   SessionReader.cc
   SessionWriter.cc
@@ -130,6 +131,7 @@ SET(Seg3D_SRCS
   GuiCode/seg3devents.cpp
   GuiCode/brushpanel.cpp
   GuiCode/croppanel.cpp
+  GuiCode/histoeqfilter.cpp
   GuiCode/itkcurvatureanistopricdiffusionfilter.cpp
   GuiCode/itkconfidenceconnectedfilter.cpp
   GuiCode/itkneighbourhoodconnectedfilter.cpp

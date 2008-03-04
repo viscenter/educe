@@ -58,12 +58,14 @@ KeyToolSelectorTool::~KeyToolSelectorTool()
 
 BaseTool::propagation_state_e
 KeyToolSelectorTool::key_press(string, int keyval,
-                               unsigned int, unsigned int)
+                               unsigned int m, unsigned int)
 {
   if (!painter_->cur_window_) return STOP_E;
-  SliceWindow &window = *painter_->cur_window_;
+
   if (sci_getenv_p("SCI_DEBUG"))
     cerr << "keyval: " << keyval << std::endl;
+
+  SliceWindow &window = *painter_->cur_window_;
   event_handle_t event;
   switch (keyval) {
   case SCIRun_equal:    window.zoom_in(event); break;
@@ -71,10 +73,45 @@ KeyToolSelectorTool::key_press(string, int keyval,
   case SCIRun_comma:    window.move_slice(-1); break;
   case SCIRun_period:   window.move_slice(1); break;
 
-  case SCIRun_Left:     painter_->current_layer_up();break;
-  case SCIRun_Right:    painter_->current_layer_down();break;
-  case SCIRun_Up:       window.move_slice(1);break;
-  case SCIRun_Down:     window.move_slice(-1);break;
+  case SCIRun_Left:
+    if (m & EventModifiers::SHIFT_E)
+    {
+      painter_->move_layer_up();
+    }
+    else
+    {
+      painter_->current_layer_up();
+    }
+    break;
+
+  case SCIRun_Right:
+    if (m & EventModifiers::SHIFT_E)
+    {
+      painter_->move_layer_down();
+    }
+    else
+    {
+      painter_->current_layer_down();
+    }
+    break;
+
+  case SCIRun_Up:
+    if (m & EventModifiers::SHIFT_E)
+    {
+      window.copy_current_slice_up(event);
+    }
+    window.move_slice(1);
+    break;
+
+  case SCIRun_Down:
+    if (m & EventModifiers::SHIFT_E)
+    {
+      window.copy_current_slice_down(event);
+    }
+    window.move_slice(-1);
+    break;
+
+  case SCIRun_p:        window.punch_current_slice(event); break;
 
 #if 0
   case SCIRun_c:        painter_->CopyLayer(event); break;

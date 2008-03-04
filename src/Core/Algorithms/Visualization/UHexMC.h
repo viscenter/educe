@@ -30,10 +30,9 @@
 /*
  *  UHexMC.h
  *
- *  \author Michael Callahan
- *   Department of Computer Science
+ *   SCI Institute
  *   University of Utah
- *   \date Feb 2001
+ *   Feb 2001
  *
  *  Copyright (C) 2001 SCI Institute
  */
@@ -42,15 +41,16 @@
 #ifndef UHexMC_h
 #define UHexMC_h
 
-#include <Core/Geom/GeomTriangles.h>
 #include <Core/Algorithms/Visualization/mcube2.h>
+#include <Core/Algorithms/Visualization/BaseMC.h>
 #include <Core/Basis/TriLinearLgn.h>
 #include <Core/Basis/QuadBilinearLgn.h>
+#include <Core/Containers/FData.h>
 #include <Core/Datatypes/TriSurfMesh.h>
 #include <Core/Datatypes/QuadSurfMesh.h>
-#include <Core/Containers/FData.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
+#include <Core/Geom/GeomTriangles.h>
 #include <sci_hash_map.h>
 
 namespace SCIRun {
@@ -60,11 +60,11 @@ struct UHexMCBase {
   static const string& get_h_file_path();
 };
 
-//! A Macrching Cube teselator for an Unstructured Hexagon cell     
+//! A Marching Cube teselator for an Unstructured Hexagon cell     
 
 
 template<class Field>
-class UHexMC : public UHexMCBase
+class UHexMC : public BaseMC, public UHexMCBase
 {
 public:
   typedef Field                                  field_type;
@@ -81,131 +81,66 @@ public:
 
   typedef QuadSurfMesh<QuadBilinearLgn<Point> >             QSMesh;
   typedef QuadBilinearLgn<double>                           QDatBasis;
-  typedef GenericField<QSMesh, QDatBasis, vector<double> >  QSField; 
+  typedef GenericField<QSMesh, QDatBasis, vector<double> >  QSField;
+
+
+  UHexMC( Field *field ) : field_(field), mesh_(field->get_typed_mesh()),
+			   triangles_(0), trisurf_(0), quadsurf_(0) {}
+
+  virtual ~UHexMC() {}
+	
+  void extract( const cell_index_type &, double);
+  void reset( int, bool build_field, bool build_geom, bool transparency );
+
+  FieldHandle get_field(double val);
+
 private:
-  LockingHandle<Field> field_;
-  mesh_handle_type mesh_;
-  GeomFastTriangles *triangles_;
-  bool build_field_;
-  bool build_geom_;
-  TSMesh::handle_type trisurf_;
-  QSMesh::handle_type quadsurf_;
-  int nnodes_;
-
-  struct edgepair_t
-  {
-    SCIRun::index_type first;
-    SCIRun::index_type second;
-    double dfirst;
-  };
-
-  struct edgepairless
-  {
-    bool operator()(const edgepair_t &a, const edgepair_t &b) const
-    {
-      return less(a,b);
-    }
-    static bool less(const edgepair_t &a, const edgepair_t &b)
-    {
-      return a.first < b.first || (a.first == b.first && a.second < b.second);
-    }
-  };
-
-#ifdef HAVE_HASH_MAP
-  struct edgepairequal
-  {
-    bool operator()(const edgepair_t &a, const edgepair_t &b) const
-    {
-      return a.first == b.first && a.second == b.second;
-    }
-  };
-
-  struct edgepairhash
-  {
-    unsigned int operator()(const edgepair_t &a) const
-    {
-#if defined(__ECC) || defined(_MSC_VER)
-      hash_compare<unsigned int> h;
-#else
-      hash<unsigned int> h;
-#endif
-      return h(a.first ^ a.second);
-    }
-# if defined(__ECC) || defined(_MSC_VER)
-
-      // These are particularly needed by ICC's hash stuff
-      static const size_t bucket_size = 4;
-      static const size_t min_buckets = 8;
-      
-      // This is a less than function.
-      bool operator()(const edgepair_t & a, const edgepair_t & b) const 
-      {
-        return edgepairless::less(a,b);
-      }
-# endif // endif ifdef __ICC
-  };
-
-# if defined(__ECC) || defined(_MSC_VER)
-  typedef hash_map<edgepair_t, TSMesh::Node::index_type, edgepairhash> edge_hash_type;
-#else
-  typedef hash_map<edgepair_t,
-		   TSMesh::Node::index_type,
-		   edgepairhash,
-		   edgepairequal> edge_hash_type;
-#endif // !defined(__ECC) && !defined(_MSC_VER)
-  
-#else
-
-  typedef map<edgepair_t,
-	      TSMesh::Node::index_type,
-	      edgepairless> edge_hash_type;
-#endif
-
-  edge_hash_type   edge_map_;  // Unique edge cuts when surfacing node data
-  vector<SCIRun::index_type> node_map_;  // Unique nodes when surfacing cell data.
+  void extract_c( const cell_index_type &, double);
+  void extract_n( const cell_index_type &, double);
 
   TSMesh::Node::index_type find_or_add_edgepoint(SCIRun::index_type n0,
 						      SCIRun::index_type n1,
 						      double d0,
 						      const Point &p);
+
   QSMesh::Node::index_type find_or_add_nodepoint(node_index_type &);
   
-  void extract_c( const cell_index_type &, double);
-  void extract_n( const cell_index_type &, double);
+  void find_or_add_parent(SCIRun::index_type u0, SCIRun::index_type u1,
+			  double d0, SCIRun::index_type face);
 
-public:
-  UHexMC( Field *field ) : field_(field), mesh_(field->get_typed_mesh()) {}
-  virtual ~UHexMC();
-	
-  void extract( const cell_index_type &, double);
-  void reset( int, bool build_field, bool build_geom, bool transparency );
-  GeomHandle get_geom() { return triangles_; };
-  FieldHandle get_field(double val);
-  MatrixHandle get_interpolant();
+  LockingHandle<Field> field_;
+  mesh_handle_type mesh_;
+  GeomFastTriangles *triangles_;
+  TSMesh::handle_type trisurf_;
+  QSMesh::handle_type quadsurf_;
 };
   
-
-template<class Field>    
-UHexMC<Field>::~UHexMC()
-{
-}
-    
 
 template<class Field>
 void UHexMC<Field>::reset( int n, bool build_field, bool build_geom, bool transparency )
 {
   build_field_ = build_field;
+  build_geom_  = build_geom;
+  basis_order_ = field_->basis_order();
 
   edge_map_.clear();
   typename Field::mesh_type::Node::size_type nsize;
   mesh_->size(nsize);
   nnodes_ = nsize;
 
-  if (field_->basis_order() == 0)
+  cell_map_.clear();
+  typename Field::mesh_type::Cell::size_type csize;
+  mesh_->size(csize);
+  ncells_ = csize;
+
+  if (basis_order_ == 0)
   {
     mesh_->synchronize(Mesh::FACES_E);
     mesh_->synchronize(Mesh::ELEM_NEIGHBORS_E);
-    if (build_field) { node_map_ = vector<SCIRun::index_type>(nsize, -1); }
+    if (build_field_)
+    {
+      node_map_ = vector<SCIRun::index_type>(nsize, -1);
+    }
   }
 
   triangles_ = 0;
@@ -216,12 +151,13 @@ void UHexMC<Field>::reset( int n, bool build_field, bool build_geom, bool transp
     else
       triangles_ = scinew GeomFastTriangles;
   }
+  geomHandle_ = triangles_;
 
   trisurf_ = 0;
   quadsurf_ = 0;
   if (build_field_)
   {
-    if (field_->basis_order() == 0)
+    if (basis_order_ == 0)
     {
       quadsurf_ = scinew QSMesh;
     }
@@ -237,8 +173,8 @@ UHexMC<Field>::TSMesh::Node::index_type
 UHexMC<Field>::find_or_add_edgepoint(SCIRun::index_type u0, SCIRun::index_type u1,
 				     double d0, const Point &p) 
 {
-  if (d0 <= 0.0) { u1 = -1; }
-  if (d0 >= 1.0) { u0 = -1; }
+  if (d0 < 0.0) { u1 = -1; }
+  if (d0 > 1.0) { u0 = -1; }
   edgepair_t np;
   if (u0 < u1)  { np.first = u0; np.second = u1; np.dfirst = d0; }
   else { np.first = u1; np.second = u0; np.dfirst = 1.0 - d0; }
@@ -262,7 +198,8 @@ UHexMC<Field>::find_or_add_nodepoint(node_index_type &tet_node_idx) {
   QSMesh::Node::index_type surf_node_idx;
   SCIRun::index_type i = node_map_[tet_node_idx];
   if (i != -1) surf_node_idx = (QSMesh::Node::index_type) i;
-  else {
+  else
+  {
     Point p;
     mesh_->get_point(p, tet_node_idx);
     surf_node_idx = quadsurf_->add_point(p);
@@ -271,14 +208,38 @@ UHexMC<Field>::find_or_add_nodepoint(node_index_type &tet_node_idx) {
   return surf_node_idx;
 }
 
+
+template<class Field>
+void
+UHexMC<Field>::find_or_add_parent(SCIRun::index_type u0, SCIRun::index_type u1,
+				  double d0, SCIRun::index_type face) 
+{
+  if (d0 < 0.0) { u1 = -1; }
+  if (d0 > 1.0) { u0 = -1; }
+  edgepair_t np;
+  if (u0 < u1)  { np.first = u0; np.second = u1; np.dfirst = d0; }
+  else { np.first = u1; np.second = u0; np.dfirst = 1.0 - d0; }
+  const typename edge_hash_type::iterator loc = edge_map_.find(np);
+  if (loc == edge_map_.end())
+  {
+    edge_map_[np] = face;
+  }
+  else
+  {
+    // This should never happen
+  }
+}
+
+
 template<class Field>
 void UHexMC<Field>::extract( const cell_index_type& cell, double iso )
 {
-  if (field_->basis_order() == 1)
-    extract_n(cell, iso);
-  else
+  if (basis_order_ == 0)
     extract_c(cell, iso);
+  else
+    extract_n(cell, iso);
 }
+
 
 template<class Field>
 void UHexMC<Field>::extract_c( const cell_index_type& cell, double iso )
@@ -291,29 +252,39 @@ void UHexMC<Field>::extract_c( const cell_index_type& cell, double iso )
   cell_index_type nbr_cell;
   Point p[4];
   node_array_type face_nodes;
-  QSMesh::Node::index_type verts[4];
+  QSMesh::Node::array_type vertices(4);
 
-  for (size_t f=0; f<faces.size(); f++)
+  for (size_t i=0; i<faces.size(); i++)
   {
-    if (mesh_->get_neighbor(nbr_cell, cell, faces[f]) &&
-      field_->value(nbrvalue, nbr_cell) &&
-      (selfvalue > nbrvalue) &&
-      ((selfvalue - iso) * (nbrvalue - iso) < 0 ))
-    {
-      mesh_->get_nodes(face_nodes, faces[f]);
-      for (int n=0; n<4; n++) { mesh_->get_center(p[n], face_nodes[n]); }
-      if (triangles_)
+    if (mesh_->get_neighbor(nbr_cell, cell, faces[i]) &&
+	field_->value(nbrvalue, nbr_cell) &&
+	selfvalue <= iso && iso < nbrvalue)
+     {
+      mesh_->get_nodes(face_nodes, faces[i]);
+
+      for (int j=0; j<4; j++)
+      {
+	mesh_->get_center(p[j], face_nodes[j]);
+      }
+
+      if (build_geom_)
       {
         triangles_->add(p[0], p[1], p[2]);
         triangles_->add(p[2], p[3], p[0]);
       }
+
       if (build_field_)
       {
-        for (int n=0; n<4; n++)
+	for (int j=0; j<4; j++)
         {
-          verts[n]=find_or_add_nodepoint(face_nodes[n]);
+          vertices[j]=find_or_add_nodepoint(face_nodes[j]);
         }
-        quadsurf_->add_quad(verts[0], verts[1], verts[2], verts[3]);
+
+	QSMesh::Face::index_type qface = quadsurf_->add_elem(vertices);
+
+	const double d = (selfvalue - iso) / (selfvalue - nbrvalue);
+
+	find_or_add_parent(cell, nbr_cell, d, qface);
       }
     }
   }
@@ -363,7 +334,7 @@ void UHexMC<Field>::extract_n( const cell_index_type& cell, double iso )
     {
       surf_node[i] = find_or_add_edgepoint(node[v1], node[v2], d, q[i]);
     }
-  }    
+  }
   
   v = 0;
   while(vertex[v] != -1) 
@@ -371,7 +342,7 @@ void UHexMC<Field>::extract_n( const cell_index_type& cell, double iso )
     SCIRun::index_type v0 = vertex[v++];
     SCIRun::index_type v1 = vertex[v++];
     SCIRun::index_type v2 = vertex[v++];
-    if (triangles_)
+    if (build_geom_)
     {
       triangles_->add(q[v0], q[v1], q[v2]);
     }
@@ -382,6 +353,7 @@ void UHexMC<Field>::extract_n( const cell_index_type& cell, double iso )
           surf_node[v2] != surf_node[v0])
       {
         trisurf_->add_triangle(surf_node[v0], surf_node[v1], surf_node[v2]);
+	cell_map_.push_back( cell );
       }
     }
   }
@@ -392,7 +364,7 @@ template<class Field>
 FieldHandle
 UHexMC<Field>::get_field(double value)
 {
-  if (field_->basis_order() == 0)
+  if (basis_order_ == 0)
   {
     QSField *fld = 0;
     if (quadsurf_.get_rep())
@@ -415,62 +387,7 @@ UHexMC<Field>::get_field(double value)
     return fld;
   }
 }
-     
 
-template<class Field>
-MatrixHandle
-UHexMC<Field>::get_interpolant()
-{
-  if (field_->basis_order() == 1)
-  {
-    const Matrix::size_type nrows = edge_map_.size();
-    const Matrix::size_type ncols = nnodes_;
-    Matrix::index_type *rr = scinew Matrix::index_type[nrows+1];
-    Matrix::index_type *cc = scinew Matrix::index_type[nrows*2];
-    double *dd = scinew double[nrows*2];
-
-    typename edge_hash_type::iterator eiter = edge_map_.begin();
-    while (eiter != edge_map_.end())
-    {
-      const Matrix::index_type ei = (*eiter).second;
-
-      cc[ei * 2 + 0] = (*eiter).first.first;
-      cc[ei * 2 + 1] = (*eiter).first.second;
-      dd[ei * 2 + 0] = 1.0 - (*eiter).first.dfirst;
-      dd[ei * 2 + 1] = (*eiter).first.dfirst;
-      
-      ++eiter;
-    }
-
-    Matrix::size_type nnz = 0;
-    Matrix::index_type i;
-    for (i = 0; i < nrows; i++)
-    {
-      rr[i] = nnz;
-      if (cc[i * 2 + 0] > 0)
-      {
-        cc[nnz] = cc[i * 2 + 0];
-        dd[nnz] = dd[i * 2 + 0];
-        nnz++;
-      }
-      if (cc[i * 2 + 1] > 0)
-      {
-        cc[nnz] = cc[i * 2 + 1];
-        dd[nnz] = dd[i * 2 + 1];
-        nnz++;
-      }
-    }
-    rr[i] = nnz;
-
-    return scinew SparseRowMatrix(nrows, ncols, rr, cc, nnz, dd);
-  }
-  else
-  {
-    return 0;
-  }
-}
-
-     
 } // End namespace SCIRun
 
 #endif // UHexMC_H

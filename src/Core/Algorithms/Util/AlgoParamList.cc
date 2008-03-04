@@ -110,6 +110,64 @@ AlgoParamList::get_scalar_limits(std::string key, double& min, double& max)
 }
 
 bool
+AlgoParamList::set_color(std::string key, SCIRun::Color value)
+{
+  ColorParam* param = dynamic_cast<ColorParam*>(parameters_[key]);
+  if (param) 
+  {
+    param->value() = value; return (true); 
+  }
+  return (false); 
+}
+
+bool
+AlgoParamList::get_color(std::string key, SCIRun::Color& value)
+{
+  ColorParam* param = dynamic_cast<ColorParam*>(parameters_[key]);
+  if (param) { value = param->value(); return (true); }
+  else { return (false); }
+}
+
+
+bool
+AlgoParamList::set_vector(std::string key, SCIRun::Vector value)
+{
+  VectorParam* param = dynamic_cast<VectorParam*>(parameters_[key]);
+  if (param) 
+  {
+    param->value() = value; return (true); 
+  }
+  return (false); 
+}
+
+bool
+AlgoParamList::get_vector(std::string key, SCIRun::Vector& value)
+{
+  VectorParam* param = dynamic_cast<VectorParam*>(parameters_[key]);
+  if (param) { value = param->value(); return (true); }
+  else { return (false); }
+}
+
+bool
+AlgoParamList::get_point(std::string key, SCIRun::Point& value)
+{
+  PointParam* param = dynamic_cast<PointParam*>(parameters_[key]);
+  if (param) { value = param->value(); return (true); }
+  else { return (false); }
+}
+
+bool
+AlgoParamList::set_point(std::string key, SCIRun::Point value)
+{
+  PointParam* param = dynamic_cast<PointParam*>(parameters_[key]);
+  if (param) 
+  {
+    param->value() = value; return (true); 
+  }
+  return (false); 
+}
+
+bool
 AlgoParamList::set_option(std::string key, std::string value)
 {
   OptionParam* param = dynamic_cast<OptionParam*>(parameters_[key]);

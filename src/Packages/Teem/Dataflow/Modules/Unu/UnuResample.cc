@@ -121,10 +121,10 @@ UnuResample::getint(const char *str, size_t *n, int *none)
   } else if (str[0] == '=') {
     *none = 1;
   } else {
-#ifndef SCI_64BITS
-    if (sscanf(str, "%d", reinterpret_cast<int*>(n)) != 1) return 1;
-#else
+#ifdef SCI_64BITS
     if (sscanf(str, "%ld", reinterpret_cast<long long*>(n)) != 1) return 1;
+#else
+    if (sscanf(str, "%d", reinterpret_cast<int*>(n)) != 1) return 1;
 #endif
   }
   if (*n < 2 && !none) {

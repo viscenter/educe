@@ -117,8 +117,7 @@ ReadHDF5File::ReadHDF5File(GuiContext *context)
 
     gui_max_dims_(context->subVar("max_dims"), MAX_DIMS),
 
-    loop_(false),
-    execute_error_(false)
+    loop_(false)
 {
   for( unsigned int ic=0; ic<MAX_DIMS; ic++ ) {
     char idx[16];
@@ -227,6 +226,19 @@ void ReadHDF5File::execute() {
     gui_filename_.reset();
   }
 
+  MatrixHandle mHandle;
+  int which = -1;
+
+  if( gui_animate_.get() == 1 &&
+      get_input_handle( "Current Index", mHandle, false ) )
+  {
+    which = (int) (mHandle->get(0, 0));
+  }
+
+  // It does not matter if the handles changes it is the name or the
+  // current index change that counts.
+  inputs_changed_ = false;
+
 #ifdef HAVE_HDF5
   string filename(gui_filename_.get());
   string datasets(gui_datasets_.get());
@@ -321,50 +333,48 @@ void ReadHDF5File::execute() {
     
     unsigned int nframes =
       parseAnimateDatasets( pathList, datasetList, frame_paths, frame_datasets);
-    
+    if( (unsigned int) gui_selectable_max_.get() != nframes-1 ) {
+      gui_selectable_max_.set(nframes-1);
+      gui_selectable_max_.reset();
+    }
 
-    // If there is a current index matrix, use it.
-    MatrixHandle mHandle;
-
-    if (get_input_handle( "Current Index", mHandle, false )) {
-      int which = (int) (mHandle->get(0, 0));
-
+    if( mHandle.get_rep() )
+    {
       if( 0 <= which && which <= (int) frame_paths.size() ) {
-	if( execute_error_ ||
-	    inputs_changed_ ||
-	    gui_current_.get() != which ) {
-	  gui_current_.set(which);
-	  gui_current_.reset();
-	  
-	  ReadandSendData( filename, frame_paths[which],
-			   frame_datasets[which], which );
-	}
-      } else {
+	gui_current_.set(which);
+	gui_current_.reset();
 
+      } else {
+	
 	ostringstream str;
 	str << "Input index is out of range ";
 	str << "0 <= " << which << " <= " << (int) frame_paths.size();
-
+	
 	error( str.str() );
-
+	
 	return;
       }
-    } else {
-      if( nframes-1 != (unsigned int) gui_selectable_max_.get() ) {
-	gui_selectable_max_.set(nframes-1);
-	gui_selectable_max_.reset();
-      }
 
-      if( gui_current_.changed( true ) ) {
-	inputs_changed_ = true;
+      if( execute_error_ ||
+	  inputs_changed_ ||
+	  gui_current_.changed( true ) ) {
+	execute_error_ = false;
+	ReadandSendData( filename, frame_paths[which],
+			 frame_datasets[which], which );
       }
-
-      animate_execute( filename, frame_paths, frame_datasets );
+    }
+    else
+    {
+      if( execute_error_ ||
+	  inputs_changed_ ||
+	  gui_current_.changed( true ) ) {
+	execute_error_ = false;
+	animate_execute( filename, frame_paths, frame_datasets );
+      }
     }
   } else if( execute_error_ ||
 	     inputs_changed_ ){
     execute_error_ = false;
-
     ReadandSendData( filename, pathList, datasetList, -1 );
   }
 
@@ -377,10 +387,10 @@ void ReadHDF5File::execute() {
 }
 
 void ReadHDF5File::ReadandSendData( string& filename,
-				      vector< string >& pathList,
-				      vector< string >& datasetList,
-				      int which ) {
-
+				    vector< string >& pathList,
+				    vector< string >& datasetList,
+				    int which ) {
+  
   vector< vector<NrrdDataHandle> > nHandles;
   vector< vector<int> > ids;
 
@@ -628,8 +638,8 @@ void ReadHDF5File::ReadandSendData( string& filename,
 
 
 void ReadHDF5File::parseDatasets( string datasets,
-				    vector<string>& pathList,
-				    vector<string>& datasetList )
+				  vector<string>& pathList,
+				  vector<string>& datasetList )
 {
   int open = 0;
 

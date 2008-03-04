@@ -44,27 +44,15 @@ centers for a field.</summary>
   <io>
     <inputs lastportdynamic="no">
       <port>
-	<name>TetVolField</name>
-	<datatype>SCIRun::Field</datatype>
+        <name>Field</name>
+        <datatype>SCIRun::Field</datatype>
       </port>
     </inputs>
     <outputs>
       <port>
-	<name>PointCloudField</name>
-	<datatype>SCIRun::Field</datatype>
+        <name>Field</name>
+        <datatype>SCIRun::Field</datatype>
       </port>
     </outputs>
   </io>
-  <nets>
-    <net id="GetCentroidsFromMesh">
-      <title>GetCentroidsFromMesh Regression Test</title>
-
-      <p>Create a PointCloudField containing the center points of the
-faces from an ImageField.</p>
-
-      <p>This network can be found at
-src/nets/Modules/NewField/GetCentroidsFromMesh.net.</p>
-
-    </net>
-  </nets>
 </component>

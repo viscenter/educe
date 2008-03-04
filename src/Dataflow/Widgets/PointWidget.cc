@@ -85,8 +85,7 @@ PointWidget::PointWidget( Module* module, CrowdMonitor* lock, double widget_scal
   group->add(label);
   geometries[GeomPoint] = group;
 
-  MaterialHandle m = scinew Material(Color(0,0,0),Color(0,1,0),Color(.5,.5,.5),20);
-  materials[PointMatl] = scinew GeomMaterial(geometries[GeomPoint], m);
+  materials[PointMatl] = scinew GeomMaterial(geometries[GeomPoint], DefaultPointMaterial);
   picks_[Pick] = scinew GeomPick(materials[PointMatl], module, this, Pick);
   picks(Pick)->set_highlight(DefaultHighlightMaterial);
   CreateModeSwitch(0, picks_[Pick]);

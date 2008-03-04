@@ -17,7 +17,7 @@ class Painter;
 class NrrdVolume;
 
   
-class ITKHoleFillImageFilterTool : public ITKConnectedImageFilterTool
+class ITKHoleFillImageFilterTool : public SeedTool
 {
 public:
   ITKHoleFillImageFilterTool(Painter *painter);

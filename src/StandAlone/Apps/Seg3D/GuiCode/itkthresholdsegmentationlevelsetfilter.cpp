@@ -28,6 +28,7 @@
 ////@end includes
 
 #include "itkthresholdsegmentationlevelsetfilter.h"
+#include "wx/progdlg.h"
 #include "seg3devents.h"
 
 ////@begin XPM images
@@ -121,10 +122,9 @@ void ITKThresholdSegmentationLevelSetFilter::Init()
     mCurvatureScale = NULL;
     mPropagationScale = NULL;
     mEdgeWeight = NULL;
-    mPercentage = NULL;
 ////@end ITKThresholdSegmentationLevelSetFilter member initialisation
 
-    disabler_ = NULL;
+    progress_dialog_ = NULL;
 }
 
 
@@ -143,7 +143,6 @@ void ITKThresholdSegmentationLevelSetFilter::CreateControls()
     mCurvatureScale = XRCCTRL(*this, "SPIN_CURVATURE_SCALING", wxSpinCtrl);
     mPropagationScale = XRCCTRL(*this, "SPIN_PROPAGATION_SCALING", wxSpinCtrl);
     mEdgeWeight = XRCCTRL(*this, "SPIN_EDGE_WEIGHT", wxSpinCtrl);
-    mPercentage = XRCCTRL(*this, "ID_GAUGE", wxGauge);
 ////@end ITKThresholdSegmentationLevelSetFilter content construction
 
     // Create custom windows not generated automatically here.
@@ -180,6 +179,7 @@ void ITKThresholdSegmentationLevelSetFilter::OnCloseButtonClick( wxCommandEvent&
  */
 void ITKThresholdSegmentationLevelSetFilter::OnStartButtonClick( wxCommandEvent& event )
 {
+  aborted_ = false;
   SCIRun::Painter::ThrowSkinnerSignal("Painter::FinishTool", false);
 }
 
@@ -210,29 +210,48 @@ ITKThresholdSegmentationLevelSetFilter::UpdateRadius( wxCommandEvent &event)
 }
 
 
-void ITKThresholdSegmentationLevelSetFilter::OnSetProgress( wxCommandEvent &event)
+void
+ITKThresholdSegmentationLevelSetFilter::OnSetProgress( wxCommandEvent &event)
 {	
   int progress = event.GetInt();
-  
+
   // start_progress() sends -1
   if (progress < 0)
   {
-    wxBeginBusyCursor();
-    disabler_ = new wxWindowDisabler();
-    progress = 0;
+#ifdef __WX_GTK__
+    progress_dialog_ =
+      new wxProgressDialog(_T("Seg3D Filter Progress"),
+                           _T(""), 100, NULL,
+                           wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT );
+    progress_dialog_->Update(0, _T("Initializing level set filter."));
+#else
+    progress_dialog_ =
+      new wxProgressDialog(_T("Seg3D Filter Progress"),
+                           _T("Initializing level set filter.          "), 100, NULL,
+                           wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT );
+#endif
   }
   // finish_progress() sends 101
-  if (progress > 100)
+  else if (progress > 100)
   {
-    if (disabler_) { delete disabler_; disabler_ = 0; }
-    wxEndBusyCursor();
-    progress = 100;
+    if (progress_dialog_) { delete progress_dialog_; progress_dialog_ = 0; }
   }
-  if (progress == 0 || progress > mPercentage->GetValue())
+  else
   {
-    mPercentage->SetValue(progress);
+    if (progress_dialog_ && !aborted_)
+    {
+      if (!progress_dialog_->Pulse(_T("Running level set filter.")))
+      {
+        if (!aborted_)
+        {
+          SCIRun::Painter::ThrowSkinnerSignal("Painter::AbortFilterOn");
+          aborted_ = true;
+        }
+      }
+    }
   }
 }
+
 
 /*!
  * Should we show tooltips?

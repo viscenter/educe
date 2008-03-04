@@ -26,44 +26,33 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+//! Include the algorithm
+#include <Core/Algorithms/Fields/FieldData/ConvertFieldDataType.h>
 
-//    File   : ConvertFieldDataType.cc
-//    Author : McKay Davis
-//    Date   : July 2002
-
-
-#include <Core/Util/DynamicCompilation.h>
+//! The module class
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Datatypes/FieldInterface.h>
 
-#include <Core/Containers/Handle.h>
+//! We need to define the ports used
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Modules/Fields/ConvertFieldDataType.h>
-#include <Dataflow/Network/NetworkEditor.h>
-#include <Core/Containers/StringUtil.h>
-#include <map>
-#include <iostream>
+
 
 namespace SCIRun {
 
-using std::endl;
-using std::pair;
-
 class ConvertFieldDataType : public Module {
-public:
-  ConvertFieldDataType(GuiContext* ctx);
-  virtual ~ConvertFieldDataType();
+  public:
+    ConvertFieldDataType(GuiContext* ctx);
 
-  bool			types_equal_p(FieldHandle);
-  virtual void		execute();
+    virtual ~ConvertFieldDataType();
+    virtual void		execute();
 
-  GuiString		outputdatatype_;   // the out field type
-  GuiString		inputdatatype_;    // the input field type
-  GuiString		fldname_;          // the input field name
-  int			generation_;
-  string                last_data_str_;
-  FieldHandle           outputfield_;
+  private:
+    SCIRunAlgo::ConvertFieldDataTypeAlgo algo_;
+
+  private:
+    GuiString		outputdatatype_;   // the out field type
+    GuiString		inputdatatype_;    // the input field type
+    GuiString		fldname_;          // the input field name
+  
 };
 
 DECLARE_MAKER(ConvertFieldDataType)
@@ -72,10 +61,10 @@ ConvertFieldDataType::ConvertFieldDataType(GuiContext* ctx)
   : Module("ConvertFieldDataType", ctx, Filter, "ChangeFieldData", "SCIRun"),
     outputdatatype_(get_ctx()->subVar("outputdatatype"), "double"),
     inputdatatype_(get_ctx()->subVar("inputdatatype", false), "---"),
-    fldname_(get_ctx()->subVar("fldname", false), "---"),
-    generation_(-1),
-    outputfield_(0)
+    fldname_(get_ctx()->subVar("fldname", false), "---")
 {
+  //! Forward errors to the module
+  algo_.set_progress_reporter(this);
 }
 
 ConvertFieldDataType::~ConvertFieldDataType()
@@ -84,161 +73,34 @@ ConvertFieldDataType::~ConvertFieldDataType()
   inputdatatype_.set("---");
 }
 
-
-
-bool ConvertFieldDataType::types_equal_p(FieldHandle f)
-{
-  const string &iname = f->get_type_description()->get_name();
-  const string &oname = outputdatatype_.get();
-  return iname == oname;
-}
-
-
 void
 ConvertFieldDataType::execute()
 {
-  // The input port (with data) is required.
-  FieldHandle fh;
-  if (!get_input_handle("Input Field", fh))
-  {
-    fldname_.set("---");
-    inputdatatype_.set("---");
-    return;
-  }
+  //! define input/output handles:
+  FieldHandle input;
+  FieldHandle output;
+  get_input_handle("Input Field",input,true);
 
-  const string old_data_str = fh->get_type_description(Field::MESH_TD_E)->get_name();
-  const string new_data_str = outputdatatype_.get();
 
-  if (generation_ != fh.get_rep()->generation) 
-  {
-    generation_ = fh.get_rep()->generation;
-    const string &tname = fh->get_type_description()->get_name();
-    inputdatatype_.set(tname);
+  // Only do work if needed:
+  if (inputs_changed_ || outputdatatype_.changed() || 
+      !oport_cached("Output Field"))
+  {    
+    //! Set the method to use
+    algo_.set_option("datatype",outputdatatype_.get());
 
-    string fldname;
-    if (fh->get_property("name",fldname))
-    {
-      fldname_.set(fldname);
-    }
-    else
-    {
-      fldname_.set("--- No Name ---");
-    }
-  }
-  else if (new_data_str == last_data_str_ && oport_cached("Output Field"))
-  {
-    send_output_handle("Output Field", outputfield_, true);
-    return;
-  }
-  last_data_str_ = new_data_str;
-
-  if (old_data_str == new_data_str)
-  {
-    // No changes, just send the original through.
-    outputfield_ = fh;
-    remark("Passing field from input port to output port unchanged.");
-    send_output_handle("Output Field", outputfield_, true);
-    return;
-  }
-
-  // Create a field identical to the input, except for the edits.
-  const TypeDescription *fsrc_td = fh->get_type_description();
-    const string oftn = 
-      fh->get_type_description(Field::FIELD_NAME_ONLY_E)->get_name() + "<" +
-      fh->get_type_description(Field::MESH_TD_E)->get_name() + ", " +
-      fh->get_type_description(Field::BASIS_TD_E)->get_similar_name(new_data_str,
-							 0, "<", " >, ") +
-      fh->get_type_description(Field::FDATA_TD_E)->get_similar_name(new_data_str,
-							 0, "<", " >") + " >";
-
-  CompileInfoHandle create_ci =
-    ConvertFieldDataTypeAlgoCreate::get_compile_info(fsrc_td, oftn);
-  Handle<ConvertFieldDataTypeAlgoCreate> create_algo;
-  if (!DynamicCompilation::compile(create_ci, create_algo, this))
-  {
-    error("Unable to compile creation algorithm.");
-    return;
-  }
-  update_state(Executing);
-  outputfield_ = create_algo->execute(fh);
-
-  if (fh->basis_order() != -1)
-  {
-    const TypeDescription *fdst_td = outputfield_->get_type_description();
-    CompileInfoHandle copy_ci =
-      ConvertFieldDataTypeAlgoCopy::get_compile_info(fsrc_td, fdst_td);
-    Handle<ConvertFieldDataTypeAlgoCopy> copy_algo;
+    if(!(algo_.run(input,output))) return;
     
-    if (new_data_str == "Vector" && 
-	fh->query_scalar_interface(this).get_rep() ||
-	!DynamicCompilation::compile(copy_ci, copy_algo, true, this))
-    {
-      warning("Unable to convert the old data from " + old_data_str +
-	      " to " + new_data_str + ", no data transfered.");
-    }
-    else
-    {
-      remark("Copying " + old_data_str + " data into " + new_data_str +
-	     " may result in a loss of precision.");
-      update_state(Executing);
-      copy_algo->execute(fh, outputfield_);
-    }
+    inputdatatype_.set(input->vfield()->get_data_type());
+
+    //! Relay some information to user
+    string name = input->get_name();
+    if (name == "") name = "--- no name ---";
+    fldname_.set(name);
+
+    //! send data downstream:
+    send_output_handle("Output Field", output, true);    
   }
-    
-  send_output_handle("Output Field", outputfield_, true);
 }
 
-    
-CompileInfoHandle
-ConvertFieldDataTypeAlgoCreate::get_compile_info(const TypeDescription *ftd,
-                                                const string &fdstname)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class("ConvertFieldDataTypeAlgoCreateT");
-  static const string base_class_name("ConvertFieldDataTypeAlgoCreate");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class + "." +
-		       ftd->get_filename() + "." +
-		       to_filename(fdstname) + ".",
-		       base_class_name, 
-		       template_class,
-                       ftd->get_name() + "," + fdstname + " ");
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  ftd->fill_compile_info(rval);
-  rval->add_data_include("Core/Geometry/Vector.h");
-  rval->add_data_include("Core/Geometry/Tensor.h");
-  return rval;
-}
-
-
-CompileInfoHandle
-ConvertFieldDataTypeAlgoCopy::get_compile_info(const TypeDescription *fsrctd,
-                                              const TypeDescription *fdsttd)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class("ConvertFieldDataTypeAlgoCopyT");
-  static const string base_class_name("ConvertFieldDataTypeAlgoCopy");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class + "." +
-		       fsrctd->get_filename() + "." +
-		       fdsttd->get_filename() + ".",
-                       base_class_name, 
-		       template_class,
-                       fsrctd->get_name() + "," + fdsttd->get_name() + " ");
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  fsrctd->fill_compile_info(rval);
-  return rval;
-}
-
-
-} // End namespace Moulding
-
-
+} // End namespace SCIRun

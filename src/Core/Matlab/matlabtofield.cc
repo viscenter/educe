@@ -506,7 +506,7 @@ int MatlabToFieldAlgo::mlanalyze(matlabarray mlarray, bool postremark)
   // properly.
 
   if (mlarray.isdense())
-  {
+  {  
     int numdims = mlarray.getnumdims();
     if ((numdims >0)&&(numdims < 4))
     {
@@ -943,7 +943,10 @@ int MatlabToFieldAlgo::mlanalyze(matlabarray mlarray, bool postremark)
     mldims.getnumericarray(numnodesvec);
     numelementsvec = numnodesvec;
     // Number of elements is one less than the dimension in a certain direction
-    for (size_t p = 0; p < numnodesvec.size(); p++) numelementsvec[p]--;
+    for (size_t p = 0; p < numnodesvec.size(); p++) 
+    {
+      numelementsvec[p]--;
+    }
     
     // try to figure out the field basis
     if (fieldbasistype == "")
@@ -956,7 +959,18 @@ int MatlabToFieldAlgo::mlanalyze(matlabarray mlarray, bool postremark)
       }
       else
       { 
-        if (fieldtype == "") fieldtype = "double";
+        if (fieldtype == "") 
+        {
+          fieldtype = "double";
+          matlabarray::mitype type = mlfield.gettype();
+          if (type == miINT8) fieldtype = "char";
+          if (type == miUINT8) fieldtype = "unsigned char";
+          if (type == miINT16) fieldtype = "short";
+          if (type == miUINT16) fieldtype = "unsigned short";
+          if (type == miINT32) fieldtype = "int";
+          if (type == miUINT32) fieldtype = "unsigned int";
+          if (type == miSINGLE) fieldtype = "float";
+        }
         
         std::vector<int> fdims = mlfield.getdims();
         if (fieldtype == "Vector")
@@ -1001,7 +1015,7 @@ int MatlabToFieldAlgo::mlanalyze(matlabarray mlarray, bool postremark)
 
     if (fieldbasistype == "")
     {
-      if (postremark) remark(std::string("Matrix '" + mlarray.getname() + "' cannot be translated into a SCIRun Field (the dimensions field matrix do not match mesh)"));
+      if (postremark) remark(std::string("Matrix '" + mlarray.getname() + "' cannot be translated into a SCIRun Field (the dimensions field matrix does not match mesh)"));
       return(0);    
     }
 

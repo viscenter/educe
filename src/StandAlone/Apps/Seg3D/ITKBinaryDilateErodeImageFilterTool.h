@@ -27,10 +27,11 @@ class ITKBinaryDilateErodeImageFilterTool : public virtual BaseTool, public Poin
 public:
   ITKBinaryDilateErodeImageFilterTool(Painter *painter);
   propagation_state_e   process_event(event_handle_t);
+
 private:
-  void                  run_dilate_filter();
-  void                  run_erode_filter();
-  void					run_dilate_erode_filter();
+  void                  run_dilate_filter(bool force_no_copy = false);
+  void                  run_erode_filter(bool force_no_copy = false);
+  void			run_dilate_erode_filter();
   Painter *             painter_;
   NrrdVolumeHandle      source_volume_;
 

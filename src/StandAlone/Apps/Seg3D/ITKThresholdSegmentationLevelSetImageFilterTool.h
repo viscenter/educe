@@ -48,21 +48,24 @@ namespace SCIRun {
 
 class Painter;
 
-class ITKThresholdSegmentationLevelSetImageFilterTool : public BaseTool {
+class ITKThresholdSegmentationLevelSetImageFilterTool : public BaseTool, public Runnable
+{
 public:
   ITKThresholdSegmentationLevelSetImageFilterTool(Painter *painter);
   propagation_state_e           process_event(event_handle_t);
-private:
+
   void                          run_filter();
+  virtual void run();
+
+private:
   void                          set_vars();
+
   Painter *                     painter_;
   NrrdVolumeHandle              seed_volume_;
   NrrdVolumeHandle              source_volume_;
   Skinner::Var<double>          LowerThreshold_;
   Skinner::Var<double>          UpperThreshold_;
 
-
-  
   typedef itk::ThresholdSegmentationLevelSetImageFilter
   < ITKImageFloat3D, ITKImageFloat3D > FilterType;
   typedef FilterType::FeatureImageType FeatureImg;
@@ -70,6 +73,7 @@ private:
   VolumeFilter<FilterType>      filter_;
   bool                          started_;
 };
+
 
 }
 

@@ -95,6 +95,7 @@ usage()
   cout << "    [-]-h[elp]               : prints usage information\n";
   cout << "    [-]-p[ort] [PORT]        : start remote services port on port number PORT\n";
   cout << "    [-]-l[ogfile] file       : add output messages to a logfile\n";
+  cout << "    [-]-t[imeout] N          : kill scirun after N seconds\n";
 #ifdef HAVE_PTOLEMY_PACKAGE
   cout << "    [-]-SPAs[erver]          : start the S.P.A. server thread\n";
 #endif
@@ -224,6 +225,19 @@ parse_args( int argc, char *argv[] )
       sci_putenv("SCIRUN_SERVICE_PORT",to_string(port));
       sci_putenv("SCIRUN_EXTERNAL_APPLICATION_INTERFACE","1");
     }
+    else if ( ( arg == "--timeout" ) || ( arg == "-timeout" ) || ( arg == "-t" ) ||  ( arg == "--t" ) )
+    {
+      int timeout;
+      if ((cnt+1 < argc) && string_to_int(argv[cnt+1], timeout)) 
+      {
+        cnt++;
+      } 
+      else 
+      {
+        timeout = 250;
+      }
+      sci_putenv("SCIRUN_TIMEOUT",to_string(timeout));
+    }
     else if (arg[0] == '+')
     {
       std::string key = arg.substr(1);
@@ -276,25 +290,27 @@ parse_args( int argc, char *argv[] )
 }
 
 
-class RegressionKiller : public Runnable
+class SCIRunKiller : public Runnable
 {
-public:
-  void run()
-  {
-    int tmp, seconds = 300;
-    const char *timeout = sci_getenv("SCIRUN_REGRESSION_TESTING_TIMEOUT");
-    if (timeout && string_to_int(timeout, tmp)) {
-      seconds = tmp;
+  public:
+    void run()
+    {
+      // Wait until we did time out
+      Time::waitFor((double)timeout_);
+      // Notify user that we are exiting
+      cout << "TIMEOUT: KILLING SCIRUN PROCESS.";
+      cout.flush();
+      cerr.flush();
+      // Exit with error code
+      Thread::exitAll(1);
     }
-    Time::waitFor((double)seconds);
-    cout << "\n";
-    cout << "main.cc: RegressionKiller: Regression test timed out\n";
-    cout << "         after " << seconds << " seconds.  Killing SCIRun.\n\n";
-    cout << "ERROR: KILL REQUIRED TO CONTINUE.";
-    cout.flush();
-    cerr.flush();
-    Thread::exitAll(1);
-  }
+
+    SCIRunKiller(int seconds) :
+      timeout_(seconds)
+    {}
+
+  private:
+    int timeout_;
 };
 
 
@@ -453,11 +469,31 @@ main(int argc, char *argv[], char **environment)
   {
     sci_putenv("SCIRUN_GUI_UseGuiFetch","off");
     sci_putenv("SCIRUN_GUI_MoveGuiToMouse","off");
-    RegressionKiller *kill = scinew RegressionKiller();
-    Thread *tkill = scinew Thread(kill, "Kill a hung SCIRun");
+
+    int seconds = 250;
+    int tmp;
+    const char *timeout = sci_getenv("SCIRUN_REGRESSION_TESTING_TIMEOUT");
+    if (timeout && string_to_int(timeout, tmp)) seconds = tmp;
+    
+    SCIRunKiller *kill = scinew SCIRunKiller(seconds);
+    Thread *tkill = scinew Thread(kill, "Regression Testing: kill SCIRun after timeout");
     tkill->detach();
   }
 
+  // For scripting so we can kill SCIRun if it hangs
+  if (sci_getenv_p("SCIRUN_TIMEOUT")) 
+  {
+    const char *timeout = sci_getenv("SCIRUN_TIMEOUT");
+    if (timeout)
+    { 
+      int seconds;
+      string_to_int(timeout, seconds);
+      
+      SCIRunKiller *kill = scinew SCIRunKiller(seconds);
+      Thread *tkill = scinew Thread(kill, "Kill SCIRun after timeout");
+      tkill->detach();
+    }
+  }
 
 #ifdef _WIN32
   // windows has a semantic problem with atexit(), so we wait here instead.

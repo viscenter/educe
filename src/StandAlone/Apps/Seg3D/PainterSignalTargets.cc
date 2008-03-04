@@ -47,6 +47,7 @@
 #include <StandAlone/Apps/Seg3D/BrushFloodFill.h>
 #include <StandAlone/Apps/Seg3D/FloodfillTool.h>
 #include <StandAlone/Apps/Seg3D/FloodFillCopyTool.h>
+#include <StandAlone/Apps/Seg3D/PolylineTool.h>
 #include <StandAlone/Apps/Seg3D/SessionReader.h>
 #include <StandAlone/Apps/Seg3D/SessionWriter.h>
 #include <StandAlone/Apps/Seg3D/VolumeOps.h>
@@ -133,6 +134,7 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
   REGISTER_CATCHER_TARGET(Painter::StartCropTool);
   REGISTER_CATCHER_TARGET(Painter::StartCropCylinder);
   REGISTER_CATCHER_TARGET(Painter::StartFloodFillTool);
+  REGISTER_CATCHER_TARGET(Painter::StartPolylineTool);
 
   REGISTER_CATCHER_TARGET(Painter::Autoview);
   REGISTER_CATCHER_TARGET(Painter::CopyLabel);
@@ -164,7 +166,8 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
 
   REGISTER_CATCHER_TARGET(Painter::ShowVolumeRendering);
   REGISTER_CATCHER_TARGET(Painter::ShowVolumeRendering2);
-  REGISTER_CATCHER_TARGET(Painter::ShowIsosurface);
+  REGISTER_CATCHER_TARGET(Painter::ShowOneIsosurface);
+  REGISTER_CATCHER_TARGET(Painter::ShowAllIsosurfaces);
 
   REGISTER_CATCHER_TARGET(Painter::AbortFilterOn);
 
@@ -193,6 +196,8 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
 
   REGISTER_CATCHER_TARGET(Painter::FloodFillLayer);
   REGISTER_CATCHER_TARGET(Painter::FloodFillClear);
+
+  REGISTER_CATCHER_TARGET(Painter::RasterPolyline);
 
   REGISTER_CATCHER_TARGET(Painter::ResetCLUT);
   REGISTER_CATCHER_TARGET(Painter::UpdateBrushRadius);
@@ -274,6 +279,14 @@ BaseTool::propagation_state_e
 Painter::StartFloodFillTool(event_handle_t &event)
 {
   tm_.set_tool(new FloodfillTool(this),25);
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::StartPolylineTool(event_handle_t &event)
+{
+  tm_.set_tool(new PolylineTool(this), 25);
   return CONTINUE_E;
 }
 
@@ -620,12 +633,21 @@ Painter::HistoEqFilter(event_handle_t &event)
     return STOP_E;
   }
 
+  int bins = get_vars()->get_int("Painter::HistoEq::bins");
+  double alpha = get_vars()->get_double("Painter::HistoEq::alpha");
+
+  if (alpha < 0.0 || alpha > 1.0)
+  {
+    set_status("Histogram equalization alpha must be between 0.0 and 1.0.  Using 1.0.");
+    alpha = 1.0;
+  }
+
   NrrdVolumeHandle src = current_volume_;
   copy_current_layer(" Histogram Equalized");
 
   NRRD_EXEC(nrrdHistoEq(current_volume_->nrrd_handle_->nrrd_,
                         src->nrrd_handle_->nrrd_,
-                        NULL, 3000, 1, 1.0));
+                        NULL, 3000, bins, alpha));
 
   current_volume_->reset_data_range();
   extract_all_window_slices();
@@ -749,6 +771,19 @@ Painter::FloodFillLayer(event_handle_t &event)
 
   return CONTINUE_E;
 }
+
+
+BaseTool::propagation_state_e 
+Painter::RasterPolyline(event_handle_t &event)
+{
+  PolylineTool *tool =
+    dynamic_cast<PolylineTool *>(tm_.get_tool(25).get_rep());
+  
+  if (tool) { tool->run_filter(); }
+
+  return CONTINUE_E;
+}
+
 
 
 BaseTool::propagation_state_e
@@ -1082,7 +1117,6 @@ BaseTool::propagation_state_e
 Painter::start_ITKThresholdSegmentationLevelSetImageFilterTool(event_handle_t &event)
 {
   tm_.set_tool(new BrushTool(this), 25);
-  tm_.set_tool(new BrushFloodFill(this), 24);
   tm_.set_tool(new ITKThresholdSegmentationLevelSetImageFilterTool(this), 26);
   return CONTINUE_E;
 }
@@ -1141,8 +1175,7 @@ Painter::ITKThresholdSegmentationLevelSetImageFilterToolSetDataLayer(event_handl
 
 
 int
-Painter::isosurface_label_volumes(NrrdVolumes &volumes,
-                                  GeomGroup *all_isosurfaces)
+Painter::isosurface_label_volumes(NrrdVolumes &volumes)
 {
   Skinner::Var<bool> 
     isosurface_visible(get_vars(), "Painter::isosurface_visible", 1);
@@ -1193,13 +1226,28 @@ Painter::isosurface_label_volumes(NrrdVolumes &volumes,
 
 
 BaseTool::propagation_state_e 
-Painter::ShowIsosurface(event_handle_t &event)
+Painter::ShowOneIsosurface(event_handle_t &event)
 {
-  Skinner::Signal *signal = dynamic_cast<Skinner::Signal *>(event.get_rep());
-  ASSERT(signal);
-  
+  if (!check_for_active_label_volume("Isosurface"))
+  {
+    return STOP_E;
+  }
+
   volume_lock_.lock();
-  const int count = isosurface_label_volumes(volumes_, 0);
+  NrrdVolumes volumes;
+  volumes.push_back(current_volume_);
+  isosurface_label_volumes(volumes);
+  volume_lock_.unlock();
+
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e 
+Painter::ShowAllIsosurfaces(event_handle_t &event)
+{
+  volume_lock_.lock();
+  const int count = isosurface_label_volumes(volumes_);
   volume_lock_.unlock();
 
   if (count == 0)

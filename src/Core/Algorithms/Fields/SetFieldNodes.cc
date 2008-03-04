@@ -60,8 +60,8 @@ bool SetFieldNodesAlgo::SetFieldNodes(ProgressReporter *pr,
   VMesh::size_type numnodes = imesh->num_nodes();
   
   // try to see whether the matrix dimensions fit the mesh size
-  if (!matrix_input_handle->nrows() == numnodes ||
-      !matrix_input_handle->ncols() == 3)
+  if (!(matrix_input_handle->nrows() == numnodes) ||
+      !(matrix_input_handle->ncols() == 3))
   {
     pr->error("SetFieldNodes: Matrix dimensions do not match any of the fields dimensions");
     return (false);

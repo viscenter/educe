@@ -55,9 +55,6 @@ public:
   virtual ~CalculateVectorMagnitudes();
 
   virtual void execute();
-
-protected:
-  FieldHandle field_output_handle_;
 };
 
 
@@ -88,7 +85,8 @@ CalculateVectorMagnitudes::execute()
   // If no data or a changed recalcute.
   if( inputs_changed_ ||
 
-      !field_output_handle_.get_rep() ) {
+       !oport_cached("Output CalculateVectorMagnitudes") )
+  {
     update_state(Executing);
 
     const TypeDescription *vftd = field_input_handle->get_type_description();
@@ -104,10 +102,10 @@ CalculateVectorMagnitudes::execute()
     Handle<CalculateVectorMagnitudesAlgo> algo;
     if (!module_dynamic_compile(ci, algo)) return;
 
-    field_output_handle_ = algo->execute(field_input_handle);
-  }
+    FieldHandle field_output_handle = algo->execute(field_input_handle);
 
-  send_output_handle( "Output CalculateVectorMagnitudes", field_output_handle_, true );
+    send_output_handle( "Output CalculateVectorMagnitudes", field_output_handle );
+  }
 }
 
 

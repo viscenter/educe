@@ -54,9 +54,6 @@ namespace SCIRun {
 
 class ApplyMappingMatrix : public Module
 {
-private:
-  FieldHandle  field_output_handle_;
-
 public:
   ApplyMappingMatrix(GuiContext* ctx);
   virtual ~ApplyMappingMatrix();
@@ -82,33 +79,33 @@ void
 ApplyMappingMatrix::execute()
 {
   // Get source field.
-  FieldHandle src_fh;
-  if( !get_input_handle( "Source", src_fh, true ) ) return;
+  FieldHandle source_field_handle;
+  if( !get_input_handle( "Source", source_field_handle, true ) ) return;
 
   // Get destination field.
-  FieldHandle dst_fh;
-  if( !get_input_handle( "Destination", dst_fh, true ) ) return;
+  FieldHandle destination_field_handle;
+  if( !get_input_handle( "Destination", destination_field_handle, true ) ) return;
 
   // Get the mapping matrix.
   MatrixHandle matrix_input_handle;
   if( !get_input_handle( "Mapping", matrix_input_handle, true ) ) return;
 
   // Check to see if the source has changed.
-  if( inputs_changed_ ||
-      !field_output_handle_.get_rep() )
+  if( inputs_changed_  || 
+      !oport_cached("Output") )
   {
     TypeDescription::td_vec *tdv = 
-      src_fh->get_type_description(Field::FDATA_TD_E)->get_sub_type();
+      source_field_handle->get_type_description(Field::FDATA_TD_E)->get_sub_type();
     string accumtype = (*tdv)[0]->get_name();
-    if (src_fh->query_scalar_interface(this) != NULL) { accumtype = "double"; }
+    if (source_field_handle->query_scalar_interface(this) != NULL) { accumtype = "double"; }
 
     const TypeDescription* fno = 
-      dst_fh->get_type_description(Field::FIELD_NAME_ONLY_E);
-    const TypeDescription* fm = dst_fh->get_type_description(Field::MESH_TD_E);
+      destination_field_handle->get_type_description(Field::FIELD_NAME_ONLY_E);
+    const TypeDescription* fm = destination_field_handle->get_type_description(Field::MESH_TD_E);
     const TypeDescription* fb = 
-      dst_fh->get_type_description(Field::BASIS_TD_E);
+      destination_field_handle->get_type_description(Field::BASIS_TD_E);
     const TypeDescription* fd = 
-      dst_fh->get_type_description(Field::FDATA_TD_E);
+      destination_field_handle->get_type_description(Field::FDATA_TD_E);
 
     const string oftn = 
       fno->get_name() + "<" + fm->get_name() + ", " +
@@ -116,29 +113,28 @@ ApplyMappingMatrix::execute()
       fd->get_similar_name(accumtype, 0, "<", " >") + " >";
     
     CompileInfoHandle ci =
-      ApplyMappingMatrixAlgo::get_compile_info(src_fh->get_type_description(),
-			       src_fh->order_type_description(),
-			       dst_fh->get_type_description(),
+      ApplyMappingMatrixAlgo::get_compile_info(source_field_handle->get_type_description(),
+			       source_field_handle->order_type_description(),
+			       destination_field_handle->get_type_description(),
 			       oftn,
-			       dst_fh->order_type_description(),
-			       src_fh->get_type_description(Field::FDATA_TD_E),
+			       destination_field_handle->order_type_description(),
+			       source_field_handle->get_type_description(Field::FDATA_TD_E),
 			       accumtype);
     Handle<ApplyMappingMatrixAlgo> algo;
     if (!module_dynamic_compile(ci, algo)) return;
 
-    field_output_handle_ =
-      algo->execute(this,
-		    src_fh,
-		    dst_fh->mesh(),
-		    matrix_input_handle);
+    FieldHandle field_output_handle = algo->execute(this,
+						    source_field_handle,
+						    destination_field_handle->mesh(),
+						    matrix_input_handle);
 
 
     // Copy the properties from source field.
-    if (field_output_handle_.get_rep())
-      field_output_handle_->copy_properties(src_fh.get_rep());
-  }
+    if (field_output_handle.get_rep())
+      field_output_handle->copy_properties(source_field_handle.get_rep());
 
-  send_output_handle( "Output",  field_output_handle_, true );
+    send_output_handle( "Output", field_output_handle );
+  }
 }
 
 

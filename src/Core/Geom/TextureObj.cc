@@ -44,6 +44,7 @@
 #include <Core/Math/MiscMath.h>
 #include <Core/Containers/StringUtil.h>
 #include <slivr/ShaderProgramARB.h>
+#include <Core/Geom/GeomResourceManager.h>
 
 namespace SCIRun {
 
@@ -94,10 +95,7 @@ TextureObj::set_nrrd(NrrdDataHandle &nrrd_handle) {
 
 TextureObj::~TextureObj()
 {
-  if (glIsTexture(texture_id_)) {
-    glDeleteTextures(1, (const GLuint*)&texture_id_);
-    glBindTexture(GL_TEXTURE_2D, 0);
-  }
+  GeomResourceManager::delete_texture_id(texture_id_);
   nrrd_handle_ = 0;
 }
 

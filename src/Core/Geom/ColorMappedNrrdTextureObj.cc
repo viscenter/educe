@@ -47,6 +47,7 @@
 #include <slivr/ShaderProgramARB.h>
 #include <Core/Geom/ColorMappedNrrdTextureObj.h>
 #include <Core/Math/MiscMath.h>
+#include <Core/Geom/GeomResourceManager.h>
 
 #include <teem/air.h>
 #include <limits.h>
@@ -89,9 +90,10 @@ ColorMappedNrrdTextureObj::ColorMappedNrrdTextureObj(NrrdDataHandle &nrrdh,
 ColorMappedNrrdTextureObj::~ColorMappedNrrdTextureObj()
 {
   delete[] data_;
-  for (unsigned int t = 0; t < texture_id_.size(); ++t) 
-    if (glIsTexture(texture_id_[t]))
-        glDeleteTextures(1,(const GLuint *)&texture_id_[t]);
+  for (unsigned int t = 0; t < texture_id_.size(); ++t)
+  {
+    GeomResourceManager::delete_texture_id(texture_id_[t]);
+  }
 }
 
 void

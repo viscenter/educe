@@ -63,6 +63,7 @@
 #include <StandAlone/Apps/Seg3D/GuiCode/brushpanel.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/cursorinformation.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/fliptool.h>
+#include <StandAlone/Apps/Seg3D/GuiCode/histoeqfilter.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/resampletool.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/medianfiltertool.h>
 #include <StandAlone/Apps/Seg3D/GuiCode/optionlessfilter.h>
@@ -119,13 +120,15 @@ BEGIN_EVENT_TABLE(Seg3DFrame, wxFrame)
   EVT_MENU(MENU_TOOL_PAINT_BRUSH, Seg3DFrame::ToolPaintBrush)
   EVT_MENU(MENU_TOOL_CROP_VOLUME, Seg3DFrame::ToolCropVolume)
   EVT_MENU(MENU_TOOL_CROP_CYLINDER, Seg3DFrame::ToolCropCylinder)
-  EVT_MENU(MENU_TOOL_ISOSURFACE, Seg3DFrame::ToolIsosurface)
+  EVT_MENU(MENU_TOOL_ISOSURFACE_ONE, Seg3DFrame::ToolIsosurfaceOne)
+	EVT_MENU(MENU_TOOL_ISOSURFACE_ALL, Seg3DFrame::ToolIsosurfaceAll)
   EVT_MENU(MENU_TOOL_SET_VRTARGET, Seg3DFrame::ToolSetVRTarget)
   EVT_MENU(MENU_TOOL_FLIP, Seg3DFrame::ToolFlip)
   EVT_MENU(MENU_TOOL_RESAMPLE, Seg3DFrame::ToolResample)
   EVT_MENU(MENU_TOOL_RESET_CLUT, Seg3DFrame::ToolResetCLUT)
   EVT_MENU(MENU_TOOL_SET_MASK_LAYER, Seg3DFrame::ToolSetMaskLayer)
   EVT_MENU(MENU_TOOL_CLEAR_MASK_LAYER, Seg3DFrame::ToolClearMaskLayer)
+  EVT_MENU(MENU_TOOL_POLYLINE, Seg3DFrame::ToolPolyline)
 
   EVT_MENU(MENU_FILTER_C_A_D_F, Seg3DFrame::Filter_CADF)
   EVT_MENU(MENU_FILTER_C_C_F, Seg3DFrame::Filter_CCF)
@@ -205,6 +208,11 @@ Seg3DFrame::Seg3DFrame(const std::string& target, wxFrame *frame,
   flipTools_ = scinew FlipTool(toolsPanel_);
   tools_sizer->Add(flipTools_, 0, 0, 0);
   tools_sizer->Show(flipTools_, false);
+  tools_sizer->Layout();
+
+  histoEqTool_ = scinew HistoEqFilter(toolsPanel_);
+  tools_sizer->Add(histoEqTool_, 0, 0, 0);
+  tools_sizer->Show(histoEqTool_, false);
   tools_sizer->Layout();
 
   // new wx resample volume
@@ -329,17 +337,23 @@ Seg3DFrame::Init()
 
   // Tools menu dialog
   winMenu = new wxMenu;
+  winMenu->Append(MENU_TOOL_SET_MASK_LAYER, _T("Set &Mask Label"));
+  winMenu->Append(MENU_TOOL_CLEAR_MASK_LAYER, _T("&Clear Mask Label"));
   winMenu->Append(MENU_TOOL_AUTOVIEW, _T("&Autoview All"));
-  winMenu->Append(MENU_TOOL_PAINT_BRUSH, _T("&Paint Brush"));
+  winMenu->Append(MENU_TOOL_RESET_CLUT, _T("Reset &Brightness/Contrast"));
+  winMenu->Append(MENU_TOOL_ISOSURFACE_ONE, _T("&Isosurface Current Label"));
+  winMenu->Append(MENU_TOOL_ISOSURFACE_ALL, _T("Isosurface All Labels"));
+  winMenu->Append(MENU_TOOL_SET_VRTARGET, _T("Set &Volume Rendering Target"));
+  menuBar->Append(winMenu, _T("&Edit"));
+
+  // Tools menu dialog
+  winMenu = new wxMenu;
+  winMenu->Append(MENU_TOOL_PAINT_BRUSH, _T("Paint &Brush"));
   winMenu->Append(MENU_TOOL_CROP_VOLUME, _T("&Crop Tool"));
   winMenu->Append(MENU_TOOL_CROP_CYLINDER, _T("Crop C&ylinder"));
-  winMenu->Append(MENU_TOOL_ISOSURFACE, _T("&Isosurface Labels"));
-  winMenu->Append(MENU_TOOL_SET_VRTARGET, _T("Set Volume &Rendering Target"));
   winMenu->Append(MENU_TOOL_FLIP, _T("&Flip Tool"));
-  winMenu->Append(MENU_TOOL_RESAMPLE, _T("Resample Tool"));
-  winMenu->Append(MENU_TOOL_RESET_CLUT, _T("Reset Brightness/Contrast"));
-  winMenu->Append(MENU_TOOL_SET_MASK_LAYER, _T("Set Mask Label"));
-  winMenu->Append(MENU_TOOL_CLEAR_MASK_LAYER, _T("Clear Mask Label"));
+  winMenu->Append(MENU_TOOL_RESAMPLE, _T("&Resample Tool"));
+  winMenu->Append(MENU_TOOL_POLYLINE, _T("&Polyline Tool"));
   menuBar->Append(winMenu, _T("&Tools"));
 
   // ITK menu dialog
@@ -354,10 +368,10 @@ Seg3DFrame::Init()
   
 	// Data enhancers.
   winMenu->Append(MENU_FILTER_C_A_D_F, _T("Curvature &Anisotropic Diffusion Filter"));
-  winMenu->Append(MENU_FILTER_MEDIAN_FILTER, _T("Median Filter"));
-  winMenu->Append(MENU_FILTER_DISCRETE_GAUSSIAN_FILTER, _T("Discrete Gaussian Filter"));
+  winMenu->Append(MENU_FILTER_MEDIAN_FILTER, _T("&Median Filter"));
+  winMenu->Append(MENU_FILTER_DISCRETE_GAUSSIAN_FILTER, _T("&Discrete Gaussian Filter"));
   winMenu->Append(MENU_FILTER_G_M_F, _T("&Gradient Magnitude Filter"));
-  winMenu->Append(MENU_FILTER_HISTO_EQ, _T("Histogram Equalization"));
+  winMenu->Append(MENU_FILTER_HISTO_EQ, _T("&Histogram Equalization"));
   winMenu->Append(MENU_FILTER_MASK_DATA, _T("Mask Data"));
 
   winMenu->AppendSeparator();
@@ -367,7 +381,7 @@ Seg3DFrame::Init()
   winMenu->Append(MENU_FILTER_N_C_F, _T("&Neighborhood Connected Filter"));
   winMenu->Append(MENU_FILTER_OTSU_T_F, _T("&Otsu Threshold Filter"));
   winMenu->Append(MENU_FILTER_THRESHOLD_FILTER, _T("Threshold Filter"));
-  //winMenu->Append(MENU_FILTER_T_S_L_S_F, _T("&Threshold Segmentation Level Set Filter"));
+  winMenu->Append(MENU_FILTER_T_S_L_S_F, _T("&Threshold Segmentation Level Set Filter"));
 
   winMenu->AppendSeparator();
 
@@ -378,7 +392,7 @@ Seg3DFrame::Init()
   winMenu->Append(MENU_FILTER_MASK_OR, _T("Combine Labels with Logical Or"));
   winMenu->Append(MENU_FILTER_B_D_E_F, _T("&Binary Dilate -> Erode Filter"));
   winMenu->Append(MENU_FILTER_FLOOD_FILL_COPY, _T("Flood Fill Copy Filter"));
-  winMenu->Append(MENU_FILTER_FILL_HOLE, _T("Fill Holes Filter"));
+  winMenu->Append(MENU_FILTER_FILL_HOLE, _T("&Fill Holes Filter"));
 
   menuBar->Append(winMenu, _T("F&ilters"));
 
@@ -843,13 +857,20 @@ Seg3DFrame::ToolResample( wxCommandEvent& WXUNUSED(event) )
 }
 
 void
-Seg3DFrame::ToolIsosurface( wxCommandEvent& WXUNUSED(event) )
+Seg3DFrame::ToolIsosurfaceOne( wxCommandEvent& WXUNUSED(event) )
 {
-  SetStatusText(wxT("Computing label isosurfaces."));
+  SetStatusText(wxT("Computing label isosurface."));
   wxBusyCursor cursor; // Busy cursor until this leaves scope.
-  Painter::ThrowSkinnerSignal("Painter::ShowIsosurface");
+  Painter::ThrowSkinnerSignal("Painter::ShowOneIsosurface");
 }
 
+void
+Seg3DFrame::ToolIsosurfaceAll( wxCommandEvent& WXUNUSED(event) )
+{
+  SetStatusText(wxT("Computing all label isosurfaces."));
+  wxBusyCursor cursor; // Busy cursor until this leaves scope.
+  Painter::ThrowSkinnerSignal("Painter::ShowAllIsosurfaces");
+}
 
 void
 Seg3DFrame::ToolSetVRTarget( wxCommandEvent& WXUNUSED(event) )
@@ -880,6 +901,13 @@ Seg3DFrame::ToolClearMaskLayer( wxCommandEvent& WXUNUSED(event) )
 {
   Painter::ThrowSkinnerSignal("Painter::ClearMaskLayer");
   SetStatusText("Cleared the mask layer.");
+}
+
+void
+Seg3DFrame::ToolPolyline( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(itk_NCF_, "Painter::StartPolylineTool", "Polyline Tool");
+  itk_NCF_->SetShowProgress(false);
 }
 
 void
@@ -939,6 +967,7 @@ Seg3DFrame::Filter_NCF( wxCommandEvent& WXUNUSED(event) )
 {
   ShowTool(itk_NCF_, "Painter::start_ITKNeighborhoodConnectedImageFilterTool",
            "Neighborhood Connected", "Filter");
+  itk_NCF_->SetShowProgress(true);
 }
 
 
@@ -996,16 +1025,16 @@ Seg3DFrame::Filter_LabelExtract( wxCommandEvent& WXUNUSED(event) )
 void
 Seg3DFrame::Filter_FillHole( wxCommandEvent& WXUNUSED(event) )
 {
-  ShowTool(optionless_, "Painter::ITKHoleFillFilter", "Fill Holes Filter");
-  optionless_->SetShowProgress(true);
+  ShowTool(itk_NCF_, "Painter::ITKHoleFillFilter", "Fill Holes Filter");
+  itk_NCF_->SetShowProgress(true);
 }
 
 
 void
 Seg3DFrame::Filter_FloodFillCopy( wxCommandEvent& WXUNUSED(event) )
 {
-  ShowTool(optionless_, "Painter::FloodFillCopyFilter", "Flood Fill Copy Filter");
-  optionless_->SetShowProgress(true);
+  ShowTool(itk_NCF_, "Painter::FloodFillCopyFilter", "Flood Fill Copy Filter");
+  itk_NCF_->SetShowProgress(true);
 }
 
 
@@ -1031,9 +1060,7 @@ Seg3DFrame::Filter_DiscreteGaussianFilter( wxCommandEvent& WXUNUSED(event) )
 void
 Seg3DFrame::Filter_HistoEq( wxCommandEvent& WXUNUSED(event) )
 {
-  ShowTool(optionless_, "", "Histogram Equalization");
-  optionless_->SetSkinnerCallback("Painter::HistoEqFilter");
-  optionless_->SetShowProgress(false);
+  ShowTool(histoEqTool_, "", "Histogram Equalization");
 }
 
 

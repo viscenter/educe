@@ -225,7 +225,7 @@ MapFieldDataFromElemToNodeT(MapFieldDataFromElemToNodeAlgo* algo,
 
 bool 
 MapFieldDataFromElemToNodeAlgo::
-map_data(FieldHandle input, FieldHandle& output)
+run(FieldHandle input, FieldHandle& output)
 { 
   algo_start("MapFieldData",true);
   
