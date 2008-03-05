@@ -48,6 +48,7 @@ public:
 
 private:
   std::list<FieldHandle> buffer_;
+  int buffer_length_;
   GuiInt buffersizegui_;
   Mutex bufferlock_;
   int buffersize_;
@@ -57,6 +58,7 @@ private:
 DECLARE_MAKER(CollectFields)
 CollectFields::CollectFields(GuiContext* ctx)
   : Module("CollectFields", ctx, Source, "NewField", "SCIRun"),
+    buffer_length_(0),
     buffersizegui_(ctx->subVar("buffersize")),
     bufferlock_("Lock for internal buffer of module"),
     buffersize_(0)
@@ -77,8 +79,12 @@ CollectFields::execute()
   
   // Only reexecute if the input changed. SCIRun uses simple scheduling
   // that executes every module downstream even if no data has changed:  
-  if (inputs_changed_ || buffersizegui_.changed() || !oport_cached("Fields"))
+  if (inputs_changed_ || buffersizegui_.changed() 
+      || buffer_.size() != buffer_length_
+      || !oport_cached("Fields"))
   {
+    buffer_length_ = buffer_.size();
+      
     SCIRunAlgo::ConverterAlgo calgo(this);
     
     // Push back data to the GUI if it was overruled by the dataflow input:

@@ -150,7 +150,7 @@ public:
     typedef NodeIndex<under_type>       index_type;
     typedef NodeIterator<under_type>    iterator;
     typedef NodeIndex<under_type>       size_type;
-    typedef vector<index_type>          array_type;
+    typedef StackVector<index_type, 6>  array_type;
   };
 
   struct Cell {

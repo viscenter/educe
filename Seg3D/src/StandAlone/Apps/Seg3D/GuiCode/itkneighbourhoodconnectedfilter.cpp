@@ -115,6 +115,7 @@ void ITKNeighbourhoodConnectedFilter::Init()
 ////@end ITKNeighbourhoodConnectedFilter member initialisation
 
     disabler_ = NULL;
+    show_progress_ = false;
 }
 
 
@@ -149,9 +150,16 @@ void ITKNeighbourhoodConnectedFilter::OnClearSeedsButtonClick( wxCommandEvent& e
  */
 void ITKNeighbourhoodConnectedFilter::OnStartButtonClick( wxCommandEvent& event )
 {
-  SCIRun::ThrowSkinnerSignalEvent *tsse =
-    new SCIRun::ThrowSkinnerSignalEvent("Painter::FinishTool");
-  SCIRun::Painter::ThrowSkinnerSignal(tsse, false);
+  if (show_progress_)
+  {
+    SCIRun::Painter::ThrowSkinnerSignal("Painter::FinishTool", false);
+  }
+  else
+  {
+    wxBeginBusyCursor();
+    SCIRun::Painter::ThrowSkinnerSignal("Painter::FinishTool", true);
+    wxEndBusyCursor();
+  }
 }
 
 /*!
@@ -186,6 +194,18 @@ void ITKNeighbourhoodConnectedFilter::OnSetProgress( wxCommandEvent &event)
   }
 }
 
+void ITKNeighbourhoodConnectedFilter::SetShowProgress(bool show_progress)
+{
+  show_progress_ = show_progress;
+  if (show_progress_)
+  {
+    mPercentage->Show();
+  }
+  else
+  {
+    mPercentage->Hide();
+  }
+}
 
 
 

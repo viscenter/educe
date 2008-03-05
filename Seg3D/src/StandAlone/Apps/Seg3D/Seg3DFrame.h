@@ -19,7 +19,7 @@
 #error Need WX GL Canvas!
 #endif
 
-#define SEG3D_VERSION_STRING "1.9.0"
+#define SEG3D_VERSION_STRING "1.9.1"
 
 #include <StandAlone/Apps/Seg3D/share.h>
 
@@ -41,6 +41,7 @@ class OptionlessFilter;
 class ITKThresholdFilter;
 class MaskFilter;
 class itkDiscreteGaussianImageFilter;
+class HistoEqFilter;
 
 #define PANEL_WIDTH 200
 #define INFO_HEIGHT 250
@@ -64,13 +65,15 @@ enum
     MENU_TOOL_PAINT_BRUSH,
     MENU_TOOL_CROP_VOLUME,
     MENU_TOOL_CROP_CYLINDER,
-    MENU_TOOL_ISOSURFACE,
+		MENU_TOOL_ISOSURFACE_ONE,
+    MENU_TOOL_ISOSURFACE_ALL,
     MENU_TOOL_SET_VRTARGET,
     MENU_TOOL_FLIP,
     MENU_TOOL_RESAMPLE,
     MENU_TOOL_RESET_CLUT,
     MENU_TOOL_SET_MASK_LAYER,
     MENU_TOOL_CLEAR_MASK_LAYER,
+    MENU_TOOL_POLYLINE,
 
     MENU_FILTER_C_A_D_F = 400,
     MENU_FILTER_C_C_F,
@@ -144,7 +147,8 @@ public:
   void ViewVolumeRender( wxCommandEvent& WXUNUSED(event) );
 
   void ToolAutoview( wxCommandEvent& WXUNUSED(event) );
-  void ToolIsosurface( wxCommandEvent& WXUNUSED(event) );
+  void ToolIsosurfaceOne( wxCommandEvent& WXUNUSED(event) );
+  void ToolIsosurfaceAll( wxCommandEvent& WXUNUSED(event) );
   void ToolSetVRTarget( wxCommandEvent& WXUNUSED(event) );
   void ToolPaintBrush( wxCommandEvent& WXUNUSED(event) );
   void ToolCrop( wxCommandEvent& WXUNUSED(event) );
@@ -160,6 +164,7 @@ public:
   void ToolResetCLUT( wxCommandEvent& WXUNUSED(event) );
   void ToolSetMaskLayer( wxCommandEvent& WXUNUSED(event) );
   void ToolClearMaskLayer( wxCommandEvent& WXUNUSED(event) );
+  void ToolPolyline( wxCommandEvent& WXUNUSED(event) );
 
 	void PluginEvent( wxCommandEvent& event );
 
@@ -198,6 +203,7 @@ public:
   CropVolume* cropVolume_;
   CropVolCylinder* cropCylinder_;
   FlipTool* flipTools_;
+  HistoEqFilter *histoEqTool_;
   ResampleTool* resampleTool_;
   MedianFilterTool* medianFilterTool_;
   // New wx itk test

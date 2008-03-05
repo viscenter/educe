@@ -240,6 +240,7 @@ TARGET_LINK_LIBRARIES(Core_Algorithms_Interface
   Core_Basis
   Core_Containers
   Core_Events
+  Core_Events_CM2View
   Core_Exceptions
   Core_Geom
   Core_Geometry

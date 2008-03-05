@@ -41,11 +41,12 @@
 #ifndef TriMC_h
 #define TriMC_h
 
-#include <Core/Geom/GeomLine.h>
+#include <Core/Algorithms/Visualization/BaseMC.h>
 #include <Core/Basis/CrvLinearLgn.h>
 #include <Core/Datatypes/CurveMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
+#include <Core/Geom/GeomLine.h>
 #include <sci_hash_map.h>
 
 namespace SCIRun {
@@ -55,10 +56,10 @@ struct TriMCBase {
   static const string& get_h_file_path();
 };
 
-//! A Macrching Cube tesselator for a triangle face
+//! A Marching Cube tesselator for a triangle face
 
 template<class Field>
-class TriMC : public TriMCBase
+class TriMC : public BaseMC, public TriMCBase
 {
 public:
   typedef Field                                  field_type;
@@ -71,138 +72,80 @@ public:
   typedef CurveMesh<CrvLinearLgn<Point> >                 CMesh;
   typedef CrvLinearLgn<double>                            DatBasis;
   typedef GenericField<CMesh, DatBasis, vector<double> >  CField;  
-private:
-  LockingHandle<Field> field_;
-  mesh_handle_type mesh_;
-  GeomLines *lines_;
-  CMesh::handle_type out_mesh_;
-  int nnodes_;
 
-  struct edgepair_t
-  {
-    SCIRun::index_type first;
-    SCIRun::index_type second;
-    double dfirst;
-  };
 
-  struct edgepairless
-  {
-    bool operator()(const edgepair_t &a, const edgepair_t &b) const
-    {
-      return less(a,b);
-    }
-    static bool less(const edgepair_t &a, const edgepair_t &b)
-    {
-      return a.first < b.first || (a.first == b.first && a.second < b.second);
-    }
-  };
+  TriMC( Field *field ) : field_(field), mesh_(field->get_typed_mesh()),
+			  lines_(0), curve_(0) {}
 
-#ifdef HAVE_HASH_MAP
-  struct edgepairequal
-  {
-    bool operator()(const edgepair_t &a, const edgepair_t &b) const
-    {
-      return a.first == b.first && a.second == b.second;
-    }
-  };
-
-  struct edgepairhash
-  {
-    unsigned int operator()(const edgepair_t &a) const
-    {
-#if defined(__ECC) || defined(_MSC_VER)
-      hash_compare<unsigned int> h;
-#else
-      hash<unsigned int> h;
-#endif
-      return h(a.first ^ a.second);
-    }
-# if defined(__ECC) || defined(_MSC_VER)
-
-      // These are particularly needed by ICC's hash stuff
-      static const size_t bucket_size = 4;
-      static const size_t min_buckets = 8;
-      
-      // This is a less than function.
-      bool operator()(const edgepair_t & a, const edgepair_t & b) const 
-      {
-        return edgepairless::less(a,b);
-      }
-# endif // endif ifdef __ICC
-  };
-
-# if defined(__ECC) || defined(_MSC_VER)
-  typedef hash_map<edgepair_t, CMesh::Node::index_type, edgepairhash> edge_hash_type;
-#else
-  typedef hash_map<edgepair_t,
-		   CMesh::Node::index_type,
-		   edgepairhash,
-		   edgepairequal> edge_hash_type;
-#endif
-#else
-  typedef map<edgepair_t,
-	      CMesh::Node::index_type,
-	      edgepairless> edge_hash_type;
-#endif
-
-  edge_hash_type   edge_map_;  // Unique edge cuts when surfacing node data
-  vector<SCIRun::index_type> node_map_;  // Unique nodes when surfacing cell data.
-
-  CMesh::Node::index_type find_or_add_edgepoint(SCIRun::index_type n0,
-						    SCIRun::index_type n1,
-						    double d0,
-						    const Point &p);
-  CMesh::Node::index_type find_or_add_nodepoint(node_index_type &idx);
-
-  void extract_n( cell_index_type, double );
-  void extract_f( cell_index_type, double );
-
-public:
-  TriMC( Field *field ) : field_(field), mesh_(field->get_typed_mesh()) {}
-  virtual ~TriMC();
+  virtual ~TriMC() {}
 	
   void extract( cell_index_type, double );
   void reset( int, bool build_field, bool build_geom, bool transparency );
-  GeomHandle get_geom() { return lines_; }
+
   FieldHandle get_field(double val);
-  MatrixHandle get_interpolant();
+
+private:
+  void extract_n( cell_index_type, double );
+  void extract_f( cell_index_type, double );
+
+  CMesh::Node::index_type find_or_add_edgepoint(SCIRun::index_type n0,
+						SCIRun::index_type n1,
+						double d0,
+						const Point &p);
+
+  CMesh::Node::index_type find_or_add_nodepoint(node_index_type &idx);
+
+  void find_or_add_parent(SCIRun::index_type u0, SCIRun::index_type u1,
+			  double d0, SCIRun::index_type edge);
+
+  LockingHandle<Field> field_;
+  mesh_handle_type mesh_;
+  GeomLines *lines_;
+  CMesh::handle_type curve_;
 };
   
-
-template<class Field>    
-TriMC<Field>::~TriMC()
-{
-}
-    
 
 template<class Field>
 void TriMC<Field>::reset( int n, bool build_field, bool build_geom, bool transparency )
 {
+  build_field_ = build_field;
+  build_geom_  = build_geom;
+  basis_order_ = field_->basis_order();
+
   edge_map_.clear();
   typename Field::mesh_type::Node::size_type nsize;
   mesh_->size(nsize);
   nnodes_ = nsize;
+ 
+  cell_map_.clear();
+  typename Field::mesh_type::Face::size_type csize;
+  mesh_->size(csize);
+  ncells_ = csize;
 
-  if (field_->basis_order() == 0)
+  if (basis_order_ == 0)
   {
     mesh_->synchronize(Mesh::EDGES_E);
     mesh_->synchronize(Mesh::ELEM_NEIGHBORS_E);
-    if (build_field) { node_map_ = vector<SCIRun::index_type>(nsize, -1); }
+    if (build_field_)
+    {
+      node_map_ = vector<SCIRun::index_type>(nsize, -1);
+    }
   }
 
   lines_ = 0;
-  if (build_geom)
+  if (build_geom_)
   {
-   if( transparency )
+    if( transparency )
       lines_ = scinew GeomTranspLines;
     else
       lines_ = scinew GeomLines;
   }
+  geomHandle_ = lines_;
 
-  out_mesh_ = 0;
-  if (build_field)
+  curve_ = 0;
+  if (build_field_)
   {
-    out_mesh_ = scinew CMesh;
+    curve_ = scinew CMesh;
   }
 }
 
@@ -212,15 +155,15 @@ TriMC<Field>::CMesh::Node::index_type
 TriMC<Field>::find_or_add_edgepoint(SCIRun::index_type u0, SCIRun::index_type u1,
 				    double d0, const Point &p) 
 {
-  if (d0 <= 0.0) { u1 = -1; }
-  if (d0 >= 1.0) { u0 = -1; }
+  if (d0 < 0.0) { u1 = -1; }
+  if (d0 > 1.0) { u0 = -1; }
   edgepair_t np;
   if (u0 < u1)  { np.first = u0; np.second = u1; np.dfirst = d0; }
   else { np.first = u1; np.second = u0; np.dfirst = 1.0 - d0; }
   const typename edge_hash_type::iterator loc = edge_map_.find(np);
   if (loc == edge_map_.end())
   {
-    const CMesh::Node::index_type nodeindex = out_mesh_->add_point(p);
+    const CMesh::Node::index_type nodeindex = curve_->add_point(p);
     edge_map_[np] = nodeindex;
     return nodeindex;
   }
@@ -242,10 +185,91 @@ TriMC<Field>::find_or_add_nodepoint(node_index_type &tri_node_idx)
   {
     Point p;
     mesh_->get_point(p, tri_node_idx);
-    curve_node_idx = out_mesh_->add_point(p);
+    curve_node_idx = curve_->add_point(p);
     node_map_[tri_node_idx] = curve_node_idx;
   }
   return curve_node_idx;
+}
+
+
+template<class Field>
+void
+TriMC<Field>::find_or_add_parent(SCIRun::index_type u0, SCIRun::index_type u1,
+				 double d0, SCIRun::index_type edge) 
+{
+  if (d0 < 0.0) { u1 = -1; }
+  if (d0 > 1.0) { u0 = -1; }
+  edgepair_t np;
+  if (u0 < u1)  { np.first = u0; np.second = u1; np.dfirst = d0; }
+  else { np.first = u1; np.second = u0; np.dfirst = 1.0 - d0; }
+  const typename edge_hash_type::iterator loc = edge_map_.find(np);
+  if (loc == edge_map_.end())
+  {
+    edge_map_[np] = edge;
+  }
+  else
+  {
+    // This should never happen
+  }
+}
+
+
+template<class Field>
+void TriMC<Field>::extract( cell_index_type cell, double v )
+{
+  if (basis_order_ == 0)
+    extract_f(cell, v);
+  else
+    extract_n(cell, v);
+}
+
+
+template<class Field>
+void TriMC<Field>::extract_f( cell_index_type cell, double iso )
+{
+  value_type selfvalue, nbrvalue;
+  if (!field_->value( selfvalue, cell )) return;
+  typename mesh_type::Edge::array_type edges;
+  mesh_->get_edges(edges, cell);
+
+  cell_index_type nbr_cell;
+  Point p[2];
+  typename mesh_type::Node::array_type nodes;
+  CMesh::Node::array_type vertices(2);
+
+  for (size_t i=0; i<edges.size(); i++)
+  {
+    if (mesh_->get_neighbor(nbr_cell, cell, edges[i]) &&
+	field_->value(nbrvalue, nbr_cell) &&
+	selfvalue <= iso && iso < nbrvalue)
+    {
+      mesh_->get_nodes(nodes, edges[i]);
+
+      for (size_t j=0; j<2; j++) 
+      { 
+        mesh_->get_center(p[j], nodes[j]); 
+      }
+
+      if (build_geom_)
+      {
+        lines_->add(p[0], p[1]);
+      }
+
+      if (build_field_)
+      {
+        for (size_t j=0; j<2; j ++)
+        {
+          vertices[j] = find_or_add_nodepoint(nodes[j]);
+        }
+
+	CMesh::Edge::index_type cedge = curve_->add_elem(vertices);
+
+	const double d = (selfvalue - iso) / (selfvalue - nbrvalue);
+
+	find_or_add_parent(cell, nbr_cell, d, cedge);
+      }
+    }
+  }
 }
 
 
@@ -282,74 +306,21 @@ void TriMC<Field>::extract_n( cell_index_type cell, double v )
     const Point p0(Interpolate(p[a], p[b], d0));
     const Point p1(Interpolate(p[a], p[c], d1));
 
-    if (lines_)
+    if (build_geom_)
     {
       lines_->add( p0, p1 );
     }
-    if (out_mesh_.get_rep())
+
+    if (build_field_)
     {
       CMesh::Node::array_type cnode(2);
       cnode[0] = find_or_add_edgepoint(node[a], node[b], d0, p0);
       cnode[1] = find_or_add_edgepoint(node[a], node[c], d1, p1);
       if (cnode[0] != cnode[1])
-        out_mesh_->add_elem(cnode);
+        curve_->add_elem(cnode);
     }
   }
 }
-
-
-template<class Field>
-void TriMC<Field>::extract_f( cell_index_type cell, double iso )
-{
-  value_type selfvalue, nbrvalue;
-  if (!field_->value( selfvalue, cell )) return;
-  typename mesh_type::Edge::array_type edges;
-  mesh_->get_edges(edges, cell);
-
-  cell_index_type nbr;
-  Point p[2];
-  typename mesh_type::Node::array_type nodes;
-  CMesh::Node::array_type vertices(2);
-
-  for (size_t i = 0; i < edges.size(); i++)
-  {
-    if (mesh_->get_neighbor(nbr, cell, edges[i]) &&
-	field_->value(nbrvalue, nbr) &&
-	//(selfvalue > nbrvalue) &&
-	((selfvalue-iso) * (nbrvalue-iso) < 0))
-    {
-      mesh_->get_nodes(nodes, edges[i]);
-      for (size_t j=0; j < 2; j++) 
-      { 
-        mesh_->get_center(p[j], nodes[j]); 
-      }
-
-      if (lines_)
-      {
-        lines_->add(p[0], p[1]);
-      }
-      if (out_mesh_.get_rep())
-      {
-        for (size_t j=0; j < 2; j ++)
-        {
-          vertices[j] = find_or_add_nodepoint(nodes[j]);
-        }
-        out_mesh_->add_elem(vertices);
-      }
-    }
-  }
-}
-
-
-template<class Field>
-void TriMC<Field>::extract( cell_index_type cell, double v )
-{
-  if (field_->basis_order() == 1)
-    extract_n(cell, v);
-  else
-    extract_f(cell, v);
-}
-
 
 
 template<class Field>
@@ -357,69 +328,14 @@ FieldHandle
 TriMC<Field>::get_field(double value)
 {
   CField *fld = 0;
-  if (out_mesh_.get_rep())
+  if (curve_.get_rep())
   {
-    fld = scinew CField(out_mesh_);
+    fld = scinew CField(curve_);
     vector<double>::iterator iter = fld->fdata().begin();
     while (iter != fld->fdata().end()) { (*iter)=value; ++iter; }
   }
   return fld;
 }
-
-
-template<class Field>
-MatrixHandle
-TriMC<Field>::get_interpolant()
-{
-  if (field_->basis_order() == 1)
-  {
-    const Matrix::size_type nrows = edge_map_.size();
-    const Matrix::size_type ncols = nnodes_;
-    Matrix::index_type *rr = scinew Matrix::index_type[nrows+1];
-    Matrix::index_type *cc = scinew Matrix::index_type[nrows*2];
-    double *dd = scinew double[nrows*2];
-
-    typename edge_hash_type::iterator eiter = edge_map_.begin();
-    while (eiter != edge_map_.end())
-    {
-      const int ei = (*eiter).second;
-
-      cc[ei * 2 + 0] = (*eiter).first.first;
-      cc[ei * 2 + 1] = (*eiter).first.second;
-      dd[ei * 2 + 0] = 1.0 - (*eiter).first.dfirst;
-      dd[ei * 2 + 1] = (*eiter).first.dfirst;
-      
-      ++eiter;
-    }
-
-    Matrix::size_type nnz = 0;
-    Matrix::index_type i;
-    for (i = 0; i < nrows; i++)
-    {
-      rr[i] = nnz;
-      if (cc[i * 2 + 0] > 0)
-      {
-        cc[nnz] = cc[i * 2 + 0];
-        dd[nnz] = dd[i * 2 + 0];
-        nnz++;
-      }
-      if (cc[i * 2 + 1] > 0)
-      {
-        cc[nnz] = cc[i * 2 + 1];
-        dd[nnz] = dd[i * 2 + 1];
-        nnz++;
-      }
-    }
-    rr[i] = nnz;
-
-    return scinew SparseRowMatrix(nrows, ncols, rr, cc, nnz, dd);
-  }
-  else
-  {
-    return 0;
-  }
-}
-
      
 } // End namespace SCIRun
 

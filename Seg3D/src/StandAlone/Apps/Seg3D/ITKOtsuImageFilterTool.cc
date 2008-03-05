@@ -60,6 +60,8 @@ ITKOtsuImageFilterTool::run_filter()
   filter_(source_volume_->nrrd_handle_); // Source is original current_volume_.
   painter_->finish_progress();
 
+  const double tval = filter_->GetThreshold();
+  painter_->set_status("Otsu threshold filter completed with a value of " + to_string(tval) + ".");
   painter_->extract_all_window_slices();
   painter_->redraw_all();
 

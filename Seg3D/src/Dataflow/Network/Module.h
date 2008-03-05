@@ -345,9 +345,11 @@ public:
       IPort* get_input_port(int idx);
   //--------------------------------------------------------------------
 
+  bool oport_cached(const int item);
+  bool oport_connected(const int item);
   
   bool oport_cached(const string &name);
-  bool oport_cached(const int idx);
+  bool oport_connected(const string &name);
 
   bool oport_supports_cache_flag(int p);
   bool get_oport_cache_flag(int p);

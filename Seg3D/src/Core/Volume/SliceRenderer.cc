@@ -33,6 +33,7 @@
 #include <Core/Volume/SliceRenderer.h>
 #include <Core/Geometry/BBox.h>
 #include <Core/Geom/DrawInfoOpenGL.h>
+#include <Core/Geom/GeomResourceManager.h>
 
 #include <sgi_stl_warnings_off.h>
 #include   <iostream>
@@ -61,6 +62,7 @@ SliceRenderer::SliceRenderer(SLIVR::Texture             *tex,
   SLIVR::SliceRenderer(tex, cmap1, cmap2, tex_mem),
   mutex_("SCIRun::SliceRenderer mutex")
 {
+  set_pending_delete_texture_callback(GeomResourceManager::delete_texture_id);
 }
 
 SliceRenderer::SliceRenderer(const SliceRenderer& copy) : 

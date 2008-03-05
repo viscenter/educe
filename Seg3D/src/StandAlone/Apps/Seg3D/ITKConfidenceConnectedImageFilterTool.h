@@ -39,6 +39,7 @@
 #include <Core/Datatypes/ITKDatatype.h>
 #include <Core/Thread/ThreadLock.h>
 #include <StandAlone/Apps/Seg3D/VolumeFilter.h>
+#include <StandAlone/Apps/Seg3D/SeedTool.h>
 #include <itkImageToImageFilter.h>
 #include <itkCommand.h>
 #include <itkConfidenceConnectedImageFilter.h>
@@ -49,27 +50,15 @@ class Painter;
 class NrrdVolume;
 
   
-class ITKConfidenceConnectedImageFilterTool : public virtual BaseTool,
-                                              public PointerTool
+class ITKConfidenceConnectedImageFilterTool : public SeedTool
 {
 public:
   ITKConfidenceConnectedImageFilterTool(Painter *painter);
-  propagation_state_e   pointer_down(int, int, int, unsigned int, int);
-  propagation_state_e   pointer_up(int, int, int, unsigned int, int);
-  propagation_state_e   pointer_motion(int, int, int, unsigned int, int);
-  propagation_state_e   process_event(event_handle_t);
+
 protected:
   virtual void          run_filter();
+
 private:
-  typedef vector<int>   seed_t;
-  typedef vector<seed_t>seeds_t;
-
-  void                  draw_gl(SliceWindow &window);
-
-  void                  draw_seed(seed_t &seed, SliceWindow &);
-  Painter *             painter_;
-  seeds_t               seeds_;
-  NrrdVolumeHandle      volume_;
   string                prefix_;
   Skinner::Var<int>     numberOfIterations_;
   Skinner::Var<double>  multiplier_;
@@ -79,7 +68,6 @@ private:
   typedef itk::ConfidenceConnectedImageFilter
   < ITKImageFloat3D, ITKImageLabel3D > FilterType;
   VolumeFilter<FilterType>      filter_;
-  ThreadLock            seed_lock_;
 };
   
   

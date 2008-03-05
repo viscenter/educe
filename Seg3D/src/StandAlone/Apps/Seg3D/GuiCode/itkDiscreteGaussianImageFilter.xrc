@@ -67,7 +67,7 @@
                                 <face>Arial</face>
                             </font>
                             <style>wxALIGN_LEFT</style>
-                            <label>Kernel Size:</label>
+                            <label>Kernel:</label>
                         </object>
                     </object>
                     <object class="sizeritem">

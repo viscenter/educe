@@ -26,19 +26,27 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Datatypes/Field.h>
-#include <Core/Datatypes/Matrix.h>
+//! Include the algorithm
+#include <Core/Algorithms/Fields/MeshDerivatives/GetFieldBoundary.h>
+
+//! The module class
+#include <Dataflow/Network/Module.h>
+
+//! We need to define the ports used
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
-#include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
 
 class GetFieldBoundary : public Module {
-public:
-  GetFieldBoundary(GuiContext*);
-  virtual void execute();
+  public:
+    //! constructor and execute function
+    GetFieldBoundary(GuiContext*);
+    virtual void execute();
+
+  private:
+    //! Define algorithms needed
+    SCIRunAlgo::GetFieldBoundaryAlgo algo_;
 };
 
 
@@ -46,6 +54,8 @@ DECLARE_MAKER(GetFieldBoundary)
 GetFieldBoundary::GetFieldBoundary(GuiContext* ctx)
   : Module("GetFieldBoundary", ctx, Source, "NewField", "SCIRun")
 {
+  //! Forward error messages;
+  algo_.set_progress_reporter(this);  
 }
 
 
@@ -59,14 +69,17 @@ GetFieldBoundary::execute()
   if (!(get_input_handle("Field",field,true))) return;
   
   // If parameters changed, do algorithm
-  if (inputs_changed_ || !oport_cached("BoundaryField") || !oport_cached("Mapping"))
+  if (inputs_changed_ || 
+      !oport_cached("BoundaryField") || 
+      
+      !oport_cached("Mapping"))
   {
+    // Output dataflow objects:
     FieldHandle ofield;
     MatrixHandle mapping;
     
     // Entry point to algorithm
-    SCIRunAlgo::FieldsAlgo algo(this);
-    if (!(algo.GetFieldBoundary(field,ofield,mapping))) return;
+    if (!(algo_.run(field,ofield,mapping))) return;
 
     // Send Data flow objects downstream
     send_output_handle("BoundaryField", ofield);

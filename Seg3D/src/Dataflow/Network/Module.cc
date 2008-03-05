@@ -604,6 +604,7 @@ Module::get_iports(const string &name)
 IPort*
 Module::get_iport(int item)
 {
+  if (iports_.size() <= item) return (0);
   IPortHandle h = iports_[item];
   return (h.get_rep());
 }
@@ -611,6 +612,7 @@ Module::get_iport(int item)
 OPort*
 Module::get_oport(int item)
 {
+  if (oports_.size() <= item) return (0);
   OPortHandle h = oports_[item];
   return (h.get_rep());
 }
@@ -669,6 +671,13 @@ Module::get_output_port(int item)
   return (h.get_rep());
 }
 
+bool
+Module::oport_cached(const int item)
+{
+  OPortHandle h;
+  if (!(get_oport_handle(item,h))) throw "Unable to initialize oport.";
+  return (h->have_data());
+}
 
 bool
 Module::oport_cached(const string &name)
@@ -679,11 +688,19 @@ Module::oport_cached(const string &name)
 }
 
 bool
-Module::oport_cached(const int idx)
+Module::oport_connected(const string &name)
 {
-  OPort *p = get_output_port(idx);
-  if (p == 0) { throw "Unable to initialize oport '" + to_string(idx) + "'."; }
-  return p->have_data();
+  OPortHandle h;
+  if (!(get_oport_handle(name,h))) throw "Unable to initialize oport '" + name + "'.";
+  return (h->nconnections() > 0);
+}
+
+bool
+Module::oport_connected(const int item)
+{
+  OPortHandle h;
+  if (!(get_oport_handle(item,h))) throw "Unable to initialize oport.";
+  return (h->nconnections() > 0);
 }
 
 bool

@@ -38,6 +38,7 @@
 
 #include <Core/Algorithms/Fields/ApplyMappingMatrix.h>
 #include <Core/Algorithms/Fields/ClipFieldByFunction.h>
+#include <Core/Algorithms/Fields/FieldData/ConvertFieldBasisType.h>
 #include <Core/Algorithms/Visualization/ExtractIsosurface.h>
 
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
@@ -195,20 +196,23 @@ ExtractIsosurfaceByFunction::execute()
   update_state(Executing);
 
   //! Get the input field handle from the port.
-  FieldHandle field_input_handle;
-  if( !get_input_handle( "Input Field",  field_input_handle,  true  ) ) return;
+  FieldHandle input_field_handle;
+  if( !get_input_handle( "Input Field",  input_field_handle,  true  ) ) return;
 
 
   // Current
-  if( field_input_handle->basis_order() == 0)
+  if( input_field_handle->basis_order() != 0 && input_field_handle->basis_order() != 1)
   {
-    error( "Can not extract an isosurface with cell centered data by function because currently it is not poosible to build a mapping matrix for cell centered data which is needed." );
+    error( "Can not extract an isosurface with higher order data by function because currently it is not poosible to build a mapping matrix for the data which is needed." );
     return;
   }
 
-  get_gui()->execute(get_id() + " update_text"); // update gFunction_ before get.
+  // update gFunction_ before get.
+  get_gui()->execute(get_id() + " update_text");
+
   /////////////////////////////////////////////////////////////////////////////
   //! Transform Section
+
   if( gui_function_.changed( true ) )
     inputs_changed_ = true;
 
@@ -229,15 +233,34 @@ ExtractIsosurfaceByFunction::execute()
 			  function.find( "cos" ) != string::npos ||
 			  function.find( "tan" ) != string::npos );
 
-    std::vector<FieldHandle> field_input_handles;
-    field_input_handles.push_back( field_input_handle );
+    FieldHandle tmp_field_handle;
+
+    // If the basis is not linear make it so.
+    if( input_field_handle->basis_order() == 0 )
+    {
+      SCIRunAlgo::ConvertFieldBasisTypeAlgo algo;
+      algo.set_progress_reporter(this);
+      algo.set_option("basistype", "linear");
+
+      FieldHandle output_field_handle;
+      MatrixHandle mapping_matrix_handle;
+
+      if (!(algo.run(input_field_handle,tmp_field_handle,mapping_matrix_handle))) return;
+    }
+    else // if( input_field_handle->basis_order() == 1 )
+    {
+      tmp_field_handle = input_field_handle;
+    }
+    
+    std::vector<FieldHandle> input_field_handles;
+    input_field_handles.push_back( tmp_field_handle );
 
     unsigned int count;
 
     string outputDataType("double");
 
     SCIRunAlgo::FieldsAlgo algo(this);
-    if (!(algo.CalculateFieldDataCompiled(field_input_handles,
+    if (!(algo.CalculateFieldDataCompiled(input_field_handles,
 					  field_transformed_handle_,
 					  outputDataType,
 					  function,
@@ -433,8 +456,13 @@ ExtractIsosurfaceByFunction::execute()
 
       for (unsigned int iv=0; iv<slicevals.size(); iv++)  {
 	mc_alg->search( slicevals[iv], true, false, false );
+
 	field_handles.push_back( mc_alg->get_field(0) );
-	interpolant_handles.push_back( mc_alg->get_interpolant(0) );
+    
+	if( input_field_handle->basis_order() == 0 )
+	  interpolant_handles.push_back( mc_alg->get_parent_cells(0) );
+	else //if( input_field_handle->basis_order() == 1 )
+	  interpolant_handles.push_back( mc_alg->get_interpolant(0) );
       }
       mc_alg->release();
     }
@@ -484,7 +512,31 @@ ExtractIsosurfaceByFunction::execute()
 	  matrix_sliced_handle = append_sparse_matrices(interpolant_handles);
       }
       else
-	warning("Interpolant not computed for this input field type and data location.");
+      {
+	error("Interpolant not computed for this input field type and data location.");
+	return;
+      }
+
+      // If the basis is not constant make it so.
+      if( input_field_handle->basis_order() == 0 )
+      {
+	SCIRunAlgo::ConvertFieldBasisTypeAlgo algo;
+	algo.set_progress_reporter(this);
+	algo.set_option("basistype", "constant");
+	
+	FieldHandle tmp_field_handle = field_sliced_handle;
+	field_sliced_handle = 0;
+	MatrixHandle mapping_matrix_handle;
+
+	if (!(algo.run(tmp_field_handle,
+		       field_sliced_handle,
+		       mapping_matrix_handle))) return;
+      }
+      else // if( input_field_handle->basis_order() == 1 )
+      {
+	// Do nothing
+      }
+
     }
     
     if( !field_sliced_handle.get_rep() )
@@ -497,15 +549,15 @@ ExtractIsosurfaceByFunction::execute()
       error( "Can not find the matrix for clipping" );
       return;
     } else {
-      //remark( "Sliced field and matrix for clipping is present" );
+      remark( "Sliced field and matrix for clipping is present" );
     }
 
     ///////////////////////////////////////////////////////////////////////////
     //! Apply Mapping Section 1
     TypeDescription::td_vec *tdv1 = 
-      field_input_handle->get_type_description(Field::FDATA_TD_E)->get_sub_type();
+      input_field_handle->get_type_description(Field::FDATA_TD_E)->get_sub_type();
     string accumtype1 = (*tdv1)[0]->get_name();
-    if (field_input_handle->query_scalar_interface(this) != NULL) {
+    if (input_field_handle->query_scalar_interface(this) != NULL) {
       accumtype1 = "double";
     }
     
@@ -518,12 +570,12 @@ ExtractIsosurfaceByFunction::execute()
 										     0, "<", " >") + " >";
     
     CompileInfoHandle ci1 =
-      ApplyMappingMatrixAlgo::get_compile_info(field_input_handle->get_type_description(),
-					       field_input_handle->order_type_description(),
+      ApplyMappingMatrixAlgo::get_compile_info(input_field_handle->get_type_description(),
+					       input_field_handle->order_type_description(),
 					       field_sliced_handle->get_type_description(),
 					       oftn1,
 					       field_sliced_handle->order_type_description(),
-					       field_input_handle->get_type_description(Field::FDATA_TD_E),
+					       input_field_handle->get_type_description(Field::FDATA_TD_E),
 					       accumtype1);
     Handle<ApplyMappingMatrixAlgo> algoAMM1;
     if (!module_dynamic_compile(ci1, algoAMM1)) return;
@@ -531,7 +583,7 @@ ExtractIsosurfaceByFunction::execute()
     //! Apply the matrix to the sliced data.
     FieldHandle field_apply_mapping_handle =
       algoAMM1->execute(this,
-			field_input_handle,
+			input_field_handle,
 			field_sliced_handle->mesh(),
 			matrix_sliced_handle);
     

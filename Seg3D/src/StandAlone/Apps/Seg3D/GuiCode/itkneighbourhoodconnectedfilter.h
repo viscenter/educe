@@ -74,6 +74,7 @@ public:
 	void OnCloseButtonClick( wxCommandEvent& event );
 	void OnSetProgress( wxCommandEvent& event );
 
+    void SetShowProgress(bool show_progress);
 
 ////@begin ITKNeighbourhoodConnectedFilter event handler declarations
 
@@ -95,6 +96,7 @@ public:
     wxGauge* mPercentage;
 ////@end ITKNeighbourhoodConnectedFilter member variables
 
+    bool show_progress_;
     wxWindowDisabler *disabler_;
 };
 

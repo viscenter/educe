@@ -109,7 +109,6 @@ UnuSort::execute()
       gui_index_.changed( true ) ||
       !oport_cached("Nrrd") )
   {
-
     CompileInfoHandle ci =
       UnuSortAlgo::get_compile_info(nrrd_input_handle->nrrd_->type,
 				    gui_index_.get());

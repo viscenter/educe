@@ -42,12 +42,12 @@
 #ifndef TetMC_h
 #define TetMC_h
 
-#include <Core/Geom/GeomTriangles.h>
-
+#include <Core/Algorithms/Visualization/BaseMC.h>
 #include <Core/Basis/TriLinearLgn.h>
 #include <Core/Datatypes/TriSurfMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
+#include <Core/Geom/GeomTriangles.h>
 #include <sci_hash_map.h>
 
 namespace SCIRun {
@@ -56,10 +56,10 @@ struct TetMCBase {
   virtual ~TetMCBase() {}
   static const string& get_h_file_path();
 };
-//! A Macrching Cube tesselator for a tetrahedral cell     
+//! A Marching Cube tesselator for a tetrahedral cell     
 
 template<class Field>
-class TetMC : public TetMCBase
+class TetMC : public BaseMC, public TetMCBase
 {
 public:
   typedef Field                                  field_type;
@@ -72,137 +72,78 @@ public:
   typedef TriSurfMesh<TriLinearLgn<Point> >                 TSMesh;
   typedef TriLinearLgn<double>                              TDatBasis;
   typedef GenericField<TSMesh, TDatBasis, vector<double> >  TSField;  
+
+
+public:
+  TetMC( Field *field ) : field_(field), mesh_(field->get_typed_mesh()),
+			  triangles_(0), trisurf_(0) {}
+
+  virtual ~TetMC() {}
+	
+  void extract( cell_index_type, double );
+  void reset( int, bool build_field, bool build_geom, bool transparency );
+
+  GeomHandle get_geom() { return triangles_; }
+  FieldHandle get_field(double val);
+
 private:
-  LockingHandle<Field> field_;
-  mesh_handle_type mesh_;
-  GeomFastTriangles *triangles_;
-  TSMesh::handle_type trisurf_;
-  int nnodes_;
-
-  struct edgepair_t
-  {
-    SCIRun::index_type first;
-    SCIRun::index_type second;
-    double dfirst;
-  };
-
-  struct edgepairless
-  {
-    bool operator()(const edgepair_t &a, const edgepair_t &b) const
-    {
-      return less(a,b);
-    }
-    static bool less(const edgepair_t &a, const edgepair_t &b)
-    {
-      return a.first < b.first || (a.first == b.first && a.second < b.second);
-    }
-  };
-
-#ifdef HAVE_HASH_MAP
-  struct edgepairequal
-  {
-    bool operator()(const edgepair_t &a, const edgepair_t &b) const
-    {
-      return a.first == b.first && a.second == b.second;
-    }
-  };
-
-  struct edgepairhash
-  {
-    unsigned int operator()(const edgepair_t &a) const
-    {
-#  if defined(__ECC) || defined(_MSC_VER)
-      hash_compare<unsigned int> h;
-#  else
-      hash<unsigned int> h;
-#  endif
-      return h(a.first ^ a.second);
-    }
-#  if defined(__ECC) || defined(_MSC_VER)
-
-      // These are particularly needed by ICC's hash stuff
-      static const size_t bucket_size = 4;
-      static const size_t min_buckets = 8;
-      
-      // This is a less than function.
-      bool operator()(const edgepair_t & a, const edgepair_t & b) const 
-      {
-        return edgepairless::less(a,b);
-      }
-#  endif // endif ifdef __ICC
-  };
-
-#  if defined(__ECC) || defined(_MSC_VER)
-  typedef hash_map<edgepair_t, TSMesh::Node::index_type, edgepairhash> edge_hash_type;
-#  else
-  typedef hash_map<edgepair_t,
-		   TSMesh::Node::index_type,
-		   edgepairhash,
-		   edgepairequal> edge_hash_type;
-#  endif // !defined(__ECC) && !defined(_MSC_VER)
-  
-#else
-  typedef map<edgepair_t,
-	      TSMesh::Node::index_type,
-	      edgepairless> edge_hash_type;
-#endif
-
-  edge_hash_type   edge_map_;  // Unique edge cuts when surfacing node data
-  vector<long int> node_map_;  // Unique nodes when surfacing cell data.
+  void extract_n( cell_index_type, double );
+  void extract_c( cell_index_type, double );
 
   TSMesh::Node::index_type find_or_add_edgepoint(SCIRun::index_type n0, SCIRun::index_type n1,
 						      double d0,
 						      const Point &p);
   TSMesh::Node::index_type find_or_add_nodepoint(node_index_type &n0);
 
-  void extract_n( cell_index_type, double );
-  void extract_c( cell_index_type, double );
+  void find_or_add_parent(SCIRun::index_type u0, SCIRun::index_type u1,
+			  double d0, SCIRun::index_type face);
 
-public:
-  TetMC( Field *field ) : field_(field), mesh_(field->get_typed_mesh()),
-			  triangles_(0), trisurf_(0) {}
-  virtual ~TetMC();
-	
-  void extract( cell_index_type, double );
-  void reset( int, bool build_field, bool build_geom, bool transparency );
-  GeomHandle get_geom() { return triangles_; }
-  FieldHandle get_field(double val);
-  MatrixHandle get_interpolant();
+  LockingHandle<Field> field_;
+  mesh_handle_type mesh_;
+  GeomFastTriangles *triangles_;
+  TSMesh::handle_type trisurf_;
 };
   
 
 template<class Field>
-TetMC<Field>::~TetMC()
-{
-}
-    
-
-template<class Field>
 void TetMC<Field>::reset( int n, bool build_field, bool build_geom, bool transparency )
 {
+  build_field_ = build_field;
+  build_geom_  = build_geom;
+  basis_order_ = field_->basis_order();
+
   edge_map_.clear();
   typename Field::mesh_type::Node::size_type nsize;
   mesh_->size(nsize);
   nnodes_ = nsize;
 
-  if (field_->basis_order() == 0)
+  cell_map_.clear();
+  typename Field::mesh_type::Cell::size_type csize;
+  mesh_->size(csize);
+  ncells_ = csize;
+
+  if (basis_order_ == 0)
   {
     mesh_->synchronize(Mesh::FACES_E);
     mesh_->synchronize(Mesh::ELEM_NEIGHBORS_E);
-    if (build_field) { node_map_ = vector<long int>(nsize, -1); }
+    if (build_field_)
+    {
+      node_map_ = vector<SCIRun::index_type>(nnodes_, -1);
+    }
   }
 
   triangles_ = 0;
-  if (build_geom)
+  if (build_geom_)
   {
     if( transparency )
       triangles_ = scinew GeomTranspTriangles;
     else
       triangles_ = scinew GeomFastTriangles;
   }
+  geomHandle_ = triangles_;
   
   trisurf_ = 0;
-  if (build_field)
+  if (build_field_)
   {
     trisurf_ = scinew TSMesh;
   }
@@ -214,8 +155,8 @@ TetMC<Field>::TSMesh::Node::index_type
 TetMC<Field>::find_or_add_edgepoint(SCIRun::index_type u0, SCIRun::index_type u1,
                                     double d0, const Point &p) 
 {
-  if (d0 <= 0.0) { u1 = -1; }
-  if (d0 >= 1.0) { u0 = -1; }
+  if (d0 < 0.0) { u1 = -1; }
+  if (d0 > 1.0) { u0 = -1; }
   edgepair_t np;
   if (u0 < u1)  { np.first = u0; np.second = u1; np.dfirst = d0; }
   else { np.first = u1; np.second = u0; np.dfirst = 1.0 - d0; }
@@ -250,14 +191,38 @@ TetMC<Field>::find_or_add_nodepoint(node_index_type &tet_node_idx)
   return surf_node_idx;
 }
 
+
+template<class Field>
+void
+TetMC<Field>::find_or_add_parent(SCIRun::index_type u0, SCIRun::index_type u1,
+				 double d0, SCIRun::index_type face) 
+{
+  if (d0 < 0.0) { u1 = -1; }
+  if (d0 > 1.0) { u0 = -1; }
+  edgepair_t np;
+  if (u0 < u1)  { np.first = u0; np.second = u1; np.dfirst = d0; }
+  else { np.first = u1; np.second = u0; np.dfirst = 1.0 - d0; }
+  const typename edge_hash_type::iterator loc = edge_map_.find(np);
+  if (loc == edge_map_.end())
+  {
+    edge_map_[np] = face;
+  }
+  else
+  {
+    ASSERT(loc == edge_map_.end())
+  }
+}
+
+
 template<class Field>
 void TetMC<Field>::extract( cell_index_type cell, double v )
 {
-  if (field_->basis_order() == 1)
-    extract_n(cell, v);
-  else
+  if (basis_order_ == 0)
     extract_c(cell, v);
+  else
+    extract_n(cell, v);
 }
+
 
 template<class Field>
 void TetMC<Field>::extract_c( cell_index_type cell, double iso )
@@ -267,32 +232,41 @@ void TetMC<Field>::extract_c( cell_index_type cell, double iso )
   typename mesh_type::Face::array_type faces;
   mesh_->get_faces(faces, cell);
 
-  cell_index_type nbr;
+  cell_index_type nbr_cell;
   Point p[3];
   typename mesh_type::Node::array_type nodes;
-  TSMesh::Node::index_type vertices[3];
+  TSMesh::Node::array_type vertices(3);
 
-  for (size_t i = 0; i < faces.size(); i++)
+  for (size_t i=0; i<faces.size(); i++)
   {
-    if (mesh_->get_neighbor(nbr, cell, faces[i]) &&
-      field_->value(nbrvalue, nbr) &&
-      (selfvalue > nbrvalue) &&
-      ((selfvalue-iso) * (nbrvalue-iso) < 0))
+    if (mesh_->get_neighbor(nbr_cell, cell, faces[i]) &&
+	field_->value(nbrvalue, nbr_cell) &&
+	selfvalue <= iso && iso < nbrvalue)
     {
       mesh_->get_nodes(nodes, faces[i]);
-      for (int j=0; j < 3; j++) { mesh_->get_center(p[j], nodes[j]); }
+      
+      for (int j=0; j<3; j++)
+      {
+	mesh_->get_center(p[j], nodes[j]);
+      }
 
-      if (triangles_)
+      if (build_geom_)
       {
         triangles_->add(p[0], p[1], p[2]);
       }
-      if (trisurf_.get_rep())
+
+      if (build_field_)
       {
-        for (int j=0; j < 3;j ++)
+	for (int j=0; j<3; j++)
         {
           vertices[j] = find_or_add_nodepoint(nodes[j]);
         }
-        trisurf_->add_triangle(vertices[0], vertices[1], vertices[2]);
+        
+	TSMesh::Face::index_type tface = trisurf_->add_elem(vertices);
+	  
+	const double d = (selfvalue - iso) / (selfvalue - nbrvalue);
+
+	find_or_add_parent(cell, nbr_cell, d, tface);
       }
     }
   }
@@ -364,18 +338,20 @@ void TetMC<Field>::extract_n( cell_index_type cell, double v )
       const Point p2(Interpolate( p[o],p[j], v2));
       const Point p3(Interpolate( p[o],p[k], v3));
 
-      if (triangles_)
+      if (build_geom_)
       {
         triangles_->add( p1, p2, p3 );
       }
-      if (trisurf_.get_rep())
+      if (build_field_)
       {
         TSMesh::Node::index_type i1, i2, i3;
         i1 = find_or_add_edgepoint(node[o], node[i], v1, p1);
         i2 = find_or_add_edgepoint(node[o], node[j], v2, p2);
         i3 = find_or_add_edgepoint(node[o], node[k], v3, p3);
-        if (i1 != i2 && i2 != i3 && i3 != i1)
+        if (i1 != i2 && i2 != i3 && i3 != i1) {
           trisurf_->add_triangle(i1, i2, i3);
+	  cell_map_.push_back( cell );
+	}
       }
     }
     break;
@@ -395,22 +371,26 @@ void TetMC<Field>::extract_n( cell_index_type cell, double v )
       const Point p3(Interpolate( p[k],p[j], v3));
       const Point p4(Interpolate( p[k],p[i], v4));
 
-      if (triangles_)
+      if (build_geom_)
       {
         triangles_->add( p1, p2, p3 );
         triangles_->add( p1, p3, p4 );
       }
-      if (trisurf_.get_rep())
+      if (build_field_)
       {
         TSMesh::Node::index_type i1, i2, i3, i4;
         i1 = find_or_add_edgepoint(node[o], node[i], v1, p1);
         i2 = find_or_add_edgepoint(node[o], node[j], v2, p2);
         i3 = find_or_add_edgepoint(node[k], node[j], v3, p3);
         i4 = find_or_add_edgepoint(node[k], node[i], v4, p4);
-        if (i1 != i2 && i2 != i3 && i3 != i1)
+        if (i1 != i2 && i2 != i3 && i3 != i1) {
           trisurf_->add_triangle(i1, i2, i3);
-        if (i1 != i3 && i3 != i4 && i4 != i1)
+	  cell_map_.push_back( cell );
+	}
+        if (i1 != i3 && i3 != i4 && i4 != i1) {
           trisurf_->add_triangle(i1, i3, i4);
+	  cell_map_.push_back( cell );
+	}
       }
     }
     break;
@@ -421,6 +401,7 @@ void TetMC<Field>::extract_n( cell_index_type cell, double v )
     break;
   }
 }
+
 
 template<class Field>
 FieldHandle
@@ -436,61 +417,6 @@ TetMC<Field>::get_field(double value)
   return fld;
 }
 
-
-template<class Field>
-MatrixHandle
-TetMC<Field>::get_interpolant()
-{
-  if (field_->basis_order() == 1)
-  {
-    const Matrix::size_type nrows = edge_map_.size();
-    const Matrix::size_type ncols = nnodes_;
-    Matrix::index_type *rr = scinew Matrix::index_type[nrows+1];
-    Matrix::index_type *cc = scinew Matrix::index_type[nrows*2];
-    double *dd = scinew double[nrows*2];
-
-    typename edge_hash_type::iterator eiter = edge_map_.begin();
-    while (eiter != edge_map_.end())
-    {
-      const Matrix::index_type ei = (*eiter).second;
-
-      cc[ei * 2 + 0] = (*eiter).first.first;
-      cc[ei * 2 + 1] = (*eiter).first.second;
-      dd[ei * 2 + 0] = 1.0 - (*eiter).first.dfirst;
-      dd[ei * 2 + 1] = (*eiter).first.dfirst;
-      
-      ++eiter;
-    }
-
-    Matrix::size_type nnz = 0;
-    Matrix::index_type i;
-    for (i = 0; i < nrows; i++)
-    {
-      rr[i] = nnz;
-      if (cc[i * 2 + 0] > 0)
-      {
-        cc[nnz] = cc[i * 2 + 0];
-        dd[nnz] = dd[i * 2 + 0];
-        nnz++;
-      }
-      if (cc[i * 2 + 1] > 0)
-      {
-        cc[nnz] = cc[i * 2 + 1];
-        dd[nnz] = dd[i * 2 + 1];
-        nnz++;
-      }
-    }
-    rr[i] = nnz;
-
-    return scinew SparseRowMatrix(nrows, ncols, rr, cc, nnz, dd);
-  }
-  else
-  {
-    return 0;
-  }
-}
-
-     
 } // End namespace SCIRun
 
 #endif // TetMC_h

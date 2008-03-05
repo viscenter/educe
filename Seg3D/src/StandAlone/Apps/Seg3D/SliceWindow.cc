@@ -1003,4 +1003,154 @@ SliceWindow::redraw(event_handle_t &) {
 }
 
 
+BaseTool::propagation_state_e
+SliceWindow::copy_current_slice(int dir)
+{
+  if (!painter_->check_for_active_label_volume("Punch current slice hotkey"))
+  {
+    return STOP_E;
+  }
+
+  painter_->volume_lock_.lock();
+
+  // Get the current volume.
+  NrrdVolumeHandle &vol = painter_->current_volume_;
+  vol->lock.lock();
+
+  // Get the original slice.
+  Plane plane(center_, normal_);
+  VolumeSliceHandle slice = vol->get_volume_slice(plane);
+  unsigned int clabel = vol->label_;
+  const int axis = slice->get_axis();
+
+  size_t start = 0;
+  size_t end = vol->nrrd_handle_->nrrd_->axis[axis].size;
+  if (dir < 0)
+  {
+    vector<int> sindex = vol->world_to_index(plane.project(Point(0,0,0)));
+    int index = sindex[axis];
+    if (index <= 0)
+    {
+      slice = 0;
+      vol->lock.unlock();
+      painter_->volume_lock_.unlock();
+      painter_->set_status("Already at bottom slice.");
+      return QUIT_AND_STOP_E;
+    }
+    start = index-1;
+    end = start+1;
+  }
+  else if (dir > 0)
+  {
+    vector<int> sindex = vol->world_to_index(plane.project(Point(0,0,0)));
+    int index = sindex[axis];
+    if (index >= vol->nrrd_handle_->nrrd_->axis[axis].size-1)
+    {
+      slice = 0;
+      vol->lock.unlock();
+      painter_->volume_lock_.unlock();
+      painter_->set_status("Already at top slice.");
+      return QUIT_AND_STOP_E;
+    }
+    start = index+1;
+    end = start+1;
+  }
+
+  NrrdDataHandle curslice = new NrrdData;
+
+  for (size_t i = start; i < end; i++)
+  {
+    // Pull out the current slice.
+    nrrdSlice(curslice->nrrd_, vol->nrrd_handle_->nrrd_, axis, i);
+
+    // Copy the bitplane from the visible slice.
+    VolumeOps::bit_copy(curslice, clabel, slice->nrrd_handle_, clabel);
+
+    // Clear the content for nrrdSplice
+    if (vol->nrrd_handle_->nrrd_->content)
+    {
+      vol->nrrd_handle_->nrrd_->content[0] = 0;
+    }
+
+    // Put the results back.
+    if (nrrdSplice(vol->nrrd_handle_->nrrd_,
+                   vol->nrrd_handle_->nrrd_,
+                   curslice->nrrd_,
+                   axis, i))
+    {
+      vol->lock.unlock();
+      painter_->volume_lock_.unlock();
+      char *err = biffGetDone(NRRD);
+      
+      cerr << string("Error on line #") 
+           << to_string(__LINE__)
+           << string(" executing nrrd command: nrrdSplice \n")
+           << string("Message: ") 
+           << err
+           << std::endl;
+
+      free(err);
+      return QUIT_AND_STOP_E;
+    }
+  }
+
+  // Clear the slice pointer.
+  slice = 0;
+
+  vol->set_dirty();
+  vol->lock.unlock();
+  painter_->volume_lock_.unlock();
+
+  painter_->extract_all_window_slices();
+  painter_->redraw_all();
+
+  return STOP_E;
+}
+
+
+BaseTool::propagation_state_e
+SliceWindow::punch_current_slice(event_handle_t &)
+{
+  if (!painter_->check_for_active_label_volume("Punch current slice hotkey"))
+  {
+    return STOP_E;
+  }
+  
+  painter_->set_status("Punching the current slice through the volume.");
+
+  return copy_current_slice(0);
+}
+
+
+BaseTool::propagation_state_e
+SliceWindow::copy_current_slice_up(event_handle_t &)
+{
+  if (!painter_->check_for_active_label_volume("Copy current slice up hotkey"))
+  {
+    return STOP_E;
+  }
+  
+  painter_->set_status("Copying the current slice upward.");
+
+  return copy_current_slice(1);
+}
+
+
+BaseTool::propagation_state_e
+SliceWindow::copy_current_slice_down(event_handle_t &)
+{
+  if (!painter_->check_for_active_label_volume("Copy current slice down hotkey"))
+  {
+    return STOP_E;
+  }
+  
+  painter_->set_status("Copying the current slice downward.");
+
+  return copy_current_slice(-1);
+}
+
+
+
+
+
 }

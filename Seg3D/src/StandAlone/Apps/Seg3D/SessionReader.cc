@@ -141,6 +141,7 @@ SessionReader::eval_seg3d_node(const xmlNodePtr node)
     painter_->volumes_ = volumes_;
     painter_->current_volume_ = volumes_.back();
     painter_->extract_all_window_slices();
+    painter_->rebuild_layer_buttons();
 
     if (first_volume_.get_rep())
     {
@@ -152,11 +153,8 @@ SessionReader::eval_seg3d_node(const xmlNodePtr node)
       first_volume_->get_geom_group();
       painter_->Autoview(unused);
     }
-    else
-    {
-      painter_->rebuild_layer_buttons();
-      painter_->redraw_all();
-    }
+
+    painter_->redraw_all();
   }
 }
 

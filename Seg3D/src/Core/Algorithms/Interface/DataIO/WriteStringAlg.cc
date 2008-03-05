@@ -41,7 +41,7 @@ WriteStringAlg* SCIRun::get_write_string_alg()
 
 //! Algorithm Interface.
 void
-WriteStringAlg::execute(string string, string filename)
+WriteStringAlg::execute(string in_string, string filename)
 {
   // Do some initial error checking before we do any work.
   if (filename == "")
@@ -59,7 +59,7 @@ WriteStringAlg::execute(string string, string filename)
     cerr << "Could not open file for writing " << filename << "\n";
     return;
   } else {
-    outfile << string;
+    outfile << in_string;
   }
   outfile.close();
 }

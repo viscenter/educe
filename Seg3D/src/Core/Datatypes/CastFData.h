@@ -90,13 +90,17 @@ template <class T> inline T CastFData(const unsigned long long &val) { return (s
 template <> inline Vector CastFData<Vector>(const unsigned long long &val) { return (Vector(0,0,0)); }
 template <> inline Tensor CastFData<Tensor>(const unsigned long long &val) { return (Tensor(static_cast<double>(val))); }
 
-template <class T> inline T CastFData(const float &val) { return (static_cast<T>(val)); }
+template <class T> inline T CastFData(const float &val) { return (static_cast<T>(val+0.5)); }
 template <> inline Vector CastFData<Vector>(const float &val) { return (Vector(0,0,0)); }
 template <> inline Tensor CastFData<Tensor>(const float &val) { return (Tensor(static_cast<double>(val))); }
+template <> inline float CastFData(const float &val) { return (val); }
+template <> inline double CastFData(const float &val) { return (static_cast<double>(val)); }
 
-template <class T> inline T CastFData(const double &val) { return (static_cast<T>(val)); }
+template <class T> inline T CastFData(const double &val) { return (static_cast<T>(val+0.5)); }
 template <> inline Vector CastFData<Vector>(const double &val) { return (Vector(0,0,0)); }
 template <> inline Tensor CastFData<Tensor>(const double &val) { return (Tensor(static_cast<double>(val))); }
+template <> inline float CastFData(const double &val) { return (val); }
+template <> inline double CastFData(const double &val) { return (static_cast<double>(val)); }
 
 template <class T> inline T CastFData(const Vector &val) { return (0); }
 template <> inline Vector CastFData<Vector>(const Vector &val) { return (val); }

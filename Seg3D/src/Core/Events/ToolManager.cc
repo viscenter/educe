@@ -81,6 +81,7 @@ tool_handle_t
 ToolManager::get_tool(unsigned priority)
 {
   ts_stack_t &s  = stacks_[priority];
+  if (s.empty()) return 0;
   return s.top();
 }
 

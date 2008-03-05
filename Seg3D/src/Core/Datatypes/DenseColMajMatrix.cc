@@ -44,6 +44,7 @@
 
 #include <iostream>
 #include <vector>
+#include <float.h>
 
 using std::cout;
 using std::endl;
@@ -207,6 +208,25 @@ DenseColMajMatrix::add(index_type r, index_type c, double d)
   ASSERTRANGE(c, 0, ncols_);
   iget(r, c) += d;
 }
+
+double
+DenseColMajMatrix::min()
+{
+  double min = DBL_MAX;
+  for (index_type k=0; k<nrows_*ncols_; k++)
+    if (dataptr_[k] < min) min = dataptr_[k];
+  return (min);
+}
+
+double
+DenseColMajMatrix::max()
+{
+  double max = -DBL_MAX;
+  for (index_type k=0; k<nrows_*ncols_; k++)
+    if (dataptr_[k] > max) max = dataptr_[k];
+  return (max);
+}
+
 
 
 DenseColMajMatrix *

@@ -57,6 +57,7 @@
 #include <Core/Util/FileUtils.h>
 #include <Core/Geom/GeomViewerItem.h>
 #include <Core/Geom/GeomQuads.h>
+#include <Core/Geom/GeomResourceManager.h>
 
 #include <sgi_stl_warnings_off.h>
 #include   <iostream>
@@ -908,6 +909,10 @@ OpenGL::redraw_frame()
     }
   }
   CHECK_OPENGL_ERROR();
+
+  // Delete any pending texture objects just after make current but
+  // before we draw anything.
+  GeomResourceManager::delete_pending_objects();
 
   // Get the window size
   xres_ = tk_gl_context_->width();

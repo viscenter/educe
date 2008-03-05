@@ -230,12 +230,6 @@ class SCISHARE FieldInformation : public FieldTypeInformation {
 
 };
 
-
-
-
-
-
-
 SCISHARE FieldHandle CreateField(std::string meshtype, std::string basistype, std::string datatype);
 SCISHARE FieldHandle CreateField(std::string meshtype, std::string meshbasistype, std::string databasistype, std::string datatype);
 

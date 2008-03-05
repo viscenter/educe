@@ -45,6 +45,7 @@
 #include <Core/Geom/NrrdTextureObj.h>
 #include <Core/Math/MiscMath.h>
 #include <Core/Containers/StringUtil.h>
+#include <Core/Geom/GeomResourceManager.h>
 
 
 namespace SCIRun {
@@ -72,10 +73,7 @@ NrrdTextureObj::NrrdTextureObj(NrrdDataHandle nrrd_handle) :
 
 NrrdTextureObj::~NrrdTextureObj()
 {
-  if (glIsTexture(texture_id_)) {
-    glDeleteTextures(1, (const GLuint*)&texture_id_);
-    glBindTexture(GL_TEXTURE_2D, 0);
-  }
+  GeomResourceManager::delete_texture_id(texture_id_);
   nrrd_handle_ = 0;
 }
 

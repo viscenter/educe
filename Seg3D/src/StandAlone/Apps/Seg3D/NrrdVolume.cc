@@ -55,6 +55,7 @@
 #include <Core/Skinner/GeomSkinnerVarSwitch.h>
 #include <itkImageSeriesWriter.h>
 #include <itkNumericSeriesFileNames.h>
+#include <itkGDCMImageIO.h>
 #include <Core/Skinner/Histogram.h>
 #include <StandAlone/Apps/Seg3D/Seg3DwxGuiUtils.h>
 
@@ -600,13 +601,15 @@ split_extension(const string &filename)
 
 template <class T>
 static bool
-write_itk_series(ITKDatatypeHandle &itk_image_h, const string &filename)
+write_itk_series(ITKDatatypeHandle &itk_image_h, const string &filename,
+                 bool dicom)
 {
   // Create a new writer
   typedef itk::Image < T, 3 > ImageType;
   typedef itk::Image < T, 2 > Image2DType;
   typedef itk::ImageSeriesWriter< ImageType, Image2DType > FileWriterType;
   typename FileWriterType::Pointer writer = FileWriterType::New();
+  if (dicom) { writer->SetImageIO( itk::GDCMImageIO::New() ); }
   ImageType *img =
     dynamic_cast<ImageType *>(itk_image_h->data_.GetPointer());
   ASSERT(img);
@@ -743,16 +746,19 @@ NrrdVolume::write(const string &ofname, bool nrrd_on_error)
       ends_with(lfname, ".jpg"))
   {
     try {
+      const bool is_dicom =
+        ends_with(lfname, ".dcm") || ends_with(lfname, ".dicom");
+
       // TODO: Need a general output degrader (see vff_writer) and UI.
       if (nrrd_handle_->nrrd_->type == nrrdTypeUChar)
       {
         ITKDatatypeHandle img = nrrd_to_itk_image(nrrd_handle_);
-        return write_itk_series<unsigned char>(img, fname);
+        return write_itk_series<unsigned char>(img, fname, is_dicom);
       }
       else if (ends_with(lfname, ".tiff") ||
                ends_with(lfname, ".tif") ||
-               //ends_with(lfname, ".dcm") ||
-               //ends_with(lfname, ".dicom") ||
+               ends_with(lfname, ".dcm") ||
+               ends_with(lfname, ".dicom") ||
                ends_with(lfname, ".png"))
       {
         // These formats support 16 bit output.
@@ -760,13 +766,13 @@ NrrdVolume::write(const string &ofname, bool nrrd_on_error)
         // NOTE: Maybe dicom requires signed shorts like vff?
         NrrdDataHandle tmp = Skinner::Histogram::UnuQuantize16(nrrd_handle_);
         ITKDatatypeHandle img = nrrd_to_itk_image(tmp);
-        return write_itk_series<unsigned short>(img, fname);
+        return write_itk_series<unsigned short>(img, fname, is_dicom);
       }
       else
       {
         NrrdDataHandle tmp = Skinner::Histogram::UnuQuantize(nrrd_handle_);
         ITKDatatypeHandle img = nrrd_to_itk_image(tmp);
-        return write_itk_series<unsigned char>(img, fname);
+        return write_itk_series<unsigned char>(img, fname, is_dicom);
       }
     }
     catch  ( itk::ExceptionObject & err )

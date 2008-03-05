@@ -127,10 +127,6 @@ public:
   virtual 
   const TypeDescription* get_type_description(td_info_e td = FULL_TD_E) const;
 
-  // -- mutability --
-  virtual void freeze();
-  virtual void thaw();
-
   //! Static functions to instantiate the field from Pio or using CreateField()
   static Persistent *maker();
   static FieldHandle field_maker();  
@@ -344,7 +340,7 @@ class VGenericField : public VField {
     VGenericField(FIELD* field, VFData* vfdata)
     {
       field_ = field;
-      pm_ = field;      
+      pm_ = field;
       vfdata_ = vfdata;
       mesh_ = field_->mesh().get_rep();
       vmesh_ = mesh_->vmesh();
@@ -354,6 +350,9 @@ class VGenericField : public VField {
       element_dim_ = field->get_basis().domain_dimension();
       element_dofs_ = field->get_basis().dofs();
       data_type_ = find_type_name((typename FIELD::value_type*)0);
+      for (size_t j=0; j<data_type_.size(); j++) 
+        if(data_type_[j] == '_') data_type_[j] = ' ';
+        
       //! Create a fast way of checking scalar/pair/vector/tensor
       is_scalar_ = false;
       is_vector_ = false;
@@ -372,23 +371,6 @@ class VGenericField : public VField {
     }
     
 };
-
-template <class Mesh, class Basis, class FData>
-void
-GenericField<Mesh, Basis, FData>::freeze()
-{
-  mesh_->freeze();
-  // Call base class freeze..
-  PropertyManager::freeze();
-}
-
-template <class Mesh, class Basis, class FData>
-void
-GenericField<Mesh, Basis, FData>::thaw()
-{
-  // Call base class thaw..
-  PropertyManager::thaw();
-}
 
 template <class Mesh, class Basis, class FData>
 void

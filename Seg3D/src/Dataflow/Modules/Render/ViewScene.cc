@@ -1049,6 +1049,8 @@ ViewScene::save_image_callback(void *voidstuff)
 
     }
     
+    std::cout << "Saving regression image: " << name << "\n";
+    
     viewer->view_window_[i]->redraw_if_needed();
     // Make sure that the 640x480 here matches up with ViewWindow.cc defaults.
     viewer->view_window_[i]->renderer_->saveImage(name, "png", 640, 480);

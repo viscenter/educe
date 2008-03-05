@@ -41,6 +41,8 @@ SCIRUN_ADD_LIBRARY(Core_Algorithms_Util ${Core_Algorithms_Util_SRCS})
 TARGET_LINK_LIBRARIES(Core_Algorithms_Util
   Core_Thread
   Core_Util
+  Core_Geometry
+  Core_Datatypes
 )
 
 IF(BUILD_SHARED_LIBS)

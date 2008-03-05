@@ -142,6 +142,7 @@ PrintMatrixIntoString::execute()
           while ((currentmatrix.get_rep() == 0)&&(lastport==false))
           {
             matrix_iport = dynamic_cast<MatrixIPort *>(get_iport(inputport++));
+           
             if (matrix_iport)
             {
               matrix_iport->get(currentmatrix);
@@ -173,7 +174,7 @@ PrintMatrixIntoString::execute()
             dataptr = currentmatrix->get_data_pointer();
             if (matrixindex < currentmatrix->get_data_size())
             {
-              datavalue = dataptr[matrixindex++];
+              datavalue = dataptr[matrixindex]; matrixindex++;
             }
             else
             {
@@ -215,7 +216,6 @@ PrintMatrixIntoString::execute()
         else if ((format[j] == 'e')||(format[j] == 'E')||(format[j] == 'f')||(format[j] == 'F')||
                  (format[j] == 'g')||(format[j] == 'G')||(format[j] == 'a')||(format[j] == 'A'))
         {
-          std::vector<char> buffer(256);
           snprintf(&(buffer[0]),256,fstr.c_str(),datavalue);
           output += std::string(reinterpret_cast<char *>(&(buffer[0])));
           i = j+1;   
@@ -223,7 +223,6 @@ PrintMatrixIntoString::execute()
         else if ((format[j] == 'p')||(format[j] == 'P'))
         {
           fstr[fstr.size()-1] = 'g';
-          std::vector<char> buffer(256);
           double ptime = get_time();
           snprintf(&(buffer[0]),256,fstr.c_str(),ptime);
           output += std::string(reinterpret_cast<char *>(&(buffer[0])));
@@ -262,6 +261,7 @@ PrintMatrixIntoString::execute()
     }
     
   }
+
 
   StringHandle handle(scinew String(output));
   send_output_handle("Output", handle);

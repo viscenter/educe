@@ -183,7 +183,6 @@ protected:
   int strides_[MAX_DIMS];
 
   bool loop_;
-  bool execute_error_;
 };
 
 

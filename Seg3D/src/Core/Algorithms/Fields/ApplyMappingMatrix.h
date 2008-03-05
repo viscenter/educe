@@ -146,6 +146,7 @@ ApplyMappingMatrixAlgoT<FSRC, LSRC,
       typename LSRC::index_type index;
       msrc->to_index(index, idx?idx[i*idxstride]:i);
       fsrc->value(v, index);
+
       accum += v * val[i*idxstride];
     }
     fdst->set_value((typename FDST::value_type)accum, *dbi);

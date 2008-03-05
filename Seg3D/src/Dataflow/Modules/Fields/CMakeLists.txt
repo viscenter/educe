@@ -164,6 +164,7 @@ TARGET_LINK_LIBRARIES(Dataflow_Modules_Fields
   Dataflow_Network
   Dataflow_Widgets
   Core_Algorithms_Fields
+  Core_Algorithms_Util
   Core_Algorithms_Visualization
   Core_Algorithms_Geometry
   Core_Algorithms_ArrayMath

@@ -23,6 +23,9 @@
 #include "wx/spinctrl.h"
 ////@end includes
 
+class wxProgressDialog;
+
+
 /*!
  * Forward declarations
  */
@@ -105,10 +108,10 @@ public:
     wxSpinCtrl* mCurvatureScale;
     wxSpinCtrl* mPropagationScale;
     wxSpinCtrl* mEdgeWeight;
-    wxGauge* mPercentage;
 ////@end ITKThresholdSegmentationLevelSetFilter member variables
 
-    wxWindowDisabler *disabler_;
+    wxProgressDialog *progress_dialog_;
+    bool aborted_;
 };
 
 #endif

@@ -1002,7 +1002,7 @@ void matlabconverter::mlArrayTOsciNrrdData(matlabarray &mlarray,NrrdDataHandle &
           std::vector<int> dims = mlarray.getdims();
           int nrrddim = static_cast<int>(dims.size());
           
-          // NRRD cannot do more then 10 dimensions... N(E)RRD
+          // NRRD cannot do more then 10 dimensions... NRRD
           ASSERT(nrrddim <= NRRD_DIM_MAX);
           for (int p=0;p<nrrddim;p++) nrrddims[p] = dims[p];
                               

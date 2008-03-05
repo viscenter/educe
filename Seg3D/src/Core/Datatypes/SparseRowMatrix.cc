@@ -53,6 +53,7 @@
 using std::cerr;
 using std::endl;
 
+#include <float.h>
 #include <stdio.h>
 #include <memory.h>
 
@@ -85,9 +86,98 @@ SparseRowMatrix::SparseRowMatrix() :
 }
 
 
+class matrix_sort_type : public std::binary_function<Matrix::index_type,Matrix::index_type,bool>
+{
+  public:
+    matrix_sort_type(index_type* cols) :
+      cols_(cols)
+    {}
+    
+    bool operator()(Matrix::index_type i1, Matrix::index_type i2)
+    {
+      return(cols_[i1] < cols_[i2]);
+    }
+
+  private:
+    index_type*      cols_;
+};
+
+void
+SparseRowMatrix::order_columns()
+{
+
+  //! This code should reorder the columns of a sparse matrix so they are
+  //! in ascending order. This code will purge dublicates as well by merging
+  //! them together.
+  
+  //! Calculate the size of the buffer we need to reorder the data
+  //! This way we can use the stl sorting algorithm  
+  size_type max_num_cols = 0;
+  for (index_type j = 0; j< nrows_; j++)
+    if (rows[j+1]-rows[j] > max_num_cols)
+      max_num_cols = rows[j+1]- rows[j];
+
+  vector<index_type> order(max_num_cols);
+  vector<double>     databuffer(max_num_cols);
+  vector<index_type> indexbuffer(max_num_cols);
+
+  matrix_sort_type sortmatrix(columns);
+  
+  index_type rr = rows[0];
+  
+  //! Sorting columns and removing duplicates
+  for (index_type j = 0; j<nrows_; j++)
+  {
+    size_type num_cols = rows[j+1]-rr;
+    order.resize(num_cols);
+    for (index_type p=rr; p<rows[j+1]; p++) order[p-rr] = p;
+    std::sort(order.begin(),order.end(),sortmatrix);
+
+    for (index_type q=0; q<num_cols; q++)
+    {
+      databuffer[q] = a[order[q]];
+      indexbuffer[q] = columns[order[q]];
+    }
+    
+    index_type p = rows[j];
+    index_type q = 0;
+    if (q < num_cols)
+    {
+      a[p] = databuffer[q];
+      columns[p] = indexbuffer[q];
+      q++;
+    }
+    
+    while(q < num_cols)
+    {
+      if (columns[p] == indexbuffer[q])
+      {
+        a[p] += databuffer[q];
+        q++;
+      }
+      else
+      {
+        p++;
+        columns[p] = indexbuffer[q];
+        a[p] = databuffer[q];
+        q++;
+      }
+    }
+    p++;
+    
+    rr = rows[j+1];
+    rows[j+1] = p;
+  }
+  
+  nnz = rows[nrows_];
+}
+
+
+
 SparseRowMatrix::SparseRowMatrix(size_type nnrows, size_type nncols,
 				 index_type* rows, index_type* columns,
-				 size_type nnz, double* a_) :
+				 size_type nnz, double* a_, 
+         bool sort_columns) :
   Matrix(nnrows, nncols),
   rows(rows),
   columns(columns),
@@ -95,6 +185,21 @@ SparseRowMatrix::SparseRowMatrix(size_type nnrows, size_type nncols,
   a(a_)
 {
   if (a == 0) { a = scinew double[nnz]; }
+  if (sort_columns) order_columns();
+  ASSERT(validate());
+}
+
+
+SparseRowMatrix::SparseRowMatrix(size_type nnrows, size_type nncols,
+				 index_type* rows, index_type* columns,
+				 size_type nnz, bool sort_columns) :
+  Matrix(nnrows, nncols),
+  rows(rows),
+  columns(columns),
+  nnz(nnz)
+{
+  a = scinew double[nnz];
+  if (sort_columns) order_columns();
   ASSERT(validate());
 }
 
@@ -407,6 +512,25 @@ SparseRowMatrix::add(index_type i, index_type j, double d)
       return;
     }
   }
+}
+
+
+double
+SparseRowMatrix::min()
+{
+  double min = DBL_MAX;
+  for (index_type k=0; k<nnz; k++)
+    if (a[k] < min) min = a[k];
+  return (min);
+}
+
+double
+SparseRowMatrix::max()
+{
+  double max = -DBL_MAX;
+  for (index_type k=0; k<nnz; k++)
+    if (a[k] > max) max = a[k];
+  return (max);
 }
 
 

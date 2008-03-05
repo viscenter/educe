@@ -59,7 +59,7 @@ class SCISHARE MapFieldDataFromElemToNodeAlgo : public AlgoBase
 
   public:
     // Algorithm Functions
-    bool map_data(FieldHandle input, FieldHandle& output);   
+    bool run(FieldHandle input, FieldHandle& output);   
 };
 
 } // namespace SCIRunAlgo

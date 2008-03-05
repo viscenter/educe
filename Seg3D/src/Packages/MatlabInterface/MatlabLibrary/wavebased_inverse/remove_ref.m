@@ -1,0 +1,11 @@
+function [data_r,ref]=remove_ref(data,QRS_st,QRS_end,first_lead,last_lead)
+% [data_r,ref]=remove_ref(data,QRS_st,QRS_end,first_lead,last_lead)
+ref(1:QRS_st-1)=0;
+t1=QRS_st:floor((QRS_end+QRS_st)/2);
+ref(t1)=data(last_lead,t1);
+t2=floor((QRS_end+QRS_st)/2+1):QRS_end;
+ecg_mid=floor((QRS_end+QRS_st)/2);
+ref(t2)=data(first_lead,t2)-(data(first_lead,ecg_mid)-ref(ecg_mid));
+t3=(QRS_end+1):size(data,2);
+ref(t3)=ref(QRS_end);
+data_r=data-ones(size(data,1),1)*ref;

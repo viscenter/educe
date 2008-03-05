@@ -68,7 +68,11 @@ field.</summary>
 	<datatype>SCIRun::Geometry</datatype>
       </port>
       <port>
-        <name>Mapping</name>
+        <name>Node Mapping</name>
+	<datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>Cell Mapping</name>
 	<datatype>SCIRun::Matrix</datatype>
       </port>
     </outputs>

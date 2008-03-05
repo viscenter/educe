@@ -29,6 +29,10 @@
 #ifndef CORE_ALGORITHMS_UTIL_BOOLPARAMLIST_H
 #define CORE_ALGORITHMS_UTIL_BOOLPARAMLIST_H 1
 
+#include <Core/Datatypes/Color.h>
+#include <Core/Geometry/Vector.h>
+#include <Core/Geometry/Point.h>
+
 #include <vector>
 #include <string>
 #include <map>
@@ -106,6 +110,48 @@ class SCISHARE ScalarParam : public AlgoParam {
 };
 
 
+class SCISHARE ColorParam : public AlgoParam {
+  public:
+    //! Constructor
+    inline ColorParam(SCIRun::Color value) 
+      :  value_(value) {}
+    
+    //! Access functions
+    inline SCIRun::Color& value() { return(value_); }
+     
+  private:
+    SCIRun::Color value_;  
+};
+
+
+class SCISHARE VectorParam : public AlgoParam {
+  public:
+    //! Constructor
+    inline VectorParam(SCIRun::Vector value) 
+      :  value_(value) {}
+    
+    //! Access functions
+    inline SCIRun::Vector& value() { return(value_); }
+     
+  private:
+    SCIRun::Vector value_;  
+};
+
+
+class SCISHARE PointParam : public AlgoParam {
+  public:
+    //! Constructor
+    inline PointParam(SCIRun::Point value) 
+      :  value_(value) {}
+    
+    //! Access functions
+    inline SCIRun::Point& value() { return(value_); }
+     
+  private:
+    SCIRun::Point value_;  
+};
+
+
 class SCISHARE OptionParam : public AlgoParam {
   public:
     //! Constructor
@@ -167,7 +213,19 @@ class SCISHARE AlgoParamList {
     bool set_scalar(std::string key, double value);
     bool get_scalar(std::string key, double& value);
     bool get_scalar_limits(std::string key, double& min, double& max);
+        
+    //! Color parameter
+    bool set_color(std::string key, SCIRun::Color value);
+    bool get_color(std::string key, SCIRun::Color& value);
     
+    //! Vector parameter
+    bool set_vector(std::string key, SCIRun::Vector value);
+    bool get_vector(std::string key, SCIRun::Vector& value);    
+
+    //! Point parameter
+    bool set_point(std::string key, SCIRun::Point value);
+    bool get_point(std::string key, SCIRun::Point& value);    
+        
     //! Option parameter
     bool set_option(std::string key, std::string value);
     bool get_option(std::string key, std::string& value);
@@ -193,6 +251,10 @@ class SCISHARE AlgoParamList {
     void add_scalar(std::string key, double defval);
     void add_scalar(std::string key, double defval, double min, double max);
 
+    void add_color(std::string key, SCIRun::Color defval);
+    void add_vector(std::string key, SCIRun::Vector defval);
+    void add_point(std::string key, SCIRun::Point defval);
+    
     void add_option(std::string key, std::string defval, std::string options);
     void add_string(std::string key, std::string defval);
     void add_filename(std::string key, std::string defval);

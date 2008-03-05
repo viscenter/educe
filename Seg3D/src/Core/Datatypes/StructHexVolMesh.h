@@ -445,7 +445,7 @@ public:
   static const TypeDescription* face_type_description();
   static const TypeDescription* cell_type_description();
   static const TypeDescription* elem_type_description()
-  { return elem_type_description(); }
+  { return cell_type_description(); }
 
   //! This function returns a maker for Pio.
   static Persistent *maker() { return scinew StructHexVolMesh<Basis>(); }

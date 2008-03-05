@@ -56,6 +56,7 @@ public:
   VField() :
     field_(0),
     mesh_(0),
+    pm_(0),
     vmesh_(0),
     vfdata_(0),
     basis_order_(0),
@@ -423,19 +424,20 @@ public:
   inline bool is_vector()        { return (is_vector_); }
   inline bool is_tensor()        { return (is_tensor_); }
   
-  inline bool is_char()                { return ((data_type_=="char")||(data_type_=="signed_char")); }
-  inline bool is_unsigned_char()       { return (data_type_=="unsigned_char"); }        
-  inline bool is_short()               { return ((data_type_=="short")||(data_type_=="signed_short")); }
-  inline bool is_unsigned_short()      { return (data_type_=="unsigned_short"); }
-  inline bool is_int()                 { return ((data_type_=="int")||(data_type_=="signed_int")); }
-  inline bool is_unsigned_int()        { return (data_type_=="unsigned_int"); }
-  inline bool is_long()                { return ((data_type_=="long")||(data_type_=="signed_long")); }
-  inline bool is_unsigned_long()       { return (data_type_=="unsigned_long"); }
-  inline bool is_longlong()            { return ((data_type_=="long_long")||(data_type_=="signed_long_long")); }
-  inline bool is_unsigned_longlong()   { return (data_type_=="unsigned_long_long"); }
+  inline bool is_char()                { return ((data_type_=="char")||(data_type_=="signed char")); }
+  inline bool is_unsigned_char()       { return (data_type_=="unsigned char"); }        
+  inline bool is_short()               { return ((data_type_=="short")||(data_type_=="signed short")); }
+  inline bool is_unsigned_short()      { return (data_type_=="unsigned short"); }
+  inline bool is_int()                 { return ((data_type_=="int")||(data_type_=="signed int")); }
+  inline bool is_unsigned_int()        { return (data_type_=="unsigned int"); }
+  inline bool is_long()                { return ((data_type_=="long")||(data_type_=="signed long")); }
+  inline bool is_unsigned_long()       { return (data_type_=="unsigned long"); }
+  inline bool is_longlong()            { return ((data_type_=="long long")||(data_type_=="signed long long")); }
+  inline bool is_unsigned_longlong()   { return (data_type_=="unsigned long long"); }
   inline bool is_float()               { return (data_type_=="float"); }
   inline bool is_double()              { return (data_type_=="double"); }
 
+  inline string get_data_type()          { return (data_type_); }
   // check whether it is of integer class
   inline bool is_signed_integer()     { return (is_char()||is_short()||is_int()); }
   inline bool is_unsigned_integer()   { return (is_unsigned_char()||is_unsigned_short()||is_unsigned_int()); }
@@ -463,7 +465,8 @@ protected:
   // Interface to Field
   Field*        field_;
   Mesh*         mesh_;
-  
+
+  // Add this one separately to avoid circular dependancies
   PropertyManager* pm_;
   
   // Interface to the data in the field

@@ -987,11 +987,11 @@ public:
   typename Node::index_type add_find_point(const Point &p,
                                            double err = 1.0e-3);
   typename Elem::index_type add_quad(typename Node::index_type a,
-                            typename Node::index_type b,
-                            typename Node::index_type c,
-                            typename Node::index_type d);
+				     typename Node::index_type b,
+				     typename Node::index_type c,
+				     typename Node::index_type d);
   typename Elem::index_type add_quad(const Point &p0, const Point &p1,
-                const Point &p2, const Point &p3);
+				     const Point &p2, const Point &p3);
  
 protected:
 

@@ -39,15 +39,14 @@
 #include <Core/Datatypes/ITKDatatype.h>
 #include <Core/Thread/ThreadLock.h>
 #include <StandAlone/Apps/Seg3D/VolumeFilter.h>
-#include <StandAlone/Apps/Seg3D/ITKConnectedImageFilterTool.h>
+#include <StandAlone/Apps/Seg3D/SeedTool.h>
 
 namespace SCIRun {
 
 class Painter;
 class NrrdVolume;
   
-class BrushFloodFill : 
-    public ITKConnectedImageFilterTool
+class BrushFloodFill : public SeedTool
 {
 public:
   BrushFloodFill(Painter *painter);
@@ -56,13 +55,13 @@ public:
   virtual void          run_filter();
 
   BaseTool::propagation_state_e flood_fill_slice(bool erase);
-  BaseTool::propagation_state_e flood_fill_volume(bool erase);
+  //BaseTool::propagation_state_e flood_fill_volume(bool erase);
 
   static void flood_fill(Painter *painter,
                          NrrdDataHandle dnrrd, unsigned int dlabel,
                          NrrdDataHandle snrrd, unsigned int slabel,
                          NrrdDataHandle mnrrd, unsigned int mlabel,
-                         bool erase, seeds_t &seeds);
+                         bool erase, const vector<vector<int> > &seeds);
 };
   
   

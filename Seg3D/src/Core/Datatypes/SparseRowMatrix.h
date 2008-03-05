@@ -63,6 +63,7 @@ public:
   double* a;
 
   bool validate();
+  void order_columns();
 
   //! Constructors
   // Here's what the arguements for the constructor should be:
@@ -74,8 +75,13 @@ public:
   //         row/col orderand corresponds with the spaces in the rr array.
   //   nnz = number of non zero entries.
   //   d   = non zero data values.
+  //   sort_columns = do we need to sort columns of the matrix
   SparseRowMatrix(size_type r, size_type c, index_type *rr, index_type *cc, 
-                  size_type nnz, double *d = 0);
+                  size_type nnz, double *data, bool sort_columns = false);
+
+  SparseRowMatrix(size_type r, size_type c, index_type *rr, index_type *cc, 
+                  size_type nnz, bool sort_columns = false);
+
   SparseRowMatrix(const SparseRowMatrix&);
 
   virtual SparseRowMatrix* clone();
@@ -103,7 +109,12 @@ public:
   virtual double get(index_type, index_type) const;
   virtual void put(index_type row, index_type col, double val);
   virtual void add(index_type row, index_type col, double val);
-  virtual void getRowNonzerosNoCopy(index_type r, size_type &size, size_type &stride,
+  
+  virtual double min();
+  virtual double max();
+    
+  virtual void getRowNonzerosNoCopy(index_type r, size_type &size, 
+                                    size_type &stride,
                                     index_type *&cols, double *&vals);
 
   //! 

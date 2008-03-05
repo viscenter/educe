@@ -177,13 +177,13 @@ public:
   // GetFieldData: Extract the data from the field into a matrix
   // SetFieldData: Put the data contained in a matrix/nrrd into the field
   // Still need to upgrade these for non-linear elements
-  bool GetFieldData(FieldHandle& input, MatrixHandle& data);
+  bool GetFieldData(FieldHandle input, MatrixHandle& data);
 
-  bool SetFieldData(FieldHandle& input, FieldHandle& output,
-		    MatrixHandle& data, bool keepscalartype = false);
+  bool SetFieldData(FieldHandle input, FieldHandle& output,
+		    MatrixHandle data, bool keepscalartype = false);
 
-  bool SetFieldData(FieldHandle& input, FieldHandle& output,
-		    NrrdDataHandle& data, bool keepscalartype = false);
+  bool SetFieldData(FieldHandle input, FieldHandle& output,
+		    NrrdDataHandle data, bool keepscalartype = false);
 	
   bool GetFieldNodes(FieldHandle& input, MatrixHandle& nodes);
 

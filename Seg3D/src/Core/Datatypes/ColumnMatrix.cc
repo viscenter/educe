@@ -48,6 +48,7 @@
 #include <Core/Datatypes/DenseColMajMatrix.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
 
+#include <float.h>
 #include <math.h>
 #include <iostream>
 
@@ -198,6 +199,25 @@ ColumnMatrix& ColumnMatrix::operator=(const ColumnMatrix& c)
   }
   return *this;
 }
+
+double
+ColumnMatrix::min()
+{
+  double min = DBL_MAX;
+  for (index_type k=0; k<nrows_; k++)
+    if (data[k] < min) min = data[k];
+  return (min);
+}
+
+double
+ColumnMatrix::max()
+{
+  double max = -DBL_MAX;
+  for (index_type k=0; k<nrows_; k++)
+    if (data[k] > max) max = data[k];
+  return (max);
+}
+
 
 ColumnMatrix::~ColumnMatrix()
 {

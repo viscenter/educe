@@ -48,6 +48,10 @@ public:
   RefineMesh(GuiContext* ctx);
 
   virtual void execute();
+
+  //! Fix backwards compatibility
+  virtual void post_read();
+
 };
 
 
@@ -101,6 +105,21 @@ RefineMesh::execute()
     send_output_handle("RefinedMesh",output);
     send_output_handle("Mapping",mapping);
   }
+}
+
+
+void
+RefineMesh::post_read()
+{
+  const string modName = get_ctx()->getfullname() + "-";
+  std::string val;
+  if( get_gui()->get(modName+"lte", val, get_ctx()) )
+  {
+    if (val=="0") get_gui()->set(modName+"select", "greaterthan", get_ctx());
+    if (val=="1") get_gui()->set(modName+"select", "lessthan", get_ctx());
+  }
+  
+  get_ctx()->reset();
 }
 
 } // End namespace SCIRun

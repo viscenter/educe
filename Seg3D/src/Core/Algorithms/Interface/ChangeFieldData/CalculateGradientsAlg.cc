@@ -29,6 +29,11 @@
 #include <iostream>
 #include <Core/Events/DataManager.h>
 #include <Core/Algorithms/Interface/ChangeFieldData/CalculateGradientsAlg.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/VField.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/VMesh.h>
+#include <Core/Datatypes/FieldInformation.h>
 
 namespace SCIRun {
 
@@ -40,11 +45,70 @@ CalculateGradientsAlg* get_calculate_gradients_alg()
 //! Algorithm Interface.
   //! Algorithm Interface.
 size_t
-CalculateGradientsAlg::execute(size_t field_id0)
+CalculateGradientsAlg::execute(size_t field_id)
 {
-  //DataManager *dm = DataManager::get_dm();
-  std::cerr << "WARNING: CalculateGradientsAlg::execute not implemented." << std::endl;
-  return 0;
+  DataManager *dm = DataManager::get_dm();
+  FieldHandle input;
+
+  input = dm->get_field(field_id);
+  // get_input_handle( "Input Field", input, true );
+
+  FieldInformation fi(input);
+    
+  if ((!(fi.is_scalar()))||(!(fi.field_basis_order() > 0)))
+  {
+    if (progress_) {
+      progress_->error( "This module only works on scalar data that is located on the nodes of the mesh");
+    }
+    return 0;   
+  }
+    
+  fi.make_constantdata();
+  fi.make_vector();
+  FieldHandle output = CreateField(fi,input->mesh());
+  if (output.get_rep() == 0)
+  {
+    if (progress_) {
+      progress_->error( "CalculateGradient: Could not create output field");
+    }
+    return 0;
+  }
+
+  VMesh* mesh = output->vmesh();
+  VField* field = output->vfield();
+  VField* ifield = input->vfield();
+    
+  // Calculate center coordinates
+  VMesh::coords_array_type ca;
+  mesh->get_element_vertices(ca);
+    
+  VMesh::coords_type center;
+  (ca[0].size());
+  for (size_t k=0; k<ca.size(); k++) 
+  {
+    for (size_t p=0; p<center.size();p++) center[p] += ca[k][p];
+  }
+  for (size_t p=0; p<center.size();p++) center[p] *= 1.0/static_cast<double>(ca.size());
+    
+  field->resize_values();
+    
+  VMesh::Elem::iterator it, it_end;
+  mesh->begin(it);
+  mesh->end(it_end);
+  
+  while (it != it_end)
+  {
+    StackVector<double,3> grad;
+    ifield->gradient(grad,center,*it);
+      
+    Vector v(grad[0],grad[1],grad[2]);
+    field->set_value(v,*it);
+    ++it;
+  }
+  
+  // Store the data in the DataManager.
+  return dm->add_field(output);
+  //send_output_handle( "Output CalculateGradients", output,true);
 }
 
 } //end namespace SCIRun

@@ -64,6 +64,7 @@ public:
   virtual GeomHandle get_geom() = 0;
   virtual FieldHandle get_field(int n) = 0;
   virtual MatrixHandle get_interpolant(int n) = 0;
+  virtual MatrixHandle get_parent_cells(int n) = 0;
 
   //! support the dynamically compiled algorithm concept
   static const string& get_h_file_path();
@@ -83,7 +84,8 @@ protected:
   mesh_handle_type mesh_;
   GeomHandle geom_;
   vector<FieldHandle> output_field_;
-  vector<MatrixHandle> output_matrix_;
+  vector<MatrixHandle> output_interpolant_matrix_;
+  vector<MatrixHandle> output_parent_cell_matrix_;
 public:
   MarchingCubes() : mesh_(0) { tess_.resize( np_, 0 ); }
   virtual ~MarchingCubes() { release(); }
@@ -96,7 +98,9 @@ public:
   virtual FieldHandle get_field(int n)
   { ASSERT((unsigned int)n < output_field_.size()); return output_field_[n]; }
   virtual MatrixHandle get_interpolant(int n)
-  { ASSERT((unsigned int)n < output_matrix_.size()); return output_matrix_[n];}
+  { ASSERT((unsigned int)n < output_interpolant_matrix_.size()); return output_interpolant_matrix_[n];}
+  virtual MatrixHandle get_parent_cells(int n)
+  { ASSERT((unsigned int)n < output_parent_cell_matrix_.size()); return output_parent_cell_matrix_[n];}
 
   void parallel_search( int, double, bool field, bool geom, bool transparency);
 };
@@ -124,7 +128,8 @@ MarchingCubes<Tesselator>::set_np( int np )
     geom_ = 0;
   
   output_field_.resize(np);
-  output_matrix_.resize(np);
+  output_interpolant_matrix_.resize(np);
+  output_parent_cell_matrix_.resize(np);
 
   np_ = np;
 }  
@@ -179,12 +184,16 @@ MarchingCubes<Tesselator>::search( double iso, bool bf, bool bg, bool transparen
       geom_ = 0;
     }
   }
+
   output_field_.resize(np_);
-  output_matrix_.resize(np_);
+  output_interpolant_matrix_.resize(np_);
+  output_parent_cell_matrix_.resize(np_);
+
   for (int i = 0; i < np_; i++)
   {
-    output_field_[i] = tess_[i]->get_field(iso);
-    output_matrix_[i] = tess_[i]->get_interpolant();
+    output_field_[i] = (bf ? tess_[i]->get_field(iso) : 0 );
+    output_interpolant_matrix_[i] = (bf ? tess_[i]->get_interpolant() : 0 );
+    output_parent_cell_matrix_[i] = (bf ? tess_[i]->get_parent_cells() : 0 );
   }
 }
 

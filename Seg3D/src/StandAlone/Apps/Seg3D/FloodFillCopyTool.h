@@ -17,7 +17,7 @@ class Painter;
 class NrrdVolume;
 
   
-class FloodFillCopyTool : public ITKConnectedImageFilterTool
+class FloodFillCopyTool : public SeedTool
 {
 public:
   FloodFillCopyTool(Painter *painter);

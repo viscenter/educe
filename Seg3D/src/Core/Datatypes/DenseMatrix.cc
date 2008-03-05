@@ -43,6 +43,7 @@
 #include <Core/Exceptions/FileNotFound.h>
 #include <iostream>
 #include <vector>
+#include <float.h>
 
 #if defined(HAVE_LAPACK)
 #include <Core/Math/sci_lapack.h>
@@ -281,6 +282,24 @@ DenseMatrix::add(index_type r, index_type c, double d)
   data[r][c] += d;
 }
 
+
+double
+DenseMatrix::min()
+{
+  double min = DBL_MAX;
+  for (index_type k=0; k<nrows_*ncols_; k++)
+    if (dataptr_[k] < min) min = dataptr_[k];
+  return (min);
+}
+
+double
+DenseMatrix::max()
+{
+  double max = -DBL_MAX;
+  for (index_type k=0; k<nrows_*ncols_; k++)
+    if (dataptr_[k] > max) max = dataptr_[k];
+  return (max);
+}
 
 DenseMatrix *
 DenseMatrix::transpose() const

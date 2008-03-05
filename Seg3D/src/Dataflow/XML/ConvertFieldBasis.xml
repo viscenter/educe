@@ -46,32 +46,16 @@ field.
     <inputs lastportdynamic="no">
       <port>
         <name>Input</name>
- 	<description>
-          <p>
-            The field to be edited.
-          </p>
-        </description>
         <datatype>SCIRun::Field</datatype>
      </port>
     </inputs>
     <outputs>
       <port>
         <name>Output</name>
-        <description>
-          <p>
-            The edited field.
-          </p>
-        </description>
         <datatype>SCIRun::Field</datatype>
       </port>
       <port>
         <name>Mapping</name>
-        <description>
-          <p>
-            An interpolant matrix that maps the input locations on to
-the output locations.
-          </p>
-        </description>
         <datatype>SCIRun::Matrix</datatype>
       </port>
     </outputs>

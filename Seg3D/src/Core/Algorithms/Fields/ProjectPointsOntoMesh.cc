@@ -27,7 +27,7 @@
 */
 
 #include <Core/Algorithms/Fields/ProjectPointsOntoMesh.h>
-#include <Core/Algorithms/Fields/GetFieldBoundary.h>
+#include <Core/Algorithms/Fields/MeshDerivatives/GetFieldBoundary.h>
 
 namespace SCIRunAlgo {
 
@@ -88,9 +88,10 @@ bool ProjectPointsOntoMeshAlgo::ProjectPointsOntoMesh(ProgressReporter *pr,
   {
     objmesh->synchronize_locate();
     FieldHandle surffield;
-    MatrixHandle dummy;
+
     GetFieldBoundaryAlgo algo;
-    if(!(algo.GetFieldBoundary(pr,object,surffield,dummy)))
+    algo.set_progress_reporter(pr);
+    if(!(algo.run(object,surffield)))
     {
       pr->error("ProjectPointsOntoMesh: Could not compute boundary field");
       return (false);    

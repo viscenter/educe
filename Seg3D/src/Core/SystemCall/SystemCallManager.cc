@@ -212,6 +212,7 @@ void SystemCallManager::create()
     
     if (childpid_ == 0)
     {    // Child process
+        Thread::initialized = false;
     
         // Close the parent's pipes
         ::close(fd_tochild[1]);
@@ -225,7 +226,6 @@ void SystemCallManager::create()
         childmain();
         
         // Kill this process without exit
-        Thread::initialized = false;
         ::exit(0);
     }
     else

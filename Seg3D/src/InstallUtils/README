@@ -1,0 +1,21 @@
+If you want to build the Mac OSX app do the following:
+
+1. Get a copy of Platypus from here:
+   http://www.sveinbjorn.org/platypus#download
+
+   I've tested with 3.3 and 3.4.  3.3 doesn't work in the command line form, but
+   3.4 does.
+
+   After unpacking the zip file, open the Install Command Line Tool.app found in
+   "Platypus 3.4/Command Line Tool".  This will install it in /usr/local/bin.
+
+2. Configure CMAKE_INSTALL_PREFIX to point to somewhere where you can install
+   SCIRun.
+
+   Run "make install".
+
+3. For now you need to hand edit the buildApp.sh shell script to point to
+   CMAKE_INSTALL_PREFIX and SCIRUN_THIRDPARTY_DIR from your build directory.
+
+4. Run "./buildApp.cc"
+

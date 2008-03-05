@@ -33,6 +33,7 @@
 #include <Core/Geometry/BBox.h>
 #include <Core/Volume/VolumeRenderer.h>
 #include <Core/Math/MiscMath.h>
+#include <Core/Geom/GeomResourceManager.h>
 
 #include <sgi_stl_warnings_off.h>
 #include   <string>
@@ -61,6 +62,7 @@ VolumeRenderer::VolumeRenderer(Texture                    *tex,
   SLIVR::VolumeRenderer(tex, cmap1, cmap2, planes,  tex_mem),
   mutex_("SCIRun::VolumeRenderer mutex")
 {
+  set_pending_delete_texture_callback(GeomResourceManager::delete_texture_id);
 }
 
 VolumeRenderer::VolumeRenderer(const VolumeRenderer& copy) :

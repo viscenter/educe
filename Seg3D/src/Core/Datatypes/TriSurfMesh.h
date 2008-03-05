@@ -120,7 +120,7 @@ public:
     typedef NodeIndex<under_type>       index_type;
     typedef NodeIterator<under_type>    iterator;
     typedef NodeIndex<under_type>       size_type;
-    typedef StackVector<index_type, 4>  array_type;
+    typedef StackVector<index_type, 3>  array_type;
   };
 
   struct Edge {

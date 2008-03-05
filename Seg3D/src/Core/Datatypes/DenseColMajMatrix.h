@@ -88,6 +88,10 @@ public:
   virtual double  get(index_type r, index_type c) const;
   virtual void    put(index_type r, index_type c, double val);
   virtual void    add(index_type r, index_type c, double val);
+  
+  virtual double min();
+  virtual double max();
+    
   virtual void    getRowNonzerosNoCopy(index_type r, size_type &size, 
                                        size_type &stride,
                                        index_type *&cols, double *&vals);
