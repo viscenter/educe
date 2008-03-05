@@ -130,7 +130,8 @@ void CropVolCylinder::Init()
  */
 
 void CropVolCylinder::CreateControls()
-{    
+{   
+ 	/*	
 ////@begin CropVolCylinder content construction
     if (!wxXmlResource::Get()->LoadPanel(this, GetParent(), _T("ID_CROPVOLCYLINDER")))
         wxLogError(wxT("Missing wxXmlResource::Get()->Load() in OnInit()?"));
@@ -154,6 +155,7 @@ void CropVolCylinder::CreateControls()
     // Create custom windows not generated automatically here.
 ////@begin CropVolCylinder content initialisation
 ////@end CropVolCylinder content initialisation
+ */
 }
 
 void CropVolCylinder::OnCropSetMinMax( wxCommandEvent &event )

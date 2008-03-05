@@ -193,10 +193,12 @@ Seg3DFrame::Seg3DFrame(const std::string& target, wxFrame *frame,
   tools_sizer->Layout();
   
 	// new wx crop cylinder
+	/*
   cropCylinder_ = scinew CropVolCylinder(toolsPanel_);
   tools_sizer->Add(cropCylinder_, 0, 0, 0);
   tools_sizer->Show(cropCylinder_, false);
   tools_sizer->Layout();
+	*/
   
 	// new wx median filter volume
   medianFilterTool_ = scinew MedianFilterTool(toolsPanel_);
