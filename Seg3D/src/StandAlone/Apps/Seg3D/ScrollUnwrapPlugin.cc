@@ -10,15 +10,19 @@
 #include <itkCommand.h>
 #include <itkOtsuThresholdImageFilter.h>
 
+#include "highgui.h"
+
 SET_PLUGIN_VERSION;
 
 #define PI 3.14159
 #define TORAD 1.0/PI
 
-#define RADIAL_SAMPLES 360
+#define RADIAL_SAMPLES 720
 
 #define SOBEL_THRESH 100
-#define MAX_LAYERS 2
+#define MAX_LAYERS 7
+
+#define THICKNESS 9
 
 namespace SCIRun {
 
@@ -80,17 +84,33 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 
 		void radial_sample(int width, int height, char* data, char* ddata, IplImage *unwrapped, CvMat *plookup, int slice)
 		{
-			IplImage *cvcast = cvCreateImageHeader(cvSize(width, height),
-					IPL_DEPTH_8U, 1);
-			cvcast->imageData = data;
-			
-			IplImage *cvcastd = cvCreateImageHeader(cvSize(width, height),
-					IPL_DEPTH_8U, 1);
-			cvcastd->imageData = ddata;
+			IplImage *debug = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,3);
 
-			//cvSaveImage("slicem.png",cvcast);
-			//cvSaveImage("sliced.png",cvcastd);
-			int cx = width/2;
+			IplImage *cvcast = cvCreateImage(cvSize(width, height),
+					IPL_DEPTH_8U, 1);
+
+			for(int y = 0; y < height; y++) {
+				for(int x = 0; x < width; x++) {
+					cvSet2D(cvcast,y,x,cvScalarAll(data[y*width+x]));
+				}
+			}
+			// cvcast->imageData = data;
+			
+			IplImage *cvcastd = cvCreateImage(cvSize(width, height),
+					IPL_DEPTH_8U, 1);
+			for(int y = 0; y < height; y++) {
+				for(int x = 0; x < width; x++) {
+					cvSet2D(cvcastd,y,x,cvScalarAll(ddata[y*width+x]));
+				}
+			}
+			// cvcastd->imageData = ddata;
+
+			cvCvtColor(cvcastd, debug, CV_GRAY2BGR);
+			if(slice == 0) {
+			cvSaveImage("slicem.png",cvcast);
+			cvSaveImage("sliced.png",cvcastd);
+			}
+			int cx = 250; // width/2;
 			int cy = height/2;
 
 			CvPoint center = cvPoint(cx,cy);
@@ -98,7 +118,7 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 			unsigned char* linebuf;
 			unsigned char* dlinebuf;
 			for(int sample = 0; sample < RADIAL_SAMPLES; sample++) {
-				float theta = ((float)sample)*((2.0*PI)/(float)RADIAL_SAMPLES);
+				float theta = 0.785398163+((float)sample)*((2.0*PI)/(float)RADIAL_SAMPLES);
 				CvPoint outer = calc_ray_outer(theta, center);
 
 				// printf("%g:\t%d,%d\n", theta*(180.0/PI), outer.x, outer.y);
@@ -111,6 +131,7 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 				cvSampleLine(cvcast,outer,center,linebuf,4);
 				
 				CvLineIterator curline;
+				cvInitLineIterator(cvcast,outer,center,&curline,4);
 				
 				cvSampleLine(cvcastd,outer,center,dlinebuf,4);
 				
@@ -125,18 +146,18 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 				cvSobel(castline, sobel, 1, 0, 3);
 				*/
 
+				cvLine(debug,center,outer,cvScalarAll(((float)sample/(float)RADIAL_SAMPLES)*255.0));
 				int layer = 0;
 				for(int i = 0; (i < linesize) && (layer < MAX_LAYERS); i++) {
-					cvInitLineIterator(cvcast,outer,center,&curline,4);
 					// printf(" %d (%d)\n", (int)cvGetReal1D(castline,i),i);
 					if((int)cvGetReal1D(castline,i) > 0) {
 						int max = 0, max_i = 0;
 						int min = 255, min_i = 0;
 						int j = i;
-						i -= 2;
+						// i -= 2;
 						i = i < 0 ? 0 : i;
-						for(; (i < linesize) && (j < linesize); i++, j++) {
-							int maskval = (int)cvGetReal1D(castline,j);
+						for(; (i < linesize) && ((i-j) < THICKNESS); i++) {
+							int maskval = (int)cvGetReal1D(castline,i);
 							int curval = (int)cvGetReal1D(dcastline,i);
 							if(maskval == 0) break;
 							if(curval > max) {
@@ -148,8 +169,8 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 								min_i = i;
 							}
 						}
-						CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,max_i);
-						// printf("T: %g, d: %d - %d,%d\n",theta,max_i,sampledpoint.x,sampledpoint.y);
+						CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,/*max_i*/i+((i-j)/2));
+						//printf("T: %g, d: %d - %d,%d\n",theta,max_i,sampledpoint.x,sampledpoint.y);
 						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+0] = sampledpoint.x;
 						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+1] = sampledpoint.y;
 						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+2] = slice;
@@ -163,8 +184,13 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 						*/
 						// printf("%d\t",max);
 						layer++;
+						// i = j + THICKNESS;
+						
 						while((i < linesize) && ((int)cvGetReal1D(castline,i)>0))
 							i++;
+							
+
+						cvSet2D(debug,sampledpoint.y,sampledpoint.x,cvScalar(0,0,255));
 					}
 				}
 				// printf("\n");
@@ -182,8 +208,11 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 				free(linebuf);
 				free(dlinebuf);
 			}
-			cvReleaseImageHeader(&cvcast);
-			cvReleaseImageHeader(&cvcastd);
+			if(slice == 0)
+			cvSaveImage("sampled.png",debug);
+			cvReleaseImage(&cvcast);
+			cvReleaseImage(&cvcastd);
+			cvReleaseImage(&debug);
 		}
 		virtual void run_filter() {	
 			printf("Scroll Unwrapping run\n");
@@ -250,6 +279,8 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 			IplImage *unwrapped = cvCreateImage(cvSize(RADIAL_SAMPLES*MAX_LAYERS, slices), IPL_DEPTH_8U, 1);
 			CvMat *plookup = cvCreateMat(slices,RADIAL_SAMPLES*MAX_LAYERS,CV_32SC3);
 	
+			printf("Mquantized type: %d\n", mquantized->type);
+
 			for(int i = 0; i < (slices-1); i++) {
 				// printf("Sampling %d\n",i);
 				radial_sample(width, height, ((char*)(mquantized->data))+(width * height * i), ((char*)(dquantized->data))+(width * height * i), unwrapped, plookup, i);

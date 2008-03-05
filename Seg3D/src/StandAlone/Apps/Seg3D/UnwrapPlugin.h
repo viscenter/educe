@@ -76,6 +76,7 @@ namespace SCIRun {
 					IPL_DEPTH_8U, 1);
 
 				for(int y = 0; y < cvIm->height; y++) {
+					// printf("Line %d\n",y);
 					for(int x = 0; x < cvIm->width; x++) {
 						/*
 						CvScalar lup = cvGet2D(cvIm,y,x);
@@ -88,10 +89,10 @@ namespace SCIRun {
 						int sy = cvIm->data.i[y*3*cvIm->width+x*3+1];
 						int sz = cvIm->data.i[y*3*cvIm->width+x*3+2];
 
-						cvcast->imageData = ((char*)(curnrrd->data))+(width * height * sz);
+						// cvcast->imageData = ((char*)(curnrrd->data))+(width * height * sz);
 						cvSet2D(myIm,y,x,
-							cvScalarAll(cvGetReal2D(cvcast,sy,sx))
-							// cvScalarAll(nrrdlup(curnrrd->data,sz*(width*height)+sy*width+sx))
+							// cvScalarAll(cvGetReal2D(cvcast,sy,sx))
+							cvScalarAll(nrrdlup(curnrrd->data,sz*(width*height)+sy*width+sx))
 									);
 
 						/*
