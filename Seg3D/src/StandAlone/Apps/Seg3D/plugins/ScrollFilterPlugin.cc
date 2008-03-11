@@ -1,4 +1,4 @@
-#include "FilterPlugin.h"
+#include <StandAlone/Apps/Seg3D/FilterPlugin.h>
  
 #include <sci_defs/insight_defs.h>
 

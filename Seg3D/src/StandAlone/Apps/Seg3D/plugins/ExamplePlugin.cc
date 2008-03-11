@@ -1,4 +1,4 @@
-#include "GenericPlugin.h"
+#include <StandAlone/Apps/Seg3D/GenericPlugin.h>
 #include <iostream>
 
 SET_PLUGIN_VERSION;
