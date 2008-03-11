@@ -16,6 +16,7 @@ SET(PLUGIN_SOURCES
 	ScrollFilterPlugin
 	ScrollUnwrapPlugin
 	UnwrapSection
+	CombineMaskXOR
 )
 
 FOREACH(source ${PLUGIN_SOURCES})
