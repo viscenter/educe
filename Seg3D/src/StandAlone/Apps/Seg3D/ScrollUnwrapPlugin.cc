@@ -278,6 +278,7 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 
 			IplImage *unwrapped = cvCreateImage(cvSize(RADIAL_SAMPLES*MAX_LAYERS, slices), IPL_DEPTH_8U, 1);
 			CvMat *plookup = cvCreateMat(slices,RADIAL_SAMPLES*MAX_LAYERS,CV_32SC3);
+			cvSet(plookup,cvScalarAll(0));
 	
 			printf("Mquantized type: %d\n", mquantized->type);
 
