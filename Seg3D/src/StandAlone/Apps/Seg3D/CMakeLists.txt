@@ -217,6 +217,11 @@ ADD_CUSTOM_COMMAND(TARGET Seg3D
                    COMMAND mkdir
                    ARGS -p ${DATA_PATH})
 
+ADD_CUSTOM_COMMAND(TARGET Seg3D
+                   POST_BUILD
+                   COMMAND mkdir
+                   ARGS -p ${DATA_PATH}/plugins)
+
 #IF(NOT WIN32)
 #
 #ADD_CUSTOM_COMMAND(TARGET Seg3D
