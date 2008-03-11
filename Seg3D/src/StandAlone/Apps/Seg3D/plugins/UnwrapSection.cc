@@ -17,7 +17,7 @@ SET_PLUGIN_VERSION;
 #define PI 3.14159
 #define TORAD 1.0/PI
 
-#define RADIAL_SAMPLES 720
+#define RADIAL_SAMPLES (720*2)
 
 #define SOBEL_THRESH 100
 #define MAX_LAYERS 1
@@ -26,10 +26,10 @@ SET_PLUGIN_VERSION;
 
 namespace SCIRun {
 
-class UnwrapSectionPlugin : public UnwrapPlugin {
+class ScrollUnwrapPlugin : public UnwrapPlugin {
 	public:
 		virtual std::string get_menu_string() const {
-			return "Unwrap Section";
+			return "Scroll Unwrapping";
 		}
 		virtual void menu_event() const {
 			// printf("Hello from ExampleUnwrapPlugin\n");
@@ -82,10 +82,8 @@ class UnwrapSectionPlugin : public UnwrapPlugin {
 			return result;
 		}
 
-		void radial_sample(int width, int height, char* data, CvMat *plookup, int slice)
+		void radial_sample(int width, int height, label_type* data, float* ddata, CvMat *plookup, int slice)
 		{
-			IplImage *debug = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,3);
-
 			IplImage *cvcast = cvCreateImage(cvSize(width, height),
 					IPL_DEPTH_8U, 1);
 
@@ -95,76 +93,29 @@ class UnwrapSectionPlugin : public UnwrapPlugin {
 				}
 			}
 			
-			cvCvtColor(cvcast, debug, CV_GRAY2BGR);
+			//IplImage *cvcastd = cvCreateImage(cvSize(width, height),
+			//		IPL_DEPTH_8U, 1);
 			
-			if(slice == 0) {
-				cvSaveImage("slicem.png",cvcast);
+			CvMat *cvcastd = cvCreateMat(height,width,CV_32FC1);
+			for(int y = 0; y < height; y++) {
+				for(int x = 0; x < width; x++) {
+					cvSet2D(cvcastd,y,x,cvScalarAll(ddata[y*width+x]));
+				}
 			}
 
-			int cx = width/2; // 250; 
+			if(slice == 0) {
+			cvSaveImage("slicem.png",cvcast);
+			// cvSaveImage("sliced.png",cvcastd);
+			}
+			int cx = width/2;
 			int cy = height/2;
 
 			CvPoint center = cvPoint(cx,cy);
 
 			unsigned char* linebuf;
-		
-			/*
-			static float label_tmin = -1.0, label_tmax = -1.0;
-			if(label_tmin == -1.0) {
-				int start_inside = 0;
-				label_tmin = 2.0 * PI;
-				label_tmax = 0.0;
-				// sweep the label to see where it begins and ends
-				for(int sample = 0; sample < 360; sample++) {
-					float theta = ((float)sample)*((2.0*PI)/360.0);
-					
-					CvPoint outer = calc_ray_outer(theta, center);
-
-					cvClipLine(cvSize(width, height), &outer, &center);
-					int linesize = abs(center.x-outer.x)+abs(center.y-outer.y)+1;
-					
-					linebuf = (unsigned char*)malloc(linesize);
-
-					cvSampleLine(cvcast,outer,center,linebuf,4);
-
-					IplImage *castline = cvCreateImageHeader(cvSize(linesize,1), IPL_DEPTH_8U, 1);
-					castline->imageData = (char*)linebuf;
-
-					for(int i = 0; (i < linesize); i++) {
-						if((int)cvGetReal1D(castline,i) > 0) {
-							if(sample == 0) {
-							 start_inside = 1;
-							}
-							if(start_inside) {
-								if(start_inside == 1) {
-									label_tmax = theta > label_tmax ? theta : label_tmax;
-								}
-								else if(start_inside == 2) {
-									label_tmin = theta;
-									start_inside = 3;
-								}
-							}
-							else {
-								label_tmin = theta < label_tmin ? theta : label_tmin;
-								label_tmax = theta > label_tmax ? theta : label_tmax;
-							}
-						}
-						else if(start_inside == 1) {
-							start_inside = 2;
-						}
-					}
-					cvReleaseImage(&castline);
-				}
-				if(start_inside) {
-					label_tmax += 2.0 * PI;
-				}
-				printf("min: %g\tmax: %g\n",label_tmin,label_tmax);
-			}
-			*/
-
+			float* dlinebuf;
 			for(int sample = 0; sample < RADIAL_SAMPLES; sample++) {
-				float theta = PI+((float)sample)*((2.0*PI)/(float)RADIAL_SAMPLES);
-			//float theta = label_tmin+((float)sample)*((label_tmax-label_tmin)/(float)RADIAL_SAMPLES);
+				float theta = 0.785398163+((float)sample)*((2.0*PI)/(float)RADIAL_SAMPLES);
 				CvPoint outer = calc_ray_outer(theta, center);
 
 				// printf("%g:\t%d,%d\n", theta*(180.0/PI), outer.x, outer.y);
@@ -172,58 +123,59 @@ class UnwrapSectionPlugin : public UnwrapPlugin {
 				int linesize = abs(center.x-outer.x)+abs(center.y-outer.y)+1;
 				
 				linebuf = (unsigned char*)malloc(linesize);
+				dlinebuf = (float*)malloc(sizeof(float)*linesize);
 				
 				cvSampleLine(cvcast,outer,center,linebuf,4);
 				
 				CvLineIterator curline;
-				cvInitLineIterator(cvcast,outer,center,&curline,4);
+				
+				cvSampleLine(cvcastd,outer,center,dlinebuf,4);
 				
 				IplImage *castline = cvCreateImageHeader(cvSize(linesize,1), IPL_DEPTH_8U, 1);
 				castline->imageData = (char*)linebuf;
 
-				cvLine(debug,center,outer,cvScalarAll(((float)sample/(float)RADIAL_SAMPLES)*255.0));
 				int layer = 0;
 				for(int i = 0; (i < linesize) && (layer < MAX_LAYERS); i++) {
-					// printf(" %d (%d)\n", (int)cvGetReal1D(castline,i),i);
 					if((int)cvGetReal1D(castline,i) > 0) {
-						int max = 0, max_i = 0;
+						cvInitLineIterator(cvcast,outer,center,&curline,4);
+						float max = 0;
+						int	max_i = 0;
 						int min = 255, min_i = 0;
 						int j = i;
-						for(; (i < linesize); i++) {
+						for(; (i < linesize) && ((i-j) < THICKNESS); i++) {
 							int maskval = (int)cvGetReal1D(castline,i);
+							float curval = dlinebuf[i];
 							if(maskval == 0) break;
-							max_i++;
+							if(curval > max) {
+								max = curval;
+								max_i = i;
+							}
+							if(curval < min) {
+								min = (int)curval;
+								min_i = i;
+							}
 						}
-						CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,/*max_i*/j+(max_i/2));
-						// printf("T: %g, d: %d - %d,%d\n",theta,max_i,sampledpoint.x,sampledpoint.y);
+						CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,j+((i-j)/2));
+						//printf("T: %g, d: %d - %d,%d\n",theta,max_i,sampledpoint.x,sampledpoint.y);
 						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+0] = sampledpoint.x;
 						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+1] = sampledpoint.y;
 						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+2] = slice;
+						//cvSet2D(plookup,slice,(layer*RADIAL_SAMPLES)+sample,cvScalar(0,0,slice));
+						
 						layer++;
+						// i = j + THICKNESS;
 						
 						while((i < linesize) && ((int)cvGetReal1D(castline,i)>0))
 							i++;
-						
-						cvSet2D(debug,sampledpoint.y,sampledpoint.x,cvScalar(0,0,255));
 					}
 				}
-				// printf("\n");
-			
-				/*	
-				char filename[] = "line000.png";
-				sprintf(filename,"line%03d.png",(int)(theta*(180.0/PI)));
-				cvSaveImage(filename,sobel);
-				*/
-
 				cvReleaseImageHeader(&castline);
-				// cvReleaseImage(&sobel);
 
 				free(linebuf);
+				free(dlinebuf);
 			}
-			if(slice == 0) cvSaveImage("sampled.png",debug);
-
 			cvReleaseImage(&cvcast);
-			cvReleaseImage(&debug);
+			cvReleaseMat(&cvcastd);
 		}
 		virtual void run_filter() {	
 			printf("Scroll Unwrapping run\n");
@@ -232,6 +184,7 @@ class UnwrapSectionPlugin : public UnwrapPlugin {
 
 			NrrdDataHandle source_label = painter_->mask_volume_->nrrd_handle_;
 			NrrdDataHandle source_data = painter_->current_volume_->nrrd_handle_;
+
 
 			const label_type mlabel = painter_->mask_volume_->label_;
 
@@ -242,62 +195,30 @@ class UnwrapSectionPlugin : public UnwrapPlugin {
 			ASSERT(source_data->nrrd_->type == nrrdTypeFloat);
 			ASSERT(source_label->nrrd_->type == LabelNrrdType);
 
-
-			NrrdDataHandle masked = VolumeOps::create_clear_nrrd(source_data,
-					nrrdTypeFloat);
-
-			float *dst = (float*)masked->nrrd_->data;
-			float *src = (float*)source_data->nrrd_->data;
 			label_type *labeld = (label_type*)source_label->nrrd_->data;
-			for(size_t i = 0; i < datasize; ++i, ++dst, ++labeld, ++src) {
-				if((*labeld & mlabel)) {
-					*dst = *src;
-				}
-			}
+			float *srcd = (float*)source_data->nrrd_->data;
 			
-			painter_->update_progress(25);
-
-			printf("Axis dimensions: %d x %d x %d\n",masked->nrrd_->axis[1].size,
-					masked->nrrd_->axis[2].size,masked->nrrd_->axis[3].size);
-
-			NrrdRange *range = nrrdRangeNewSet(masked->nrrd_,0);
-			printf("min: %g\tmax: %g\n", range->min, range->max);
-			Nrrd *mquantized = nrrdNew();
-			
-			printf("Quantizing mask\n");
-			nrrdQuantize(mquantized,masked->nrrd_,range,8);
-			printf("Done quantizing mask\n");
-
-			nrrdRangeNix(range);
-
-			painter_->update_progress(50);
-
-			int width = mquantized->axis[1].size,
-				height = mquantized->axis[2].size,
-				slices = mquantized->axis[3].size;
+			int width = source_data->nrrd_->axis[1].size,
+				height = source_data->nrrd_->axis[2].size,
+				slices = source_data->nrrd_->axis[3].size;
 
 			CvMat *plookup = cvCreateMat(slices,RADIAL_SAMPLES*MAX_LAYERS,CV_32SC3);
-			cvSet(plookup, cvScalarAll(0));
+			cvSet(plookup,cvScalarAll(0));
 	
-			printf("Mquantized type: %d\n", mquantized->type);
-
 			for(int i = 0; i < (slices-1); i++) {
-				// printf("Sampling %d\n",i);
-				radial_sample(width, height, ((char*)(mquantized->data))+(width * height * i), plookup, i);
+				radial_sample(width, height, labeld+(width * height * i), srcd+(width * height * i), plookup, i);
 				painter_->update_progress((int)(((float)i/(float)slices)*100));
 			}
 
 			struct Unwrapping *unwrapping = (struct Unwrapping*)malloc(sizeof(struct Unwrapping));
 			unwrapping->point_lookup = plookup;
-			unwrapping->referenced_volume = painter_->current_volume_->nrrd_handle_->nrrd_;
+			unwrapping->referenced_volume = source_data->nrrd_;
 
 			printf("Ref vol head: %x\n",*(unwrapping->referenced_volume));
 
 			init_window(unwrapping);
 			printf("Init'd win\n");
-
-			nrrdNuke(mquantized);
-
+			
 			painter_->update_progress(100);
 			painter_->extract_all_window_slices();
 			painter_->redraw_all();
@@ -306,7 +227,7 @@ class UnwrapSectionPlugin : public UnwrapPlugin {
 		}
 };
 
-EXPORT_CREATE_FUNCTION(UnwrapPlugin, UnwrapSectionPlugin)
-EXPORT_DELETE_FUNCTION(UnwrapPlugin, UnwrapSectionPlugin)
+EXPORT_CREATE_FUNCTION(UnwrapPlugin, ScrollUnwrapPlugin)
+EXPORT_DELETE_FUNCTION(UnwrapPlugin, ScrollUnwrapPlugin)
 
 }
