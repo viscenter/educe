@@ -87,7 +87,7 @@ ENDIF(WIN32)
 
 SET(Seg3D_SRCS 
   main.cc
-  plugins.cc
+  PluginManager.cc
 	AutoviewTool.cc 
   BrushTool.cc 
   BrushFloodFill.cc 
