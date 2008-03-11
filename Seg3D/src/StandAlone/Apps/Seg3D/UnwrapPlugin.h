@@ -37,24 +37,8 @@ namespace SCIRun {
 			void set_image(Unwrapping * unwrapped) {
 				CvMat * cvIm = unwrapped->point_lookup; 
 				vol_lookup = cvIm;
-				/*
-				IplImage * test = cvCreateImage(cvSize(1000,1000), 8, 3);
-
-				cvSet(test, cvScalar(128));
-				*/
 
 				IplImage * myIm = cvCreateImage(cvSize(cvIm->width,cvIm->height),8,3);
-
-				/*
-				if(cvIm->nChannels == 3) {
-					myIm = cvIm;
-				}
-				else {
-					printf("Size: %d %d\n",cvIm->width,cvIm->height);
-					myIm = cvCreateImage(cvSize(cvIm->width,cvIm->height),8,3);
-					cvCvtColor(cvIm, myIm, CV_GRAY2BGR);
-				}
-				*/
 
 				NrrdRange *range = nrrdRangeNewSet(unwrapped->referenced_volume,0);
 				printf("min: %g\tmax: %g\n", range->min, range->max);
@@ -76,33 +60,14 @@ namespace SCIRun {
 					IPL_DEPTH_8U, 1);
 
 				for(int y = 0; y < cvIm->height; y++) {
-					// printf("Line %d\n",y);
 					for(int x = 0; x < cvIm->width; x++) {
-						/*
-						CvScalar lup = cvGet2D(cvIm,y,x);
-						int sx = (int)lup.val[0];
-						int sy = (int)lup.val[1];
-						int sz = (int)lup.val[2];
-						*/
-
 						int sx = cvIm->data.i[y*3*cvIm->width+x*3+0];
 						int sy = cvIm->data.i[y*3*cvIm->width+x*3+1];
 						int sz = cvIm->data.i[y*3*cvIm->width+x*3+2];
 
-						// cvcast->imageData = ((char*)(curnrrd->data))+(width * height * sz);
 						cvSet2D(myIm,y,x,
-							// cvScalarAll(cvGetReal2D(cvcast,sy,sx))
 							cvScalarAll(nrrdlup(curnrrd->data,sz*(width*height)+sy*width+sx))
 									);
-
-						/*
-						if((y == 230) && (x == 420)) {
-							printf("Shown val at %d,%d,%d: %d\n",sx,sy,sz,
-									cvGetReal2D(cvcast,sy,sx)
-									//nrrdlup(curnrrd->data,sz*(width*height)+sy*width+sx)
-									);
-						}
-						*/
 					}
 				}
 
