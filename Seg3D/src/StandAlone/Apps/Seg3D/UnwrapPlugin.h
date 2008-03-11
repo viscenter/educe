@@ -42,22 +42,19 @@ namespace SCIRun {
 
 				NrrdRange *range = nrrdRangeNewSet(unwrapped->referenced_volume,0);
 				printf("min: %g\tmax: %g\n", range->min, range->max);
-				Nrrd *curnrrd = nrrdNew();
 			
 				printf("Ref vol head: %x\n",*(unwrapped->referenced_volume));
 			
-				nrrdQuantize(curnrrd,unwrapped->referenced_volume,range,8);
+				int width = unwrapped->referenced_volume->axis[1].size,
+				height = unwrapped->referenced_volume->axis[2].size,
+				slices = unwrapped->referenced_volume->axis[3].size;
 
-				nrrdRangeNix(range);
-
-				int width = curnrrd->axis[1].size,
-				height = curnrrd->axis[2].size,
-				slices = curnrrd->axis[3].size;
-
-				int (*nrrdlup)(const void *, size_t I) = nrrdILookup[curnrrd->type];
+				double (*nrrdlup)(const void *, size_t I) = nrrdDLookup[unwrapped->referenced_volume->type];
 
 				IplImage *cvcast = cvCreateImageHeader(cvSize(width, height),
 					IPL_DEPTH_8U, 1);
+
+				double min = range->min, max = range->max;
 
 				for(int y = 0; y < cvIm->height; y++) {
 					for(int x = 0; x < cvIm->width; x++) {
@@ -65,16 +62,25 @@ namespace SCIRun {
 						int sy = cvIm->data.i[y*3*cvIm->width+x*3+1];
 						int sz = cvIm->data.i[y*3*cvIm->width+x*3+2];
 
+						// taken from airIndex, from nrrdQuantize
+						unsigned int idx = 
+								(unsigned int)((double)(1<<8)*
+										(nrrdlup(unwrapped->referenced_volume->data,
+											sz*(width*height)+sy*width+sx)-min)/(max-min)
+										);
+						idx -= (idx == (1<<8));
+
 						cvSet2D(myIm,y,x,
-							cvScalarAll(nrrdlup(curnrrd->data,sz*(width*height)+sy*width+sx))
-									);
+							cvScalarAll(idx)
+						);
 					}
 				}
+				
+				nrrdRangeNix(range);
 
 				cvReleaseImageHeader(&cvcast);
 
 				cvSaveImage("unwrapped-shown.png",myIm);
-				nrrdNuke(curnrrd);
 
 				unsigned char * rawData;
 				int step = 0;
