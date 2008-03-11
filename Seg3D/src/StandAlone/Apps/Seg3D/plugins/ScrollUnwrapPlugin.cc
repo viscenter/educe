@@ -157,7 +157,6 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 							}
 						}
 						CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,j+((i-j)/2));
-						printf("%d-%d (%d): %d\n",j,i,max_i,j+((i-j)/2));
 						//printf("T: %g, d: %d - %d,%d\n",theta,max_i,sampledpoint.x,sampledpoint.y);
 						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+0] = sampledpoint.x;
 						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+1] = sampledpoint.y;
