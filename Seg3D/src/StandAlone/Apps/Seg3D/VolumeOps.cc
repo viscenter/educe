@@ -223,7 +223,8 @@ VolumeOps::bit_xor(NrrdDataHandle &dnrrd, unsigned int dbit,
   label_type *src2 = (label_type *)snrrd2->nrrd_->data;
   label_type *dst = (label_type *)dnrrd->nrrd_->data;
   for (size_t i = 0; i < dsize; ++i, ++dst, ++src1, ++src2) {
-    if (((*src1) & sbit1) != ((*src2) & sbit2)) { *dst |= dbit; }
+    if ((((*src1) & sbit1) || ((*src2) & sbit2))
+      && !(((*src1) & sbit1) && ((*src2) & sbit2))) { *dst |= dbit; }
     else { *dst &= ~dbit; }
   }
 }
