@@ -74,9 +74,6 @@ namespace SCIRun {
 
 				double (*nrrdlup)(const void *, size_t I) = nrrdDLookup[unwrapped->referenced_volume->type];
 
-				IplImage *cvcast = cvCreateImageHeader(cvSize(width, height),
-					IPL_DEPTH_8U, 1);
-
 				double min = range->min, max = range->max;
 
 				printf("Trying %d\n",unwrap_pos);
@@ -100,11 +97,7 @@ namespace SCIRun {
 					}
 				}
 				
-				// nrrdRangeNix(range);
-
-				cvReleaseImageHeader(&cvcast);
-
-				cvSaveImage("unwrapped-shown.png",myIm);
+				// cvSaveImage("unwrapped-shown.png",myIm);
 
 				unsigned char * rawData;
 				int step = 0;
