@@ -35,6 +35,12 @@ namespace SCIRun {
 			UnwrappedView(wxWindow * parent) : wxScrolledWindow(parent) {
 				range = NULL;
 			}
+			~UnwrappedView() {
+				printf("UnwrappedView destructor called\n");
+				cvReleaseMat(&vol_lookup);
+				nrrdRangeNix(range);
+				free(unwrapped);
+			}
 			void OnDraw(wxDC& dc) {
 				dc.DrawBitmap(bmap, 0, 0, false);
 			}
