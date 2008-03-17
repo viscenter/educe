@@ -27,7 +27,7 @@ namespace SCIRun {
 	class UnwrappedView : public wxScrolledWindow {
 		public:	
 			wxBitmap bmap;
-			Unwrapping * uwrap;
+			Unwrapping * unwrapped;
 			CvMat * vol_lookup;
 			int unwrap_pos;
 
@@ -39,8 +39,10 @@ namespace SCIRun {
 				SetScrollbars(1,1,bmap.GetWidth(),bmap.GetHeight(),0,0,true);
 				Refresh();
 			}
-			void set_image(Unwrapping * unwrapped, int position = -1) {
-				uwrap = unwrapped;
+			void set_image(Unwrapping * uwrap, int position = -1) {
+				if(uwrap != NULL) {
+					unwrapped = uwrap;
+				}
 				if(position == -1) {
 					position = unwrapped->num_unwraps/2;
 				}
@@ -115,9 +117,9 @@ namespace SCIRun {
 							(x < vol_lookup->width) && (y < vol_lookup->height)) {
 						// printf("Location: %d, %d\n",x,y);
 						//CvScalar lup = cvGet2D(vol_lookup,event.GetY(),event.GetX());
-						int xx = vol_lookup->data.i[(unwrap_pos*3*vol_lookup->width*uwrap->num_slices)+y*3*vol_lookup->width+x*3+0];
-						int yy = vol_lookup->data.i[(unwrap_pos*3*vol_lookup->width*uwrap->num_slices)+y*3*vol_lookup->width+x*3+1];
-						int zz = vol_lookup->data.i[(unwrap_pos*3*vol_lookup->width*uwrap->num_slices)+y*3*vol_lookup->width+x*3+2];
+						int xx = vol_lookup->data.i[(unwrap_pos*3*vol_lookup->width*unwrapped->num_slices)+y*3*vol_lookup->width+x*3+0];
+						int yy = vol_lookup->data.i[(unwrap_pos*3*vol_lookup->width*unwrapped->num_slices)+y*3*vol_lookup->width+x*3+1];
+						int zz = vol_lookup->data.i[(unwrap_pos*3*vol_lookup->width*unwrapped->num_slices)+y*3*vol_lookup->width+x*3+2];
 
 						/*
 						printf("LUP: %d, %d, %d\n",
@@ -150,17 +152,16 @@ namespace SCIRun {
 	
 	class UnwrappedSlider : public wxSlider {
 		public:
-			Unwrapping unwrapped;
 			UnwrappedView * scroll;
 
 			UnwrappedSlider(wxWindow * parent) : wxSlider(parent,-1,0,0,1, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LEFT | wxSL_LABELS) {}
-			void set_unwrapping(Unwrapping * uwrapped) {
-				unwrapped = *uwrapped;
-				SetRange(0,unwrapped.num_unwraps-1);
-				SetValue(unwrapped.num_unwraps/2);
+			void set_scroll(UnwrappedView * scr) {
+				scroll = scr;
+				SetRange(0,(scroll->unwrapped->num_unwraps)-1);
+				SetValue((scroll->unwrapped->num_unwraps)/2);
 			}
 			void OnChange(wxScrollEvent& event) {
-				scroll->set_image(&unwrapped, GetValue());
+				scroll->set_image(NULL, GetValue());
 			}
 		private:
 			DECLARE_EVENT_TABLE();
