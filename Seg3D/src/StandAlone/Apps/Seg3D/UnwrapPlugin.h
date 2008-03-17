@@ -30,8 +30,11 @@ namespace SCIRun {
 			Unwrapping * unwrapped;
 			CvMat * vol_lookup;
 			int unwrap_pos;
+			NrrdRange *range;
 
-			UnwrappedView(wxWindow * parent) : wxScrolledWindow(parent) {}	
+			UnwrappedView(wxWindow * parent) : wxScrolledWindow(parent) {
+				range = NULL;
+			}
 			void OnDraw(wxDC& dc) {
 				dc.DrawBitmap(bmap, 0, 0, false);
 			}
@@ -52,8 +55,10 @@ namespace SCIRun {
 
 				IplImage * myIm = cvCreateImage(cvSize(cvIm->width,unwrapped->num_slices),8,3);
 
-				NrrdRange *range = nrrdRangeNewSet(unwrapped->referenced_volume,0);
-				printf("min: %g\tmax: %g\n", range->min, range->max);
+				if(range == NULL) {
+					range = nrrdRangeNewSet(unwrapped->referenced_volume,0);
+					printf("min: %g\tmax: %g\n", range->min, range->max);
+				}
 			
 				printf("Ref vol head: %x\n",*(unwrapped->referenced_volume));
 			
@@ -89,7 +94,7 @@ namespace SCIRun {
 					}
 				}
 				
-				nrrdRangeNix(range);
+				// nrrdRangeNix(range);
 
 				cvReleaseImageHeader(&cvcast);
 
