@@ -526,6 +526,8 @@ Seg3DFrame::OnUnwrapWindow(wxCommandEvent &event)
 	UnwrapPluginWindow * unwrap_win = new UnwrapPluginWindow(_T("Unwrapped View"), Painter::global_seg3dframe_pointer_,
 		wxDefaultPosition, wxDefaultSize);
 	unwrap_win->scroll->set_image((Unwrapping*)event.GetClientData());
+	unwrap_win->slide->scroll = unwrap_win->scroll;
+	unwrap_win->slide->set_unwrapping((Unwrapping*)event.GetClientData());
 	unwrap_win->Show(true);
 }
 

@@ -15,6 +15,7 @@ SET(PLUGIN_SOURCES
 	PushSegmentationDown
 	ScrollFilterPlugin
 	ScrollUnwrapPlugin
+	ScrollUnwrapMultiPlugin
 	UnwrapSection
 	CombineMaskXOR
 )

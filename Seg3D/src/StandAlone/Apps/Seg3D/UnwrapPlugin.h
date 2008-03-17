@@ -19,13 +19,18 @@ namespace SCIRun {
 
 	struct Unwrapping  {
 		CvMat * point_lookup;
+		unsigned int num_unwraps;
+		unsigned int num_slices;
 		Nrrd * referenced_volume;
 	};
 
 	class UnwrappedView : public wxScrolledWindow {
 		public:	
 			wxBitmap bmap;
+			Unwrapping * uwrap;
 			CvMat * vol_lookup;
+			int unwrap_pos;
+
 			UnwrappedView(wxWindow * parent) : wxScrolledWindow(parent) {}	
 			void OnDraw(wxDC& dc) {
 				dc.DrawBitmap(bmap, 0, 0, false);
@@ -34,11 +39,16 @@ namespace SCIRun {
 				SetScrollbars(1,1,bmap.GetWidth(),bmap.GetHeight(),0,0,true);
 				Refresh();
 			}
-			void set_image(Unwrapping * unwrapped) {
+			void set_image(Unwrapping * unwrapped, int position = -1) {
+				uwrap = unwrapped;
+				if(position == -1) {
+					position = unwrapped->num_unwraps/2;
+				}
+				unwrap_pos = (position >= 0) && (position < unwrapped->num_unwraps) ? position : 0;
 				CvMat * cvIm = unwrapped->point_lookup; 
 				vol_lookup = cvIm;
 
-				IplImage * myIm = cvCreateImage(cvSize(cvIm->width,cvIm->height),8,3);
+				IplImage * myIm = cvCreateImage(cvSize(cvIm->width,unwrapped->num_slices),8,3);
 
 				NrrdRange *range = nrrdRangeNewSet(unwrapped->referenced_volume,0);
 				printf("min: %g\tmax: %g\n", range->min, range->max);
@@ -56,11 +66,12 @@ namespace SCIRun {
 
 				double min = range->min, max = range->max;
 
-				for(int y = 0; y < cvIm->height; y++) {
+				printf("Trying %d\n",unwrap_pos);
+				for(int y = 0; y < unwrapped->num_slices /*cvIm->height*/; y++) {
 					for(int x = 0; x < cvIm->width; x++) {
-						int sx = cvIm->data.i[y*3*cvIm->width+x*3+0];
-						int sy = cvIm->data.i[y*3*cvIm->width+x*3+1];
-						int sz = cvIm->data.i[y*3*cvIm->width+x*3+2];
+						int sx = cvIm->data.i[(unwrap_pos*3*cvIm->width*unwrapped->num_slices)+y*3*cvIm->width+x*3+0];
+						int sy = cvIm->data.i[(unwrap_pos*3*cvIm->width*unwrapped->num_slices)+y*3*cvIm->width+x*3+1];
+						int sz = cvIm->data.i[(unwrap_pos*3*cvIm->width*unwrapped->num_slices)+y*3*cvIm->width+x*3+2];
 
 						// taken from airIndex, from nrrdQuantize
 						unsigned int idx = 
@@ -104,9 +115,9 @@ namespace SCIRun {
 							(x < vol_lookup->width) && (y < vol_lookup->height)) {
 						// printf("Location: %d, %d\n",x,y);
 						//CvScalar lup = cvGet2D(vol_lookup,event.GetY(),event.GetX());
-						int xx = vol_lookup->data.i[y*3*vol_lookup->width+x*3+0];
-						int yy = vol_lookup->data.i[y*3*vol_lookup->width+x*3+1];
-						int zz = vol_lookup->data.i[y*3*vol_lookup->width+x*3+2];
+						int xx = vol_lookup->data.i[(unwrap_pos*3*vol_lookup->width*uwrap->num_slices)+y*3*vol_lookup->width+x*3+0];
+						int yy = vol_lookup->data.i[(unwrap_pos*3*vol_lookup->width*uwrap->num_slices)+y*3*vol_lookup->width+x*3+1];
+						int zz = vol_lookup->data.i[(unwrap_pos*3*vol_lookup->width*uwrap->num_slices)+y*3*vol_lookup->width+x*3+2];
 
 						/*
 						printf("LUP: %d, %d, %d\n",
@@ -136,16 +147,46 @@ namespace SCIRun {
 		EVT_LEFT_DOWN(UnwrappedView::OnMouse)
 		EVT_MOTION(UnwrappedView::OnMouse)
 	END_EVENT_TABLE()
+	
+	class UnwrappedSlider : public wxSlider {
+		public:
+			Unwrapping unwrapped;
+			UnwrappedView * scroll;
+
+			UnwrappedSlider(wxWindow * parent) : wxSlider(parent,-1,0,0,1, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LEFT | wxSL_LABELS) {}
+			void set_unwrapping(Unwrapping * uwrapped) {
+				unwrapped = *uwrapped;
+				SetRange(0,unwrapped.num_unwraps-1);
+				SetValue(unwrapped.num_unwraps/2);
+			}
+			void OnChange(wxScrollEvent& event) {
+				scroll->set_image(&unwrapped, GetValue());
+			}
+		private:
+			DECLARE_EVENT_TABLE();
+	};
+
+	BEGIN_EVENT_TABLE(UnwrappedSlider, wxSlider)
+		EVT_SCROLL_CHANGED(UnwrappedSlider::OnChange)
+	END_EVENT_TABLE()
 
 	class UnwrapPluginWindow : public wxFrame {
 		public:
 			UnwrappedView * scroll;
+			UnwrappedSlider * slide;
+
 			UnwrapPluginWindow(const wxString& title, wxFrame *frame,
              const wxPoint& pos,
              const wxSize& size, long style = wxDEFAULT_FRAME_STYLE) :
 				wxFrame(frame, wxID_ANY, title, pos, size, style) {
 					printf("UnwrapPluginWindow shown\n");
-					scroll = new UnwrappedView(this);
+		
+					wxSplitterWindow *split = new wxSplitterWindow(this,-1);
+
+					slide = new UnwrappedSlider(split);
+					scroll = new UnwrappedView(split);
+
+					split->SplitVertically(slide,scroll,30);
 				}
 	};
 

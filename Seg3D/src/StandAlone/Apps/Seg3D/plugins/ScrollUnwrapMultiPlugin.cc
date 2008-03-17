@@ -24,12 +24,14 @@ SET_PLUGIN_VERSION;
 
 #define THICKNESS 9
 
+#define NUMUNWRAPS THICKNESS
+
 namespace SCIRun {
 
 class ScrollUnwrapPlugin : public UnwrapPlugin {
 	public:
 		virtual std::string get_menu_string() const {
-			return "Scroll Unwrapping";
+			return "Scroll Unwrap Multiple";
 		}
 		virtual void menu_event() const {
 			// printf("Hello from ExampleUnwrapPlugin\n");
@@ -82,7 +84,7 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 			return result;
 		}
 
-		void radial_sample(int width, int height, label_type* data, float* ddata, CvMat *plookup, int slice)
+		void radial_sample(int width, int height, int slices, label_type* data, float* ddata, CvMat *plookup, int slice)
 		{
 			IplImage *cvcast = cvCreateImage(cvSize(width, height),
 					IPL_DEPTH_8U, 1);
@@ -154,14 +156,17 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 								min_i = i;
 							}
 						}
-						CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,j+((i-j)/2));
-						cvInitLineIterator(cvcast,outer,center,&curline,4);
-						
-						//printf("T: %g, d: %d - %d,%d\n",theta,max_i,sampledpoint.x,sampledpoint.y);
-						
-						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+0] = sampledpoint.x;
-						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+1] = sampledpoint.y;
-						plookup->data.i[slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+2] = slice;
+						int sampledpos = j; // j+((i-j)/2);
+						for(int unwrap_pos = 0; unwrap_pos < NUMUNWRAPS; unwrap_pos++, sampledpos++) {
+							cvInitLineIterator(cvcast,outer,center,&curline,4);
+							CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,sampledpos);
+							
+							//printf("T: %g, d: %d - %d,%d\n",theta,max_i,sampledpoint.x,sampledpoint.y);
+							
+							plookup->data.i[(unwrap_pos*3*plookup->width*slices)+slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+0] = sampledpoint.x;
+							plookup->data.i[(unwrap_pos*3*plookup->width*slices)+slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+1] = sampledpoint.y;
+							plookup->data.i[(unwrap_pos*3*plookup->width*slices)+slice*3*plookup->width+((layer*RADIAL_SAMPLES)+sample)*3+2] = slice;
+						}
 						
 						//cvSet2D(plookup,slice,(layer*RADIAL_SAMPLES)+sample,cvScalar(0,0,slice));
 						
@@ -205,16 +210,18 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 				height = source_data->nrrd_->axis[2].size,
 				slices = source_data->nrrd_->axis[3].size;
 
-			CvMat *plookup = cvCreateMat(slices,RADIAL_SAMPLES*MAX_LAYERS,CV_32SC3);
+			CvMat *plookup = cvCreateMat(slices*NUMUNWRAPS,RADIAL_SAMPLES*MAX_LAYERS,CV_32SC3);
 			cvSet(plookup,cvScalarAll(0));
 	
-			for(int i = 0; i < (slices-1); i++) {
-				radial_sample(width, height, labeld+(width * height * i), srcd+(width * height * i), plookup, i);
+			for(int i = 0; i < slices; i++) {
+				radial_sample(width, height, slices, labeld+(width * height * i), srcd+(width * height * i), plookup, i);
 				painter_->update_progress((int)(((float)i/(float)slices)*100));
 			}
 
 			struct Unwrapping *unwrapping = (struct Unwrapping*)malloc(sizeof(struct Unwrapping));
 			unwrapping->point_lookup = plookup;
+			unwrapping->num_unwraps = NUMUNWRAPS;
+			unwrapping->num_slices = slices;
 			unwrapping->referenced_volume = source_data->nrrd_;
 
 			printf("Ref vol head: %x\n",*(unwrapping->referenced_volume));
