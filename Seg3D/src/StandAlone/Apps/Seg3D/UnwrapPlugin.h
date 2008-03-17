@@ -66,8 +66,6 @@ namespace SCIRun {
 					printf("min: %g\tmax: %g\n", range->min, range->max);
 				}
 			
-				printf("Ref vol head: %x\n",*(unwrapped->referenced_volume));
-			
 				int width = unwrapped->referenced_volume->axis[1].size,
 				height = unwrapped->referenced_volume->axis[2].size,
 				slices = unwrapped->referenced_volume->axis[3].size;
@@ -76,7 +74,6 @@ namespace SCIRun {
 
 				double min = range->min, max = range->max;
 
-				printf("Trying %d\n",unwrap_pos);
 				for(int y = 0; y < unwrapped->num_slices /*cvIm->height*/; y++) {
 					for(int x = 0; x < cvIm->width; x++) {
 						int sx = cvIm->data.i[(unwrap_pos*3*cvIm->width*unwrapped->num_slices)+y*3*cvIm->width+x*3+0];
