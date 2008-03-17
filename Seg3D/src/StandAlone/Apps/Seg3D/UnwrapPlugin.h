@@ -179,16 +179,18 @@ namespace SCIRun {
 
 			UnwrapPluginWindow(const wxString& title, wxFrame *frame,
              const wxPoint& pos,
-             const wxSize& size, long style = wxDEFAULT_FRAME_STYLE) :
+             const wxSize& size, long style = wxDEFAULT_FRAME_STYLE, int num_unwraps = 1) :
 				wxFrame(frame, wxID_ANY, title, pos, size, style) {
 					printf("UnwrapPluginWindow shown\n");
-		
-					wxSplitterWindow *split = new wxSplitterWindow(this,-1);
+						wxSplitterWindow *split = new wxSplitterWindow(this,-1);
 
-					slide = new UnwrappedSlider(split);
-					scroll = new UnwrappedView(split);
+						slide = new UnwrappedSlider(split);
+						scroll = new UnwrappedView(split);
 
-					split->SplitVertically(slide,scroll,30);
+						split->SplitVertically(slide,scroll,30);
+						if(num_unwraps == 1) {
+							split->Unsplit(slide);
+						}
 				}
 	};
 

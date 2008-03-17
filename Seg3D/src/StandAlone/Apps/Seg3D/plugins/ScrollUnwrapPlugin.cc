@@ -154,8 +154,8 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 								min_i = i;
 							}
 						}
-						CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,j+((i-j)/2));
 						cvInitLineIterator(cvcast,outer,center,&curline,4);
+						CvPoint sampledpoint = get_coordinate_from_position(cvcast,curline,j+((i-j)/2));
 						
 						//printf("T: %g, d: %d - %d,%d\n",theta,max_i,sampledpoint.x,sampledpoint.y);
 						
@@ -215,6 +215,8 @@ class ScrollUnwrapPlugin : public UnwrapPlugin {
 
 			struct Unwrapping *unwrapping = (struct Unwrapping*)malloc(sizeof(struct Unwrapping));
 			unwrapping->point_lookup = plookup;
+			unwrapping->num_unwraps = 1;
+			unwrapping->num_slices = slices;
 			unwrapping->referenced_volume = source_data->nrrd_;
 
 			printf("Ref vol head: %x\n",*(unwrapping->referenced_volume));
