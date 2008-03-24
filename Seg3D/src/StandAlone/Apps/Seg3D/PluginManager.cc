@@ -1,5 +1,6 @@
 #include <StandAlone/Apps/Seg3D/Seg3DFrame.h>
 
+#include <Core/Util/Environment.h>
 #include <StandAlone/Apps/Seg3D/config.h>
 #include <StandAlone/Apps/Seg3D/plugins.h>
 
@@ -30,12 +31,13 @@ PluginManager::ScanPlugins(std::string directory)
 void
 PluginManager::LoadPlugins(wxMenu * menu, int type, wxFrame * frame)
 {
-	std::vector<fs::path> scanned_plugins = ScanPlugins( DATAPATH "/plugins" );
+	std::vector<fs::path> scanned_plugins = ScanPlugins( sci_getenv("SCIRUN_OBJDIR") +
+			string("data") + string("/plugins") );
 
 	for(unsigned int i = 0; i < scanned_plugins.size(); i++) {
 		std::cout << scanned_plugins[i] << '\n';
 		int thiswxid = curwxid++;
-		void * thisdl = dlopen(scanned_plugins[i].string().c_str(), RTLD_LAZY);
+		void * thisdl = dlopen(scanned_plugins[i].string().c_str(), RTLD_LAZY | RTLD_LOCAL);
 		if(!thisdl) {
 			cerr << "Cannot load library: " << dlerror() << '\n';
 		}
@@ -63,6 +65,7 @@ PluginManager::LoadPlugins(wxMenu * menu, int type, wxFrame * frame)
 					GenericPlugin * thisgp = (GenericPlugin *) plugins[thiswxid].gp;
 					printf("FP addr inside PM: %x\n",thisgp);
 					if(thisgp->get_type() == type) {
+						printf("Menu string: %s\n",thisgp->get_menu_string().c_str());
 						menu->Append(thiswxid, _T(thisgp->get_menu_string().c_str()));
 						frame->Connect(thiswxid, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(Seg3DFrame::PluginEvent) );
 					}
