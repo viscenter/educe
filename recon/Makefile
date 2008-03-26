@@ -5,7 +5,7 @@ debugfl=-g
 OPTIMIZ = -funroll-loops -fomit-frame-pointer -O3
 NRRD = -I/homes/thb/src/teem-1.9.0-src/include/ -L/homes/thb/src/teem-1.9.0-src/linux.32/lib/ -lteem 
 
-BINS=t_rec t_rec_binary
+BINS=t_rec # t_rec_binary
 
 all: ${BINS}
 
