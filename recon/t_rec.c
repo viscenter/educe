@@ -695,6 +695,13 @@ int main( int argc, char *argv[] )
     //provided correctly.
     if (myid == 0)
     {
+			if(argc != 7) {
+				printf("Usage: %s slicechunk sinogram number output imagesize cor\n",argv[0]);
+				isMissCan = 1;
+				MPI_Bcast(&isMissCan, 1, MPI_INT, 0, MPI_COMM_WORLD);
+				MPI_Finalize();
+				return 1;
+			}
 	if (argc > 1)
 	{
 	    sliceChunk = atoi(argv[1]);
@@ -709,10 +716,12 @@ int main( int argc, char *argv[] )
 
     	//read in the start info
     	printf("Enter the location of the first sinogram file:  ");
-    	scanf("%s", sinfileNameStr);
+    	strncpy(sinfileNameStr, argv[2], 99);
+			// scanf("%s", sinfileNameStr);
     	
     	printf("Enter number of sinogram files within the same band:  ");
-    	scanf("%d", &fileNum);
+			fileNum = atoi(argv[3]);
+    	// scanf("%d", &fileNum);
     	sliceNum = fileNum * 10;
     	slicePerNode = sliceNum/(numprocs-1);
     	surplus = sliceNum - (numprocs-1)*slicePerNode;
@@ -720,15 +729,17 @@ int main( int argc, char *argv[] )
     	else isSlicePerNodeChanged = 1;
     	
     	printf("Enter the output vol file path and name:  ");
-    	scanf("%s", volfileNameStr);
+    	strncpy(volfileNameStr,argv[4], 69);
+			// scanf("%s", volfileNameStr);
     	
 	printf("Enter the image size:  ");
-    	scanf("%d", &ImageSize); 	
+    	ImageSize = atoi(argv[5]);
+			// scanf("%d", &ImageSize); 	
     	
     	printf("Do you want to rotate the reconstructed images by a degree?(y/N) ");
-    	scanf("%s", &YorN);
+    	// scanf("%s", &YorN);
     	
-    	if(YorN == 'Y' || YorN == 'y')
+    	if(0 /*YorN == 'Y' || YorN == 'y'*/)
 	{
 	    printf("Enter the degree wish to rotate along clockwise:  ");
 	    scanf("%f", &rotateD); 
@@ -834,15 +845,17 @@ int main( int argc, char *argv[] )
     					printf("sourceToDetectorD = %12.4f\tsourceToSampleD = %12.4f\n\n", sourceToDetectorD, sourceToSampleD);
     					printf("first slice COR is %12.6f and last slice COR is %12.6f\n", firstCOR, lastCOR);
     					printf("Do you want to change it?");
-    					scanf("%s", &YorN);
+    					// scanf("%s", &YorN);
     					
-    					if(YorN == 'Y' || YorN == 'y')
+    					if(1 /*YorN == 'Y' || YorN == 'y'*/)
 					{
 	    					printf("Enter the COR of the first slice in this band:  ");
-						scanf("%f", &firstCOR); 
+								firstCOR = atoi(argv[6]);
+						// scanf("%f", &firstCOR); 
 				    	
 						printf("Enter the COR of the last slice in this band:  ");
-						scanf("%f", &lastCOR); 
+						lastCOR = atoi(argv[6]);
+						// scanf("%f", &lastCOR); 
 		
 						CORinterval = (lastCOR-firstCOR)/(fileNum*10-1);
 						
@@ -883,13 +896,13 @@ int main( int argc, char *argv[] )
     		printf("The COR of the last slice (lastCOR) = %f\n", lastCOR);  
     		printf("CORinterval = %f\n\n", CORinterval);
 
-		while(YorN != 'Y' && YorN != 'y' && YorN != 'N' && YorN != 'n')
+		while(0 /*YorN != 'Y' && YorN != 'y' && YorN != 'N' && YorN != 'n'*/)
 		{
 			printf("Is all those information correct?(Y/N):");
-			scanf("%s", &YorN);
+			// scanf("%s", &YorN);
 		}
 
-		if(YorN == 'N' || YorN == 'n')
+		if(0 /*YorN == 'N' || YorN == 'n'*/)
 		{
 			printf("Mission is Cancelled!\n");
 			isMissCan = 1;
@@ -1259,6 +1272,7 @@ void getTenSlices(char * filename, int jumpline, float *slices, float *MPOSSptr)
 		fscanf(fp, "%f %f", &xmin, &xmax);
 		fscanf(fp, "%f %f", &ymin, &ymax);
 		fscanf(fp, "%f %f", &zmin, &zmax);
+
 
 		// Each file has ten slices
 		for (sinoFileCount = 10; sinoFileCount > 0; sinoFileCount--)
