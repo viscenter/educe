@@ -1,4 +1,5 @@
-#include <stdio>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "mpi.h"
 
@@ -6,7 +7,7 @@ void check_failure(int failure_state);
 
 int main( int argc, char *argv[] )
 {
-	int myid;
+	int myid, numprocs; // MPI state information
 	int failure_state = 0;
 
 	MPI_Init(&argc,&argv);
