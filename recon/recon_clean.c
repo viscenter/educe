@@ -28,8 +28,10 @@ int main( int argc, char *argv[] )
 			* arg_image_size = NULL,
 			* arg_center_of_rotation = NULL;
 
-	int max_slices_per_node = 0;
-	char sinogram_start_filename[MAXPATHLEN];
+	int max_slices_per_node = 0,
+			number_of_sinograms = 0;
+	char sinogram_start_filename[MAXPATHLEN],
+			 output_vol_filename[MAXPATHLEN];
 
 	// init the MPI state
 	MPI_Init(&argc,&argv);
@@ -81,6 +83,29 @@ int main( int argc, char *argv[] )
 			sizeof(sinogram_start_filename)) >=
 				sizeof(sinogram_start_filename)) {
 			fprintf(stderr, "Sinogram filename exceeds maximum path length\n");
+			failure_state = 1;
+		}
+	}
+	check_failure(failure_state);
+
+	// get number_of_sinograms
+	if(myid == 0) {
+		number_of_sinograms = strtoimax(arg_number_of_sinograms,
+				NULL, NUMBER_BASE);
+		if(number_of_sinograms == 0) {
+			perror("Error setting number_of_sinograms");
+			failure_state = 1;
+		}
+	}
+	check_failure(failure_state);
+
+	// get output_vol_filename
+	if(myid == 0) {
+		if(strlcpy(output_vol_filename,
+			arg_output_vol_filename,
+			sizeof(output_vol_filename)) >=
+				sizeof(output_vol_filename)) {
+			fprintf(stderr, "Output filename exceeds maximum path length\n");
 			failure_state = 1;
 		}
 	}
