@@ -13,6 +13,7 @@
 #define MAXPATHLEN PATH_MAX
 
 void check_failure(int failure_state);
+int get_int_from_arg(char * src, const char * varname, int mpi_id);
 
 int main( int argc, char *argv[] )
 {
@@ -63,19 +64,13 @@ int main( int argc, char *argv[] )
 	}
 
 	// get max_slices_per_node
-	if(myid == 0) {
-		max_slices_per_node = strtoimax(arg_max_slices_per_node,
-				NULL, NUMBER_BASE);
-		if(max_slices_per_node == 0) {
-			perror("Error setting max_slices_per_node");
-			failure_state = 1;
-		}
-		else if((max_slices_per_node % SLICES_PER_SINOGRAM) != 0) {
+	max_slices_per_node = get_int_from_arg(arg_max_slices_per_node,
+			"max_slices_per_node", myid);
+	if((myid == 0) && ((max_slices_per_node % SLICES_PER_SINOGRAM) != 0)) {
 			fprintf(stderr, "The number of slices per node must"
 					"be divisible by %d. %d is not valid\n",
 					SLICES_PER_SINOGRAM, max_slices_per_node);
 			failure_state = 1;
-		}
 	}
 	check_failure(failure_state);
 
@@ -92,15 +87,8 @@ int main( int argc, char *argv[] )
 	check_failure(failure_state);
 
 	// get number_of_sinograms
-	if(myid == 0) {
-		number_of_sinograms = strtoimax(arg_number_of_sinograms,
-				NULL, NUMBER_BASE);
-		if(number_of_sinograms == 0) {
-			perror("Error setting number_of_sinograms");
-			failure_state = 1;
-		}
-	}
-	check_failure(failure_state);
+	number_of_sinograms = get_int_from_arg(arg_number_of_sinograms,
+			"number_of_sinograms", myid);
 
 	// get output_vol_filename
 	if(myid == 0) {
@@ -115,26 +103,11 @@ int main( int argc, char *argv[] )
 	check_failure(failure_state);
 
 	// get image_size
-	if(myid == 0) {
-		image_size = strtoimax(arg_image_size,
-				NULL, NUMBER_BASE);
-		if(image_size == 0) {
-			perror("Error setting image_size");
-			failure_state = 1;
-		}
-	}
-	check_failure(failure_state);
+	image_size = get_int_from_arg(arg_image_size, "image_size", myid);
 
 	// get center_of_rotation
-if(myid == 0) {
-		center_of_rotation = strtoimax(arg_center_of_rotation,
-				NULL, NUMBER_BASE);
-		if(center_of_rotation == 0) {
-			perror("Error setting center_of_rotation");
-			failure_state = 1;
-		}
-	}
-	check_failure(failure_state);
+	center_of_rotation = get_int_from_arg(arg_center_of_rotation,
+			"center_of_rotation", myid);
 
 	printf("\n********* Recon Info *********\n");
 	printf("max_slices_per_node: %d\n", max_slices_per_node);
@@ -158,4 +131,20 @@ void check_failure(int failure_state)
 		MPI_Finalize();
 		exit(1);
 	}
+}
+
+int get_int_from_arg(char * src, const char * varname, int mpi_id)
+{
+	int dst = 0;
+	int failure_state = 0;
+	if(mpi_id == 0) {
+		dst = strtoimax(src,
+				NULL, NUMBER_BASE);
+		if(dst == 0) {
+			fprintf(stderr, "Error setting %s: %s\n", varname, strerror(errno));
+			failure_state = 1;
+		}
+	}
+	check_failure(failure_state);
+	return dst;
 }
