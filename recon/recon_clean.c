@@ -11,10 +11,24 @@
 #define SLICES_PER_SINOGRAM 10
 #define NUMBER_BASE 10
 #define MAXPATHLEN PATH_MAX
+#define BUFFERLEN 255
+#define SINOGRAM_ID "DSAA"
+
+struct sinogram {
+	int width;
+	int number_of_angles;
+	float xmin;
+	float xmax;
+	float ymin;
+	float ymax;
+	float zmin;
+	float zmax;
+};
 
 void check_failure(int failure_state);
 int get_int_from_arg(const char * src, const char * varname, int mpi_id);
 void get_path_from_arg(char * dst, const char * src, const char * varname, int mpi_id);
+struct sinogram * parse_sinogram_file_header(const char * filename, int mpi_id);
 
 int main( int argc, char *argv[] )
 {
@@ -103,6 +117,12 @@ int main( int argc, char *argv[] )
 	printf("center_of_rotation: %d\n", center_of_rotation);
 	printf("\n");
 
+	struct sinogram * first_sinogram = parse_sinogram_file_header(sinogram_start_filename, myid);
+
+	// exit cleanly
+	if(myid == 0) {
+		free(first_sinogram);
+	}
 	MPI_Finalize();
 
 	return 0;
@@ -120,8 +140,9 @@ void check_failure(int failure_state)
 
 int get_int_from_arg(const char * src, const char * varname, int mpi_id)
 {
-	int dst = 0;
 	int failure_state = 0;
+	int dst = 0;
+
 	if(mpi_id == 0) {
 		dst = strtoimax(src,
 				NULL, NUMBER_BASE);
@@ -139,6 +160,7 @@ int get_int_from_arg(const char * src, const char * varname, int mpi_id)
 void get_path_from_arg(char * dst, const char * src, const char * varname, int mpi_id)
 {
 	int failure_state = 0;
+
 	if(mpi_id == 0) {
 		if(strlcpy(dst,
 			src,
@@ -150,4 +172,76 @@ void get_path_from_arg(char * dst, const char * src, const char * varname, int m
 	}
 	check_failure(failure_state);
 }
+
+struct sinogram * parse_sinogram_file_header(const char * filename, int mpi_id)
+{
+	int failure_state = 0;
+	char buffer[BUFFERLEN];
+	struct sinogram * parsed_sinogram = NULL; 
+	FILE * fp;
+
+	if(mpi_id == 0) {
+		if((fp = fopen(filename, "r")) == NULL) {
+			fprintf(stderr, "Unable to open sinogram with filename \"%s\"\n", filename);
+			failure_state = 1;
+		}
+		else { // sinogram open succeeded
+			// read in SINOGRAM_ID
+			fgets(buffer, strlen(SINOGRAM_ID)+1, fp);
+			if(strncmp(buffer, SINOGRAM_ID, strlen(SINOGRAM_ID)) != 0) {
+				fprintf(stderr, "Incorrect sinogram identifier: %s\n", buffer);
+				failure_state = 1;
+			}
+			else { // valid sinogram id
+				// alloc sinogram info
+				if((parsed_sinogram = malloc(sizeof(struct sinogram))) == NULL) {
+					perror("Unable to allocate sinogram info");
+					failure_state = 1;
+				}
+				else { // parse rest of header
+					// skip the newline after SINOGRAM_ID
+					fseek(fp, 1, SEEK_CUR);
+
+					if(fscanf(fp, "%d %d", 
+								&parsed_sinogram->width,
+								&parsed_sinogram->number_of_angles) != 2) {
+						fprintf(stderr,
+								"Unable to parse sinogram width and number_of_angles (2nd line)\n");
+						failure_state = 1;
+					}
+					else if(fscanf(fp, "%f %f",
+								&parsed_sinogram->xmin,
+								&parsed_sinogram->xmax) != 2) {
+						fprintf(stderr,
+								"Unable to parse sinogram xmin and xmax (3rd line)\n");
+						failure_state = 1;
+					}
+					else if(fscanf(fp, "%f %f",
+								&parsed_sinogram->ymin,
+								&parsed_sinogram->ymax) != 2) {
+						fprintf(stderr,
+								"Unable to parse sinogram ymin and ymax (4th line)\n");
+						failure_state = 1;
+					}
+					else if(fscanf(fp, "%f %f",
+								&parsed_sinogram->zmin,
+								&parsed_sinogram->zmax) != 2) {
+						fprintf(stderr,
+								"Unable to parse sinogram zmin and zmax (3rd line)\n");
+						failure_state = 1;
+					}
+
+					if(failure_state) {
+						free(parsed_sinogram);
+					}
+				}
+			}
+			fclose(fp);
+		}
+	}
+	check_failure(failure_state);
+
+	return parsed_sinogram;
+}
+
 
