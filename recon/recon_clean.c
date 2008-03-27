@@ -13,7 +13,8 @@
 #define MAXPATHLEN PATH_MAX
 
 void check_failure(int failure_state);
-int get_int_from_arg(char * src, const char * varname, int mpi_id);
+int get_int_from_arg(const char * src, const char * varname, int mpi_id);
+void get_path_from_arg(char * dst, const char * src, const char * varname, int mpi_id);
 
 int main( int argc, char *argv[] )
 {
@@ -75,32 +76,16 @@ int main( int argc, char *argv[] )
 	check_failure(failure_state);
 
 	// get sinogram_start_filename
-	if(myid == 0) {
-		if(strlcpy(sinogram_start_filename,
-			arg_sinogram_start_filename,
-			sizeof(sinogram_start_filename)) >=
-				sizeof(sinogram_start_filename)) {
-			fprintf(stderr, "Sinogram filename exceeds maximum path length\n");
-			failure_state = 1;
-		}
-	}
-	check_failure(failure_state);
+	get_path_from_arg(sinogram_start_filename, arg_sinogram_start_filename,
+			"Sinogram file", myid);
 
 	// get number_of_sinograms
 	number_of_sinograms = get_int_from_arg(arg_number_of_sinograms,
 			"number_of_sinograms", myid);
 
 	// get output_vol_filename
-	if(myid == 0) {
-		if(strlcpy(output_vol_filename,
-			arg_output_vol_filename,
-			sizeof(output_vol_filename)) >=
-				sizeof(output_vol_filename)) {
-			fprintf(stderr, "Output filename exceeds maximum path length\n");
-			failure_state = 1;
-		}
-	}
-	check_failure(failure_state);
+	get_path_from_arg(output_vol_filename, arg_output_vol_filename,
+			"Output filename", myid);
 
 	// get image_size
 	image_size = get_int_from_arg(arg_image_size, "image_size", myid);
@@ -133,7 +118,7 @@ void check_failure(int failure_state)
 	}
 }
 
-int get_int_from_arg(char * src, const char * varname, int mpi_id)
+int get_int_from_arg(const char * src, const char * varname, int mpi_id)
 {
 	int dst = 0;
 	int failure_state = 0;
@@ -148,3 +133,21 @@ int get_int_from_arg(char * src, const char * varname, int mpi_id)
 	check_failure(failure_state);
 	return dst;
 }
+
+// get a path from an arg
+// dst must be char dst[MAXPATHLEN]
+void get_path_from_arg(char * dst, const char * src, const char * varname, int mpi_id)
+{
+	int failure_state = 0;
+	if(mpi_id == 0) {
+		if(strlcpy(dst,
+			src,
+			MAXPATHLEN) >=
+				MAXPATHLEN) {
+			fprintf(stderr, "%s exceeds maximum path length\n", varname);
+			failure_state = 1;
+		}
+	}
+	check_failure(failure_state);
+}
+
