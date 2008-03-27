@@ -28,6 +28,7 @@ int main( int argc, char *argv[] )
 			* arg_image_size = NULL,
 			* arg_center_of_rotation = NULL;
 
+	// initialized reconstruction arguments
 	int max_slices_per_node = 0,
 			number_of_sinograms = 0,
 			image_size = 0,
@@ -134,6 +135,17 @@ if(myid == 0) {
 		}
 	}
 	check_failure(failure_state);
+
+	printf("\n********* Recon Info *********\n");
+	printf("max_slices_per_node: %d\n", max_slices_per_node);
+	printf("sinogram_start_filename: %s\n", sinogram_start_filename);
+	printf("number_of_sinograms: %d\n", number_of_sinograms);
+	printf("output_vol_filename: %s\n", output_vol_filename);
+	printf("image_size: %d\n", image_size);
+	printf("center_of_rotation: %d\n", center_of_rotation);
+	printf("\n");
+
+	MPI_Finalize();
 
 	return 0;
 }
