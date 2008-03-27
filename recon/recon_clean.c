@@ -25,6 +25,16 @@ struct sinogram {
 	float zmax;
 };
 
+struct reconstruction_arguments {
+	int max_slices_per_node,
+			number_of_sinograms,
+			image_size,
+			center_of_rotation;
+	char sinogram_start_filename[MAXPATHLEN],
+			 output_vol_filename[MAXPATHLEN];
+};
+
+void init_program_arguments(struct reconstruction_arguments * program_arguments, int argc, char *argv[], int mpi_id);
 void check_failure(int failure_state);
 int get_int_from_arg(const char * src, const char * varname, int mpi_id);
 void get_path_from_arg(char * dst, const char * src, const char * varname, int mpi_id);
@@ -34,8 +44,40 @@ int main( int argc, char *argv[] )
 {
 	// MPI state information
 	int myid, numprocs;
-	int failure_state = 0;
 
+	struct reconstruction_arguments program_arguments;
+
+	// init the MPI state
+	MPI_Init(&argc,&argv);
+	MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
+
+	init_program_arguments(&program_arguments, argc, argv, myid);
+
+	printf("\n********* Recon Info *********\n");
+	printf("max_slices_per_node: %d\n", program_arguments.max_slices_per_node);
+	printf("sinogram_start_filename: %s\n", program_arguments.sinogram_start_filename);
+	printf("number_of_sinograms: %d\n", program_arguments.number_of_sinograms);
+	printf("output_vol_filename: %s\n", program_arguments.output_vol_filename);
+	printf("image_size: %d\n", program_arguments.image_size);
+	printf("center_of_rotation: %d\n", program_arguments.center_of_rotation);
+	printf("\n");
+
+	struct sinogram * first_sinogram = parse_sinogram_file_header(program_arguments.sinogram_start_filename, myid);
+
+	// exit cleanly
+	if(myid == 0) {
+		free(first_sinogram);
+	}
+	MPI_Finalize();
+
+	return 0;
+} // main
+
+void init_program_arguments(struct reconstruction_arguments * program_arguments, int argc, char *argv[], int mpi_id)
+{
+	int failure_state = 0;
+	
 	// program arguments
 	char * arg_max_slices_per_node = NULL,
 			* arg_sinogram_start_filename = NULL,
@@ -44,21 +86,8 @@ int main( int argc, char *argv[] )
 			* arg_image_size = NULL,
 			* arg_center_of_rotation = NULL;
 
-	// initialized reconstruction arguments
-	int max_slices_per_node = 0,
-			number_of_sinograms = 0,
-			image_size = 0,
-			center_of_rotation = 0;
-	char sinogram_start_filename[MAXPATHLEN],
-			 output_vol_filename[MAXPATHLEN];
-
-	// init the MPI state
-	MPI_Init(&argc,&argv);
-	MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
-	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
-
 	// check for the correct number of command-line arguments
-	if(myid == 0) {
+	if(mpi_id == 0) {
 		if(argc != 7) {
 			fprintf(stderr,
 					"Usage: %s slicechunk sinogram number output imagesize cor\n",
@@ -69,7 +98,7 @@ int main( int argc, char *argv[] )
 	check_failure(failure_state);
 
 	// initialize argument pointers
-	if(myid == 0) {
+	if(mpi_id == 0) {
 		arg_max_slices_per_node = argv[1];
 		arg_sinogram_start_filename = argv[2];
 		arg_number_of_sinograms = argv[3];
@@ -79,54 +108,35 @@ int main( int argc, char *argv[] )
 	}
 
 	// get max_slices_per_node
-	max_slices_per_node = get_int_from_arg(arg_max_slices_per_node,
-			"max_slices_per_node", myid);
-	if((myid == 0) && ((max_slices_per_node % SLICES_PER_SINOGRAM) != 0)) {
+	program_arguments->max_slices_per_node = get_int_from_arg(arg_max_slices_per_node,
+			"max_slices_per_node", mpi_id);
+	if((mpi_id == 0) && ((program_arguments->max_slices_per_node % SLICES_PER_SINOGRAM) != 0)) {
 			fprintf(stderr, "The number of slices per node must"
 					"be divisible by %d. %d is not valid\n",
-					SLICES_PER_SINOGRAM, max_slices_per_node);
+					SLICES_PER_SINOGRAM, program_arguments->max_slices_per_node);
 			failure_state = 1;
 	}
 	check_failure(failure_state);
 
 	// get sinogram_start_filename
-	get_path_from_arg(sinogram_start_filename, arg_sinogram_start_filename,
-			"Sinogram file", myid);
+	get_path_from_arg(program_arguments->sinogram_start_filename, arg_sinogram_start_filename,
+			"Sinogram file", mpi_id);
 
 	// get number_of_sinograms
-	number_of_sinograms = get_int_from_arg(arg_number_of_sinograms,
-			"number_of_sinograms", myid);
+	program_arguments->number_of_sinograms = get_int_from_arg(arg_number_of_sinograms,
+			"number_of_sinograms", mpi_id);
 
 	// get output_vol_filename
-	get_path_from_arg(output_vol_filename, arg_output_vol_filename,
-			"Output filename", myid);
+	get_path_from_arg(program_arguments->output_vol_filename, arg_output_vol_filename,
+			"Output filename", mpi_id);
 
 	// get image_size
-	image_size = get_int_from_arg(arg_image_size, "image_size", myid);
+	program_arguments->image_size = get_int_from_arg(arg_image_size, "image_size", mpi_id);
 
 	// get center_of_rotation
-	center_of_rotation = get_int_from_arg(arg_center_of_rotation,
-			"center_of_rotation", myid);
-
-	printf("\n********* Recon Info *********\n");
-	printf("max_slices_per_node: %d\n", max_slices_per_node);
-	printf("sinogram_start_filename: %s\n", sinogram_start_filename);
-	printf("number_of_sinograms: %d\n", number_of_sinograms);
-	printf("output_vol_filename: %s\n", output_vol_filename);
-	printf("image_size: %d\n", image_size);
-	printf("center_of_rotation: %d\n", center_of_rotation);
-	printf("\n");
-
-	struct sinogram * first_sinogram = parse_sinogram_file_header(sinogram_start_filename, myid);
-
-	// exit cleanly
-	if(myid == 0) {
-		free(first_sinogram);
-	}
-	MPI_Finalize();
-
-	return 0;
-}
+	program_arguments->center_of_rotation = get_int_from_arg(arg_center_of_rotation,
+			"center_of_rotation", mpi_id);
+} // init_program_arguments
 
 // broadcast the failure state and exit accordingly
 void check_failure(int failure_state)
@@ -136,7 +146,7 @@ void check_failure(int failure_state)
 		MPI_Finalize();
 		exit(1);
 	}
-}
+} // check_failure
 
 int get_int_from_arg(const char * src, const char * varname, int mpi_id)
 {
@@ -153,7 +163,7 @@ int get_int_from_arg(const char * src, const char * varname, int mpi_id)
 	}
 	check_failure(failure_state);
 	return dst;
-}
+} // get_int_from_arg
 
 // get a path from an arg
 // dst must be char dst[MAXPATHLEN]
@@ -171,7 +181,7 @@ void get_path_from_arg(char * dst, const char * src, const char * varname, int m
 		}
 	}
 	check_failure(failure_state);
-}
+} // get_path_from_arg
 
 struct sinogram * parse_sinogram_file_header(const char * filename, int mpi_id)
 {
@@ -242,6 +252,6 @@ struct sinogram * parse_sinogram_file_header(const char * filename, int mpi_id)
 	check_failure(failure_state);
 
 	return parsed_sinogram;
-}
+} // parse_sinogram_file_header
 
 
