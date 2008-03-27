@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 #include "mpi.h"
 
@@ -312,9 +313,16 @@ void test_output_filename(const char * filename, int mpi_id)
 	FILE * fp;
 
 	if(mpi_id == 0) {
-		if((fp = fopen(filename, "w")) == NULL) {
+		if(access(filename, F_OK) != -1) {
+			fprintf(stderr,
+					"Output filename \"%s\" already exists, exiting without clobbering\n",
+					filename);
+			failure_state = 1;
+		}
+		else if((fp = fopen(filename, "w")) == NULL) {
 			fprintf(stderr, "Unable to open output vol file "
-				 "with filename \"%s\" for writing\n", filename);
+				 "with filename \"%s\" for writing: %s\n", filename,
+				 strerror(errno));
 			failure_state = 1;
 		}
 		else {
