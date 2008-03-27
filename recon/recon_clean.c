@@ -29,7 +29,9 @@ int main( int argc, char *argv[] )
 			* arg_center_of_rotation = NULL;
 
 	int max_slices_per_node = 0,
-			number_of_sinograms = 0;
+			number_of_sinograms = 0,
+			image_size = 0,
+			center_of_rotation = 0;
 	char sinogram_start_filename[MAXPATHLEN],
 			 output_vol_filename[MAXPATHLEN];
 
@@ -106,6 +108,28 @@ int main( int argc, char *argv[] )
 			sizeof(output_vol_filename)) >=
 				sizeof(output_vol_filename)) {
 			fprintf(stderr, "Output filename exceeds maximum path length\n");
+			failure_state = 1;
+		}
+	}
+	check_failure(failure_state);
+
+	// get image_size
+	if(myid == 0) {
+		image_size = strtoimax(arg_image_size,
+				NULL, NUMBER_BASE);
+		if(image_size == 0) {
+			perror("Error setting image_size");
+			failure_state = 1;
+		}
+	}
+	check_failure(failure_state);
+
+	// get center_of_rotation
+if(myid == 0) {
+		center_of_rotation = strtoimax(arg_center_of_rotation,
+				NULL, NUMBER_BASE);
+		if(center_of_rotation == 0) {
+			perror("Error setting center_of_rotation");
 			failure_state = 1;
 		}
 	}
