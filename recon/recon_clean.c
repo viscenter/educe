@@ -35,6 +35,7 @@ struct reconstruction_arguments {
 };
 
 void init_program_arguments(struct reconstruction_arguments * program_arguments, int argc, char *argv[], int mpi_id);
+void print_reconstruction_arguments(struct reconstruction_arguments * args, int mpi_id);
 void check_failure(int failure_state);
 int get_int_from_arg(const char * src, const char * varname, int mpi_id);
 void get_path_from_arg(char * dst, const char * src, const char * varname, int mpi_id);
@@ -53,15 +54,7 @@ int main( int argc, char *argv[] )
 	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
 	init_program_arguments(&program_arguments, argc, argv, myid);
-
-	printf("\n********* Recon Info *********\n");
-	printf("max_slices_per_node: %d\n", program_arguments.max_slices_per_node);
-	printf("sinogram_start_filename: %s\n", program_arguments.sinogram_start_filename);
-	printf("number_of_sinograms: %d\n", program_arguments.number_of_sinograms);
-	printf("output_vol_filename: %s\n", program_arguments.output_vol_filename);
-	printf("image_size: %d\n", program_arguments.image_size);
-	printf("center_of_rotation: %d\n", program_arguments.center_of_rotation);
-	printf("\n");
+	print_reconstruction_arguments(&program_arguments, myid);
 
 	struct sinogram * first_sinogram = parse_sinogram_file_header(program_arguments.sinogram_start_filename, myid);
 
@@ -137,6 +130,20 @@ void init_program_arguments(struct reconstruction_arguments * program_arguments,
 	program_arguments->center_of_rotation = get_int_from_arg(arg_center_of_rotation,
 			"center_of_rotation", mpi_id);
 } // init_program_arguments
+
+void print_reconstruction_arguments(struct reconstruction_arguments * args, int mpi_id)
+{
+	if(mpi_id == 0) {
+		printf("\n********* Recon Info *********\n");
+		printf("max_slices_per_node: %d\n", args->max_slices_per_node);
+		printf("sinogram_start_filename: %s\n", args->sinogram_start_filename);
+		printf("number_of_sinograms: %d\n", args->number_of_sinograms);
+		printf("output_vol_filename: %s\n", args->output_vol_filename);
+		printf("image_size: %d\n", args->image_size);
+		printf("center_of_rotation: %d\n", args->center_of_rotation);
+		printf("\n");
+	}
+} // print_reconstruction_arguments
 
 // broadcast the failure state and exit accordingly
 void check_failure(int failure_state)
