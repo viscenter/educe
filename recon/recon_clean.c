@@ -46,6 +46,7 @@ int get_int_from_arg(const char * src, const char * varname, int mpi_id);
 void get_path_from_arg(char * dst, const char * src, const char * varname, int mpi_id);
 struct sinogram * parse_sinogram_file_header(const char * filename, int mpi_id);
 void print_sinogram_info(struct sinogram * sgram, int mpi_id);
+void test_output_filename(const char * filename, int mpi_id);
 
 int main( int argc, char *argv[] )
 {
@@ -64,6 +65,8 @@ int main( int argc, char *argv[] )
 
 	struct sinogram * first_sinogram = parse_sinogram_file_header(program_arguments.sinogram_start_filename, myid);
 	print_sinogram_info(first_sinogram, myid);
+
+	test_output_filename(program_arguments.output_vol_filename, myid);
 
 	// exit cleanly
 	if(myid == 0) {
@@ -301,4 +304,22 @@ void print_sinogram_info(struct sinogram * sgram, int mpi_id) {
 		printf("source_to_detector_dist: %g\n", sgram->source_to_detector_dist);
 		printf("source_to_sample_dist: %g\n", sgram->source_to_sample_dist);
 	}
+}
+
+void test_output_filename(const char * filename, int mpi_id)
+{
+	int failure_state = 0;
+	FILE * fp;
+
+	if(mpi_id == 0) {
+		if((fp = fopen(filename, "w")) == NULL) {
+			fprintf(stderr, "Unable to open output vol file "
+				 "with filename \"%s\" for writing\n", filename);
+			failure_state = 1;
+		}
+		else {
+			fclose(fp);
+		}
+	}
+	check_failure(failure_state);
 }
