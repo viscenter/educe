@@ -1,5 +1,11 @@
 #include <teem/nrrd.h>
 #include <errno.h>
+#include <inttypes.h>
+#include <math.h>
+
+#define ELEMENT_SIZE_IN_RAM 4
+#define NUMBER_BASE 10
+#define MAXPATHLEN PATH_MAX
 
 Nrrd * load_nrrd_header(char * filename, NrrdIoState * nio)
 {
@@ -49,17 +55,42 @@ void save_nrrd_header(char * filename, Nrrd * nout, NrrdIoState * nio)
 	}
 
 	airMopOkay(mop);
+}
 
-	nrrdNuke(nout);
+void chunk_nrrd_by_ram_limit(char * filename, Nrrd * nin, NrrdIoState * nio, int ram_limit)
+{
+	int element_size_in_nrrd = (int)nrrdElementSize(nin);
+	int size_in_ram = (int)nrrdElementNumber(nin)*ELEMENT_SIZE_IN_RAM;
+	int chunks = (int)ceilf((float)size_in_ram / (float)ram_limit);
+	int slice_size = nin->axis[0].size * nin->axis[1].size * ELEMENT_SIZE_IN_RAM;
+	char buffer[MAXPATHLEN];
+
+	printf("Splitting into %d chunks\n", chunks);
+	for(int i = 0; i < chunks; i++) {
+		memset((void*)buffer, 0, MAXPATHLEN);
+		snprintf(buffer, MAXPATHLEN, "%s-%d.nhdr", filename, i);
+
+		int bytes_this_chunk = ram_limit > size_in_ram ? size_in_ram : ram_limit;
+		int slices_this_chunk = bytes_this_chunk / slice_size;
+
+		nin->axis[2].size = slices_this_chunk;
+
+		save_nrrd_header(buffer, nin, nio);
+		
+		nio->byteSkip += (bytes_this_chunk / ELEMENT_SIZE_IN_RAM) *
+			element_size_in_nrrd;
+		size_in_ram -= bytes_this_chunk;
+	}
 }
 
 int main(int argc, char * argv[])
 {
 	NrrdIoState * nio = nrrdIoStateNew();
 	Nrrd * nin;
+	int ram_limit = 0;
 
-	if(argc !=	3) {
-		fprintf(stderr, "Usage: %s input_nhdr output_nhdr\n", argv[0]);
+	if(argc !=	4) {
+		fprintf(stderr, "Usage: %s input_nhdr output_nhdr ram_limit\n", argv[0]);
 		exit(1);
 	}
 
@@ -68,8 +99,12 @@ int main(int argc, char * argv[])
 		exit(1);
 	}
 
-	save_nrrd_header(argv[2], nin, nio);
+	ram_limit = strtoimax(argv[3],
+			NULL, NUMBER_BASE);
 
+	chunk_nrrd_by_ram_limit(argv[2], nin, nio, ram_limit);
+
+	nrrdNuke(nin);
 	nrrdIoStateNix(nio);
 
 	return 0;
