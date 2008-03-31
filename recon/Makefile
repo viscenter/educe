@@ -5,7 +5,7 @@ debugfl=-g
 OPTIMIZ = -funroll-loops -fomit-frame-pointer -O3
 NRRD = -I/homes/thb/src/teem-1.9.0-src/include/ -L/homes/thb/src/teem-1.9.0-src/linux.32/lib/ -lteem 
 
-BINS=t_rec recon_clean # t_rec_binary
+BINS=t_rec recon_clean ascii_to_bin # t_rec_binary
 
 all: ${BINS}
 
@@ -26,6 +26,10 @@ recon_clean: recon_clean.c
 
 t_rec_binary: t_rec_binary.c
 	mpicc t_rec_binary.c ${FLAGS} ${OPTIMIZ} ${LIBS} ${NRRD} -o t_rec_binary
+
+ascii_to_binary: ascii_to_binary.c
+	mpicc ascii_to_binary.c ${FLAGS} ${OPTIMIZ} ${LIBS} ${NRRD} -o ascii_to_binary
+
 
 clean:
 	rm -f *.o
