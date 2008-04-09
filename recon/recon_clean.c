@@ -71,6 +71,8 @@ void run_reconstruction_slave(void);
 void compute_global_parameters(struct global_parameters * global_params, struct reconstruction_arguments * args, struct sinogram * sgram);
 void bcast_global_parameters(struct global_parameters * global_params);
 
+void fan_beam_convolution_recon(float * sino_slices, float * voxels, struct global_parameters * global_params);
+
 void clear_float_array(float *array, size_t size, off_t offset);
 
 int main( int argc, char *argv[] )
@@ -396,30 +398,42 @@ void run_reconstruction_slave(void)
 
 	struct global_parameters global_params;
 
-	float *chunk_of_slices = NULL;
+	float *chunk_of_sino_slices = NULL;
+	float *chunk_of_voxels = NULL;
 	MPI_Status status;
 
 	// get global parameters from master
 	bcast_global_parameters(&global_params);
 
-	// malloc a buffer for slices once
+	// malloc buffers for slices once
 	int sinogram_size_per_slice = global_params.sinogram_width * global_params.number_of_angles;
-	chunk_of_slices = (float *)malloc(sinogram_size_per_slice *
+	chunk_of_sino_slices = (float *)malloc(sinogram_size_per_slice *
 			global_params.max_slices_per_node * sizeof(float));
-	
+	chunk_of_voxels = (float *)malloc(global_params.image_size * global_params.image_size *
+			global_params.max_slices_per_node * sizeof(float));
+
 	while(1) { // loop until sinogram processing is done
 		MPI_Recv(&slices_this_chunk, 1, MPI_INT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-		if(slices_this_chunk == -1) {
+		if(slices_this_chunk == -1) { // processing done
 			break;
 		}
 
-		MPI_Recv(chunk_of_slices, sinogram_size_per_slice * slices_this_chunk,
+		// get sinos for processing from master
+		MPI_Recv(chunk_of_sino_slices, sinogram_size_per_slice * slices_this_chunk,
 				MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG,
 				MPI_COMM_WORLD, &status);
-	}
 
-	free(chunk_of_slices);
+		fan_beam_convolution_recon(chunk_of_sino_slices, chunk_of_voxels, &global_params);
+
+		// tell the master how many slices we got and send back the recon'd voxel set
+		MPI_Send(&slices_this_chunk, 1, MPI_INT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD);
+		MPI_Send(chunk_of_voxels, global_params.image_size * global_params.image_size *
+				slices_this_chunk, MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD);
+	} // end sinogram processing
+
+	free(chunk_of_sino_slices);
+	free(chunk_of_voxels);
 }
 
 // initialize global parameters, should only be called by master
@@ -451,6 +465,11 @@ void bcast_global_parameters(struct global_parameters * global_params)
 	MPI_Bcast(&(global_params->xmax), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->source_to_detector_dist), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->source_to_sample_dist), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
+}
+
+void fan_beam_convolution_recon(float * sino_slices, float * voxels, struct global_parameters * global_params)
+{
+
 }
 
 void clear_float_array(float *array, size_t size, off_t offset)
