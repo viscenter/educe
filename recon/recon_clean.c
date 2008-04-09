@@ -43,8 +43,17 @@ struct reconstruction_arguments {
 };
 
 struct global_parameters {
-	float start_COR,
-				min_intensity_possible;
+	float start_COR; // starting (currently only) center of rotation
+	float min_intensity_possible; // minimum intensity possible...maybe pointless?
+	float maximum_angle; // maximum angle of sinograms
+	float xmax; // what is this, actually?
+
+	float source_to_detector_dist; // distance from x-ray to detector
+	float source_to_sample_dist; // distance from x-ray to sample (where?)
+
+	int sinogram_width; // width of the sinogram sensor
+	int number_of_angles; // number of angles / projections in the sinograms
+	int image_size; // width and height of the reconstructed image
 };
 
 void init_program_arguments(struct reconstruction_arguments * program_arguments, int argc, char *argv[], int mpi_id);
@@ -359,21 +368,32 @@ void run_reconstruction(struct reconstruction_arguments * args, struct sinogram 
 
 void run_reconstruction_master(struct reconstruction_arguments * args, struct sinogram * sgram)
 {
-	int numprocs;
+	int num_nodes;
 	int slices_per_node;
 
 	struct global_parameters global_params;
 
-	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+	MPI_Comm_size(MPI_COMM_WORLD, &num_nodes);
 
-	// compute global parameters and send to all slaves
-	for(int i = 1; i < numprocs; i++) {
+	// compute global reconstruction parameters and send to all slaves
+	global_params.image_size = args->image_size;
+	global_params.start_COR = args->center_of_rotation;
+
+	global_params.min_intensity_possible = 1.0/sgram->zmax;
+	global_params.sinogram_width = sgram->width;
+	global_params.number_of_angles = sgram->number_of_angles;
+	global_params.maximum_angle = sgram->ymax; // RFB: use ymin as min angle?
+	global_params.xmax = sgram->xmax;
+	global_params.source_to_detector_dist = sgram->source_to_detector_dist;
+	global_params.source_to_sample_dist = sgram->source_to_sample_dist;
+
+	for(int i = 1; i < num_nodes; i++) {
 		send_global_parameters(&global_params, i);
 	}
 
 	// tell all slaves we're done
 	slices_per_node = -1;	
-	for(int i = 1; i < numprocs; i++) {
+	for(int i = 1; i < num_nodes; i++) {
 		MPI_Send(&slices_per_node, 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD);
 	}
 }
