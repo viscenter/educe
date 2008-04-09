@@ -67,8 +67,7 @@ void test_output_filename(const char * filename, int mpi_id);
 void run_reconstruction(struct reconstruction_arguments * args, struct sinogram * sgram, int mpi_id);
 void run_reconstruction_master(struct reconstruction_arguments * args, struct sinogram * sgram);
 void run_reconstruction_slave(void);
-void send_global_parameters(struct global_parameters * global_params, int node);
-void recv_global_parameters(struct global_parameters * global_params);
+void bcast_global_parameters(struct global_parameters * global_params);
 
 void clear_float_array(float *array, size_t size, off_t offset);
 
@@ -387,9 +386,7 @@ void run_reconstruction_master(struct reconstruction_arguments * args, struct si
 	global_params.source_to_detector_dist = sgram->source_to_detector_dist;
 	global_params.source_to_sample_dist = sgram->source_to_sample_dist;
 
-	for(int i = 1; i < num_nodes; i++) {
-		send_global_parameters(&global_params, i);
-	}
+	bcast_global_parameters(&global_params);
 
 	// tell all slaves we're done
 	slices_per_node = -1;	
@@ -407,7 +404,7 @@ void run_reconstruction_slave(void)
 	float *chunk_of_slices = NULL;
 	MPI_Status status;
 
-	recv_global_parameters(&global_params);
+	bcast_global_parameters(&global_params);
 
 	// malloc a buffer for slices once
 	
@@ -425,18 +422,14 @@ void run_reconstruction_slave(void)
 	free(chunk_of_slices);
 }
 
-void send_global_parameters(struct global_parameters * global_params, int node)
+void bcast_global_parameters(struct global_parameters * global_params)
 {
-	MPI_Send(&(global_params->start_COR), 1, MPI_FLOAT, node, MPI_ANY_TAG, MPI_COMM_WORLD);
-	MPI_Send(&(global_params->min_intensity_possible), 1, MPI_FLOAT, node, MPI_ANY_TAG, MPI_COMM_WORLD);
-}
-
-void recv_global_parameters(struct global_parameters * global_params)
-{
-	MPI_Status status;
-
-	MPI_Recv(&(global_params->start_COR), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-	MPI_Recv(&(global_params->min_intensity_possible), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+	MPI_Bcast(&(global_params->start_COR), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
+	MPI_Bcast(&(global_params->min_intensity_possible), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
+	MPI_Bcast(&(global_params->maximum_angle), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
+	MPI_Bcast(&(global_params->xmax), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
+	MPI_Bcast(&(global_params->source_to_detector_dist), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
+	MPI_Bcast(&(global_params->source_to_sample_dist), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 }
 
 void clear_float_array(float *array, size_t size, off_t offset)
