@@ -21,7 +21,7 @@
 
 struct sinogram {
 	int width;
-	int number_of_angles;
+	int number_of_steps;
 	float xmin;
 	float xmax;
 	float ymin;
@@ -52,7 +52,7 @@ struct global_parameters {
 	float source_to_sample_dist; // distance from x-ray to sample (where?)
 
 	int sinogram_width; // width of the sinogram sensor
-	int number_of_angles; // number of angles / projections in the sinograms
+	int number_of_steps; // number of angles / projections in the sinograms
 	int image_size; // width and height of the reconstructed image
 	int max_slices_per_node;
 };
@@ -71,7 +71,7 @@ void run_reconstruction_slave(void);
 void compute_global_parameters(struct global_parameters * global_params, struct reconstruction_arguments * args, struct sinogram * sgram);
 void bcast_global_parameters(struct global_parameters * global_params);
 
-void fan_beam_convolution_recon(float * sino_slices, float * voxels, struct global_parameters * global_params);
+void fan_beam_convolution_recon(float * sino_slices, float * voxels, struct global_parameters * global_params, int num_slices);
 
 void clear_float_array(float *array, size_t size, off_t offset);
 
@@ -259,9 +259,9 @@ struct sinogram * parse_sinogram_file_header(const char * filename, int mpi_id)
 
 					if(fscanf(fp, "%d %d", 
 								&parsed_sinogram->width,
-								&parsed_sinogram->number_of_angles) != 2) {
+								&parsed_sinogram->number_of_steps) != 2) {
 						fprintf(stderr,
-								"Unable to parse sinogram width and number_of_angles (2nd line)\n");
+								"Unable to parse sinogram width and number_of_steps (2nd line)\n");
 						failure_state = 1;
 					}
 					else if(fscanf(fp, "%f %f",
@@ -321,7 +321,7 @@ void print_sinogram_info(struct sinogram * sgram, int mpi_id) {
 	if(mpi_id == MASTER_NODE_ID) {
 		printf("**** Sinogram Parameters ****\n");
 		printf("width: %d\n", sgram->width);
-		printf("number_of_angles: %d\n", sgram->number_of_angles);
+		printf("number_of_steps: %d\n", sgram->number_of_steps);
 		printf("xmin: %g\n", sgram->xmin);
 		printf("xmax: %g\n", sgram->xmax);
 		printf("ymin: %g\n", sgram->ymin);
@@ -406,7 +406,7 @@ void run_reconstruction_slave(void)
 	bcast_global_parameters(&global_params);
 
 	// malloc buffers for slices once
-	int sinogram_size_per_slice = global_params.sinogram_width * global_params.number_of_angles;
+	int sinogram_size_per_slice = global_params.sinogram_width * global_params.number_of_steps;
 	chunk_of_sino_slices = (float *)malloc(sinogram_size_per_slice *
 			global_params.max_slices_per_node * sizeof(float));
 	chunk_of_voxels = (float *)malloc(global_params.image_size * global_params.image_size *
@@ -424,7 +424,9 @@ void run_reconstruction_slave(void)
 				MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG,
 				MPI_COMM_WORLD, &status);
 
-		fan_beam_convolution_recon(chunk_of_sino_slices, chunk_of_voxels, &global_params);
+		clear_float_array(chunk_of_voxels, global_params.image_size * global_params.image_size *
+				slices_this_chunk, 0);
+		fan_beam_convolution_recon(chunk_of_sino_slices, chunk_of_voxels, &global_params, slices_this_chunk);
 
 		// tell the master how many slices we got and send back the recon'd voxel set
 		MPI_Send(&slices_this_chunk, 1, MPI_INT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD);
@@ -445,7 +447,7 @@ void compute_global_parameters(struct global_parameters * global_params, struct 
 
 	global_params->min_intensity_possible = 1.0/sgram->zmax;
 	global_params->sinogram_width = sgram->width;
-	global_params->number_of_angles = sgram->number_of_angles;
+	global_params->number_of_steps = sgram->number_of_steps;
 	global_params->maximum_angle = sgram->ymax; // RFB: use ymin as min angle?
 	global_params->xmax = sgram->xmax;
 	global_params->source_to_detector_dist = sgram->source_to_detector_dist;
@@ -460,16 +462,35 @@ void bcast_global_parameters(struct global_parameters * global_params)
 
 	MPI_Bcast(&(global_params->min_intensity_possible), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->sinogram_width), 1, MPI_INT, MASTER_NODE_ID, MPI_COMM_WORLD);
-	MPI_Bcast(&(global_params->number_of_angles), 1, MPI_INT, MASTER_NODE_ID, MPI_COMM_WORLD);
+	MPI_Bcast(&(global_params->number_of_steps), 1, MPI_INT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->maximum_angle), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->xmax), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->source_to_detector_dist), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->source_to_sample_dist), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 }
 
-void fan_beam_convolution_recon(float * sino_slices, float * voxels, struct global_parameters * global_params)
+void fan_beam_convolution_recon(float * sino_slices, float * voxels, struct global_parameters * global_params, int num_slices)
 {
+	for(int step = 0; step < global_params->number_of_steps; step++) {
+		// convolve each sinogram slice by two FFT's
+		for(int slice = 0; slice < num_slices; slice++) {
+			// fill in RNA (source) array
+			// convolve with SMT hamming filter (smoothing)
+			// convolve with GNA ?? filter
+		}
 
+		// backprojection
+		for(int i = 0; i < (global_parameters->image_size * global_parameters->image_size); i++) {
+			// compute UU, NNN
+		}
+
+		for(int slice = 0; slice < num_slices; slice++) {
+			for(int i = 0; i < (global_parameters->image_size * global_parameters->image_size); i++) {
+				// if NNN is within the image
+				// 	add FFTresult[NNN]*UU to the image
+			}
+		}
+	}
 }
 
 void clear_float_array(float *array, size_t size, off_t offset)
