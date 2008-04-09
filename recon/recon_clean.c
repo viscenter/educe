@@ -424,8 +424,12 @@ void run_reconstruction_slave(void)
 
 void bcast_global_parameters(struct global_parameters * global_params)
 {
+	MPI_Bcast(&(global_params->image_size), 1, MPI_INT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->start_COR), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
+
 	MPI_Bcast(&(global_params->min_intensity_possible), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
+	MPI_Bcast(&(global_params->sinogram_width), 1, MPI_INT, MASTER_NODE_ID, MPI_COMM_WORLD);
+	MPI_Bcast(&(global_params->number_of_angles), 1, MPI_INT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->maximum_angle), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->xmax), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->source_to_detector_dist), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
