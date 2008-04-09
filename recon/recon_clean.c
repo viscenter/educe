@@ -54,6 +54,7 @@ struct global_parameters {
 	int sinogram_width; // width of the sinogram sensor
 	int number_of_angles; // number of angles / projections in the sinograms
 	int image_size; // width and height of the reconstructed image
+	int max_slices_per_node;
 };
 
 void init_program_arguments(struct reconstruction_arguments * program_arguments, int argc, char *argv[], int mpi_id);
@@ -67,6 +68,7 @@ void test_output_filename(const char * filename, int mpi_id);
 void run_reconstruction(struct reconstruction_arguments * args, struct sinogram * sgram, int mpi_id);
 void run_reconstruction_master(struct reconstruction_arguments * args, struct sinogram * sgram);
 void run_reconstruction_slave(void);
+void compute_global_parameters(struct global_parameters * global_params, struct reconstruction_arguments * args, struct sinogram * sgram);
 void bcast_global_parameters(struct global_parameters * global_params);
 
 void clear_float_array(float *array, size_t size, off_t offset);
@@ -368,24 +370,17 @@ void run_reconstruction(struct reconstruction_arguments * args, struct sinogram 
 void run_reconstruction_master(struct reconstruction_arguments * args, struct sinogram * sgram)
 {
 	int num_nodes;
+	int num_slices;
 	int slices_per_node;
 
 	struct global_parameters global_params;
 
 	MPI_Comm_size(MPI_COMM_WORLD, &num_nodes);
 
+	num_slices = args->number_of_sinograms * SLICES_PER_SINOGRAM;
+
 	// compute global reconstruction parameters and send to all slaves
-	global_params.image_size = args->image_size;
-	global_params.start_COR = args->center_of_rotation;
-
-	global_params.min_intensity_possible = 1.0/sgram->zmax;
-	global_params.sinogram_width = sgram->width;
-	global_params.number_of_angles = sgram->number_of_angles;
-	global_params.maximum_angle = sgram->ymax; // RFB: use ymin as min angle?
-	global_params.xmax = sgram->xmax;
-	global_params.source_to_detector_dist = sgram->source_to_detector_dist;
-	global_params.source_to_sample_dist = sgram->source_to_sample_dist;
-
+	compute_global_parameters(&global_params, args, sgram);
 	bcast_global_parameters(&global_params);
 
 	// tell all slaves we're done
@@ -397,35 +392,57 @@ void run_reconstruction_master(struct reconstruction_arguments * args, struct si
 
 void run_reconstruction_slave(void)
 {
-	int slices_per_node;
+	int slices_this_chunk;
 
 	struct global_parameters global_params;
 
 	float *chunk_of_slices = NULL;
 	MPI_Status status;
 
+	// get global parameters from master
 	bcast_global_parameters(&global_params);
 
 	// malloc a buffer for slices once
+	int sinogram_size_per_slice = global_params.sinogram_width * global_params.number_of_angles;
+	chunk_of_slices = (float *)malloc(sinogram_size_per_slice *
+			global_params.max_slices_per_node * sizeof(float));
 	
 	while(1) { // loop until sinogram processing is done
-		MPI_Recv(&slices_per_node, 1, MPI_INT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		MPI_Recv(&slices_this_chunk, 1, MPI_INT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-		if(slices_per_node == -1) {
+		if(slices_this_chunk == -1) {
 			break;
 		}
 
-		// MPI_Recv(chunk_of_slices, width*step*slices_per_node, MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG,
-		//		MPI_COMM_WORLD, &status);
+		MPI_Recv(chunk_of_slices, sinogram_size_per_slice * slices_this_chunk,
+				MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG,
+				MPI_COMM_WORLD, &status);
 	}
 
 	free(chunk_of_slices);
+}
+
+// initialize global parameters, should only be called by master
+void compute_global_parameters(struct global_parameters * global_params, struct reconstruction_arguments * args, struct sinogram * sgram)
+{
+	global_params->image_size = args->image_size;
+	global_params->start_COR = args->center_of_rotation;
+	global_params->max_slices_per_node = args->max_slices_per_node;
+
+	global_params->min_intensity_possible = 1.0/sgram->zmax;
+	global_params->sinogram_width = sgram->width;
+	global_params->number_of_angles = sgram->number_of_angles;
+	global_params->maximum_angle = sgram->ymax; // RFB: use ymin as min angle?
+	global_params->xmax = sgram->xmax;
+	global_params->source_to_detector_dist = sgram->source_to_detector_dist;
+	global_params->source_to_sample_dist = sgram->source_to_sample_dist;
 }
 
 void bcast_global_parameters(struct global_parameters * global_params)
 {
 	MPI_Bcast(&(global_params->image_size), 1, MPI_INT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->start_COR), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
+	MPI_Bcast(&(global_params->max_slices_per_node), 1, MPI_INT, MASTER_NODE_ID, MPI_COMM_WORLD);
 
 	MPI_Bcast(&(global_params->min_intensity_possible), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_COMM_WORLD);
 	MPI_Bcast(&(global_params->sinogram_width), 1, MPI_INT, MASTER_NODE_ID, MPI_COMM_WORLD);
