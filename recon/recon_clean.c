@@ -14,6 +14,8 @@
 #define MAXPATHLEN PATH_MAX
 #define BUFFERLEN 255
 #define SINOGRAM_ID "DSAA"
+#define MASTER_NODE_ID 0
+// TODO: fix sinogram tail seek so it doesn't need a magic size?
 #define SINOGRAM_TAIL_SIZE 88
 #define FAN_BEAM_ID "FAN_BEAM_PARAMETERS"
 
@@ -40,6 +42,11 @@ struct reconstruction_arguments {
 			 output_vol_filename[MAXPATHLEN];
 };
 
+struct global_parameters {
+	float start_COR,
+				min_intensity_possible;
+};
+
 void init_program_arguments(struct reconstruction_arguments * program_arguments, int argc, char *argv[], int mpi_id);
 void print_reconstruction_arguments(struct reconstruction_arguments * args, int mpi_id);
 void check_failure(int failure_state);
@@ -48,18 +55,24 @@ void get_path_from_arg(char * dst, const char * src, const char * varname, int m
 struct sinogram * parse_sinogram_file_header(const char * filename, int mpi_id);
 void print_sinogram_info(struct sinogram * sgram, int mpi_id);
 void test_output_filename(const char * filename, int mpi_id);
+void run_reconstruction(struct reconstruction_arguments * args, struct sinogram * sgram, int mpi_id);
+void run_reconstruction_master(struct reconstruction_arguments * args, struct sinogram * sgram);
+void run_reconstruction_slave(void);
+void send_global_parameters(struct global_parameters * global_params, int node);
+void recv_global_parameters(struct global_parameters * global_params);
+
+void clear_float_array(float *array, size_t size, off_t offset);
 
 int main( int argc, char *argv[] )
 {
 	// MPI state information
-	int myid, numprocs;
+	int myid;
 
 	struct reconstruction_arguments program_arguments;
 
 	// init the MPI state
 	MPI_Init(&argc,&argv);
-	MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
-	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
+	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
 	init_program_arguments(&program_arguments, argc, argv, myid);
 	print_reconstruction_arguments(&program_arguments, myid);
@@ -68,9 +81,11 @@ int main( int argc, char *argv[] )
 	print_sinogram_info(first_sinogram, myid);
 
 	test_output_filename(program_arguments.output_vol_filename, myid);
+	
+	run_reconstruction(&program_arguments, first_sinogram, myid);
 
 	// exit cleanly
-	if(myid == 0) {
+	if(myid == MASTER_NODE_ID) {
 		free(first_sinogram);
 	}
 	MPI_Finalize();
@@ -91,7 +106,7 @@ void init_program_arguments(struct reconstruction_arguments * program_arguments,
 			* arg_center_of_rotation = NULL;
 
 	// check for the correct number of command-line arguments
-	if(mpi_id == 0) {
+	if(mpi_id == MASTER_NODE_ID) {
 		if(argc != 7) {
 			fprintf(stderr,
 					"Usage: %s slicechunk sinogram number output imagesize cor\n",
@@ -102,7 +117,7 @@ void init_program_arguments(struct reconstruction_arguments * program_arguments,
 	check_failure(failure_state);
 
 	// initialize argument pointers
-	if(mpi_id == 0) {
+	if(mpi_id == MASTER_NODE_ID) {
 		arg_max_slices_per_node = argv[1];
 		arg_sinogram_start_filename = argv[2];
 		arg_number_of_sinograms = argv[3];
@@ -114,7 +129,7 @@ void init_program_arguments(struct reconstruction_arguments * program_arguments,
 	// get max_slices_per_node
 	program_arguments->max_slices_per_node = get_int_from_arg(arg_max_slices_per_node,
 			"max_slices_per_node", mpi_id);
-	if((mpi_id == 0) && ((program_arguments->max_slices_per_node % SLICES_PER_SINOGRAM) != 0)) {
+	if((mpi_id == MASTER_NODE_ID) && ((program_arguments->max_slices_per_node % SLICES_PER_SINOGRAM) != 0)) {
 			fprintf(stderr, "The number of slices per node must"
 					"be divisible by %d. %d is not valid\n",
 					SLICES_PER_SINOGRAM, program_arguments->max_slices_per_node);
@@ -144,7 +159,7 @@ void init_program_arguments(struct reconstruction_arguments * program_arguments,
 
 void print_reconstruction_arguments(struct reconstruction_arguments * args, int mpi_id)
 {
-	if(mpi_id == 0) {
+	if(mpi_id == MASTER_NODE_ID) {
 		printf("\n********* Recon Info *********\n");
 		printf("max_slices_per_node: %d\n", args->max_slices_per_node);
 		printf("sinogram_start_filename: %s\n", args->sinogram_start_filename);
@@ -171,7 +186,7 @@ int get_int_from_arg(const char * src, const char * varname, int mpi_id)
 	int failure_state = 0;
 	int dst = 0;
 
-	if(mpi_id == 0) {
+	if(mpi_id == MASTER_NODE_ID) {
 		dst = strtoimax(src,
 				NULL, NUMBER_BASE);
 		if(dst == 0) {
@@ -189,7 +204,7 @@ void get_path_from_arg(char * dst, const char * src, const char * varname, int m
 {
 	int failure_state = 0;
 
-	if(mpi_id == 0) {
+	if(mpi_id == MASTER_NODE_ID) {
 		if(strlcpy(dst,
 			src,
 			MAXPATHLEN) >=
@@ -208,7 +223,7 @@ struct sinogram * parse_sinogram_file_header(const char * filename, int mpi_id)
 	struct sinogram * parsed_sinogram = NULL; 
 	FILE * fp;
 
-	if(mpi_id == 0) {
+	if(mpi_id == MASTER_NODE_ID) {
 		if((fp = fopen(filename, "r")) == NULL) {
 			fprintf(stderr, "Unable to open sinogram with filename \"%s\"\n", filename);
 			failure_state = 1;
@@ -291,7 +306,7 @@ struct sinogram * parse_sinogram_file_header(const char * filename, int mpi_id)
 } // parse_sinogram_file_header
 
 void print_sinogram_info(struct sinogram * sgram, int mpi_id) {
-	if(mpi_id == 0) {
+	if(mpi_id == MASTER_NODE_ID) {
 		printf("**** Sinogram Parameters ****\n");
 		printf("width: %d\n", sgram->width);
 		printf("number_of_angles: %d\n", sgram->number_of_angles);
@@ -312,7 +327,7 @@ void test_output_filename(const char * filename, int mpi_id)
 	int failure_state = 0;
 	FILE * fp;
 
-	if(mpi_id == 0) {
+	if(mpi_id == MASTER_NODE_ID) {
 		if(access(filename, F_OK) != -1) {
 			fprintf(stderr,
 					"Output filename \"%s\" already exists, exiting without clobbering\n",
@@ -330,4 +345,87 @@ void test_output_filename(const char * filename, int mpi_id)
 		}
 	}
 	check_failure(failure_state);
+}
+
+void run_reconstruction(struct reconstruction_arguments * args, struct sinogram * sgram, int mpi_id)
+{
+	if(mpi_id == MASTER_NODE_ID) {
+		run_reconstruction_master(args, sgram);
+	}
+	else {
+		run_reconstruction_slave();
+	}
+}
+
+void run_reconstruction_master(struct reconstruction_arguments * args, struct sinogram * sgram)
+{
+	int numprocs;
+	int slices_per_node;
+
+	struct global_parameters global_params;
+
+	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+
+	// compute global parameters and send to all slaves
+	for(int i = 1; i < numprocs; i++) {
+		send_global_parameters(&global_params, i);
+	}
+
+	// tell all slaves we're done
+	slices_per_node = -1;	
+	for(int i = 1; i < numprocs; i++) {
+		MPI_Send(&slices_per_node, 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD);
+	}
+}
+
+void run_reconstruction_slave(void)
+{
+	int slices_per_node;
+
+	struct global_parameters global_params;
+
+	float *chunk_of_slices = NULL;
+	MPI_Status status;
+
+	recv_global_parameters(&global_params);
+
+	// malloc a buffer for slices once
+	
+	while(1) { // loop until sinogram processing is done
+		MPI_Recv(&slices_per_node, 1, MPI_INT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+		if(slices_per_node == -1) {
+			break;
+		}
+
+		// MPI_Recv(chunk_of_slices, width*step*slices_per_node, MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG,
+		//		MPI_COMM_WORLD, &status);
+	}
+
+	free(chunk_of_slices);
+}
+
+void send_global_parameters(struct global_parameters * global_params, int node)
+{
+	MPI_Send(&(global_params->start_COR), 1, MPI_FLOAT, node, MPI_ANY_TAG, MPI_COMM_WORLD);
+	MPI_Send(&(global_params->min_intensity_possible), 1, MPI_FLOAT, node, MPI_ANY_TAG, MPI_COMM_WORLD);
+}
+
+void recv_global_parameters(struct global_parameters * global_params)
+{
+	MPI_Status status;
+
+	MPI_Recv(&(global_params->start_COR), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+	MPI_Recv(&(global_params->min_intensity_possible), 1, MPI_FLOAT, MASTER_NODE_ID, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+}
+
+void clear_float_array(float *array, size_t size, off_t offset)
+{
+#if defined(__STDC_IEC_559__)
+	memset(array+offset, 0, size * sizeof(float));
+#else
+	for(size_t i = 0; i < size; i++) {
+		(array+offset)[i] = 0.0;
+	}
+#endif // __STDC_IEC_559__	
 }
