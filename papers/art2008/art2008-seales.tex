@@ -1,9 +1,13 @@
 \documentclass[12pt]{article}
 \usepackage{graphicx}
+\usepackage[sectionbib]{natbib}
 \usepackage[labelfont=bf,textfont=it]{caption}
 \usepackage{subfigure}
+\usepackage{times}
 \usepackage{listings}
 \usepackage{hyperref}
+
+\renewcommand\refname{\sc{Bibliography}}
 
 \usepackage[top=2.5cm,left=2.5cm,right=2.5cm,bottom=2.5cm,nohead,nofoot]{geometry}
 
@@ -17,6 +21,9 @@ plainpages = false,
 \newcommand{\li}{\lstinline}
 \newcommand{\footurl}[1]{\footnote{\href{{#1}}{{#1}}}}
 
+\setlength{\parskip}{\baselineskip}
+\setlength{\parindent}{0em}
+
 \begin{document}
 \title{Recent Work in the EDUCE Project}
 \author{W. Brent Seales
@@ -26,6 +33,17 @@ plainpages = false,
 
 \maketitle
 
-\section{Abstract}
+\section*{\sc{Abstract}}
+
+Lorem ipsum dolor para 1 \cite{Brown:2000p6405}. Sentence 2.
+
+Para 2.
+
+\section*{\sc{Text}}
+
+\section*{\sc{Conclusion}}
+
+\bibliographystyle{plainnat}
+\bibliography{citations}
 
 \end{document}
