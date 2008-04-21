@@ -9,12 +9,13 @@
 
 \renewcommand\refname{\sc{Bibliography}}
 
-\usepackage[top=2.5cm,left=2.5cm,right=2.5cm,bottom=2.5cm,nohead,nofoot]{geometry}
+\usepackage[top=2.5cm,left=2.5cm,right=2.5cm,bottom=2.5cm,nohead,includefoot]{geometry}
 
 \hypersetup{
 colorlinks = false,
 pdfborder = 0 0 0,
 pdftitle = {The Use of Micro-CT in the Study of Archeological Artifacts},
+pdfauthor = {Ryan Baumann, Dorothy Carr Porter, W. Brent Seales},
 plainpages = false,
 }
 
@@ -26,20 +27,75 @@ plainpages = false,
 
 \begin{document}
 \title{\sc{The Use of Micro-CT in the Study of Archeological Artifacts}}
-\author{W. Brent Seales
-\and Ryan Baumann \\
-\and Dot Porter}
+\author{Ryan Baumann \\
+\and Dorothy Carr Porter \\
+\and W. Brent Seales}
 \date{}
 
 \maketitle
 
 \section*{\sc{Abstract}}
 
-Lorem ipsum dolor para 1 \citep{Brown:2000p6405}. Sentence 2.
+Opaque artifacts containing obscured text continue to present significant challenges to conservators.
+Attempts to read such fragile texts may fundamentally and irreversibly alter the physical structure of the object in which it is contained.
+Thus, the conservator is presented with an almost impossible dilemma:
+risk destruction of an artifact in order to recover a text of unknown value,
+or maintain the artifact in its original state and possibly allow a valuable text to go undiscovered.
 
-Para 2.
+As a result, non-destructive, non-invasive techniques which can provide insight into such texts are a valuable topic of investigation. The EDUCE project (Enhanced Digital Unwrapping for Conservation and Exploration) is developing a general restoration approach that enables access to those impenetrable objects without the need to open them. The vision is to apply this work ultimately to enclosed text-bearing documents, and to allow complete analysis while enforcing continued physical preservation. In this paper, we describe the preliminary results of our experiments in imaging texts using micro-CT techniques, as well as discuss future applications of this technique and obstacles it faces.
 
-\section*{\sc{Text}}
+\section*{\bf{\sc{Text}}}
+
+\subsection*{The Damage of Physical Unrolling}
+
+Numerous types of fragile artifacts exist containing text which is unreadable under visible light from the object exterior. Papyrus rolls, in particular carbonized papyri such as those from Herculaneum and Tanis, present obvious difficulties for the conservator. Even papyrus rolls for which a conventional ``unrolling'' is feasible must be handled with care in preservation, as the length of a roll may force it to be cut into sections and stored in this new format. There are also various examples of artifacts where a text's substrate has been reused in the creation of a new object, such as papyrus used in Egyptian mummy cartonnage or discarded parchment manuscript folios in the binding of a codex manuscript or printed book.
+
+The history of previous efforts to read and conserve such objects provides an important context for the advantages of a repeatable method of inspection which does not require physical intervention. Papyrus rolls which can withstand unrolling often underwent the procedure soon after acquisition, being dampened and humidified to assist the process (Leach 1995). Carbonized papyri present more obvious frustrations for those wishing to read them. First, it is not possible to physically unroll carbonized scrolls completely. Following some years of experimentation (including practices such as pouring mercury through the edges of the scrolls, immersing entire scrolls in mercury; immersing scrolls in rose water; and holding scrolls in a chamber with various types of gases), common practice developed to cut away the hard outer layers - the husks - and unroll the relatively more flexible center layers (Sider 2005). The husks, consisting of two, four, or sometimes six separate pieces, must then be dealt with. Attempts to separate the layers often resulted in damaged or even completely destroyed text. Both chemical and physical methods were used, but as with the complete scrolls there was little success.
+
+There is still damage to come, even after scrolls are successfully opened and unrolled. Fading ink, color changes to papyrus, weakening structure of papyrus, and the oxidization of ink that causes papyrus breakdown are all documented damage that can come from exposing the inner layers of a papyrus scroll to light and air. In addition, after unrolling and the separation of layers, scrolls and scroll fragments were at times attached to a backing material. This introduces several new problems for conservators and editors: texts written on both sides of the papyrus are either mounted in a frame - with substantially less support for the center of the document - or with one side of the document permanently covered, and the backing material, if acidic, can damage the object causing discoloration and weakening of the substrate. Some fragments are mounded between two planes of glass, but this exposes the papyrus to another set of physical stresses including the possibility that the glass simply crush the parchment to powder (Leach 1995).
+There are also very specific editorial issues attached to the scrolls (Sider 2005). During the 19th century there was a program to document as many scrolls as possible and at this time practice was to read visible text and create a hand-drawn facsimile of it, then to scrape off the layer to uncover the text underneath, completely removing the top layer. For many scrolls, the only sources we have left are these hand-drawn facsimiles. Since the people who did this work were not scholars and did not know Greek, these documents must be seriously scrutinized by the editor. Other editorial issues include problems of order - once cut into pieces and divided into layers, the original order of scroll texts was often lost. Editors are still dealing with this issue today.
+
+Indeed, from a conservation point of view, the best option for conserving scrolls is to keep them closed.
+
+\subsection*{Scanning Technologies}
+
+All of these examples serve to illustrate the underlying risks of destruction and harm to the physical artifact that traditional methods of autopsy entail and editorial problems that they introduce. The act of physical investigation frequently becomes a one-time endeavor, fundamentally altering the structure of the object and all future attempts at scholarship.
+
+In light of these limitations, non-invasive volumetric imaging techniques seem an ideal fit for the problem of analyzing opaque artifacts. The technique we explore here is high-resolution micro-CT imaging, which has proven a versatile and powerful tool in our initial experiments. Getting a usable result from X-ray based CT depends upon the specific X-ray absorption characteristics of the object, such as the substrate and pigments involved.
+
+The ideal X-ray response is to have some signal from the substrate (to assist in segmentation and unwrapping, as well as to understand the overall physical configuration), and an increased response from the ink to provide contrast. The primary division among inks used for written texts is between carbon black and inks made with metallic or mineral content. Iron-gall inks, composed of galls, vitriol (iron sulfate), gum and water, are very prevalent in ancient writing. Due to the iron content of these inks, their X-ray attenuation is obviously very high and ideal for our methods of investigation. In our testing of proxies which used ink with iron content, the contrast between text and papyrus is strong and consistent. One can anticipate similar X-ray response characteristics with other pigments which contained metals or used minerals for their coloring. Aside from carbon black, this encompasses the majority of pigments used across a variety of cultures: red ochre ($\rm Fe_2O_3$), azurite ($\rm 2CuCO_3\cdot Cu(OH)_2$), verdigris ($\rm Cu(CH_3COO)_2\cdot Cu(OH)_2$), malachite ($\rm CuCO_3\cdot Cu(OH)_2$), yellow ochre ($\rm Fe_2O_3\cdot H_2O$), vermilion ($\rm HgS$), orpiment ($\rm As_2S_3$), pararealgar ($\rm As_4S_4$), Egyptian Blue ($\rm CaCuSi_4O_{10}$), Han Blue ($\rm BaCuSi_4O_{10}$), Han Purple ($\rm BaCuSi_2O_6$), Maya Blue($\rm x\cdot indigo\cdot (Mg,Al)_4Si_8(O,OH,H_2O)_{24}$), lead white ($\rm 2PbCO_3\cdot Pb(OH)_2$), and so on. (Clark 2003, Clark 2007, Berke 2007, Bussotti 1997)
+
+Carbon black inks are not so clear-cut in their properties concerning X-ray attenuation. Iron gall ink did not supersede carbon black in use until sometime around 300AD, so there is still a large corpus of materials for which the majority of writing will be in carbon black (Bearman 1996). Here there are some distinctions that must be made, as the term ``carbon black'' suitably describes a variety of pigments with varying production techniques and time periods (Winter 1983). The typical mode of production in ancient times was to use soot or graphite as the coloring material, combined with water to liquify it and gum arabic (acacia) as a binding agent to increase viscosity and adhesion. At a superficial level, one may not expect much contrast between this organic material, and the organic, often carbonized, papyrus substrates we are interested in. However, there are a number of subtle properties which it may be possible to exploit in order to use X-ray based techniques to image these texts. Where iron gall inks behave similarly to the inks we are familiar with today in the penetration and dyeing of the substrate, carbon black inks essentially rest in a suspension atop the writing surface (Bearman 1996).
+
+Though recovered text alone lends itself to paleographical analysis, allowing scholars to determine provenance and dating, the potential for information provided by micro-CT imaging is not limited solely to textual content. The interior of the object can be assessed to see if damages such as fragmentation, existing deterioration, or attack by insects has occurred, allowing valuable analysis of these effects isolated from the changes introduced by physical manipulation. Because the scans are acquired with known physical voxel dimensions, measurements such as the unrolled length and area of a scroll can be conducted. At sufficient resolution, it may also be possible to see the size and nature of the joins between papyrus sheets
+
+\subsection*{CT Scanning and Virtual Unrolling}
+
+Given the huge amount of labor and care it takes to physically unroll the scrolls, together with the risk of destruction caused by the unrolling, a technology capable of producing a readable image of a rolled-up text without the need to physically open it is an attractive concept. CT scanning, as described above, partnered with virtual unrolling would offer an obvious and substantial payoff. 
+
+\subsubsection*{Synthetic Objects}
+
+Prior to testing with real-world objects, we tested several proxy (synthetic) objects including a canvas replica scroll, papyrus replica scroll, and papyrus and ink fragments embedded in polyurethane plastic (one a scroll, the other a mobius strip). The canvas scroll was scanned using a CT scanner at the University of Kentucky Chandler Medical Center, while the other proxy objects were scanned using our custom-built CT scanner which has a higher resolution than the medical CT scanner. The data for all objects was then segmented and virtual unrolling applied. All experiments were successful, although it should be noted that the ink used on all the proxy papyrus was iron gall ink, which would be expected to react most positively in the CT scan. See Lin 2007 for complete description of the proxy experiments.
+
+\subsubsection*{Authentic Objects}
+
+Following the success of the proxy experiments, we made an attempt on an authentic manuscript object. With the assistance of curators from the Special Collections Library at the University of Michigan, we were given access to a parchment manuscript from the 15th century that had been dismantled and used in the binding of a printed book soon after its creation. The manuscript is located in the spine of the binding, and consists of seven or so layers that were stuck together, as shown in Figure 2. The handwritten text on the top layer is recognizable from the book of Ecclesiastes. The two columns of texts correspond to Eccl 2:4/2:5 (2:4 word 5 through 2:5 word 6) and Eccl 2:10 (word 10.5 through word 16). However, it was not clear what writing appears on the inner layers, or whether they contain any writing at all. We tested this manuscript using methods that we had refined over a series of simulations and real-world experiments, but this experiment was our first on a bona fide primary source.
+ 
+We were able to bring out several layers of text, including the text on the back of the top layer. Figure 3 shows the result generated by our method to reveal the back side of the top layer which is glued inside and inaccessible. The left and right columns were identified as Eccl. 1:16 and 1:11 respectively.
+ 
+To verify our findings, conservation specialists at the University of Michigan uncovered the back side of the top layer by removing the first layer from the rest of the strip of manuscript. The process was painstaking, in order to minimize damage, and it took an entire day. First, the strip was soaked in water for a couple of hours to dissolve the glue and enhance the flexibility of the material which was fragile due to age; this added a risk of the ink dissolving, although the duration and water temperature were controlled to protect against this happening. Then, the first layer was carefully pulled apart from the rest of the manuscript with tweezers. The process was very slow to avoid tearing the material. Remaining residue was scraped off gently.
+ 
+The back side of the top layer is shown in figure 4. Most of the Hebrew characters in the images are legible and align well with those in the digital images of the manuscript. The middle rows show better results than the rows on the edges. That is because the edge areas were damaged in structure, torn and abraded, and that degraded the quality of the restoration.
+ 
+Without applying the virtual unwrapping approach, the choices would be either to preserve the manuscript with the hidden text unknown or to destroy it to read it. In this case, we first read the text with non-invasive methods then disassembled the artifact in order to confirm our readings.
+
+Our methods may have potential for the investigation of  Egyptian cartonnage artifacts (Wright 1983). Similar to the Ecclesiastes binding, these typically consist of a number of papyri layers bound together to form a mummy casing. Again, traditional investigation must weigh the value of reading an unknown text against destroying the restructured artifact.
+
+\subsection*{Next Steps}
+
+We will soon be applying these technologies to a scroll in the British Museum which has never been unrolled. The scroll, BM 10748, is presumed to be a text belonging to the work collectively referred to as the Egyptian Book of the Dead. Scanning a full scroll such as this poses significant challenges, in terms of resolution and sampling. The scroll is 71.5mm across at its widest, and extremely compact (Figure 5). The system we have developed, which should have a voxel size of approximately 25um, has an axial resolution of 4096x4096, and approximately 12000 slices will be required to image the entire scroll. The amount of data alone is many orders of magnitude beyond what most CT systems are used for. It also must be portable such that it can be used on-site, including reconstruction and visualization hardware.
+
+Obviously, as the scroll has never been unrolled, all current knowledge of it is solely based on its exterior dimensions and appearance. Since the details surrounding the acquisition of many Egyptian antiquities were not recorded, provenance can be difficult to establish (Leach 1995). Thus, it is impossible to know with certainty a priori what the interior structure will be like and what pigments it will contain. However, Book of the Dead papyri from the approximate period of the scroll have certain elements which are often present. For text, one important element is the chapter heading, usually written in a red ink and consequently referred to as a rubric (Allen 1936, Lucas 1962). As the vast majority of Egyptian red pigments contain iron (Edwards 2004, Calza 2007), this should provide significant X-ray contrast. Another consistent feature is the vignettes, which are illustrations placed regularly throughout the text, often corresponding to a certain event or telling a story of their own. As these used many bright, non-black colors, it is likely that there will be some mineral or metallic content which will provide contrast against the papyrus. However, contrast between different inks within a single vignette will depend upon the exact pigments and elements involved. As both the vignettes and rubrices have consistency with specific chapters of the Book of the Dead, it may be possible to determine which chapters the scroll contains from these alone, or to determine if it may have some previously unknown content. It is unknown if the main text, usually written in carbon black, is likely to be visible with our current X-ray imaging configuration.
 
 \section*{\sc{Conclusion}}
 
