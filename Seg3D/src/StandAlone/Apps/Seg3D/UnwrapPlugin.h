@@ -45,7 +45,9 @@ namespace SCIRun {
 				dc.DrawBitmap(bmap, 0, 0, false);
 			}
 			void update_image(void) {
-				SetScrollbars(1,1,bmap.GetWidth(),bmap.GetHeight(),0,0,true);
+				int cx, cy;
+				GetViewStart(&cx, &cy);
+				SetScrollbars(1,1,bmap.GetWidth(),bmap.GetHeight(),cx,cy,true);
 				Refresh();
 			}
 			void set_image(Unwrapping * uwrap, int position = -1) {
