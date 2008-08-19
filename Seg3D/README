@@ -1,0 +1,6 @@
+Build with:
+./build.sh --seg3d-only --with-wxwidgets --cmake-args=-DWITH_MPEG=OFF -j2
+
+Set up ccache! This will likely save you tons of time during recompiles:
+http://ccache.samba.org/ccache-man.html
+You will probably need to increase some of the limits like size.
