@@ -4,7 +4,7 @@ rm -rf $DIR/Seg3D/*
 cp $DIR/bin/Seg3D $DIR/Seg3D
 mkdir $DIR/Seg3D/data
 cp -r $DIR/src/StandAlone/Apps/Seg3D/data/* $DIR/Seg3D/data
-version=`$svnbin info $DIR/src | grep Revision | cut -d" " -f 2`
+version="EDUCE"
 cd $DIR
 archive=$DIR/Seg3D-r${version}-`uname -s`-`uname -m`.tar.gz
 echo "archive: $archive"

@@ -213,24 +213,7 @@ find_svn() {
 build_thirdparty() {
     try cd $DIR/thirdparty.src
     
-    # If this script is running in a SVN tree, see if it needs to be updated
-    if [ -e "$DIR/thirdparty.src/.svn" ] && [ -e "$svnbin" ]; then 
-        tpurl=`$svnbin info . | grep URL | cut -d" " -f 2`
-        local=`$svnbin info . | grep Revision | cut -d" " -f 2`
-        remote=`$svnbin info $tpurl | grep Revision | cut -d" " -f 2`
-        try echo "thirdparty.src URL = $tpurl"
-        try echo "local thirdparty revision = $local"
-        try echo "repository thirdparty revision = $remote"
-        if test "$local" = "$local"; then
-            check_thirdparty_install
-        else
-            echo "Thirdparty at $tpurl has changed, updating..."
-            try $svnbin update
-            rebuild_thirdparty=1
-        fi
-    else
-        check_thirdparty_install
-    fi
+		check_thirdparty_install
     
     if [ $rebuild_thirdparty == "1" ]; then
         echo "Rebuilding Thirdparty..."
@@ -259,11 +242,6 @@ build_thirdparty() {
 
 update_scirun_src() {
     echo "Updating SCIRUN source..."
-
-    # If the source tree is from SVN, update it too
-    if [ -e "$DIR/src/.svn" ] && [ -e "$svnbin" ]; then 
-        try svn update "$DIR/src"
-    fi
 }
     
 configure_scirun_bin() {

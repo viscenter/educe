@@ -3,7 +3,7 @@ c++ -static-libgcc -ftemplate-depth-50 -no-cpp-precomp -Wno-long-double -ftempla
 mkdir -p $DIR/tmp
 rm -rf $DIR/tmp/*
 mv $DIR/bin/Seg3D.app $DIR/tmp
-version=`$svnbin info $DIR/src | grep Revision | cut -d" " -f 2`
+version="EDUCE"
 archive=$DIR/Seg3D-r${version}-OSX-`uname -m`.dmg
 echo "archive: $archive"
 hdiutil create -ov -fs HFS+ -srcfolder $DIR/tmp -volname Seg3D $archive
