@@ -1,0 +1,546 @@
+diff a/Seg3D/src/StandAlone/Apps/Seg3D/Seg3DFrame.cc b/Seg3D/src/StandAlone/Apps/Seg3D/Seg3DFrame.cc	(rejected hunks)
+@@ -1,47 +1,36 @@
+-/*
+-  For more information, please see: http://software.sci.utah.edu
+-
+-  The MIT License
+-
+-  Copyright (c) 2004 Scientific Computing and Imaging Institute,
+-  University of Utah.
+-
+-   
+-  Permission is hereby granted, free of charge, to any person obtaining a
+-  copy of this software and associated documentation files (the "Software"),
+-  to deal in the Software without restriction, including without limitation
+-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-  and/or sell copies of the Software, and to permit persons to whom the
+-  Software is furnished to do so, subject to the following conditions:
+-
+-  The above copyright notice and this permission notice shall be included
+-  in all copies or substantial portions of the Software.
+-
+-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-  DEALINGS IN THE SOFTWARE.
+-*/
+-
+-
+-/*
+- *  Painter.cc
+- *
+- *  Written by:
+- *   SCI Institute
+- *   University of Utah
+- *   July 2007
+- *
+- *  Copyright (C) 2007 SCI Institute
+- */
+-
++//  
++//  For more information, please see: http://software.sci.utah.edu
++//  
++//  The MIT License
++//  
++//  Copyright (c) 2006 Scientific Computing and Imaging Institute,
++//  University of Utah.
++//  
++//  
++//  Permission is hereby granted, free of charge, to any person obtaining a
++//  copy of this software and associated documentation files (the "Software"),
++//  to deal in the Software without restriction, including without limitation
++//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
++//  and/or sell copies of the Software, and to permit persons to whom the
++//  Software is furnished to do so, subject to the following conditions:
++//  
++//  The above copyright notice and this permission notice shall be included
++//  in all copies or substantial portions of the Software.
++//  
++//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
++//  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++//  DEALINGS IN THE SOFTWARE.
++//  
++//    File   : Seg3DFrame.cc
++//    Author : David Brayford
++//    Date   : July 2007
+ 
+ #include <StandAlone/Apps/Seg3D/Seg3DFrame.h>
+ #include <StandAlone/Apps/Seg3D/WXOpenGLContext.h>
+-#include <Core/Malloc/Allocator.h>
+ #include <Core/Events/EventManager.h>
+ #include <Core/Events/BaseEvent.h>
+ #include <signal.h>
+@@ -49,25 +38,29 @@
+ #include <StandAlone/Apps/Seg3D/Seg3DwxGuiUtils.h>
+ 
+ #include <StandAlone/Apps/Seg3D/GuiCode/brushpanel.h>
+-
+-//New wx ITK test
+-#include <StandAlone/Apps/Seg3D/GuiCode/itkcurvatureanistopricdiffusionfilter.h>
+-#include <StandAlone/Apps/Seg3D/GuiCode/itkconfidenceconnectedfilter.h>
+-#include <StandAlone/Apps/Seg3D/GuiCode/itkbinarydilateerodefilter.h>
+-#include <StandAlone/Apps/Seg3D/GuiCode/itkneighbourhoodconnectedfilter.h>
+-#include <StandAlone/Apps/Seg3D/GuiCode/itkthresholdsegmentationlevelsetfilter.h>
+-#include <StandAlone/Apps/Seg3D/GuiCode/cropvolume.h>
+ #include <StandAlone/Apps/Seg3D/GuiCode/brushpanel.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/cropvolume.h>
+ #include <StandAlone/Apps/Seg3D/GuiCode/cursorinformation.h>
+ #include <StandAlone/Apps/Seg3D/GuiCode/fliptool.h>
+ #include <StandAlone/Apps/Seg3D/GuiCode/histoeqfilter.h>
+-#include <StandAlone/Apps/Seg3D/GuiCode/resampletool.h>
+-#include <StandAlone/Apps/Seg3D/GuiCode/medianfiltertool.h>
+-#include <StandAlone/Apps/Seg3D/GuiCode/optionlessfilter.h>
+-#include <StandAlone/Apps/Seg3D/GuiCode/itkthresholdfilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/intensitycorrectionfilterpanel.h>
+ #include <StandAlone/Apps/Seg3D/GuiCode/itkDiscreteGaussianImageFilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/itkbinarydilateerodefilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/itkconfidenceconnectedfilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/itkcurvatureanistopricdiffusionfilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/itkneighbourhoodconnectedfilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/itkspeedtopathgradientdescentfilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/itkspeedtopathiterateneighborhoodfilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/itkspeedtopathregularstepgradientdescentfilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/itkthresholdsegmentationlevelsetfilter.h>
+ #include <StandAlone/Apps/Seg3D/GuiCode/maskfilter.h>
+-
++#include <StandAlone/Apps/Seg3D/GuiCode/medianfiltertool.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/measurementtool.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/movescaletoolpanel.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/optionlessfilter.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/polylinetoolpanel.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/resampletool.h>
++#include <StandAlone/Apps/Seg3D/GuiCode/thresholdtoolpanel.h>
+ 
+ // #define USING_HELP_FILES
+ 
+@@ -98,6 +91,8 @@
+   EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_HIDE_TOOL, Seg3DFrame::OnHideTool)
+   EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_OK_DIALOG, Seg3DFrame::OnOKDialog)
+   EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_LAYER_DELETE_DIALOG, Seg3DFrame::OnLayerDeleteDialog)
++  EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_EXPORT_LABEL_SELECTION, Seg3DFrame::OnExportLabelSelection)
++  EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_UPDATE_UNDO_STATE, Seg3DFrame::OnUpdateUndoState)
+ 
+   EVT_MENU(MENU_FILE_LOAD_VOLUME, Seg3DFrame::FileLoadVolume)
+   EVT_MENU(MENU_FILE_LOAD_SESSION, Seg3DFrame::FileLoadSession)
+@@ -112,18 +107,28 @@
+   EVT_MENU(MENU_VIEW_SINGLE, Seg3DFrame::ViewSingle)
+   EVT_MENU(MENU_VIEW_VOLUME_RENDER, Seg3DFrame::ViewVolumeRender)
+ 
+-  EVT_MENU(MENU_TOOL_AUTOVIEW, Seg3DFrame::ToolAutoview)
++  EVT_MENU(MENU_EDIT_AUTOVIEW, Seg3DFrame::EditAutoview)
++  EVT_MENU(MENU_EDIT_SET_MASK_LAYER, Seg3DFrame::EditSetMaskLayer)
++  EVT_MENU(MENU_EDIT_CLEAR_MASK_LAYER, Seg3DFrame::EditClearMaskLayer)
++  EVT_MENU(MENU_EDIT_ISOSURFACE_ONE, Seg3DFrame::EditIsosurfaceOne)
++  EVT_MENU(MENU_EDIT_ISOSURFACE_ALL, Seg3DFrame::EditIsosurfaceAll)
++  EVT_MENU(MENU_EDIT_SET_VRTARGET, Seg3DFrame::EditSetVRTarget)
++  EVT_MENU(MENU_EDIT_RESET_CLUT, Seg3DFrame::EditResetCLUT)
++  EVT_MENU(MENU_EDIT_MOVE_LAYER_UP, Seg3DFrame::EditMoveLayerUp)
++  EVT_MENU(MENU_EDIT_MOVE_LAYER_DOWN, Seg3DFrame::EditMoveLayerDown)
++  EVT_MENU(MENU_EDIT_UNDO, Seg3DFrame::EditUndo)
++
++  EVT_MENU(MENU_PREFS_FATLINES, Seg3DFrame::OnUpdatePrefsFatlines)
++  EVT_MENU(MENU_PREFS_STIPPLE, Seg3DFrame::OnUpdatePrefsStipple)
++
+   EVT_MENU(MENU_TOOL_PAINT_BRUSH, Seg3DFrame::ToolPaintBrush)
+   EVT_MENU(MENU_TOOL_CROP_VOLUME, Seg3DFrame::ToolCropVolume)
+-  EVT_MENU(MENU_TOOL_ISOSURFACE_ONE, Seg3DFrame::ToolIsosurfaceOne)
+-  EVT_MENU(MENU_TOOL_ISOSURFACE_ALL, Seg3DFrame::ToolIsosurfaceAll)
+-  EVT_MENU(MENU_TOOL_SET_VRTARGET, Seg3DFrame::ToolSetVRTarget)
+   EVT_MENU(MENU_TOOL_FLIP, Seg3DFrame::ToolFlip)
+   EVT_MENU(MENU_TOOL_RESAMPLE, Seg3DFrame::ToolResample)
+-  EVT_MENU(MENU_TOOL_RESET_CLUT, Seg3DFrame::ToolResetCLUT)
+-  EVT_MENU(MENU_TOOL_SET_MASK_LAYER, Seg3DFrame::ToolSetMaskLayer)
+-  EVT_MENU(MENU_TOOL_CLEAR_MASK_LAYER, Seg3DFrame::ToolClearMaskLayer)
+   EVT_MENU(MENU_TOOL_POLYLINE, Seg3DFrame::ToolPolyline)
++  EVT_MENU(MENU_TOOL_THRESHOLD, Seg3DFrame::ToolThreshold)
++  EVT_MENU(MENU_TOOL_MOVESCALE, Seg3DFrame::ToolMoveScale)
++  EVT_MENU(MENU_TOOL_MEASUREMENT, Seg3DFrame::ToolMeasurement)
+ 
+   EVT_MENU(MENU_FILTER_C_A_D_F, Seg3DFrame::Filter_CADF)
+   EVT_MENU(MENU_FILTER_C_C_F, Seg3DFrame::Filter_CCF)
+@@ -172,66 +185,97 @@
+   tool_label1_ = new wxStaticText(toolsPanel_, wxID_ANY, wxT(""));
+   tools_sizer->Add(tool_label0_, 0, wxALIGN_CENTER, 0); 
+   tools_sizer->Add(tool_label1_, 0, wxALIGN_CENTER, 0); 
++  wxFont font = tool_label0_->GetFont();
++  font.SetWeight(wxBOLD);
++  tool_label0_->SetFont(font);
++  tool_label1_->SetFont(font);
+ 
+-  cursorInformation_ = scinew ::CursorInformation(this, wxID_ANY, wxDefaultPosition, panel_size);
++  cursorInformation_ =
++    new ::CursorInformation(this, wxID_ANY, wxDefaultPosition, panel_size);
+   left_sizer->Add(cursorInformation_, 0, wxEXPAND, 0);
+ 
+-  brushPanel_ = scinew BrushPanel(toolsPanel_);
++  brushPanel_ = new BrushPanel(toolsPanel_);
+   tools_sizer->Add(brushPanel_, 0, 0, 0);
+   tools_sizer->Show(brushPanel_, false);
+   tools_sizer->Layout();
+ 
+   // new wx crop volume
+-  cropVolume_ = scinew CropVolume(toolsPanel_);
++  cropVolume_ = new CropVolume(toolsPanel_);
+   tools_sizer->Add(cropVolume_, 0, 0, 0);
+   tools_sizer->Show(cropVolume_, false);
+   tools_sizer->Layout();
+   
+   // new wx median filter volume
+-  medianFilterTool_ = scinew MedianFilterTool(toolsPanel_);
++  medianFilterTool_ = new MedianFilterTool(toolsPanel_);
+   tools_sizer->Add(medianFilterTool_, 0, 0, 0);
+   tools_sizer->Show(medianFilterTool_, false);
+   tools_sizer->Layout();
+ 
+   // new wx flip volume
+-  flipTools_ = scinew FlipTool(toolsPanel_);
++  flipTools_ = new FlipTool(toolsPanel_);
+   tools_sizer->Add(flipTools_, 0, 0, 0);
+   tools_sizer->Show(flipTools_, false);
+   tools_sizer->Layout();
+ 
+-  histoEqTool_ = scinew HistoEqFilter(toolsPanel_);
++  histoEqTool_ = new HistoEqFilter(toolsPanel_);
+   tools_sizer->Add(histoEqTool_, 0, 0, 0);
+   tools_sizer->Show(histoEqTool_, false);
+   tools_sizer->Layout();
+ 
+   // new wx resample volume
+-  resampleTool_ = scinew ResampleTool(toolsPanel_);
++  resampleTool_ = new ResampleTool(toolsPanel_);
+   tools_sizer->Add(resampleTool_, 0, 0, 0);
+   tools_sizer->Show(resampleTool_, false);
+   tools_sizer->Layout();
+ 
+   // new wx ITK test
+-  itk_CADF_ = scinew ITKCurvatureAnistopricDiffusionFilter(toolsPanel_);
++  itk_CADF_ = new ITKCurvatureAnistopricDiffusionFilter(toolsPanel_);
+   tools_sizer->Add(itk_CADF_, 0, 0, 0);
+   tools_sizer->Show(itk_CADF_, false);
+   tools_sizer->Layout();
+ 
+-  itk_CCF_ = scinew ITKConfidenceConnectedFilter(toolsPanel_);
++  itk_CCF_ = new ITKConfidenceConnectedFilter(toolsPanel_);
+   tools_sizer->Add(itk_CCF_, 0, 0, 0);
+   tools_sizer->Show(itk_CCF_, false);
+   tools_sizer->Layout();  
+ 
+-  itk_NCF_ = scinew ITKNeighbourhoodConnectedFilter(toolsPanel_);
++  itk_NCF_ = new ITKNeighbourhoodConnectedFilter(toolsPanel_);
+   tools_sizer->Add(itk_NCF_, 0, 0, 0);
+   tools_sizer->Show(itk_NCF_, false);
+   tools_sizer->Layout();
+ 
+-  itk_BDEF_ = scinew ITKBinaryDilateErodeFilter(toolsPanel_);
++  polylinetoolpanel_ = new PolylineToolPanel(toolsPanel_);
++  tools_sizer->Add(polylinetoolpanel_, 0, 0, 0);
++  tools_sizer->Show(polylinetoolpanel_, false);
++  tools_sizer->Layout();
++
++  thresholdtoolpanel_ = new ThresholdToolPanel(toolsPanel_);
++  tools_sizer->Add(thresholdtoolpanel_, 0, 0, 0);
++  tools_sizer->Show(thresholdtoolpanel_, false);
++  tools_sizer->Layout();
++
++  measurementtoolpanel_ = new MeasurementTool(toolsPanel_);
++  tools_sizer->Add(measurementtoolpanel_, 0, 0, 0);
++  tools_sizer->Show(measurementtoolpanel_, false);
++  tools_sizer->Layout();
++
++  movescaletoolpanel_ = new MoveScaleToolPanel(toolsPanel_);
++  tools_sizer->Add(movescaletoolpanel_, 0, 0, 0);
++  tools_sizer->Show(movescaletoolpanel_, false);
++  tools_sizer->Layout();
++
++  intensitycorrectionfilterpanel_ = new IntensityCorrectionFilterPanel(toolsPanel_);
++  tools_sizer->Add(intensitycorrectionfilterpanel_, 0, 0, 0);
++  tools_sizer->Show(intensitycorrectionfilterpanel_, false);
++  tools_sizer->Layout();
++  
++  
++  itk_BDEF_ = new ITKBinaryDilateErodeFilter(toolsPanel_);
+   tools_sizer->Add(itk_BDEF_, 0, 0, 0);
+   tools_sizer->Show(itk_BDEF_, false);
+   tools_sizer->Layout();
+ 
+-  itk_TSLSF_ = scinew ITKThresholdSegmentationLevelSetFilter(toolsPanel_);
++  itk_TSLSF_ = new ITKThresholdSegmentationLevelSetFilter(toolsPanel_);
+   tools_sizer->Add(itk_TSLSF_, 0, 0, 0);
+   tools_sizer->Show(itk_TSLSF_, false);
+   tools_sizer->Layout();
+@@ -322,15 +373,28 @@
+   winMenu->Append(MENU_VIEW_VOLUME_RENDER, _T("&Volume Rendering") );
+   menuBar->Append(winMenu, _T("&Views"));
+ 
+-  winMenu = new wxMenu;
+-  winMenu->Append(MENU_TOOL_SET_MASK_LAYER, _T("Set &Mask Label"));
+-  winMenu->Append(MENU_TOOL_CLEAR_MASK_LAYER, _T("&Clear Mask Label"));
+-  winMenu->Append(MENU_TOOL_AUTOVIEW, _T("&Autoview All"));
+-  winMenu->Append(MENU_TOOL_RESET_CLUT, _T("Reset &Brightness/Contrast"));
+-  winMenu->Append(MENU_TOOL_ISOSURFACE_ONE, _T("&Isosurface Current Label"));
+-  winMenu->Append(MENU_TOOL_ISOSURFACE_ALL, _T("Isosurface All Labels"));
+-  winMenu->Append(MENU_TOOL_SET_VRTARGET, _T("Set &Volume Rendering Target"));
+-  menuBar->Append(winMenu, _T("&Edit"));
++  prefsMenu_ = new wxMenu;
++  prefsMenu_->AppendCheckItem(MENU_PREFS_FATLINES, _T("Fat label outlines"));
++  prefsMenu_->Check(MENU_PREFS_FATLINES, true);
++  prefsMenu_->AppendCheckItem(MENU_PREFS_STIPPLE, _T("Stippled labels"));
++  prefsMenu_->Check(MENU_PREFS_STIPPLE, true);
++
++  editMenu_ = new wxMenu;
++  editMenu_->Append(MENU_EDIT_UNDO, _T("&Undo") );
++  editMenu_->Enable(MENU_EDIT_UNDO, false);
++  editMenu_->AppendSeparator();
++  editMenu_->Append(MENU_EDIT_AUTOVIEW, _T("&Autoview All"));
++  editMenu_->Append(MENU_EDIT_SET_MASK_LAYER, _T("Set &Mask Label"));
++  editMenu_->Append(MENU_EDIT_CLEAR_MASK_LAYER, _T("&Clear Mask Label"));
++  editMenu_->Append(MENU_EDIT_ISOSURFACE_ONE, _T("&Isosurface Current Label"));
++  editMenu_->Append(MENU_EDIT_ISOSURFACE_ALL, _T("Isosurface All Labels"));
++  editMenu_->Append(MENU_EDIT_SET_VRTARGET, _T("Set &Volume Rendering Target"));
++  editMenu_->Append(MENU_EDIT_RESET_CLUT, _T("Reset &Brightness/Contrast"));
++  editMenu_->Append(MENU_EDIT_MOVE_LAYER_UP, _T("Move Current Volume &Up"));
++  editMenu_->Append(MENU_EDIT_MOVE_LAYER_DOWN, _T("Move Current Volume &Down"));
++  editMenu_->AppendSeparator();
++  editMenu_->Append(MENU_EDIT_PREFS, _T("Preferences"), prefsMenu_);
++  menuBar->Append(editMenu_, _T("&Edit"));
+ 
+   // Tools menu dialog
+   winMenu = new wxMenu;
+@@ -492,16 +568,37 @@
+   }
+   else
+   {
+-    SetStatusText("Delete layer canceled by user.");
++    SetStatusText("Delete volume canceled by user.");
+   }    
+ }
+ 
+ 
++void
++Seg3DFrame::OnUpdateUndoState(wxCommandEvent &event)
++{
++  update_undo_state_t *uus = (update_undo_state_t *)event.GetClientData();
++  if (uus && uus->enable_)
++  {
++    editMenu_->SetLabel(MENU_EDIT_UNDO, std2wx(uus->label_));
++    editMenu_->Enable(MENU_EDIT_UNDO, true);
++  }
++  else
++  {
++    editMenu_->SetLabel(MENU_EDIT_UNDO, _T("Undo"));
++    editMenu_->Enable(MENU_EDIT_UNDO, false);
++  }
++
++  if (uus) { delete uus; }
++}
++
++
+ DEFINE_EVENT_TYPE(wxEVT_COMMAND_STATUS_BAR_TEXT_CHANGE)
+ DEFINE_EVENT_TYPE(wxEVT_COMMAND_COLOUR_PICKER)
+ DEFINE_EVENT_TYPE(wxEVT_COMMAND_HIDE_TOOL)
+ DEFINE_EVENT_TYPE(wxEVT_COMMAND_OK_DIALOG)
+ DEFINE_EVENT_TYPE(wxEVT_COMMAND_LAYER_DELETE_DIALOG)
++DEFINE_EVENT_TYPE(wxEVT_COMMAND_EXPORT_LABEL_SELECTION);
++DEFINE_EVENT_TYPE(wxEVT_COMMAND_UPDATE_UNDO_STATE)
+ 
+ 
+ void
+@@ -624,14 +753,26 @@
+ void
+ Seg3DFrame::FileSaveSession( wxCommandEvent& WXUNUSED(event) )
+ {
+-  wxFileDialog dialog(this, _T("Save Session"), CurrentDocPath, _T("sample_session.ses"),
+-                      _T("Session files (*.ses)|*.ses"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
++  static string last_filename = "";
++  string default_filename = last_filename;
++  if (default_filename == "")
++  {
++    default_filename =
++      generate_short_filename(SCIRun::Painter::get_current_layer_name())
++      + ".ses";
++  }
++
++  wxFileDialog dialog(this, _T("Save Session"), CurrentDocPath,
++                      std2wx(default_filename),
++                      _T("Session files (*.ses)|*.ses"),
++                      wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+ 
+   dialog.SetFilterIndex(1);
+ 
+   if (dialog.ShowModal() == wxID_OK)
+   {
+     const string filename = wx2std(dialog.GetPath(), &wxConvFile);
++    last_filename = filename;
+ 
+     SetStatusText(std2wx("Saving " + filename));
+     wxBusyCursor cursor; // Busy cursor until this leaves scope.
+@@ -787,40 +965,28 @@
+ 
+ 
+ void
+-Seg3DFrame::ToolAutoview( wxCommandEvent& WXUNUSED(event) )
++Seg3DFrame::EditAutoview( wxCommandEvent& WXUNUSED(event) )
+ {
+   Painter::ThrowSkinnerSignal("Painter::Autoview");
+   SetStatusText(wxT("Autoview complete."));
+ }
+ 
+-
+-void
+-Seg3DFrame::ToolPaintBrush( wxCommandEvent& WXUNUSED(event) )
+-{
+-  ShowTool(brushPanel_, "Painter::StartBrushTool", "Paint Brush");
+-}
+-
+-void
+-Seg3DFrame::ToolCropVolume( wxCommandEvent& WXUNUSED(event) )
+-{
+-  ShowTool(cropVolume_, "Painter::StartCropTool", "Crop Tool");
+-}
+-
+-
+ void
+-Seg3DFrame::ToolFlip( wxCommandEvent& WXUNUSED(event) )
++Seg3DFrame::EditSetMaskLayer( wxCommandEvent& WXUNUSED(event) )
+ {
+-  ShowTool(flipTools_, "", "Flip Tool");
++  Painter::ThrowSkinnerSignal("Painter::SetMaskLayer");
++  SetStatusText("Set the mask volume.");
+ }
+ 
+ void
+-Seg3DFrame::ToolResample( wxCommandEvent& WXUNUSED(event) )
++Seg3DFrame::EditClearMaskLayer( wxCommandEvent& WXUNUSED(event) )
+ {
+-  ShowTool(resampleTool_, "", "Resample Tool");
++  Painter::ThrowSkinnerSignal("Painter::ClearMaskLayer");
++  SetStatusText("Cleared the mask volume.");
+ }
+ 
+ void
+-Seg3DFrame::ToolIsosurfaceOne( wxCommandEvent& WXUNUSED(event) )
++Seg3DFrame::EditIsosurfaceOne( wxCommandEvent& WXUNUSED(event) )
+ {
+   SetStatusText(wxT("Computing label isosurface."));
+   wxBusyCursor cursor; // Busy cursor until this leaves scope.
+@@ -844,35 +1010,104 @@
+ }
+ 
+ void
+-Seg3DFrame::ToolResetCLUT( wxCommandEvent& WXUNUSED(event) )
++Seg3DFrame::EditResetCLUT( wxCommandEvent& WXUNUSED(event) )
+ {
+   Painter::ThrowSkinnerSignal("Painter::ResetCLUT");
+-  SetStatusText("Brightness and contrast reset for the active layer.");
++  SetStatusText("Brightness and contrast reset for the active volume.");
+ }
+ 
++void
++Seg3DFrame::EditMoveLayerUp( wxCommandEvent& WXUNUSED(event) )
++{
++  Painter::ThrowSkinnerSignal("Painter::MoveLayerUp");
++}
+ 
+ void
+-Seg3DFrame::ToolSetMaskLayer( wxCommandEvent& WXUNUSED(event) )
++Seg3DFrame::EditMoveLayerDown( wxCommandEvent& WXUNUSED(event) )
+ {
+-  Painter::ThrowSkinnerSignal("Painter::SetMaskLayer");
+-  SetStatusText("Set the mask layer.");
++  Painter::ThrowSkinnerSignal("Painter::MoveLayerDown");
+ }
+ 
++void
++Seg3DFrame::EditUndo( wxCommandEvent& WXUNUSED(event) )
++{
++  wxBusyCursor();
++  Painter::ThrowSkinnerSignal("Painter::Undo");
++}
+ 
+ void
+-Seg3DFrame::ToolClearMaskLayer( wxCommandEvent& WXUNUSED(event) )
++Seg3DFrame::OnUpdatePrefsFatlines( wxCommandEvent& WXUNUSED(event) )
+ {
+-  Painter::ThrowSkinnerSignal("Painter::ClearMaskLayer");
+-  SetStatusText("Cleared the mask layer.");
++  const bool fatlines = prefsMenu_->IsChecked(MENU_PREFS_FATLINES);
++
++  SCIRun::ThrowSkinnerSignalEvent *tsse =
++    new SCIRun::ThrowSkinnerSignalEvent("Painter::RedrawAll");
++  tsse->add_var("Painter::appearance::fatlines", fatlines?"1":"0");
++  SCIRun::Painter::ThrowSkinnerSignal(tsse);
++}
++
++void
++Seg3DFrame::OnUpdatePrefsStipple( wxCommandEvent& WXUNUSED(event) )
++{
++  const bool stipple = prefsMenu_->IsChecked(MENU_PREFS_STIPPLE);
++
++  SCIRun::ThrowSkinnerSignalEvent *tsse =
++    new SCIRun::ThrowSkinnerSignalEvent("Painter::RedrawAll");
++  tsse->add_var("Painter::appearance::stipple", stipple?"1":"0");
++  SCIRun::Painter::ThrowSkinnerSignal(tsse);
++}
++
++void
++Seg3DFrame::ToolPaintBrush( wxCommandEvent& WXUNUSED(event) )
++{
++  ShowTool(brushPanel_, "Painter::StartBrushTool", "Paint Brush");
++}
++
++void
++Seg3DFrame::ToolCropVolume( wxCommandEvent& WXUNUSED(event) )
++{
++  ShowTool(cropVolume_, "Painter::StartCropTool", "Crop Tool");
++}
++
++void
++Seg3DFrame::ToolFlip( wxCommandEvent& WXUNUSED(event) )
++{
++  ShowTool(flipTools_, "", "Flip Tool");
++}
++
++void
++Seg3DFrame::ToolResample( wxCommandEvent& WXUNUSED(event) )
++{
++  ShowTool(resampleTool_, "Painter::StartResampleTool", "Resample Tool");
+ }
+ 
+ void
+ Seg3DFrame::ToolPolyline( wxCommandEvent& WXUNUSED(event) )
+ {
+-  ShowTool(itk_NCF_, "Painter::StartPolylineTool", "Polyline Tool");
++  ShowTool(polylinetoolpanel_, "Painter::StartPolylineTool", "Polyline Tool");
++}
++
++void
++Seg3DFrame::ToolThreshold( wxCommandEvent& WXUNUSED(event) )
++{
++  ShowTool(thresholdtoolpanel_,
++           "Painter::StartThresholdTool", "Threshold Tool");
+   itk_NCF_->SetShowProgress(false);
+ }
+ 
++void
++Seg3DFrame::ToolMoveScale( wxCommandEvent& WXUNUSED(event) )
++{
++  ShowTool(movescaletoolpanel_, "", "Move/Scale Tool");
++  SCIRun::Painter::ThrowSkinnerSignal("Painter::MoveScaleLayerUpdateGUI");
++}
++
++void
++Seg3DFrame::ToolMeasurement( wxCommandEvent& WXUNUSED(event) )
++{
++  ShowTool(measurementtoolpanel_, "", "Measurement Tool");
++  SCIRun::Painter::ThrowSkinnerSignal("Painter::StartMeasurementTool");
++}
+ 
+ void
+ Seg3DFrame::Filter_CADF( wxCommandEvent& WXUNUSED(event) )

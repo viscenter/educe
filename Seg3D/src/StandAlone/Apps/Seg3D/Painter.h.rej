@@ -1,0 +1,15 @@
+diff a/Seg3D/src/StandAlone/Apps/Seg3D/Painter.h b/Seg3D/src/StandAlone/Apps/Seg3D/Painter.h	(rejected hunks)
+@@ -230,8 +220,12 @@
+ 
+   CatcherFunction_t     StartBrushTool;
+   CatcherFunction_t     StartCropTool;
+-  CatcherFunction_t     StartFloodFillTool;
+   CatcherFunction_t     StartPolylineTool;
++  CatcherFunction_t     StartResampleTool;
++  CatcherFunction_t     StartThresholdTool;
++  CatcherFunction_t     StartMeasurementTool;
++
++  CatcherFunction_t     VolumeInformation;
+ 
+ public:
+   CatcherFunction_t     Autoview;

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="SelectSubMatrix" category="Math" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+      Select a submatrix from a larger matrix by means of the row and column indices. This module can be used to reorder columns or rows as well.
+
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>Matrix</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>RowIndices</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>ColumnIndices</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>SubMatrix</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

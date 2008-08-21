@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="AlignMeshBoundingBoxes" category="ChangeMesh" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+      Align mesh to boundingbox of another field
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>Input</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>AlignmentField</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>Output</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Transform</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

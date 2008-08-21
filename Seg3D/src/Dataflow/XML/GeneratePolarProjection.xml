@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="GeneratePolarProjection" category="ChangeMesh" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+      Do a polar projection for cardiac data
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>Mesh</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Origin</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>Direction</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>ProjectedMesh</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>ProjectionVector</name>
+        <datatype>SCIRun::Geometry</datatype>
+      </port>
+      <port>
+        <name>Origin</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>Direction</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

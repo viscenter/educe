@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="ShowPointPath" category="Visualization" optional="false">
+  <overview>
+    <authors>
+      <author>Burak Erem</author>
+    </authors>
+    <summary>
+      Displays a point path as a sequence of points connected by lines. Points are provided as rows or columns of an input matrix.
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>PointPath</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>GeomOut</name>
+        <datatype>SCIRun::Geometry</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

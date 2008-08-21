@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="BuildSurfaceResistorMatrix" category="FiniteElements" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>FEMesh</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>SurfaceResistor</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>NodeLink</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>DElemLink</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>      
+    </inputs>
+    <outputs>
+      <port>
+        <name>SRMatrix</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

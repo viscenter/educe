@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="RegisterWithCorrespondences" category="ChangeFieldData" optional="false">
+  <overview>
+    <authors>
+      <author>Darrell Swenson</author>
+    </authors>
+    <summary>
+      This module will register a set of points using a set of correspondence points.  The user can choose between two methods:
+
+1. Rigid transformations
+2. Morphing using a TPS algorithom 
+
+The required fields are shown below:
+
+InputField -  This is a field of points that will be transformed
+
+Correspondences1 -  A set of points from the InputField.
+
+Correspondences2 - The new desired location for the correspondence points.
+
+</summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>InputField</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Correspondences1</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Correspondences2</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>Output</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

@@ -1,0 +1,56 @@
+diff a/Seg3D/src/StandAlone/Apps/Seg3D/VolumeOps.cc b/Seg3D/src/StandAlone/Apps/Seg3D/VolumeOps.cc	(rejected hunks)
+@@ -223,12 +223,53 @@
+   label_type *src2 = (label_type *)snrrd2->nrrd_->data;
+   label_type *dst = (label_type *)dnrrd->nrrd_->data;
+   for (size_t i = 0; i < dsize; ++i, ++dst, ++src1, ++src2) {
+-    if (((*src1) & sbit1) != ((*src2) & sbit2)) { *dst |= dbit; }
++    if ((((*src1) & sbit1) || ((*src2) & sbit2))
++        && !(((*src1) & sbit1) && ((*src2) & sbit2))) { *dst |= dbit; }
+     else { *dst &= ~dbit; }
+   }
+ }
+ 
+ 
++// Remove s2 from s1 (dst <= s2 && !s1)
++void
++VolumeOps::bit_andnot(NrrdDataHandle &dnrrd, unsigned int dbit,
++                      NrrdDataHandle &snrrd1, unsigned int sbit1,
++                      NrrdDataHandle &snrrd2, unsigned int sbit2)
++{
++  const size_t ssize1 = nrrd_elem_count(snrrd1);
++  const size_t ssize2 = nrrd_elem_count(snrrd2);
++  const size_t dsize = nrrd_elem_count(dnrrd);
++  ASSERT(ssize1 == dsize && ssize1 == ssize2);
++  ASSERT(snrrd1->nrrd_->type == LabelNrrdType);
++  ASSERT(snrrd2->nrrd_->type == LabelNrrdType);
++  ASSERT(dnrrd->nrrd_->type == LabelNrrdType);
++
++  label_type *src1 = (label_type *)snrrd1->nrrd_->data;
++  label_type *src2 = (label_type *)snrrd2->nrrd_->data;
++  label_type *dst = (label_type *)dnrrd->nrrd_->data;
++  for (size_t i = 0; i < dsize; ++i, ++dst, ++src1, ++src2) {
++    if ((*src1) & sbit1 && !((*src2) & sbit2)) { *dst |= dbit; }
++    else { *dst &= ~dbit; }
++  }
++}
++
++
++size_t
++VolumeOps::bit_count(NrrdDataHandle &snrrd, unsigned int sbit)
++{
++  const size_t ssize = nrrd_elem_count(snrrd);
++  ASSERT(snrrd->nrrd_->type == LabelNrrdType);
++
++  label_type *src = (label_type *)snrrd->nrrd_->data;
++
++  size_t count = 0;
++  for (size_t i = 0; i < ssize; ++i, ++src) {
++    if ((*src) & sbit) { count++; }
++  }
++  return count;
++}
++
++
+ void
+ VolumeOps::merge_label_into_segmentation(NrrdDataHandle &seg,
+                                          unsigned int svalue,

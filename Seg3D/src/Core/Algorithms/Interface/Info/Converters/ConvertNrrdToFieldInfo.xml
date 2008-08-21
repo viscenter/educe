@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="ConvertNrrdToField" category="Converters" version="1.0">
+  <parameters>
+    <parameter name="p_datalocation">
+      <type>
+        <string default="Node"/>
+      </type>
+    </parameter>
+    <parameter name="p_fieldtype">
+      <type>
+        <string default="Auto"/>
+      </type>
+    </parameter>
+    <parameter name="p_convertparity">
+      <type>
+        <string default="Do Not Correct"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Nrrd" type="NrrdData"/>
+    <output name="Field" type="Field"/>
+  </data>
+</algorithm>

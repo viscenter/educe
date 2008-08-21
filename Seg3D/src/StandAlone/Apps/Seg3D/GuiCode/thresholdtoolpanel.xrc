@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<resource version="2.3.0.1" xmlns="http://www.wxwidgets.org/wxxrc">
+    <object class="wxPanel" name="ID_THRESHOLDTOOLPANEL" subclass="ThresholdToolPanel">
+        <size>200,-1</size>
+        <title>ThresholdToolPanel</title>
+        <font>
+            <size>10</size>
+            <family>swiss</family>
+            <face>Arial</face>
+        </font>
+        <object class="wxGridSizer">
+            <cols>1</cols>
+            <rows>1</rows>
+            <vgap>0</vgap>
+            <hgap>0</hgap>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</flag>
+                <border>5</border>
+                <object class="wxGridSizer">
+                    <cols>2</cols>
+                    <rows>1</rows>
+                    <vgap>0</vgap>
+                    <hgap>0</hgap>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxStaticText" name="wxID_STATIC">
+                            <font>
+                                <size>10</size>
+                                <family>swiss</family>
+                                <face>Arial</face>
+                            </font>
+                            <style>wxALIGN_LEFT</style>
+                            <label>Min:</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxTextCtrl" name="ID_TEXTCTRL2">
+                            <enabled>0</enabled>
+                            <value>0.50</value>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</flag>
+                <border>5</border>
+                <object class="wxGridSizer">
+                    <cols>2</cols>
+                    <rows>1</rows>
+                    <vgap>0</vgap>
+                    <hgap>0</hgap>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxStaticText" name="wxID_STATIC">
+                            <font>
+                                <size>10</size>
+                                <family>swiss</family>
+                                <face>Arial</face>
+                            </font>
+                            <style>wxALIGN_LEFT</style>
+                            <label>Max:</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxTextCtrl" name="ID_TEXTCTRL3">
+                            <enabled>0</enabled>
+                            <value>0.50</value>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</flag>
+                <border>5</border>
+                <object class="wxGridSizer">
+                    <cols>2</cols>
+                    <rows>1</rows>
+                    <vgap>0</vgap>
+                    <hgap>0</hgap>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxStaticText" name="wxID_STATIC">
+                            <font>
+                                <size>10</size>
+                                <family>swiss</family>
+                                <face>Arial</face>
+                            </font>
+                            <style>wxALIGN_LEFT</style>
+                            <label>Lower:</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxTextCtrl" name="ID_TEXTCTRL">
+                            <value>0.00</value>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <object class="wxGridSizer">
+                    <cols>1</cols>
+                    <rows>1</rows>
+                    <vgap>0</vgap>
+                    <hgap>0</hgap>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxSlider" name="ID_SLIDER1">
+                            <size>150,-1</size>
+                            <style>wxSL_HORIZONTAL</style>
+                            <value>500</value>
+                            <min>0</min>
+                            <max>1000</max>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</flag>
+                <border>5</border>
+                <object class="wxGridSizer">
+                    <cols>2</cols>
+                    <rows>1</rows>
+                    <vgap>0</vgap>
+                    <hgap>0</hgap>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxStaticText" name="wxID_STATIC">
+                            <font>
+                                <size>10</size>
+                                <family>swiss</family>
+                                <face>Arial</face>
+                            </font>
+                            <style>wxALIGN_LEFT</style>
+                            <label>Upper:</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxTextCtrl" name="ID_TEXTCTRL1">
+                            <value>1.0</value>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <object class="wxGridSizer">
+                    <cols>1</cols>
+                    <rows>1</rows>
+                    <vgap>0</vgap>
+                    <hgap>0</hgap>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxSlider" name="ID_SLIDER">
+                            <size>150,-1</size>
+                            <style>wxSL_HORIZONTAL</style>
+                            <value>1000</value>
+                            <min>0</min>
+                            <max>1000</max>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</flag>
+                <border>5</border>
+                <object class="wxGridSizer">
+                    <cols>1</cols>
+                    <rows>1</rows>
+                    <vgap>0</vgap>
+                    <hgap>0</hgap>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="CLEAR_SEEDS_BUTTON">
+                            <font>
+                                <size>8</size>
+                                <family>swiss</family>
+                                <face>Arial</face>
+                            </font>
+                            <label>Clear Seeds</label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</flag>
+                <border>5</border>
+                <object class="wxGridSizer">
+                    <cols>2</cols>
+                    <rows>1</rows>
+                    <vgap>0</vgap>
+                    <hgap>0</hgap>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="START_BUTTON">
+                            <font>
+                                <size>8</size>
+                                <family>swiss</family>
+                                <face>Arial</face>
+                            </font>
+                            <label>Complete</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="CLOSE_BUTTON">
+                            <font>
+                                <size>8</size>
+                                <family>swiss</family>
+                                <face>Arial</face>
+                            </font>
+                            <label>Close</label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+        </object>
+    </object>
+</resource>

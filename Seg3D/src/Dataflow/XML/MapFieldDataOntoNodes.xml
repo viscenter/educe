@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="MapFieldDataOntoNodes" category="Fields" optional="false" hide="true">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+      Map data onto the nodes of a field
+
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>Source</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Source Weights</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Destination</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>Output</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

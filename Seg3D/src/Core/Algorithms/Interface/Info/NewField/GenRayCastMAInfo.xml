@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="GenRayCastMA" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_num_threads">
+      <type>
+        <int default="4"/>
+      </type>
+    </parameter>
+    <parameter name="p_save_ptcl_file">
+      <type>
+        <bool default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_ptcl_filename">
+      <type>
+        <string default="/tmp/ma.ptcl"/>
+      </type>
+    </parameter>
+    <parameter name="p_gen_point_output">
+      <type>
+        <bool default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_reject_ratio">
+      <type>
+        <double default="0.5"/>
+      </type>
+    </parameter>
+    <parameter name="p_gen_geom_points">
+      <type>
+        <bool default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Surface" type="Field"/>
+    <output name="MA Points" type="Field"/>
+    <output name="Scene Graph" type="Geometry"/>
+  </data>
+</algorithm>

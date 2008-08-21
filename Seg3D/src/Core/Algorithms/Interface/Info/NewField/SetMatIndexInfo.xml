@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SetMatIndex" category="NewField" version="1.0">
+  <parameters>
+  </parameters>
+  <data>
+    <input name="input_tetvol" type="Field"/>
+    <input name="mats" type="Nrrd" seq="true"/>
+    <output name="output_tetvol" type="Field"/>
+  </data>
+</algorithm>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="AddKnownsToLinearSystem" category="Math" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>Matrix</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>RHS</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>X</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>Matrix</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>RHS</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

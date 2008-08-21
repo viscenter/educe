@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="RemoveUnusedNodes" category="ChangeMesh" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+      Remove unused nodes from a mesh
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>Field</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>Field</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

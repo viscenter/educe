@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="SplitFieldByDomain" category="NewField" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+      Split a field into separate fields
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>Field</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>All Fields</name>
+        <datatype>SCIRun::Bundle</datatype>
+      </port>
+      <port>
+        <name>Field1</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Field2</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Field3</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Field4</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Field5</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Field6</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Field7</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+      <port>
+        <name>Field8</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>    
+      </outputs>
+  </io>
+</component>

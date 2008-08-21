@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="ShowLinePath" category="Visualization" optional="false">
+  <overview>
+    <authors>
+      <author>Burak Erem</author>
+    </authors>
+    <summary>
+      Displays a trajectory, or path of points, as a sequence of lines which transitions from one color to another
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>PointPath</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>TransitionColor</name>
+        <datatype>SCIRun::ColorMap</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>GeomOut</name>
+        <datatype>SCIRun::Geometry</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

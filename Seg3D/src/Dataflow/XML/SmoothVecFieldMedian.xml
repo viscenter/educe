@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="SmoothVecFieldMedian" category="ChangeFieldData" optional="false">
+  <overview>
+    <authors>
+      <author>Darrell Swenson</author>
+    </authors>
+    <summary>
+      This function takes the dot product of each vector with all of its neighbors.  The origional vector is replaced by the vector that represented the median of the dot product values.  This is intended to smooth the vector field, while preserving distinct boundaries.
+
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>vector_median_filt</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>Output_vector_field</name>
+        <datatype>SCIRun::Field</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<algorithm name="SeedIntersections" category="NewField" version="1.0">
+  <parameters>
+    <parameter name="p_save_ptcl_files">
+      <type>
+        <bool default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_ptcl_path">
+      <type>
+        <string default="/tmp"/>
+      </type>
+    </parameter>
+    <parameter name="p_gen_field">
+      <type>
+        <bool default="0"/>
+      </type>
+    </parameter>
+    <parameter name="p_gen_scene_graph">
+      <type>
+        <bool default="0"/>
+      </type>
+    </parameter>
+  </parameters>
+  <data>
+    <input name="Input Surface" type="Field" seq="true"/>
+    <output name="Seed Points" type="Field"/>
+    <output name="Scene Graph" type="Geometry"/>
+  </data>
+</algorithm>

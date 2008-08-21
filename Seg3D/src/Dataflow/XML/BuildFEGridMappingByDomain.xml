@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component SYSTEM "component.dtd">
+<component name="BuildFEGridMappingByDomain" category="FiniteElements" optional="false">
+  <overview>
+    <authors>
+      <author>Jeroen Stinstra</author>
+    </authors>
+    <summary>
+    </summary>
+  </overview>
+  <io>
+    <inputs lastportdynamic="no">
+      <port>
+        <name>NodeLink</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </inputs>
+    <outputs>
+      <port>
+        <name>PotentialGeomToGrid</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>PotentialGridToGeom</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>CurrentGeomToGrid</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>CurrentGridToGeom</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+    </outputs>
+  </io>
+</component>
