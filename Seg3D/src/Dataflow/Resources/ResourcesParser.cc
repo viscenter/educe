@@ -28,7 +28,7 @@
 
 #include <iostream>
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Containers/StringUtil.h>
 #include <Dataflow/Resources/Resources.h>
 #include <Dataflow/Resources/ResourcesParser.h>
@@ -39,7 +39,7 @@ namespace SCIRun {
 ResourcesParser::ResourcesParser( Resources *s )
   : ResourcesXMLParser(s)
 {
-  package_parser_ = scinew PackageParser(s);
+  package_parser_ = new PackageParser(s);
   mode_.push(NoMode);
 }
 
@@ -59,7 +59,7 @@ ResourcesParser::startElement( const XMLCh * const uri,
     mode_.push(PackagesMode);
   else if ( tag == "package" ) {
     mode_.push(PackageMode);
-    package_ = scinew PackageInfo;
+    package_ = new PackageInfo;
     package_->level_ = 1;
   } else if ( tag == "data" )
     mode_.push(DataMode);

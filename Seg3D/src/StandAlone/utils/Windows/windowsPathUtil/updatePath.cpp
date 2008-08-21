@@ -365,8 +365,8 @@ checkThirdparty( const string & piece, bool & foundOpt, bool & foundDbg )
 string
 checkSCIRun( const string & piece, bool & foundOpt, bool & foundDbg )
 {
-  // Look for the Core_OS.dll to verify that this is a SCIRun bin dir...
-  string filename = piece + "\\Core_OS.dll";
+  // Look for the Core_Util.dll to verify that this is a SCIRun bin dir...
+  string filename = piece + "\\Core_Util.dll";
 
   if( validFile( filename ) ) {
 

@@ -31,7 +31,7 @@
 //    Date   : Mon Sep  8 09:46:49 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Basis/Constant.h>
@@ -352,7 +352,7 @@ TendFiber::execute()
   
   nrrdNuke(nout);
 
-  CMesh *cm = scinew CMesh;
+  CMesh *cm = new CMesh;
   CMesh::Node::array_type a;
   a.resize(2);
   for (int i=0; i<fibers.size(); i++) {
@@ -366,7 +366,7 @@ TendFiber::execute()
     }
   }
   
-  FieldHandle ftmp(scinew CField(cm));
+  FieldHandle ftmp(new CField(cm));
 
   send_output_handle("Fibers", ftmp);
 }

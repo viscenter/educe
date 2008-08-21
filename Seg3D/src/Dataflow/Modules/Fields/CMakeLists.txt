@@ -29,6 +29,17 @@
 # CMakeLists.txt for Dataflow/Modules/Fields
 
 SET(Dataflow_Modules_Fields_SRCS
+  RegisterWithCorrespondences.cc
+  SmoothVecFieldMedian.cc
+  SetFieldDataToConstantValue.cc
+  RemoveUnusedNodes.cc
+  GeneratePolarProjection.cc
+  MapFieldDataOntoNodes.cc
+  MapFieldDataOntoElems.cc
+  CleanupTetMesh.cc
+  MatchDomainLabels.cc
+  SplitFieldByDomain.cc
+  AlignMeshBoundingBoxes.cc
   ProjectPointsOntoMesh.cc
   GetMeshQualityField.cc
   ApplyFilterToFieldData.cc
@@ -43,19 +54,25 @@ SET(Dataflow_Modules_Fields_SRCS
   ConvertFieldDataType.cc
   ChooseField.cc
   ClipFieldByFunction.cc
+  ClipFieldByFunction2.cc
+  ClipFieldByFunction3.cc
+  ClipFieldWithSeeds.cc
+  ClipFieldByMesh.cc
+  ClipFieldByFunctionCompiled.cc
   ClipFieldToFieldOrWidget.cc
   ClipLatVolByIndicesOrWidget.cc
-  ClipFieldWithSeed.cc
+  ClipFieldWithSeedCompiled.cc
   ConvertMatricesToMesh.cc
   CollectPointClouds.cc
   CoregisterPointClouds.cc
   DecimateTriSurf.cc
   EditMeshBoundingBox.cc
+  ExtractIsosurfaceByFunctionCompiled.cc
+  ExtractIsosurfaceByFunction.cc
   InterfaceWithCubit.cc
   MapFieldDataFromSourceToDestination.cc
   MaskLatVolWithTriSurf.cc
   RemoveHexVolSheet.cc
-  ExtractIsosurfaceByFunction.cc
   FairMesh.cc
   GetAllSegmentationBoundaries.cc
   GetFieldBoundary.cc
@@ -74,7 +91,6 @@ SET(Dataflow_Modules_Fields_SRCS
   RefineMesh.cc
   SwapFieldDataWithMatrixEntries.cc
   SwapNodeLocationsWithMatrixEntries.cc
-  MapFieldDataToNodeCoordinate.cc
   ConvertLatVolDataFromElemToNode.cc
   ConvertLatVolDataFromNodeToElem.cc
   CalculateLatVolGradientsAtNodes.cc
@@ -87,7 +103,6 @@ SET(Dataflow_Modules_Fields_SRCS
   CreateImage.cc
   CreateStructHex.cc
   ReportScalarFieldStats.cc
-  ReportSearchGridInfo.cc
   GeneratePointSamplesFromField.cc
   SelectFieldROIWithBoxWidget.cc
   SetFieldOrMeshStringProperty.cc
@@ -113,11 +128,13 @@ SET(Dataflow_Modules_Fields_SRCS
   CreateFieldData.cc
   GetFieldData.cc
   SetFieldData.cc
+  SetMatIndex.cc
   MapFieldDataFromElemToNode.cc
   MapFieldDataFromNodeToElem.cc
   SelectAndSetFieldData.cc
   SelectAndSetFieldData3.cc
   SplitNodesByDomain.cc
+  SplitFieldByConnectedRegion.cc
   GetDomainBoundary.cc
   CollectFields.cc
   ManageFieldSeries.cc
@@ -141,18 +158,20 @@ ELSE(HAVE_CAMAL)
     InterfaceWithCamal-stub.cc)  
 ENDIF(HAVE_CAMAL)    
 
-IF (HAVE_VERDICT)
+IF (HAVE_VTK)
   SET(Dataflow_Modules_Fields_SRCS ${Dataflow_Modules_Fields_SRCS}
     ReportMeshQualityMeasures.cc)  
-ELSE(HAVE_VERDICT)
+ELSE(HAVE_VTK)
   SET(Dataflow_Modules_Fields_SRCS ${Dataflow_Modules_Fields_SRCS}
     ReportMeshQualityMeasures-stub.cc)
-ENDIF(HAVE_VERDICT)    
+ENDIF(HAVE_VTK)    
 
 IF (HAVE_MESQUITE)
   SET(Dataflow_Modules_Fields_SRCS ${Dataflow_Modules_Fields_SRCS}
     SmoothMesh.cc 
-    MesquiteDomain.cc)  
+    MesquiteDomain.cc
+    MesquiteMesh.cc
+)  
 ELSE(HAVE_MESQUITE)    
   SET(Dataflow_Modules_Fields_SRCS ${Dataflow_Modules_Fields_SRCS}
     SmoothMesh-stub.cc)  
@@ -163,11 +182,12 @@ SCIRUN_ADD_LIBRARY(Dataflow_Modules_Fields ${Dataflow_Modules_Fields_SRCS})
 TARGET_LINK_LIBRARIES(Dataflow_Modules_Fields
   Dataflow_Network
   Dataflow_Widgets
+  Dataflow_GuiInterface
+  Dataflow_TkExtensions
   Core_Algorithms_Fields
   Core_Algorithms_Util
   Core_Algorithms_Visualization
   Core_Algorithms_Geometry
-  Core_Algorithms_ArrayMath
   Core_Algorithms_Converter
   Core_Basis
   Core_Datatypes
@@ -176,12 +196,11 @@ TARGET_LINK_LIBRARIES(Dataflow_Modules_Fields
   Core_Geometry
   Core_GeomInterface
   Core_Containers
-  Dataflow_GuiInterface
   Core_ImportExport
   Core_Math
+  Core_Parser
   Core_Persistent
   Core_Thread
-  Dataflow_TkExtensions
   Core_Util
   ${TK_LIBRARY}
   ${GL_LIBRARY}
@@ -189,6 +208,7 @@ TARGET_LINK_LIBRARIES(Dataflow_Modules_Fields
   ${M_LIBRARY}
   ${THREAD_LIBRARY}
   ${TEEM_LIBRARY}
+  ${SLIVRG_LIBRARY}
 )
 
 IF (HAVE_TETGEN)
@@ -207,11 +227,7 @@ IF (HAVE_MESQUITE)
     ${MESQUITE_LIBRARY})
 ENDIF(HAVE_MESQUITE)
 
-IF (HAVE_VERDICT)
-  TARGET_LINK_LIBRARIES(Dataflow_Modules_Fields
-    ${VERDICT_LIBRARY})
-ENDIF(HAVE_VERDICT)
-
 IF(BUILD_SHARED_LIBS)
   ADD_DEFINITIONS(-DBUILD_Dataflow_Modules_Fields)
 ENDIF(BUILD_SHARED_LIBS)
+

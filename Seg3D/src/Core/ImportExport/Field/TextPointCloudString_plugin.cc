@@ -80,7 +80,7 @@ TextPointCloudString_reader(ProgressReporter *pr, const char *filename)
 {
   ifstream ptsstream(filename);
 
-  PCMesh *pcm = scinew PCMesh();
+  PCMesh *pcm = new PCMesh();
   vector<string> strings;
   char buffer[1024];
   double x, y, z;
@@ -124,7 +124,7 @@ TextPointCloudString_reader(ProgressReporter *pr, const char *filename)
     strings.push_back(string(buffer));
   }
 
-  PCField *pc = scinew PCField(pcm);
+  PCField *pc = new PCField(pcm);
 
   for (unsigned int i=0; i < strings.size(); i++)
   {

@@ -39,15 +39,17 @@
  *  Copyright (C) 1999 SCI Group
  */
 
+#include <Core/Containers/StringUtil.h>
 #include <Core/Datatypes/ColumnMatrix.h>
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
 #include <Core/Datatypes/MatrixOperations.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Containers/StringUtil.h>
-#include <Core/Containers/HashTable.h>
-#include <Dataflow/Modules/Math/EvaluateLinAlgBinary.h>
+#include <Core/Parser/ArrayMathEngine.h>
+
+#include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
+
+#include <sci_hash_map.h>
 #include <iostream>
 #include <sstream>
 
@@ -58,7 +60,7 @@ class EvaluateLinAlgBinary : public Module {
   GuiString function_;
 public:
   EvaluateLinAlgBinary(GuiContext* ctx);
-  virtual ~EvaluateLinAlgBinary();
+  virtual ~EvaluateLinAlgBinary() {}
   virtual void execute();
 };
 
@@ -70,10 +72,6 @@ EvaluateLinAlgBinary::EvaluateLinAlgBinary(GuiContext* ctx)
 {
 }
 
-EvaluateLinAlgBinary::~EvaluateLinAlgBinary()
-{
-}
-
 
 void
 EvaluateLinAlgBinary::execute()
@@ -81,8 +79,8 @@ EvaluateLinAlgBinary::execute()
   update_state(NeedData);
 
   MatrixHandle aH, bH;
-  if (!get_input_handle("A", aH)) return;
-  if (!get_input_handle("B", bH)) return;
+  get_input_handle("A", aH,true);
+  get_input_handle("B", bH,true);
 
   const string op = op_.get();
   if (op == "Add")
@@ -110,84 +108,51 @@ EvaluateLinAlgBinary::execute()
     return;
   }
   else if (op == "Function")
-  {
-    if (aH->nrows()*aH->ncols() != bH->nrows()*bH->ncols()) {
-      error("Function only works if input matrices have the same number of elements.");
-      return;
-    }
+  {    
+    NewArrayMathEngine engine;
+    engine.set_progress_reporter(this);
     
-    MatrixHandle aHtmp = aH;
-    MatrixHandle bHtmp = bH;
-    if (aH->is_sparse()) { aHtmp = aH->dense(); }
-    if (bH->is_sparse()) { bHtmp = bH->dense(); }
+    if (!(engine.add_input_fullmatrix("x",aH))) return;
+    if (!(engine.add_input_fullmatrix("y",bH))) return;
+    
+    std::string func = function_.get();
+    func = "RESULT="+func;
+    engine.add_expressions(func);
 
-    // Remove trailing white-space from the function string.
-    string func = function_.get();
-    while (func.size() && isspace(func[func.size()-1]))
-    {
-      func.resize(func.size()-1);
-    }
+    MatrixHandle omatrix = aH->clone();   
+    if(!(engine.add_output_fullmatrix("RESULT",omatrix))) return;
+    
+    // Actual engine call, which does the dynamic compilation, the creation of the
+    // code for all the objects, as well as inserting the function and looping 
+    // over every data point
 
-    // Compile the function.
-    int hoffset = 0;
-    Handle<EvaluateLinAlgBinaryAlgo> algo;
-    for( ;; )
-    {
-      CompileInfoHandle ci =
-	EvaluateLinAlgBinaryAlgo::get_compile_info(func, hoffset);
-      if (!DynamicCompilation::compile(ci, algo, false, this))
-      {
-	error("Your function would not compile.");
-       	get_gui()->eval(get_id() + " compile_error "+ci->filename_);
-	DynamicLoader::scirun_loader().cleanup_failed_compile(ci);
-	return;
-      }
-      if (algo->identify() == func)
-      {
-	break;
-      }
-      hoffset++;
-    }
-
-    // Get the data from the matrix, iterate over it calling the function.
-    MatrixHandle m;
-    if (aH->ncols() == 1)
-    {
-      m = scinew ColumnMatrix(aH->nrows());
-    }
-    else
-    {
-      m = scinew DenseMatrix(aH->nrows(), aH->ncols());
-    }
-    double *a = aHtmp->get_data_pointer();
-    double *b = bHtmp->get_data_pointer();
-    double *x = m->get_data_pointer();
-    const int n = m->nrows() * m->ncols();
-    for (int i = 0; i < n; i++)
-    {
-      x[i] = algo->user_function(a[i], b[i]);
-    }
-    send_output_handle("Output", m);
-    return;
+    if (!(engine.run())) return;
+    
+    send_output_handle("Output", omatrix);
+    return;   
   }
   else if (op == "SelectColumns")
   {
     ColumnMatrix *bc = dynamic_cast<ColumnMatrix *>(bH.get_rep());
-    if (!bc) {
+    if (!bc) 
+    {
       error("Second input to SelectColumns must be a ColumnMatrix.");
       return;
     }
-    DenseMatrix *cd = scinew DenseMatrix(aH->nrows(), bc->nrows());
-    for (int i=0; i<cd->ncols(); i++) {
+    DenseMatrix *cd = new DenseMatrix(aH->nrows(), bc->nrows());
+    for (int i=0; i<cd->ncols(); i++) 
+    {
       int idx = (int)(*bc)[i];
       if (idx == -1) continue;
-      if (idx > aH->ncols()) {
-	error("Tried to select column (" + to_string(idx) +
+      if (idx > aH->ncols()) 
+      {
+        error("Tried to select column (" + to_string(idx) +
 	      ") that was out of range (" + to_string(aH->ncols()) + ").");
-	return;
+        return;
       }
-      for (int j=0; j<aH->nrows(); j++) {
-	(*cd)[j][i]=aH->get(j,idx);
+      for (int j=0; j<aH->nrows(); j++) 
+      {
+        (*cd)[j][i]=aH->get(j,idx);
       }
     }
     if (dynamic_cast<DenseMatrix *>(aH.get_rep()))
@@ -195,7 +160,8 @@ EvaluateLinAlgBinary::execute()
       MatrixHandle mtmp(cd);
       send_output_handle("Output", mtmp);
     }
-    else if (dynamic_cast<ColumnMatrix *>(aH.get_rep())) {
+    else if (dynamic_cast<ColumnMatrix *>(aH.get_rep())) 
+    {
       MatrixHandle mtmp(cd->column());
       delete cd;
       send_output_handle("Output", mtmp);
@@ -213,17 +179,19 @@ EvaluateLinAlgBinary::execute()
       error("Second input must be a ColumnMatrix for SelectRows.");
       return;
     }
-    DenseMatrix *cd = scinew DenseMatrix(bc->nrows(), aH->ncols());
+    DenseMatrix *cd = new DenseMatrix(bc->nrows(), aH->ncols());
     for (int i=0; i<cd->nrows(); i++) {
       int idx = (int)(*bc)[i];
       if (idx == -1) continue;
-      if (idx > aH->nrows()) {
-	error("Tried to select a row (" + to_string(idx) +
+      if (idx > aH->nrows()) 
+      {
+        error("Tried to select a row (" + to_string(idx) +
 	      ") that was out of range (" + to_string(aH->nrows()) +").");
-	return;
+        return;
       }
-      for (int j=0; j<aH->ncols(); j++) {
-	(*cd)[i][j]=aH->get(idx,j);
+      for (int j=0; j<aH->ncols(); j++) 
+      {
+        (*cd)[i][j]=aH->get(idx,j);
       }
     }
     if (dynamic_cast<DenseMatrix *>(aH.get_rep()))
@@ -286,45 +254,5 @@ EvaluateLinAlgBinary::execute()
     return;
   }
 }
-
-
-CompileInfoHandle
-EvaluateLinAlgBinaryAlgo::get_compile_info(const string &function,
-				  int hashoffset)
-
-{
-  unsigned int hashval = Hash(function, 0x7fffffff) + hashoffset;
-
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  const string template_name("EvaluateLinAlgBinaryInstance" + to_string(hashval));
-  static const string base_class_name("EvaluateLinAlgBinaryAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_name + ".",
-		       base_class_name,
-		       template_name + ";//",
-		       "");
-
-  // Code for the function.
-  string class_declaration =
-    string("using namespace SCIRun;\n\n") + 
-    "class " + template_name + " : public EvaluateLinAlgBinaryAlgo\n" +
-    "{\n" +
-    "  virtual double user_function(double x, double y)\n" +
-    "  {\n" +
-    "    return (" + function + ");\n" +
-    "  }\n" +
-    "\n" +
-    "  virtual string identify()\n" +
-    "  { return string(\"" + string_Cify(function) + "\"); }\n" +
-    "};\n";
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_post_include(class_declaration);
-  return rval;
-}
-
 
 } // End namespace SCIRun

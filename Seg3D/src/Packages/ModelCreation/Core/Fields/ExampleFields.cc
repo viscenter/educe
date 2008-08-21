@@ -110,8 +110,8 @@ bool ExampleFields::SphericalSurface(FieldHandle &output, MatrixHandle disc)
   typedef GenericField<TriSurfMesh<TriLinearLgn<Point> >, NoDataBasis<double>, std::vector<double> > TSField;
   typedef TriSurfMesh<TriLinearLgn<Point> > TSMesh;
 
-  TSMesh* omesh = scinew TSMesh();
-  TSField* ofield = scinew TSField(omesh);
+  TSMesh* omesh = new TSMesh();
+  TSField* ofield = new TSField(omesh);
   output = dynamic_cast<Field* >(ofield);
   if (output.get_rep() == 0)
   {

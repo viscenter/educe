@@ -42,7 +42,7 @@
 
 
 #include <Dataflow/Widgets/PointWidget.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Containers/StringUtil.h>
 #include <Dataflow/Network/Module.h>
 
@@ -73,11 +73,11 @@ enum { Pick };
 PointWidget::PointWidget( Module* module, CrowdMonitor* lock, double widget_scale )
   : BaseWidget(module, lock, "PointWidget", NumVars, NumCons, NumGeoms, NumPcks, NumMatls, NumMdes, NumSwtchs, widget_scale)
 {
-  variables[PointVar] = scinew PointVariable("Point", solve, Scheme1, Point(0, 0, 0));
+  variables[PointVar] = new PointVariable("Point", solve, Scheme1, Point(0, 0, 0));
 
-  label_ = scinew GeomTexts();
-  sphere_ = scinew GeomSphere();
-  GeomGroup* group = scinew GeomGroup;
+  label_ = new GeomTexts();
+  sphere_ = new GeomSphere();
+  GeomGroup* group = new GeomGroup;
   
   GeomHandle label = label_;
   GeomHandle sphere = sphere_; 
@@ -85,8 +85,8 @@ PointWidget::PointWidget( Module* module, CrowdMonitor* lock, double widget_scal
   group->add(label);
   geometries[GeomPoint] = group;
 
-  materials[PointMatl] = scinew GeomMaterial(geometries[GeomPoint], DefaultPointMaterial);
-  picks_[Pick] = scinew GeomPick(materials[PointMatl], module, this, Pick);
+  materials[PointMatl] = new GeomMaterial(geometries[GeomPoint], DefaultPointMaterial);
+  picks_[Pick] = new GeomPick(materials[PointMatl], module, this, Pick);
   picks(Pick)->set_highlight(DefaultHighlightMaterial);
   CreateModeSwitch(0, picks_[Pick]);
 
@@ -216,7 +216,7 @@ PointWidget::GetPosition() const
 void 
 PointWidget::SetColor(const Color& c) 
 {
-  MaterialHandle m = scinew Material(Color(0,0,0),c,Color(.5,.5,.5),20);
+  MaterialHandle m = new Material(Color(0,0,0),c,Color(.5,.5,.5),20);
   materials[PointMatl]->setMaterial(m); 
 }
 

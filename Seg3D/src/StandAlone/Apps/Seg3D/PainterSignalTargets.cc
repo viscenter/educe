@@ -68,7 +68,6 @@
 #include <Core/Geom/TexSquare.h>
 #include <Core/Geom/OpenGLViewport.h>
 #include <Core/Geom/FreeType.h>
-#include <Core/Malloc/Allocator.h>
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/MinMax.h>
 #include <Core/Thread/CleanupManager.h>
@@ -100,22 +99,9 @@
 #ifndef _WIN32
 #  include <sys/mman.h>
 #else
-#  include <Core/OS/Rand.h>
+#  include <Core/Util/Rand.h>
 #  include <io.h>
 #endif
-
-#  include <itkImageFileReader.h>
-#  include <itkImageFileWriter.h>
-#  include <itkGradientMagnitudeImageFilter.h>
-#  include <itkConfidenceConnectedImageFilter.h>
-#  include <itkConnectedThresholdImageFilter.h>
-
-#  include <itkBinaryBallStructuringElement.h>
-#  include <itkBinaryDilateImageFilter.h>
-#  include <itkBinaryErodeImageFilter.h>
-#  include <itkImportImageFilter.h>
-#  include <itkOtsuThresholdImageFilter.h>
-#  include <itkBinaryThresholdImageFilter.h>
 
 #include <StandAlone/Apps/Seg3D/Seg3DwxGuiUtils.h>
 
@@ -154,6 +140,7 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
   REGISTER_CATCHER_TARGET(Painter::HistoEqFilter);
 
   REGISTER_CATCHER_TARGET(Painter::ITKGradientMagnitude);
+  REGISTER_CATCHER_TARGET(Painter::InhomogeneityCorrectionFilter);
   REGISTER_CATCHER_TARGET(Painter::ITKBinaryDilateErode);
   REGISTER_CATCHER_TARGET(Painter::ITKCurvatureAnisotropic);
   REGISTER_CATCHER_TARGET(Painter::ITKBinaryDilateErodeImageFilter);
@@ -161,8 +148,12 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
   REGISTER_CATCHER_TARGET(Painter::start_ITKNeighborhoodConnectedImageFilterTool);
   REGISTER_CATCHER_TARGET(Painter::start_ITKThresholdSegmentationLevelSetImageFilterTool);
 
-  REGISTER_CATCHER_TARGET(Painter::start_ITKThresholdImageFilterTool);
   REGISTER_CATCHER_TARGET(Painter::start_ITKDiscreteGaussianImageFilterTool);
+
+  REGISTER_CATCHER_TARGET(Painter::start_ITKSpeedToPathGradientDescentImageFilterTool);
+  REGISTER_CATCHER_TARGET(Painter::start_ITKSpeedToPathRegularStepGradientDescentImageFilterTool);
+  REGISTER_CATCHER_TARGET(Painter::start_ITKSpeedToPathIterateNeighborhoodImageFilterTool);
+  
 
   REGISTER_CATCHER_TARGET(Painter::ShowVolumeRendering);
   REGISTER_CATCHER_TARGET(Painter::ShowVolumeRendering2);
@@ -176,9 +167,11 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
   REGISTER_CATCHER_TARGET(Painter::LoadSession);
   REGISTER_CATCHER_TARGET(Painter::SaveSession);
   REGISTER_CATCHER_TARGET(Painter::ImportSegmentation);
-  REGISTER_CATCHER_TARGET(Painter::ExportSegmentation);
+  REGISTER_CATCHER_TARGET(Painter::ExportSegmentation1);
+  REGISTER_CATCHER_TARGET(Painter::ExportSegmentation2);
 
-  REGISTER_CATCHER_TARGET(Painter::ResampleVolume);
+  REGISTER_CATCHER_TARGET(Painter::Undo);
+
   REGISTER_CATCHER_TARGET(Painter::MedianFilterVolume);
 
   REGISTER_CATCHER_TARGET(Painter::CreateLabelVolume);  
@@ -201,6 +194,7 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
 
   REGISTER_CATCHER_TARGET(Painter::ResetCLUT);
   REGISTER_CATCHER_TARGET(Painter::UpdateBrushRadius);
+  REGISTER_CATCHER_TARGET(Painter::UpdateThresholdTool);
 
   REGISTER_CATCHER_TARGET(Painter::OpenLabelColorDialog);
   REGISTER_CATCHER_TARGET(Painter::SetLabelColor);
@@ -210,7 +204,13 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
   REGISTER_CATCHER_TARGET(Painter::MaskDataFilter);
   REGISTER_CATCHER_TARGET(Painter::MaskLabelFilter);
   REGISTER_CATCHER_TARGET(Painter::CombineMaskAnd);
+  REGISTER_CATCHER_TARGET(Painter::CombineMaskRemove);
   REGISTER_CATCHER_TARGET(Painter::CombineMaskOr);
+  REGISTER_CATCHER_TARGET(Painter::CombineMaskXor);
+
+  REGISTER_CATCHER_TARGET(Painter::MoveScaleLayerUpdateGUI);
+  REGISTER_CATCHER_TARGET(Painter::MoveScaleLayer);
+  REGISTER_CATCHER_TARGET(Painter::MoveScaleAllLayers);
 
   REGISTER_CATCHER_TARGET(Painter::ShowVisibleItem);
   REGISTER_CATCHER_TARGET(Painter::RedrawAll);
@@ -274,11 +274,58 @@ Painter::StartCropCylinder(event_handle_t &event)
 }
 
 
-// Unused
-BaseTool::propagation_state_e 
-Painter::StartFloodFillTool(event_handle_t &event)
+BaseTool::propagation_state_e
+Painter::VolumeInformation(event_handle_t &event)
 {
-  tm_.set_tool(new FloodfillTool(this),25);
+  if (!current_volume_.get_rep())
+  {
+    set_status("No volume currently selected.");
+    return STOP_E;
+  }
+  
+  NrrdVolumeHandle &vol = current_volume_;
+  Nrrd *nrrd = vol->nrrd_handle_->nrrd_;
+
+  VolumeInfoPanelStruct *info = new VolumeInfoPanelStruct;
+  info->name = vol->name_;
+  info->origin_x = nrrd->axis[1].min;
+  info->origin_y = nrrd->axis[2].min;
+  info->origin_z = nrrd->axis[3].min;
+  info->spacing_x = nrrd->axis[1].spacing;
+  info->spacing_y = nrrd->axis[2].spacing;
+  info->spacing_z = nrrd->axis[3].spacing;
+  info->size_x = nrrd->axis[1].size;
+  info->size_y = nrrd->axis[2].size;
+  info->size_z = nrrd->axis[3].size;
+  info->volume =
+    info->size_x * info->spacing_x *
+    info->size_y * info->spacing_y *
+    info->size_z * info->spacing_z;
+  info->is_label = vol->label_ != 0;
+  info->is_mask = info->is_label && mask_volume_.get_rep()
+    && mask_volume_.get_rep() != current_volume_.get_rep();
+  if (info->is_label)
+  {
+    info->labelcount = VolumeOps::bit_count(vol->nrrd_handle_, vol->label_);
+    info->labelvolume = info->labelcount *
+      info->spacing_x * info->spacing_y * info->spacing_z;
+    if (info->is_mask)
+    {
+      info->maskcount = VolumeOps::bit_count(mask_volume_->nrrd_handle_,
+                                             mask_volume_->label_);
+      info->maskvolume = info->maskcount *
+        info->spacing_x * info->spacing_y * info->spacing_z;
+    }
+  }
+  else
+  {
+    info->datamin = vol->data_min_;
+    info->datamax = vol->data_max_;
+  }
+  wxCommandEvent wxevent(wxEVT_VOLUME_INFO_PANEL, wxID_ANY);
+  wxevent.SetClientData((void *)info);
+  wxPostEvent(global_seg3dframe_pointer_, wxevent);
+
   return CONTINUE_E;
 }
 
@@ -286,7 +333,31 @@ Painter::StartFloodFillTool(event_handle_t &event)
 BaseTool::propagation_state_e
 Painter::StartPolylineTool(event_handle_t &event)
 {
-  tm_.set_tool(new PolylineTool(this), 25);
+  tm_.set_tool(new PolylineTool("PolylineTool", this), 25);
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e 
+Painter::StartResampleTool(event_handle_t &event)
+{
+  tm_.set_tool(new ResampleTool(this), 25);
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::StartThresholdTool(event_handle_t &event)
+{
+  tm_.set_tool(new ThresholdTool(this), 25);
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::StartMeasurementTool(event_handle_t &event)
+{
+  tm_.set_tool(new LineTool(this), 25);
   return CONTINUE_E;
 }
 
@@ -294,11 +365,11 @@ Painter::StartPolylineTool(event_handle_t &event)
 BaseTool::propagation_state_e 
 Painter::Autoview(event_handle_t &)
 {
-  if (current_volume_.get_rep()) {
-    SliceWindows::iterator window = windows_.begin();
-    SliceWindows::iterator end = windows_.end();
-    for (;window != end; ++window) {
-      (*window)->autoview(current_volume_);
+  if (current_volume_.get_rep())
+  {
+    for (size_t i = 0; i < windows_.size(); i++)
+    {
+      windows_[i]->autoview(current_volume_);
     }
   }
   EventManager::add_event(new AutoviewEvent());
@@ -330,6 +401,11 @@ Painter::CopyLabel(event_handle_t &)
 
   // Copy what was in the current volume into the new volume.
   VolumeOps::bit_copy(dnrrd, dlabel, cnrrd, clabel);
+
+  UndoHandle undo =
+    new UndoReplaceLayer(this, "Undo Copy Layer",
+                         0, current_volume_, 0);
+  push_undo(undo);
 
   extract_all_window_slices();
   rebuild_layer_buttons();
@@ -409,6 +485,13 @@ Painter::DeleteLayer2(event_handle_t &event)
         loc = i;
       }
     }
+    
+    if (loc != -1)
+    {
+      UndoHandle undo = new UndoReplaceLayer(this, "Undo Layer Delete",
+                                             volumes_[loc], 0, loc);
+      push_undo(undo);
+    }
 
     volumes_ = newvolumes;
 
@@ -441,6 +524,32 @@ Painter::DeleteLayer2(event_handle_t &event)
   extract_all_window_slices();
   redraw_all();
 
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::MoveLayerUp(event_handle_t &event)
+{
+  if (!current_volume_.get_rep())
+  {
+    set_status("No active volume to move.");
+    return STOP_E;
+  }
+  move_layer_up();
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::MoveLayerDown(event_handle_t &event)
+{
+  if (!current_volume_.get_rep())
+  {
+    set_status("No active volume to move.");
+    return STOP_E;
+  }
+  move_layer_down();
   return CONTINUE_E;
 }
 
@@ -490,8 +599,16 @@ Painter::LoadVolume(const string &filename)
   }
   else if (status == 2)
   {
-    set_status_dialog("Load of " + filename + " failed!",
-                      "This file has an unsupported format.");
+    // TODO: This is just a workaround for not just offering to load
+    // the session instead anyway.  Session loading needs a confirm
+    // dialog because it's destructive and these two things need to be
+    // consistent.
+    const char *msg = "This file has an unsupported format.";
+    if (ends_with(string_tolower(filename), ".ses"))
+    {
+      msg = "This appears to be a session file and not a volume.";
+    }
+    set_status_dialog("Load of " + filename + " failed!", msg);
     return STOP_E;
   }
   else if (status == 3)
@@ -504,16 +621,23 @@ Painter::LoadVolume(const string &filename)
   // go ahead and load the whole series in.
   // TODO:  Pop up UI and ask for series parameters
   //        (start, stop, increment, dicom ordering)
-  if (volume->nrrd_handle_->nrrd_->axis[3].size == 1)
+  if (!volume.get_rep() || volume->nrrd_handle_->nrrd_->axis[3].size == 1)
   {
     const vector<string> filenames = get_filename_series(filename);
     if (filenames.size() > 1)
     {
-      volume = load_image_series<float>(filenames);
-      if (!volume.get_rep()) {
-        return STOP_E;
+      NrrdVolumeHandle volume2 = load_image_series<float>(filenames);
+      if (volume2.get_rep()) {
+        volume = volume2;
       }
     }
+  }
+  
+  if (!volume.get_rep())
+  {
+    set_status_dialog("Load of " + filename + " failed!",
+                      "No reason given.");
+    return STOP_E;
   }
   
   volume_lock_.lock();
@@ -521,7 +645,8 @@ Painter::LoadVolume(const string &filename)
   volumes_.push_back(volume);
   current_volume_ = volume;
 
-  for (unsigned int i = 0; i < windows_.size(); ++ i) {
+  for (size_t i = 0; i < windows_.size(); ++ i)
+  {
     windows_[i]->center_ = volume->center();
   }
 
@@ -606,8 +731,14 @@ Painter::FlipVolume(event_handle_t &event)
 
   nrrdKeyValueCopy(nout->nrrd_, current_volume_->nrrd_handle_->nrrd_);
 
-  current_volume_->nrrd_handle_ = nout;
-  current_volume_->set_dirty();
+  current_volume_->set_nrrd(nout);
+  
+  string undostr;
+  if (axis == 1) undostr = "Undo Sagital Flip";
+  else if (axis == 2) undostr = "Undo Coronal Flip";
+  else undostr = "Undo Axial Flip";
+  UndoHandle undo = new UndoFlipAxis(this, undostr, current_volume_, axis);
+  push_undo(undo);
 
   extract_all_window_slices();
   redraw_all();  
@@ -650,6 +781,12 @@ Painter::HistoEqFilter(event_handle_t &event)
                         NULL, 3000, bins, alpha));
 
   current_volume_->reset_data_range();
+
+  UndoHandle undo =
+    new UndoReplaceLayer(this, "Undo Histogram Equalization",
+                         0, current_volume_, 0);
+  push_undo(undo);
+
   extract_all_window_slices();
   redraw_all();
 
@@ -734,6 +871,14 @@ Painter::ITKGradientMagnitude(event_handle_t &)
 
 
 BaseTool::propagation_state_e 
+Painter::InhomogeneityCorrectionFilter(event_handle_t &)
+{
+  tm_.set_tool( new InhomogeneityCorrectionFilterTool(this), 25 );
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e 
 Painter::ITKCurvatureAnisotropic(event_handle_t &event)
 {
   tm_.set_tool(new ITKCurvatureAnisotropicDiffusionImageFilterTool(this), 25);
@@ -779,7 +924,11 @@ Painter::RasterPolyline(event_handle_t &event)
   PolylineTool *tool =
     dynamic_cast<PolylineTool *>(tm_.get_tool(25).get_rep());
   
-  if (tool) { tool->run_filter(); }
+  if (tool)
+  {
+    const bool erase = get_vars()->get_bool("Painter::polylinetool_erase");
+    tool->run_filter(erase);
+  }
 
   return CONTINUE_E;
 }
@@ -789,13 +938,26 @@ Painter::RasterPolyline(event_handle_t &event)
 BaseTool::propagation_state_e
 Painter::ResetCLUT(event_handle_t &event)
 {
-  if (!check_for_active_data_volume("Reset brightness/contrast"))
+  // Find the topmost visible data layer.
+  NrrdVolumeHandle volume = 0;
+  for (int i = volumes_.size()-1; i >= 0; i--)
   {
+    if (!volumes_[i]->label_ && volumes_[i]->visible())
+    {
+      volume = volumes_[i];
+      break;
+    }
+  }
+
+  if (volume.get_rep() == 0)
+  {
+    set_status("Reset brightness/contrast requires a visible data volume.");
     return STOP_E;
   }
 
-  current_volume_->reset_clut();
+  volume->reset_clut();
   redraw_all();
+
   return STOP_E;
 }
 
@@ -814,10 +976,21 @@ Painter::UpdateBrushRadius(event_handle_t &event)
 
 
 BaseTool::propagation_state_e
+Painter::UpdateThresholdTool(event_handle_t &event)
+{
+  const double lower = get_vars()->get_double("Painter::thresholdtool_lower");
+  const double upper = get_vars()->get_double("Painter::thresholdtool_upper");
+  event_handle_t sevent =  new SCIRun::UpdateThresholdToolEvent(lower, upper);
+  tm_.propagate_event(sevent);
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
 Painter::OpenLabelColorDialog(event_handle_t &event)
 {
   wxCommandEvent wxevent(wxEVT_COMMAND_COLOUR_PICKER, wxID_ANY);
-  colour_picker_data *cpd = new colour_picker_data;
+  colour_picker_data_t *cpd = new colour_picker_data_t;
   Color c = current_volume_->get_label_color();
   cpd->r = c.r();
   cpd->g = c.g();
@@ -859,6 +1032,9 @@ Painter::LabelInvertFilter(event_handle_t &)
                         current_volume_->label_,
                         current_volume_->nrrd_handle_,
                         current_volume_->label_);
+
+  UndoHandle undo = new UndoLabelInvertFilter(this, current_volume_);
+  push_undo(undo);
 
   extract_all_window_slices();
   redraw_all();
@@ -902,9 +1078,8 @@ Painter::MaskDataFilter(event_handle_t &)
     return STOP_E;
   }
 
-  if (!(mask_volume_.get_rep()))
+  if (!check_for_valid_mask("Mask data", true))
   {
-    set_status("Mask data requires a mask to be selected.");
     return STOP_E;
   }
 
@@ -919,17 +1094,14 @@ Painter::MaskDataFilter(event_handle_t &)
 
   const label_type mlabel = mask_volume_->label_;
 
-  const size_t dsize = VolumeOps::nrrd_elem_count(dnrrd);
-  const size_t msize = VolumeOps::nrrd_elem_count(mnrrd);
-  ASSERT(dsize == msize);
-  ASSERT(dnrrd->nrrd_->type == nrrdTypeFloat);
-  ASSERT(mnrrd->nrrd_->type == LabelNrrdType);
+  // TODO:  Get newval from the GUI.
+  const float newval = Min(0.0, current_volume_->data_min_);
+  VolumeOps::mask_data(dnrrd, dnrrd, mnrrd, mlabel, newval);
 
-  float *dst = (float *)dnrrd->nrrd_->data;
-  label_type *mask = (label_type *)mnrrd->nrrd_->data;
-  for (size_t i = 0; i < dsize; ++i, ++dst, ++mask) {
-    if (!(*mask & mlabel)) { *dst = 0.0; }
-  }
+  UndoHandle undo =
+    new UndoReplaceLayer(this, "Undo Mask Data",
+                         0, current_volume_, 0);
+  push_undo(undo);
 
   extract_all_window_slices();
   redraw_all();
@@ -1006,9 +1178,8 @@ Painter::CombineMaskAnd(event_handle_t &)
     return STOP_E;
   }
 
-  if (!(mask_volume_.get_rep()))
+  if (!check_for_valid_mask("Combine mask with logical and", true))
   {
-    set_status("Combine mask with logical and requires a mask to be selected.");
     return STOP_E;
   }
 
@@ -1032,6 +1203,59 @@ Painter::CombineMaskAnd(event_handle_t &)
   // Copy what was in the current volume into the new volume.
   VolumeOps::bit_and(dnrrd, dlabel, cnrrd, clabel, mnrrd, mlabel);
 
+  UndoHandle undo =
+    new UndoReplaceLayer(this, "Undo Logical And",
+                         0, current_volume_, 0);
+  push_undo(undo);
+
+  extract_all_window_slices();
+  rebuild_layer_buttons();
+  redraw_all();
+
+  hide_tool_panel();
+
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::CombineMaskRemove(event_handle_t &)
+{
+  if (!check_for_active_label_volume("Combine mask with logical remove"))
+  {
+    return STOP_E;
+  }
+
+  if (!check_for_valid_mask("Combine mask with logical remove", true))
+  {
+    return STOP_E;
+  }
+
+  volume_lock_.lock();
+
+  NrrdDataHandle mnrrd = mask_volume_->nrrd_handle_;
+  const label_type mlabel = mask_volume_->label_;
+  set_status("Using " + mask_volume_->name_ + " as mask.");
+
+  NrrdDataHandle cnrrd = current_volume_->nrrd_handle_;
+  const label_type clabel = current_volume_->label_;
+
+  // Make a new child volume.
+  const string name = current_volume_->name_ + " minus " + mask_volume_->name_;
+  create_new_label(current_volume_, name);
+  NrrdDataHandle dnrrd = current_volume_->nrrd_handle_;
+  const label_type dlabel = current_volume_->label_;
+
+  volume_lock_.unlock();
+
+  // Copy what was in the current volume into the new volume.
+  VolumeOps::bit_andnot(dnrrd, dlabel, cnrrd, clabel, mnrrd, mlabel);
+
+  UndoHandle undo =
+    new UndoReplaceLayer(this, "Undo Logical Remove",
+                         0, current_volume_, 0);
+  push_undo(undo);
+
   extract_all_window_slices();
   rebuild_layer_buttons();
   redraw_all();
@@ -1050,9 +1274,8 @@ Painter::CombineMaskOr(event_handle_t &)
     return STOP_E;
   }
 
-  if (!(mask_volume_.get_rep()))
+  if (!check_for_valid_mask("Combine mask with logical or", true))
   {
-    set_status("Combine mask with logical or requires a mask to be selected.");
     return STOP_E;
   }
 
@@ -1080,6 +1303,251 @@ Painter::CombineMaskOr(event_handle_t &)
   redraw_all();
 
   hide_tool_panel();
+
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::CombineMaskXor(event_handle_t &)
+{
+  if (!check_for_active_label_volume("Combine mask with logical xor"))
+  {
+    return STOP_E;
+  }
+
+  if (!check_for_valid_mask("Combine mask with logical xor", true))
+  {
+    return STOP_E;
+  }
+
+  volume_lock_.lock();
+
+  NrrdDataHandle mnrrd = mask_volume_->nrrd_handle_;
+  const label_type mlabel = mask_volume_->label_;
+  set_status("Using " + mask_volume_->name_ + " as mask.");
+
+  NrrdDataHandle cnrrd = current_volume_->nrrd_handle_;
+  const label_type clabel = current_volume_->label_;
+
+  // Make a new child volume.
+  const string name = current_volume_->name_ + " xor " + mask_volume_->name_;
+  create_new_label(current_volume_, name);
+  NrrdDataHandle dnrrd = current_volume_->nrrd_handle_;
+  const label_type dlabel = current_volume_->label_;
+
+  volume_lock_.unlock();
+
+  // Copy what was in the current volume into the new volume.
+  VolumeOps::bit_xor(dnrrd, dlabel, cnrrd, clabel, mnrrd, mlabel);
+
+  UndoHandle undo =
+    new UndoReplaceLayer(this, "Undo Logical Xor",
+                         0, current_volume_, 0);
+  push_undo(undo);
+
+  extract_all_window_slices();
+  rebuild_layer_buttons();
+  redraw_all();
+
+  hide_tool_panel();
+
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::MoveScaleLayerUpdateGUI(event_handle_t &event)
+{
+  if (!current_volume_.get_rep())
+  {
+    set_status("No volume selected.");
+    return STOP_E;
+  }
+
+  wxPanel *panel = Painter::global_seg3dframe_pointer_->CurrentToolPanel();
+  if (panel)
+  {
+    MoveScaleToolChangeStruct *change = new MoveScaleToolChangeStruct;
+    change->spacingx = current_volume_->nrrd_handle_->nrrd_->axis[1].spacing;
+    change->spacingy = current_volume_->nrrd_handle_->nrrd_->axis[2].spacing;
+    change->spacingz = current_volume_->nrrd_handle_->nrrd_->axis[3].spacing;
+
+    change->originx = current_volume_->nrrd_handle_->nrrd_->axis[1].min;
+    change->originy = current_volume_->nrrd_handle_->nrrd_->axis[2].min;
+    change->originz = current_volume_->nrrd_handle_->nrrd_->axis[3].min;
+    wxCommandEvent wxevent(wxEVT_MOVESCALETOOL_CHANGE, wxID_ANY);
+    wxevent.SetClientData((void *)change);
+    wxPostEvent(panel, wxevent);
+  }
+
+  return STOP_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::MoveScaleLayer(event_handle_t &event)
+{
+  // TODO:  This won't work on labels, shared nrrd moves more than one.
+  if (!current_volume_.get_rep())
+  {
+    set_status("No volume selected.");
+    return STOP_E;
+  }
+
+  vector<int> cindex;
+  for (size_t i = 0; i < windows_.size(); i++)
+  {
+    if (windows_[i]->visible())
+    {
+      const Point &center = windows_[i]->center_;
+      cindex = current_volume_->world_to_index(center);
+      break;
+    }
+  }
+  
+  double xspacing =
+    get_vars()->get_double("Painter::movescale::spacing::x");
+  double yspacing =
+    get_vars()->get_double("Painter::movescale::spacing::y");
+  double zspacing =
+    get_vars()->get_double("Painter::movescale::spacing::z");
+
+  // TODO: Validate spacings here
+
+  double xorigin =
+    get_vars()->get_double("Painter::movescale::origin::x");
+  double yorigin =
+    get_vars()->get_double("Painter::movescale::origin::y");
+  double zorigin =
+    get_vars()->get_double("Painter::movescale::origin::z");
+
+  // Validate origin here?
+
+  Nrrd *nrrd = current_volume_->nrrd_handle_->nrrd_;
+  
+  nrrd->axis[1].spacing = xspacing;
+  nrrd->axis[2].spacing = yspacing;
+  nrrd->axis[3].spacing = zspacing;
+
+  nrrd->axis[1].min = xorigin;
+  nrrd->axis[2].min = yorigin;
+  nrrd->axis[3].min = zorigin;
+
+  nrrd->axis[1].max =
+    nrrd->axis[1].min + (nrrd->axis[1].size-1) * nrrd->axis[1].spacing;
+  nrrd->axis[2].max =
+    nrrd->axis[2].min + (nrrd->axis[2].size-1) * nrrd->axis[2].spacing;
+  nrrd->axis[3].max =
+    nrrd->axis[3].min + (nrrd->axis[3].size-1) * nrrd->axis[3].spacing;
+
+  current_volume_->rebuild_transform();
+  current_volume_->set_dirty();
+  current_volume_->get_geom_group();
+
+  if (current_volume_ == current_vrender_target_ &&
+      !current_vrender_target_deferred_)
+  {
+    LoadVolumeEvent *lve =
+      new LoadVolumeEvent(current_vrender_target_->nrrd_handle_, "", false);
+    EventManager::add_event(lve);
+  }
+
+  if (cindex.size())
+  {
+    const Point center = current_volume_->index_to_world(cindex);
+    for (size_t i = 0; i < windows_.size(); i++)
+    {
+      windows_[i]->center_ = center;
+    }
+  }
+
+  extract_all_window_slices();
+  Autoview(event);
+
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::MoveScaleAllLayers(event_handle_t &event)
+{
+  if (volumes_.empty()) { return CONTINUE_E; }
+
+  const NrrdVolumeHandle &volume = volumes_[0];
+
+  vector<int> cindex;
+  for (size_t i = 0; i < windows_.size(); i++)
+  {
+    if (windows_[i]->visible())
+    {
+      const Point &center = windows_[i]->center_;
+      cindex = volume->world_to_index(center);
+      break;
+    }
+  }
+
+  double xspacing =
+    get_vars()->get_double("Painter::movescale::spacing::x");
+  double yspacing =
+    get_vars()->get_double("Painter::movescale::spacing::y");
+  double zspacing =
+    get_vars()->get_double("Painter::movescale::spacing::z");
+
+  // TODO: Validate spacings here
+
+  double xorigin =
+    get_vars()->get_double("Painter::movescale::origin::x");
+  double yorigin =
+    get_vars()->get_double("Painter::movescale::origin::y");
+  double zorigin =
+    get_vars()->get_double("Painter::movescale::origin::z");
+
+  // Validate origin here?
+
+  for (size_t i = 0; i < volumes_.size(); i++)
+  {
+    const NrrdVolumeHandle &volume = volumes_[i];
+    Nrrd *nrrd = volume->nrrd_handle_->nrrd_;
+  
+    nrrd->axis[1].spacing = xspacing;
+    nrrd->axis[2].spacing = yspacing;
+    nrrd->axis[3].spacing = zspacing;
+
+    nrrd->axis[1].min = xorigin;
+    nrrd->axis[2].min = yorigin;
+    nrrd->axis[3].min = zorigin;
+
+    nrrd->axis[1].max =
+      nrrd->axis[1].min + (nrrd->axis[1].size-1) * nrrd->axis[1].spacing;
+    nrrd->axis[2].max =
+      nrrd->axis[2].min + (nrrd->axis[2].size-1) * nrrd->axis[2].spacing;
+    nrrd->axis[3].max =
+      nrrd->axis[3].min + (nrrd->axis[3].size-1) * nrrd->axis[3].spacing;
+
+    volume->rebuild_transform();
+    volume->set_dirty();
+    volume->get_geom_group();
+  }
+
+  if (cindex.size())
+  {
+    const Point center = volume->index_to_world(cindex);
+    for (size_t i = 0; i < windows_.size(); i++)
+    {
+      windows_[i]->center_ = center;
+    }
+  }
+
+  if (!current_vrender_target_deferred_)
+  {
+    LoadVolumeEvent *lve =
+      new LoadVolumeEvent(current_vrender_target_->nrrd_handle_, "", false);
+    EventManager::add_event(lve);
+  }
+
+  extract_all_window_slices();
+  Autoview(event);
 
   return CONTINUE_E;
 }
@@ -1121,13 +1589,27 @@ Painter::start_ITKThresholdSegmentationLevelSetImageFilterTool(event_handle_t &e
   return CONTINUE_E;
 }
 
-
 BaseTool::propagation_state_e 
-Painter::start_ITKThresholdImageFilterTool(event_handle_t &event)
+Painter::start_ITKSpeedToPathGradientDescentImageFilterTool(event_handle_t &event)
 {
-  tm_.set_tool(new ITKThresholdImageFilterTool(this), 25);
+  tm_.set_tool(new ITKSpeedToPathGradientDescentImageFilterTool(this), 25);
   return CONTINUE_E;
 }
+
+BaseTool::propagation_state_e 
+Painter::start_ITKSpeedToPathRegularStepGradientDescentImageFilterTool(event_handle_t &event)
+{
+  tm_.set_tool(new ITKSpeedToPathRegularStepGradientDescentImageFilterTool(this), 25);
+  return CONTINUE_E;
+}
+
+BaseTool::propagation_state_e 
+Painter::start_ITKSpeedToPathIterateNeighborhoodImageFilterTool(event_handle_t &event)
+{
+  tm_.set_tool(new ITKSpeedToPathIterateNeighborhoodImageFilterTool(this), 25);
+  return CONTINUE_E;
+}
+
 
 BaseTool::propagation_state_e 
 Painter::start_ITKDiscreteGaussianImageFilterTool(event_handle_t &event)
@@ -1142,7 +1624,6 @@ Painter::FinishTool(event_handle_t &event)
   tm_.propagate_event(new FinishEvent());
   return CONTINUE_E;
 }
-
 
 BaseTool::propagation_state_e 
 Painter::ClearTools(event_handle_t &event)
@@ -1167,7 +1648,7 @@ Painter::SetLayer(event_handle_t &event)
 
 
 BaseTool::propagation_state_e 
-Painter::ITKThresholdSegmentationLevelSetImageFilterToolSetDataLayer(event_handle_t &event)
+Painter::SetDataLayer(event_handle_t &event)
 {
   tm_.propagate_event(new SetDataLayerEvent());
   return CONTINUE_E;
@@ -1294,6 +1775,7 @@ Painter::ShowVolumeRendering2(event_handle_t &event)
       current_vrender_target_.get_rep())
   {
     current_vrender_target_deferred_ = false;
+    set_status("Setting up volume rendering.");
     LoadVolumeEvent *lve =
       new LoadVolumeEvent(current_vrender_target_->nrrd_handle_,
                           current_vrender_target_->full_path_);
@@ -1305,108 +1787,6 @@ Painter::ShowVolumeRendering2(event_handle_t &event)
   return CONTINUE_E;
 }
 
-
-BaseTool::propagation_state_e 
-Painter::ResampleVolume(event_handle_t &event)
-{
-  if (!current_volume_.get_rep())
-  {
-    set_status("Resample requires an active volume.");
-    return STOP_E;
-  }
-
-  NrrdResampleInfo *info = nrrdResampleInfoNew();
-
-  NrrdKernel *kern = 0;
-  double p[NRRD_KERNEL_PARMS_NUM];
-  memset(p, 0, NRRD_KERNEL_PARMS_NUM * sizeof(double));
-  p[0] = 1.0;
-  
-  const string last_filtertype_ = "quartic";
-
-  if (last_filtertype_ == "box") {
-    kern = nrrdKernelBox;
-  } else if (last_filtertype_ == "tent") {
-    kern = nrrdKernelTent;
-  } else if (last_filtertype_ == "cubicCR") { 
-    kern = nrrdKernelBCCubic; 
-    p[1] = 0.0;
-    p[2] = 0.5;
-  } else if (last_filtertype_ == "cubicBS") { 
-    kern = nrrdKernelBCCubic; 
-    p[1] = 1.0;
-    p[2] = 0.0;
-  } else if (last_filtertype_ == "gaussian") { 
-    kern = nrrdKernelGaussian; 
-//    p[0] = sigma_.get(); 
-//    p[1] = extent_.get(); 
-  } else { // default is quartic
-    kern = nrrdKernelAQuartic;
-    p[1] = 0.0834; // most accurate as per Teem documenation
-  }
-
-  Nrrd *nin = current_volume_->nrrd_handle_->nrrd_;
-
-  int samples[4];
-  samples[0] = 1;
-  samples[1] = get_vars()->get_int("Resample::x");
-  samples[2] = get_vars()->get_int("Resample::y");
-  samples[3] = get_vars()->get_int("Resample::z");
-
-  for (int i = 0; i < 4; i++)
-  {
-    if (samples[i] < 1 || samples[i] > 4096)
-    {
-      samples[i] = nin->axis[i].size;
-    }
-  }
-
-  for (int a = 0; a < 4; a++)
-  {
-    if (a == 0)
-      info->kernel[a] = 0;
-    else 
-      info->kernel[a] = kern;
-
-    info->samples[a] = (size_t)samples[a];
-
-    memcpy(info->parm[a], p, NRRD_KERNEL_PARMS_NUM * sizeof(double));
-
-    if (info->kernel[a] && 
-    	(!(airExists(nin->axis[a].min) && airExists(nin->axis[a].max))))
-    {
-      nrrdAxisInfoMinMaxSet(nin, a, nin->axis[a].center ? 
-                            nin->axis[a].center : nrrdDefaultCenter);
-    }
-
-    info->min[a] = nin->axis[a].min;
-    info->max[a] = nin->axis[a].max;
-  }    
-  info->boundary = nrrdBoundaryBleed;
-  info->type = nin->type;
-  info->renormalize = AIR_TRUE;
-
-  NrrdDataHandle nrrd_handle = scinew NrrdData;
-  Nrrd *nout = nrrd_handle->nrrd_;
-  if (nrrdSpatialResample(nout, nin, info)) {
-    char *err = biffGetDone(NRRD);
-    string errstr(err);
-    free(err);
-    throw "Trouble resampling: " + errstr;
-  }
-  nrrdResampleInfoNix(info); 
-
-  // TODO:  Fix the spacial transform for the new nrrd here.
-
-  const string newname = current_volume_->name_+" - Resampled";
-  make_layer(newname, nrrd_handle, 0);
-  extract_all_window_slices();
-  //rebuild_layer_buttons(); // already done by make_layer
-  redraw_all();
-
-  return CONTINUE_E;
-}
-  
 
 Nrrd*
 Painter::do_CMedian_filter(Nrrd *nin, int radius)
@@ -1477,7 +1857,7 @@ Painter::MedianFilterVolume(event_handle_t &event)
       out.push_back(nout_filtered);
     }
     // Join the filtered nrrds along the first axis
-    NrrdData *nrrd_joined = scinew NrrdData;
+    NrrdData *nrrd_joined = new NrrdData;
     if (nrrdJoin(nrrd_joined->nrrd_, &out[0], out.size(), 0, 1)) {
       char *err = biffGetDone(NRRD);
       string errstr(err);
@@ -1495,16 +1875,24 @@ Painter::MedianFilterVolume(event_handle_t &event)
     {
       throw "Error filtering, returning";
     }
-    NrrdDataHandle ntmp(scinew NrrdData(nout_filtered));
+    NrrdDataHandle ntmp(new NrrdData(nout_filtered));
     nrrd_handle = ntmp;
   }
 	
   //  current_volume_->nrrd_handle_ = nrrd_handle;
     
-  //  NrrdDataHandle nrrd_handle = scinew NrrdData;
-  string newname = current_volume_->name_+" - Median Filtered";
+  //  NrrdDataHandle nrrd_handle = new NrrdData;
+  string newname = current_volume_->name_+" Median";
   make_layer(newname, nrrd_handle);
+
+  UndoHandle undo =
+    new UndoReplaceLayer(this, "Undo Median",
+                         0, current_volume_, 0);
+  push_undo(undo);
+  
   extract_all_window_slices();
+  rebuild_layer_buttons();
+  redraw_all();
 
   hide_tool_panel();
 
@@ -1551,6 +1939,11 @@ Painter::CreateLabelVolume(event_handle_t &event)
   }
   volumes_[index] = current_volume_;
 
+  UndoHandle undo =
+    new UndoReplaceLayer(this, "Undo Create Label",
+                         0, current_volume_, 0);
+  push_undo(undo);
+
   extract_all_window_slices();
   rebuild_layer_buttons();
   redraw_all();
@@ -1584,11 +1977,6 @@ Painter::LoadSession(const string &filename)
   
   if (success)
   {
-    if (current_volume_.get_rep()) 
-      for (unsigned int i = 0; i < windows_.size(); ++ i) {
-        windows_[i]->center_ = current_volume_->center();
-      }
-    
     set_status("Successfully loaded session: " + filename);
   }
   else
@@ -1646,7 +2034,49 @@ Painter::SaveVolume(const string &filename)
     return STOP_E;
   }
 
-  if (current_volume_->write(filename)) {
+  NrrdVolumeHandle volume = current_volume_;
+
+#if 0
+  if (volume->label_)
+  {
+    if (volume->only_one_label())
+    {
+      if (volume->label_ != 1)
+      {
+        cout << "MOVING LABEL TO 1\n";
+        VolumeOps::bit_copy(volume->nrrd_handle_, 1,
+                            volume->nrrd_handle_, volume->label_);
+        VolumeOps::bit_clear(volume->nrrd_handle_, volume->label_);
+        volume->label_ = 1;
+        // TODO:  This kills the outline geometry for some reason.
+        volume->set_slices_dirty();
+        extract_all_window_slices();
+      }
+      else
+      {
+        cout << "DOING NOTHING\n";
+      }
+    }
+    else
+    {
+      cout << "COPYING BITS TO NEW VOLUME\n";
+      NrrdDataHandle justone =
+        VolumeOps::create_clear_nrrd(volume->nrrd_handle_, nrrdTypeUChar);
+      VolumeOps::bit_copy(justone, 1, volume->nrrd_handle_, volume->label_);
+      volume = new NrrdVolume(this, "Temporary Copy", justone);
+    }
+  }
+#else
+  if (volume->label_ && !(volume->only_one_label() && volume->label_ == 1))
+  {
+    NrrdDataHandle justone =
+      VolumeOps::create_clear_nrrd(volume->nrrd_handle_, nrrdTypeUChar);
+    VolumeOps::bit_copy(justone, 1, volume->nrrd_handle_, volume->label_);
+    volume = new NrrdVolume(this, "Temporary Copy", justone);
+  }
+#endif
+
+  if (volume->write(filename)) {
     set_status("Successfully saved volume: " + filename);
   }
   else
@@ -1708,7 +2138,7 @@ Painter::ImportSegmentation(event_handle_t &event)
     get_vars()->get_string("Painter::ImportSegmentation::filename");
   
   int status;
-  NrrdVolumeHandle volume = load_volume<unsigned int>(filename);
+  NrrdVolumeHandle volume = load_volume<unsigned int>(filename, status);
   if (status == 1)
   {
     set_status_dialog("Import of " + filename + " failed!",
@@ -1729,7 +2159,6 @@ Painter::ImportSegmentation(event_handle_t &event)
   }
 
   valset_t segvals;
-  // TODO:  Determine which values should become segmentations.
   if (!compute_segmentation_values(segvals, volume))
   {
     set_status_dialog("Import of " + filename + " failed!",
@@ -1753,11 +2182,16 @@ Painter::ImportSegmentation(event_handle_t &event)
 }
 
 
+static export_label_selection_data_t export_segmentation_data;
+
+
 BaseTool::propagation_state_e
-Painter::ExportSegmentation(event_handle_t &event)
+Painter::ExportSegmentation1(event_handle_t &event)
 {
+  // TODO: Turn this into a merge filter so the user can preview the
+  // data and then do a volume->save rather than a blind export.
+  // Requires discrete data volume support.
   size_t i;
-  // TODO:  All of this function.
 
   // Get a list of all the labels.
   // TODO:  Group the labels by size compatability.
@@ -1778,32 +2212,57 @@ Painter::ExportSegmentation(event_handle_t &event)
 
   // Send the list off to the user to determine which labels they want
   // and what numbers they should have.
-  wxString *choices = new wxString[prelabels.size()];
+  export_segmentation_data.nchoices_ = prelabels.size();
+  if (export_segmentation_data.choices_)
+  {
+    delete [] export_segmentation_data.choices_;
+  }
+  export_segmentation_data.choices_ = new wxString[prelabels.size()];
+  export_segmentation_data.selections_.clear();
+  wxArrayInt selections;
   for (i = 0; i < prelabels.size(); i++)
   {
-    choices[prelabels.size() - 1 - i] = std2wx(prelabels[i]->name_);
+    export_segmentation_data.choices_[prelabels.size() - 1 - i] =
+      std2wx(prelabels[i]->name_);
+    if (prelabels[i]->visible())
+    {
+      export_segmentation_data.selections_.push_back(prelabels.size() - 1 - i);
+    }
   }
-  wxArrayInt selections;
-  size_t count = wxGetMultipleChoices(selections,
-                                      _T("Select which labels to export."),
-                                      _T("Segmentation export picker"),
-                                      prelabels.size(), choices,
-                                      Painter::global_seg3dframe_pointer_);
-  delete [] choices;
+  
+  // Fire off event
+  wxCommandEvent wxevent(wxEVT_COMMAND_EXPORT_LABEL_SELECTION, wxID_ANY);
+  wxevent.SetClientData((void *)&export_segmentation_data);
+  wxPostEvent(global_seg3dframe_pointer_, wxevent);
 
-  if (!count)
+  return CONTINUE_E;
+}
+
+
+BaseTool::propagation_state_e
+Painter::ExportSegmentation2(event_handle_t &event)
+{
+  size_t i;
+  
+  // Get a list of all the labels.
+  // TODO:  Group the labels by size compatability.
+  NrrdVolumes prelabels;
+  for (i = 0; i < volumes_.size(); i++)
   {
-    set_status_dialog("Export failed.", "No labels were selected for export.");
-    return STOP_E;
+    if (volumes_[i]->label_)
+    {
+      prelabels.push_back(volumes_[i]);
+    }
   }
+
+  // Something went wrong, labels different now.
+  ASSERT(prelabels.size() == export_segmentation_data.nchoices_);
 
   NrrdVolumes labels;
-  vector<unsigned int> lvalues;
-  unsigned int counter = 1;
-  for (i = 0; i < count; i++)
+  for (i = 0; i < export_segmentation_data.selections_.size(); i++)
   {
-    labels.push_back(prelabels[prelabels.size() - 1 - selections[i]]);
-    lvalues.push_back(counter++);
+    labels.push_back(prelabels[prelabels.size() - 1 -
+                               export_segmentation_data.selections_[i]]);
   }
 
   // Create a nrrd.
@@ -1811,11 +2270,14 @@ Painter::ExportSegmentation(event_handle_t &event)
     VolumeOps::create_clear_nrrd(labels[0]->nrrd_handle_, nrrdTypeUChar);
 
   // Put the labels in the nrrd.
-  for (i = 0; i < labels.size(); i++)
+  // Merge them in back to front order so that the results match what
+  // Seg3D displays.
+  unsigned int counter = 1;
+  for (int j = ((int)labels.size())-1; j >= 0; j--)
   {
-    VolumeOps::merge_label_into_segmentation(segmentation, lvalues[i],
-                                             labels[i]->nrrd_handle_,
-                                             labels[i]->label_);
+    VolumeOps::merge_label_into_segmentation(segmentation, counter++,
+                                             labels[j]->nrrd_handle_,
+                                             labels[j]->label_);
   }
 
   // Write out the segmentation
@@ -1835,6 +2297,14 @@ Painter::ExportSegmentation(event_handle_t &event)
   return CONTINUE_E;
 }
 
+
+BaseTool::propagation_state_e
+Painter::Undo(event_handle_t &)
+{
+  undo_manager_->undo_last();
+
+  return CONTINUE_E;
+}
 
 
 // Unused
@@ -1932,7 +2402,7 @@ Painter::vff_reader(const string &filename)
   vffFileStream.close();
 	
   // Now create the nrrd from the information contained in the vff header.
-  NrrdDataHandle nout = scinew NrrdData();
+  NrrdDataHandle nout = new NrrdData();
   NrrdIoState *nio = nrrdIoStateNew();
 
   // Set first axes kind to be what user specified.
@@ -1984,7 +2454,7 @@ Painter::vff_reader(const string &filename)
     nrrdSwapEndian(nout->nrrd_);
   }
 
-  NrrdDataHandle nrrd_float = scinew NrrdData;
+  NrrdDataHandle nrrd_float = new NrrdData;
   if (nrrdConvert(nrrd_float->nrrd_, nout->nrrd_, nrrdTypeFloat))
   {
     char *err = biffGetDone(NRRD);
@@ -2066,6 +2536,34 @@ Painter::check_for_active_label_volume(const char *msg)
 }
 
 
+bool
+Painter::check_for_valid_mask(const char *msg, bool strict)
+{
+  if (mask_volume_.get_rep() && current_volume_.get_rep())
+  {
+    if (VolumeOps::compare_nrrd_info(current_volume_->nrrd_handle_,
+                                     mask_volume_->nrrd_handle_))
+    {
+      return true;
+    }
+    if (strict)
+    {
+      set_status(string(msg) + " the mask and volume must be the same size.");
+    }
+    else
+    {
+      set_status(string(msg) + " mask wrong size.  Not using it.");
+    }
+    return false;
+  }
+  if (strict)
+  {
+    set_status(string(msg) + " requires a mask to be selected.");
+  }
+  return false;
+}
+
+
 void
 Painter::set_status_dialog(const string &s1, const string &s2)
 {
@@ -2129,9 +2627,116 @@ Painter::clear_all_volumes()
 
   volume_lock_.unlock();
 
+  // Clear the undo stack.
+  undo_manager_->clear_undo();
+
   rebuild_layer_buttons();
   extract_all_window_slices();
   redraw_all();
+}
+
+
+size_t
+Painter::remove_volume(NrrdVolumeHandle &layer, bool undo)
+{
+  size_t result = 0;
+
+  // Clear the volume rendering.
+  if (layer == current_vrender_target_)
+  {
+    // If it's been deferred then no need to update the scene graph.
+    if (!current_vrender_target_deferred_)
+    {
+      NrrdDataHandle empty(0);
+      LoadVolumeEvent *lve = new LoadVolumeEvent(empty, "");
+      EventManager::add_event(lve);
+    }
+    current_vrender_target_ = 0;
+    current_vrender_target_deferred_ = false;
+  }
+  
+  volume_lock_.lock();
+  try {
+
+    // Clear the mask layer if we're deleting it.
+    if (layer == mask_volume_)
+    {
+      mask_volume_ = 0;
+    }
+
+    // Make the new volume list with the deleted volume missing.
+    // TODO:  Put the old layer in an undo list instead of deleting.
+    int loc = -1;
+    NrrdVolumes newvolumes;
+    for (size_t i = 0; i < volumes_.size(); i++)
+    {
+      if (volumes_[i] != layer)
+      {
+        newvolumes.push_back(volumes_[i]);
+      }
+      else
+      {
+        loc = i;
+      }
+    }
+    
+    if (undo && loc != -1)
+    {
+      result = loc;
+      UndoHandle undo = new UndoReplaceLayer(this, "Undo Layer Delete",
+                                             volumes_[loc], 0, loc);
+      undo_manager_->push_undo(undo);
+    }
+
+    volumes_ = newvolumes;
+
+    // Clear the 3D graphics associated with this layer.
+    EventManager::add_event(new SceneGraphEvent(0, layer->name_));
+
+    if (layer == current_volume_)
+    {
+      // Set the current layer to be near the deleted layer.
+      if (loc == -1 || volumes_.size() == 0)
+      {
+        current_volume_ = 0;
+      }
+      else
+      {
+        loc = Min((int)volumes_.size()-1, loc);
+        current_volume_ = volumes_[loc];
+      }
+    }
+
+    // TODO: Unparent?
+  }
+  catch(...) {
+    volume_lock_.unlock();
+    throw;
+  }
+  volume_lock_.unlock();
+
+  return result;
+}
+
+
+void
+Painter::insert_volume(NrrdVolumeHandle &volume, size_t index)
+{
+  if (index < volumes_.size())
+  {
+    volumes_.insert(volumes_.begin()+index, volume);
+  }
+  else
+  {
+    volumes_.push_back(volume);
+  }
+}
+
+
+void
+Painter::push_undo(UndoHandle &undo)
+{
+  undo_manager_->push_undo(undo);
 }
 
 

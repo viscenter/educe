@@ -34,67 +34,51 @@ itcl_class SCIRun_ChangeFieldData_MapFieldDataFromSourceToDestination {
         set name MapFieldDataFromSourceToDestination
     }
 
-    method set_defaults {} {
-	setGlobal $this-interpolation_basis linear
-	setGlobal $this-map_source_to_single_dest 0
-	setGlobal $this-exhaustive_search 0
-	setGlobal $this-exhaustive_search_max_dist -1
-	setGlobal $this-np 1
-    }
-
     method ui {} {
         set w .ui[modname]
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.basis
-	label $w.basis.label -text "Interpolation Basis:"
-	radiobutton $w.basis.const -text "Constant ('find closest')" \
-		-variable $this-interpolation_basis -value constant
-	frame $w.basis.cframe 
-	label $w.basis.cframe.label -text "Constant Mapping:"
-	radiobutton $w.basis.cframe.onetomany -text \
-		"Each destination gets nearest source value" \
-		-variable $this-map_source_to_single_dest -value 0
-	radiobutton $w.basis.cframe.onetoone -text \
-		"Each source projects to just one destination" \
-		-variable $this-map_source_to_single_dest -value 1
-	pack $w.basis.cframe.label -side top -anchor w -padx 4 -pady 4
-	pack $w.basis.cframe.onetomany $w.basis.cframe.onetoone \
-		-side top -anchor w -padx 15
-	radiobutton $w.basis.lin -text "Linear (`weighted')" \
-		-variable $this-interpolation_basis -value linear
-	pack $w.basis.label -side top -anchor w
-	pack $w.basis.const -padx 15 -side top -anchor w
-	pack $w.basis.cframe -padx 30 -side top -anchor w
-	pack $w.basis.lin -padx 15 -side top -anchor w
-	
-	frame $w.exhaustive
-	label $w.exhaustive.label -text "Exhaustive Search Options:"
-	checkbutton $w.exhaustive.check \
-	    -text "Use Exhaustive Search if Fast Search Fails" \
-	    -variable $this-exhaustive_search
-	frame $w.exhaustive.dist
-	label $w.exhaustive.dist.label -text \
-		"Maximum Distance (negative value -> 'no max'):"
-	entry $w.exhaustive.dist.entry -textvariable \
-	    $this-exhaustive_search_max_dist -width 8
-	pack $w.exhaustive.dist.label $w.exhaustive.dist.entry \
-	    -side left -anchor n
-	pack $w.exhaustive.label -side top -anchor w
-	pack $w.exhaustive.check -side top -anchor w -padx 15
-	pack $w.exhaustive.dist -side top -anchor w -padx 30
+        sci_frame $w.basis
+        sci_label $w.basis.label -text "Interpolation Basis:"
+        sci_radiobutton $w.basis.const -text "Constant ('find closest')" \
+          -variable $this-interpolation_basis -value constant
+        sci_frame $w.basis.cframe 
+        sci_label $w.basis.cframe.label -text "Constant Mapping:"
+        sci_radiobutton $w.basis.cframe.onetomany -text \
+          "Each destination gets nearest source value" \
+          -variable $this-map_source_to_single_dest -value 0
+        sci_radiobutton $w.basis.cframe.onetoone -text \
+          "Each source projects to just one destination" \
+          -variable $this-map_source_to_single_dest -value 1
+        pack $w.basis.cframe.label -side top -anchor w -padx 4 -pady 4
+        pack $w.basis.cframe.onetomany $w.basis.cframe.onetoone \
+          -side top -anchor w -padx 15
+        sci_radiobutton $w.basis.lin -text "Linear (`weighted')" \
+          -variable $this-interpolation_basis -value linear
+        pack $w.basis.label -side top -anchor w
+        pack $w.basis.const -padx 15 -side top -anchor w
+        pack $w.basis.cframe -padx 30 -side top -anchor w
+        pack $w.basis.lin -padx 15 -side top -anchor w
+        
+        sci_frame $w.exhaustive
+        sci_label $w.exhaustive.label -text "Search Options:"
+        sci_frame $w.exhaustive.dist
+        sci_label $w.exhaustive.dist.label -text \
+          "Maximum Distance (negative value -> 'no max'):"
+        sci_entry $w.exhaustive.dist.entry -textvariable \
+            $this-exhaustive_search_max_dist -width 8
+        pack $w.exhaustive.dist.label $w.exhaustive.dist.entry \
+            -side left -anchor n
+        pack $w.exhaustive.label -side top -anchor w
+        pack $w.exhaustive.dist -side top -anchor w -padx 30
+        
+        pack $w.basis -side top -anchor w
+        pack $w.exhaustive -side top -anchor w -pady 15
 
-	scale $w.scale -orient horizontal -variable $this-np -from 1 -to 32 \
-		-showvalue true -label "Number of Threads"
-	
-	pack $w.basis -side top -anchor w
-	pack $w.exhaustive -side top -anchor w -pady 15
-	pack $w.scale -side top -expand 1 -fill x -padx 4 -pady 4
-
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }

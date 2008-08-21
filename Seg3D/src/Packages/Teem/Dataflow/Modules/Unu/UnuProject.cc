@@ -31,7 +31,7 @@
 //    Date   : Mon Sep  8 09:46:49 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -110,7 +110,7 @@ UnuProject::execute()
       free(err);
     }
     
-    last_nrrdH_ = scinew NrrdData(nout);
+    last_nrrdH_ = new NrrdData(nout);
   }
 
   send_output_handle("nout", last_nrrdH_, true);

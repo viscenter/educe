@@ -21,18 +21,18 @@ itcl_class SCIRun_Math_CreateMatrix {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
  
-        iwidgets::labeledframe $w.dimensions -labeltext "MATRIX DIMENSIONS"
+        sci_labeledframe $w.dimensions -labeltext "MATRIX DIMENSIONS"
         set dimensions [$w.dimensions childsite]        
         
-        iwidgets::entryfield $dimensions.rf \
+        sci_entryfield $dimensions.rf \
           -labeltext "# Rows" \
           -validate numeric \
           -textvariable $this-rows \
           -command "$this update_contents"
 
-        iwidgets::entryfield $dimensions.cf \
+        sci_entryfield $dimensions.cf \
           -labeltext "# Cols" \
           -validate numeric \
           -textvariable $this-cols \
@@ -43,10 +43,10 @@ itcl_class SCIRun_Math_CreateMatrix {
         trace variable $this-rows w "$this update_contents"
         trace variable $this-cols w "$this update_contents"
   
-        iwidgets::labeledframe $w.contents -labeltext "MATRIX CONTENTS"
+        sci_labeledframe $w.contents -labeltext "MATRIX CONTENTS"
         set contents [$w.contents childsite]        
         
-        iwidgets::scrolledframe $contents.d \
+        sci_scrolledframe $contents.d \
           -vscrollmode dynamic \
           -hscrollmode dynamic
         pack $contents.d
@@ -156,7 +156,7 @@ itcl_class SCIRun_Math_CreateMatrix {
         
         pack forget $contents.d
         destroy $contents.d
-        iwidgets::scrolledframe $contents.d \
+        sci_scrolledframe $contents.d \
           -vscrollmode dynamic \
           -hscrollmode dynamic
         pack $contents.d -fill both -expand yes
@@ -165,7 +165,7 @@ itcl_class SCIRun_Math_CreateMatrix {
 
         for {set c 0} {$c < $ncols } {incr c} {
           set labeldata [set $this-clabel]
-          iwidgets::entryfield $d.clabel-$c -borderwidth 2 -background blue -foreground white -textbackground blue -relief raised -command "$this update_clabel $c" -width 8 -justify center
+          sci_entryfield $d.clabel-$c -borderwidth 2 -background blue -foreground white -textbackground blue -relief raised -command "$this update_clabel $c" -width 8 -justify center
           bind $d.clabel-$c <Leave> "$this update_clabel $c"
           set data [lindex $labeldata $c]
           $d.clabel-$c insert 0 $data
@@ -174,7 +174,7 @@ itcl_class SCIRun_Math_CreateMatrix {
 
         for {set r 0} {$r < $nrows } {incr r} {
           set labeldata [set $this-rlabel]
-          iwidgets::entryfield $d.rlabel-$r -borderwidth 2 -background blue -foreground white -textbackground blue -relief raised -command "$this update_rlabel $r" -width 12 -justify center
+          sci_entryfield $d.rlabel-$r -borderwidth 2 -background blue -foreground white -textbackground blue -relief raised -command "$this update_rlabel $r" -width 12 -justify center
           bind $d.rlabel-$r <Leave> "$this update_rlabel $r"
           set data [lindex $labeldata $r]
           $d.rlabel-$r insert 0 $data
@@ -186,7 +186,7 @@ itcl_class SCIRun_Math_CreateMatrix {
             set rowdata [lindex [set $this-data] $c]
             for {set r 0} {$r < $nrows } {incr r} {
                   
-            iwidgets::entryfield $d.data-$r-$c \
+            sci_entryfield $d.data-$r-$c \
                       -command "$this update_data $r $c" \
                       -width 8                     
     

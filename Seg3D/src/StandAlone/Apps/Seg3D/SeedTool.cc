@@ -32,13 +32,16 @@
 #include <StandAlone/Apps/Seg3D/Painter.h>
 
 #include <StandAlone/Apps/Seg3D/SeedTool.h>
+#include <Core/Events/EventManager.h>
+#include <Core/Events/SceneGraphEvent.h>
+#include <Core/Geom/GeomCylinder.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <sci_gl.h>
 
 
 namespace SCIRun {
 
-SeedTool::
-SeedTool(const string &name, Painter *painter) :
+SeedTool::SeedTool(const string &name, Painter *painter) :
   BaseTool(name),
   PointerTool(name),
   painter_(painter),
@@ -51,10 +54,19 @@ SeedTool(const string &name, Painter *painter) :
 }
 
 
+SeedTool::~SeedTool()
+{
+  // Clear the 3D seeds.
+  event_handle_t scene_event = new SceneGraphEvent(0, "Seeds");
+  EventManager::add_event(scene_event);
+  painter_->redraw_all();
+}
+
+
 BaseTool::propagation_state_e
 SeedTool::pointer_down(int b, int x, int y, unsigned int m, int t)
 {
-  if (m) return CONTINUE_E;
+  if (m & EventModifiers::SHIFT_E) { return CONTINUE_E; }
 
   last_seed_index_ = -1;
 
@@ -69,6 +81,7 @@ SeedTool::pointer_down(int b, int x, int y, unsigned int m, int t)
     }
     seeds_.push_back(painter_->pointer_pos_);
     last_seed_index_ = seeds_.size() - 1;
+    seed_change_callback();
 
     seed_lock_.unlock();
     painter_->redraw_all();
@@ -81,9 +94,12 @@ SeedTool::pointer_down(int b, int x, int y, unsigned int m, int t)
     last_seed_window_ = painter_->cur_window_;
     const double max_dist2_to_check = 25.0;
     double mind2 = max_dist2_to_check + 1.0;
+    const Point sppos =
+      last_seed_window_->world_to_screen(painter_->pointer_pos_);
     for (size_t i = 0; i < seeds_.size(); i++)
     {
-      const double d2 = (seeds_[i] - painter_->pointer_pos_).length2();
+      const double d2 =
+        (last_seed_window_->world_to_screen(seeds_[i]) - sppos).length2();
       if (d2 < mind2 && d2 < max_dist2_to_check)
       {
         mind2 = d2;
@@ -94,6 +110,7 @@ SeedTool::pointer_down(int b, int x, int y, unsigned int m, int t)
     if (last_seed_index_ != -1)
     {
       seeds_[last_seed_index_] = painter_->pointer_pos_;
+      seed_change_callback();
     }
 
     seed_lock_.unlock();
@@ -107,9 +124,12 @@ SeedTool::pointer_down(int b, int x, int y, unsigned int m, int t)
     last_seed_window_ = painter_->cur_window_;
     const double max_dist2_to_check = 25.0;
     double mind2 = max_dist2_to_check + 1.0;
+    const Point sppos =
+      last_seed_window_->world_to_screen(painter_->pointer_pos_);
     for (size_t i = 0; i < seeds_.size(); i++)
     {
-      const double d2 = (seeds_[i] - painter_->pointer_pos_).length2();
+      const double d2 =
+        (last_seed_window_->world_to_screen(seeds_[i]) - sppos).length2();
       if (d2 < mind2 && d2 < max_dist2_to_check)
       {
         mind2 = d2;
@@ -121,6 +141,7 @@ SeedTool::pointer_down(int b, int x, int y, unsigned int m, int t)
     {
       seeds_.erase(seeds_.begin() + last_seed_index_);
       last_seed_index_ = -1;
+      seed_change_callback();
     }
 
     seed_lock_.unlock();
@@ -139,6 +160,7 @@ SeedTool::pointer_motion(int b, int x, int y, unsigned int m, int t)
   {
     seed_lock_.lock();
     seeds_[last_seed_index_] = painter_->pointer_pos_;
+    seed_change_callback();
     seed_lock_.unlock();
     painter_->redraw_all();
     return STOP_E;
@@ -168,6 +190,7 @@ SeedTool::process_event(event_handle_t event)
   if (dynamic_cast<SetLayerEvent *>(event.get_rep())) {
     seed_lock_.lock();
     seeds_.clear();
+    seed_change_callback();
     seed_lock_.unlock();
     painter_->redraw_all();
   }
@@ -207,9 +230,13 @@ SeedTool::draw_seed(const Point &seed, SliceWindow &window)
     vector<int> widx = curvol->world_to_index(window.center_);
     in = (pidx[window.axis_+1] == widx[window.axis_+1]);
   }
+
+  const double scene_scale = painter_->scene_scale();
+
   const double scale = in ? 7.0 : 4.0;
 
-  const double units = window.zoom_ / 100.0;  // Pixels per world space unit
+  // Pixels per world space unit times scene scale
+  const double units = scene_scale * window.zoom_ / 100.0;
   const double units_over_2 = units/2.0;
   const double e =
     units_over_2 + Clamp( units_over_2, scale, Max(units, scale));
@@ -266,6 +293,37 @@ SeedTool::convert_seeds_to_indices(vector<vector<int> > &iseeds,
   }
 }
 
+void
+SeedTool::seed_change_callback()
+{
+  recreate_seed_geom();
+}
+
+
+void
+SeedTool::recreate_seed_geom()
+{
+  const double sscale = painter_->scene_scale();
+  const Vector xoff(sscale * 5.0, 0.0, 0.0);
+  const Vector yoff(0.0, sscale * 5.0, 0.0);
+  const Vector zoff(0.0, 0.0, sscale * 5.0);
+
+  GeomCylinders *lines = new GeomCylinders();
+  lines->set_radius(2.0 * sscale);
+  for (size_t i = 0; i < seeds_.size(); i++)
+  {
+    lines->add(seeds_[i]-xoff, seeds_[i]+xoff);
+    lines->add(seeds_[i]-yoff, seeds_[i]+yoff);
+    lines->add(seeds_[i]-zoff, seeds_[i]+zoff);
+  }             
+
+  MaterialHandle green = new Material(Color(0.0, 1.0, 0.0));
+  GeomHandle seedgeom = new GeomMaterial(lines, green);
+
+  event_handle_t scene_event =
+    new SceneGraphEvent(seedgeom, "Seeds");
+  EventManager::add_event(scene_event);
+}
 
 }
 

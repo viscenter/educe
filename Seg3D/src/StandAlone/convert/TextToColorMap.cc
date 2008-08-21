@@ -46,9 +46,9 @@
 // The SCIRun output ColorMap file is written in ASCII, unless you specify 
 // -binOutput.
 
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 

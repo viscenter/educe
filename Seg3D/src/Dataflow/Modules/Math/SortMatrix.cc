@@ -30,7 +30,7 @@
 
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Algorithms/Math/MathAlgo.h>
+#include <Core/Algorithms/Math/SortMatrix/SortMatrix.h>
 
 namespace SCIRun {
 
@@ -43,7 +43,7 @@ public:
 
 private:
   GuiString  row_or_column_;
-
+  SCIRunAlgo::SortMatrixAlgo algo_;
 };
 
 
@@ -53,6 +53,7 @@ SortMatrix::SortMatrix(GuiContext* ctx) :
   Module("SortMatrix", ctx, Source, "Math", "SCIRun"),
   row_or_column_(ctx->subVar("row_or_col"))
 {
+  algo_.set_progress_reporter(this);
 }
 
 void
@@ -64,17 +65,10 @@ SortMatrix::execute()
   
   if (inputs_changed_ || !oport_cached("Matrix") || row_or_column_.changed())
   {
-    SCIRunAlgo::MathAlgo malgo(this);
-    
+    algo_.set_option("method","sort_columns");
     if (row_or_column_.get() == "row")
-    {
-      malgo.SortMatrixRows(input,output);
-    }
-    else
-    {
-      error("Column sorting has not yet been implemented");
-      return;
-    }
+      algo_.set_option("method","sort_rows");
+    algo_.run(input,output);
 
     send_output_handle("Matrix",output,true);
   }

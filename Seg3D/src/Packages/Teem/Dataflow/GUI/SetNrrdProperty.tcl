@@ -44,7 +44,6 @@ itcl_class Teem_Misc_SetNrrdProperty {
 
     constructor {config} {
         set name SetNrrdProperty
-
-	setGlobal $this-check 0
+        setGlobal $this-check 0
     }
 }

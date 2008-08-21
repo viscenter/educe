@@ -47,9 +47,9 @@
 #include <Core/Persistent/Persistent.h>
 #include <Core/Math/MiscMath.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include   <iostream>
-#include <sgi_stl_warnings_on.h>
+
 
 using std::istream;
 using std::ostream;
@@ -418,7 +418,7 @@ const TypeDescription* get_type_description(Tensor*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("Tensor", Tensor::get_h_file_path(), 
+    td = new TypeDescription("Tensor", Tensor::get_h_file_path(), 
 				"SCIRun", 
 				TypeDescription::DATA_E);
   }

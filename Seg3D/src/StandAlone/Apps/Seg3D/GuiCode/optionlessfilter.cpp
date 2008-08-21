@@ -169,15 +169,19 @@ void OptionlessFilter::OnSetProgress( wxCommandEvent& event )
   // start_progress() sends -1
   if (progress < 0)
   {
-    wxBeginBusyCursor();
     disabler_ = new wxWindowDisabler();
+#ifndef _WIN32
+    wxBeginBusyCursor();
+#endif
     progress = 0;
   }
   // finish_progress() sends 101
   if (progress > 100)
   {
     if (disabler_) { delete disabler_; disabler_ = 0; }
+#ifndef _WIN32
     wxEndBusyCursor();
+#endif
     progress = 100;
   }
   if (progress == 0 || progress > mPercentage->GetValue())

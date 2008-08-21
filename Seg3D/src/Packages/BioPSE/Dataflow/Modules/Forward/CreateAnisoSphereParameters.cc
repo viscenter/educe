@@ -157,7 +157,7 @@ CreateAnisoSphereParameters::execute()
   int numElectrodes = (int)electrodePositions.size();
 
   // get size of the spheres
-  ColumnMatrix *radii = scinew ColumnMatrix(4);
+  ColumnMatrix *radii = new ColumnMatrix(4);
   radii->put(SCALP, r_scalp.get());
   radii->put(SKULL, r_skull.get());
   radii->put(CBSF,  r_cbsf.get());
@@ -165,7 +165,7 @@ CreateAnisoSphereParameters::execute()
 
   // get conductivity information: if there is a matrix at the input port, take those values,
   // otherwise take the values from the gui
-  DenseMatrix *cond = scinew DenseMatrix(4,2);
+  DenseMatrix *cond = new DenseMatrix(4,2);
   if(condMatrix) {
     for(int i=0; i<4; i++) {
       cond->put(i, RAD, hConductivities->get(i, RAD)); // radial
@@ -193,7 +193,7 @@ CreateAnisoSphereParameters::execute()
 
   // project electrodes on outer sphere (scalp) and create new PointCloudField
   double rad;
-  PCMesh *electrodeMesh = scinew PCMesh();
+  PCMesh *electrodeMesh = new PCMesh();
   for(int i=0; i<numElectrodes; i++) {
     p = electrodePositions[i];
     rad = sqrt(p.x()*p.x() + p.y()*p.y() + p.z()*p.z());
@@ -202,7 +202,7 @@ CreateAnisoSphereParameters::execute()
   }
 
   PCMesh::handle_type hElectrodeMesh(electrodeMesh);
-  PCFieldi *newElectrodePositions = scinew PCFieldi(hElectrodeMesh);
+  PCFieldi *newElectrodePositions = new PCFieldi(hElectrodeMesh);
 
   // enumerate the nodes
   electrodeMesh->begin(nii);

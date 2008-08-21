@@ -54,7 +54,7 @@
 #include <Core/Datatypes/TetVolMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 
@@ -204,7 +204,7 @@ main(int argc, char **argv) {
   typedef NoDataBasis<double>                DatBasis;
   typedef GenericField<TVMesh, DatBasis, vector<double> > TVField; 
 
-  TVField *tv = scinew TVField(tvm);
+  TVField *tv = new TVField(tvm);
   FieldHandle tvH(tv);
   
   if (binOutput) {

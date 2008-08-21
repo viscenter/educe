@@ -40,7 +40,7 @@
  */
 
 #include <Dataflow/Network/Ports/NrrdPort.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #undef SCISHARE
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
@@ -53,10 +53,10 @@ namespace SCIRun {
 
 extern "C" {
   SCISHARE IPort* make_NrrdIPort(Module* module, const string& name) {
-  return scinew SimpleIPort<NrrdDataHandle>(module,name);
+  return new SimpleIPort<NrrdDataHandle>(module,name);
 }
   SCISHARE OPort* make_NrrdOPort(Module* module, const string& name) {
-  return scinew SimpleOPort<NrrdDataHandle>(module,name);
+  return new SimpleOPort<NrrdDataHandle>(module,name);
 }
 }
 

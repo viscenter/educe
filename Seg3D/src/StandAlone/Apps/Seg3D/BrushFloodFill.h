@@ -25,7 +25,7 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 //  
-//    File   : ITKConfidenceConnectedImageFilterTool.h
+//    File   : BrushFloodFill.h
 //    Author : McKay Davis
 //    Date   : Sat Oct 14 15:51:56 2006
 
@@ -53,6 +53,7 @@ public:
   unsigned int          value_;
   bool                  erase_;
   virtual void          run_filter();
+  propagation_state_e   process_event(event_handle_t);
 
   BaseTool::propagation_state_e flood_fill_slice(bool erase);
   //BaseTool::propagation_state_e flood_fill_volume(bool erase);

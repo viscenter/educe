@@ -33,20 +33,18 @@
  */ 
  
 #include <Core/Algorithms/Regression/RegressionAlgo.h> 
+
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/String.h>
 #include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/DenseMatrix.h>
-#include <Core/Bundle/Bundle.h>
 
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 
-#include <sgi_stl_warnings_off.h>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
 
 namespace SCIRun {
 
@@ -86,6 +84,9 @@ void CreateParameterBundle::execute()
   // mouse to another part of the GUI and activate some other element. If not
   // the data is not updated. Here we force TCL to update all the data.
   // It's ugly but it solves some usability problems
+  
+  update_state(Executing);
+  
   get_gui()->lock();
   get_gui()->eval(update_all_data_.get());
   get_gui()->unlock();
@@ -96,7 +97,7 @@ void CreateParameterBundle::execute()
   // Split the data in pieces for each parameter
   std::vector<std::string> datalist = converttcllist(data);
 
-  BundleHandle bundle = scinew Bundle();
+  BundleHandle bundle = new Bundle();
 
   std::string parname, partype, pardata;
    
@@ -114,7 +115,7 @@ void CreateParameterBundle::execute()
     
     if (partype == "boolean")
     {
-      MatrixHandle matrix = scinew DenseMatrix(1, 1);
+      MatrixHandle matrix = new DenseMatrix(1, 1);
       double *dataptr = matrix->get_data_pointer();
       dataptr[0] = 0.0;
       if (pardata == "true") dataptr[0] = 1.0;
@@ -131,7 +132,7 @@ void CreateParameterBundle::execute()
 
     if (partype == "scalar")
     {
-      MatrixHandle matrix = scinew DenseMatrix(1, 1);
+      MatrixHandle matrix = new DenseMatrix(1, 1);
       double *dataptr = matrix->get_data_pointer();
       std::istringstream iss(pardata);
       iss >> dataptr[0];
@@ -148,7 +149,7 @@ void CreateParameterBundle::execute()
     
     if (partype == "vector")
     {
-      MatrixHandle matrix = scinew DenseMatrix(1, 3);
+      MatrixHandle matrix = new DenseMatrix(1, 3);
       std::vector<std::string> subdata = converttcllist(pardata);
       double *dataptr = matrix->get_data_pointer();
       
@@ -170,7 +171,7 @@ void CreateParameterBundle::execute()
     
     if (partype == "tensor")
     {
-      MatrixHandle matrix = scinew DenseMatrix(1, 9);
+      MatrixHandle matrix = new DenseMatrix(1, 9);
       std::vector<std::string> subdata = converttcllist(pardata);
       double *dataptr = matrix->get_data_pointer();
       {
@@ -205,7 +206,7 @@ void CreateParameterBundle::execute()
     if (partype == "array")
     {
       std::vector<std::string> subdata = converttcllist(pardata);
-      MatrixHandle matrix = scinew DenseMatrix(1, subdata.size());
+      MatrixHandle matrix = new DenseMatrix(1, subdata.size());
       double *dataptr = matrix->get_data_pointer();
       
       for (size_t r=0; r<subdata.size(); r++ )
@@ -226,7 +227,7 @@ void CreateParameterBundle::execute()
     
     if (partype == "string")
     {
-      StringHandle str = scinew String(pardata);
+      StringHandle str = new String(pardata);
 
       if (oldbundle_.get_rep())
       if (oldbundle_->isString(parname))
@@ -240,7 +241,7 @@ void CreateParameterBundle::execute()
     
     if (partype == "filename")
     {
-      StringHandle str = scinew String(pardata);
+      StringHandle str = new String(pardata);
 
       if (oldbundle_.get_rep())
       if (oldbundle_->isString(parname))

@@ -31,7 +31,7 @@
 //    Date   : Feb 2005
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Containers/StringUtil.h>
@@ -506,7 +506,7 @@ BuildNrrdGradientAndMagnitude::execute()
   }
   else
   {
-    NrrdDataHandle nvout_handle(scinew NrrdData(nvout));
+    NrrdDataHandle nvout_handle(new NrrdData(nvout));
 
     // Copy the properties
     nvout_handle->copy_properties(nin_handle.get_rep());
@@ -520,7 +520,7 @@ BuildNrrdGradientAndMagnitude::execute()
   if (gmout)
   {
     // Create SCIRun data structure wrapped around gmout
-    NrrdDataHandle gmout_handle(scinew NrrdData(gmout));
+    NrrdDataHandle gmout_handle(new NrrdData(gmout));
 
     // Copy the properties
     gmout_handle->copy_properties(nin_handle.get_rep());

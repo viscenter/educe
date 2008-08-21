@@ -64,7 +64,7 @@
 # $can bind movable <ButtonRelease> {$this-c needexecute}
 
 proc makeStickyLocator { c pos_x_var pos_y_var width height args } {
-    frame $c 
+    sci_frame $c 
 
     # BTW, if you change the borderwidth or other similar things you
     # will need to update the code in StickyLocatorDrag or be more

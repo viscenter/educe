@@ -37,10 +37,10 @@
 
 #include <stdio.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <iostream> 
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/SparseRowMatrix.h>

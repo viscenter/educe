@@ -33,7 +33,7 @@
 #include <Dataflow/Network/Module.h>
 #include <Core/Thread/Thread.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Thread/Mutex.h>
 #include <Core/Geometry/Tensor.h>
 #include <sci_hash_map.h>
@@ -247,12 +247,12 @@ CalcFMField<ElecField, CondField, PointField, MagField>::calc_forward_magnetic_f
   detfld_ = detfld;
 
   // create the output fields
-  PointField *fout = scinew PointField(detfld->get_typed_mesh(), 
+  PointField *fout = new PointField(detfld->get_typed_mesh(), 
 				       detfld->basis_order());
   magnetic_field = fout;
 
 
-  MagField *fscalarout = scinew MagField(detfld->get_typed_mesh(), 
+  MagField *fscalarout = new MagField(detfld->get_typed_mesh(), 
 					 detfld->basis_order());
 
   magnitudes = fscalarout;

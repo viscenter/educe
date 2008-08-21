@@ -60,7 +60,7 @@
 #include <Dataflow/Network/ComponentNode.h>
 #include <Dataflow/Network/GenFiles.h>
 #include <Core/XMLUtil/XMLUtil.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Dataflow/GuiInterface/GuiCallback.h>
 #include <Dataflow/GuiInterface/GuiInterface.h>
@@ -116,7 +116,8 @@ NetworkEditor::NetworkEditor(Network* net, GuiInterface* gui) :
   net_(net),
   gui_(gui)
 {
-  netio_ = scinew NetworkIO(net);
+  net->set_gui(gui);
+  netio_ = new NetworkIO(net);
   //! We add these with highest priority so it is called first
   net->get_scheduler()->add_start_callback(scheduling_starting_callback, gui,255);
   //! We add these with lowest priority so it is called last
@@ -433,6 +434,15 @@ NetworkEditor::tcl_command(GuiArgs& args, void*)
   {
     sci_putenv(args[2], args[3]);
   } 
+  else if (args[1] == "update_rcfile" && args.count() == 4)
+  {
+    update_rcfile(args[2], args[3]);
+  } 
+  else if (args[1] == "update_env" && args.count() == 4)
+  {
+    sci_putenv(args[2],args[3]);
+    update_rcfile(args[2], args[3]);
+  } 
   else if (args[1] == "module_oport_datatypes") 
   {
     if (args.count() != 5)
@@ -595,7 +605,7 @@ NetworkEditor::tcl_command(GuiArgs& args, void*)
   }
   else  
   {
-    throw "Unknown minor command for netedit";
+    throw "Unknown minor command for netedit: "+args[1];
   }
 } // end tcl_command()
   

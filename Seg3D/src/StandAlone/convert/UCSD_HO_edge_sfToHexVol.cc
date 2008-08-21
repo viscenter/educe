@@ -520,20 +520,20 @@ main(int argc, char **argv) {
   FieldHandle hvH;  
   if (0) { 
     cerr << "loading in strain data" << endl;
-    HVField *hv = scinew HVField(hvm);
+    HVField *hv = new HVField(hvm);
     hv->resize_fdata();
     hv->fdata() = data_vals_scalar;
     hvH = hv;
   } else if (headers.size() == 33 || headers.size() == 28 || 
 	     headers.size() == 60 ) {
     cerr << "loading in no data" << endl;
-    HVField *hv = scinew HVField(hvm);
+    HVField *hv = new HVField(hvm);
     hv->resize_fdata();
     //hv->fdata() = data_vals;
     hvH = hv;
   } else {
     cerr << "loading in vector data" << endl;
-    HVFieldV *hv = scinew HVFieldV(hvm);
+    HVFieldV *hv = new HVFieldV(hvm);
     hv->resize_fdata();
     hv->fdata() = data_vals;
     hvH = hv;

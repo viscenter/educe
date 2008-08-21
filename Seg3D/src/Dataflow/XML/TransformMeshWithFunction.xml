@@ -33,7 +33,7 @@
 
 
 
-<component name="TransformMeshWithFunction" category="ChangeMesh">
+<component name="TransformMeshWithFunction" category="ChangeMesh" dynamic="true">
   <overview>
     <authors>
       <author>Michael Callahan</author>

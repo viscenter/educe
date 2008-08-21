@@ -38,13 +38,15 @@
  *  Copyright (C) 1999 SCI Group
  */
 
-#include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Containers/StringUtil.h>
-#include <Dataflow/Modules/Math/EvaluateLinAlgUnary.h>
-#include <Core/Containers/HashTable.h>
+#include <Core/Parser/ArrayMathEngine.h>
+
+#include <Dataflow/Network/Module.h>
+#include <Dataflow/Network/Ports/MatrixPort.h>
+
+#include <sci_hash_map.h>
 #include <iostream>
 #include <sstream>
 #include <math.h>
@@ -133,7 +135,7 @@ void EvaluateLinAlgUnary::execute()
 {
   MatrixHandle mh;
   
-  if (!(get_input_handle("Input",mh,true))) return;
+  get_input_handle("Input",mh,true);
 
   if (inputs_changed_ || op_.changed() || function_.changed() || !oport_cached("Output"))
   {
@@ -141,10 +143,13 @@ void EvaluateLinAlgUnary::execute()
     string op = op_.get();
     MatrixHandle m;
 
-    if (op == "Transpose") {
+    if (op == "Transpose") 
+    {
       Matrix *mat = mh->transpose();
       m = mat;
-    } else if (op == "Invert") {
+    } 
+    else if (op == "Invert") 
+    {
       m = dynamic_cast<Matrix *>(mh->dense());
       if (m.get_rep() == 0) { error("Could not convert matrix to dense matrix"); return; }
       m.detach();
@@ -154,117 +159,73 @@ void EvaluateLinAlgUnary::execute()
         error("Input Matrix not invertible.");
         return;
       }
-    } else if (op == "Sort") {
+    }
+    else if (op == "Sort") 
+    {
       m = dynamic_cast<Matrix *>(mh->dense());
       if (m.get_rep() == 0) { error("Could not convert matrix to dense matrix"); return; }
       m.detach();
       insertion_sort(m->get_data_pointer(), m->get_data_size());
       if (mh->is_sparse()) { m = m->sparse(); }
-    } else if (op == "Subtract_Mean") {
+    } 
+    else if (op == "Subtract_Mean") 
+    {
       m = dynamic_cast<Matrix *>(mh->dense());
       if (m.get_rep() == 0) { error("Could not convert matrix to dense matrix"); return; }
       m.detach();
       subtract_mean(m->get_data_pointer(), m->get_data_size());
-    } else if (op == "Normalize") {
+    } 
+    else if (op == "Normalize") 
+    {
       m = mh->clone();
       normalize(m->get_data_pointer(), m->get_data_size());
-    } else if (op == "Round") {
+    } 
+    else if (op == "Round") 
+    {
       m = mh->clone();
       round(m->get_data_pointer(), m->get_data_size());
-    } else if (op == "Floor") {
+    } 
+    else if (op == "Floor") 
+    {
       m = mh->clone();
       Floor(m->get_data_pointer(), m->get_data_size());
-    } else if (op == "Ceil") {
+    } 
+    else if (op == "Ceil") 
+    {
       m = mh->clone();
       Ceil(m->get_data_pointer(), m->get_data_size());
-    } else if (op == "Function") {
-      if (mh->is_sparse())
-      {
-        remark("Only calling function for non-zero sparse matrix elements.");
-      }
+    } 
+    else if (op == "Function") 
+    {
+      NewArrayMathEngine engine;
+      engine.set_progress_reporter(this);
+      
+      if (!(engine.add_input_fullmatrix("x",mh))) return;
+      
+      std::string func = function_.get();
+      func = "RESULT="+func;
+      engine.add_expressions(func);
 
-      // Remove trailing white-space from the function string.
-      string func = function_.get();
-      while (func.size() && isspace(func[func.size()-1]))
-      {
-        func.resize(func.size()-1);
-      }
+      MatrixHandle omatrix = mh->clone();   
+      if(!(engine.add_output_fullmatrix("RESULT",omatrix))) return;
+      
+      // Actual engine call, which does the dynamic compilation, the creation of the
+      // code for all the objects, as well as inserting the function and looping 
+      // over every data point
 
-      // Compile the function.
-      int hoffset = 0;
-      Handle<EvaluateLinAlgUnaryAlgo> algo;
-      for( ;; )
-      {
-        CompileInfoHandle ci =
-          EvaluateLinAlgUnaryAlgo::get_compile_info(func, hoffset);
-        if (!DynamicCompilation::compile(ci, algo, false, this))
-        {
-          error("Your function would not compile.");
-          get_gui()->eval(get_id() + " compile_error "+ci->filename_);
-          DynamicLoader::scirun_loader().cleanup_failed_compile(ci);
-          return;
-        }
-        if (algo->identify() == func)
-        {
-          break;
-        }
-        hoffset++;
-      }
-
-      // Get the data from the matrix, iterate over it calling the function.
-      m = mh->clone();
-      double *x = m->get_data_pointer();
-      const unsigned int n = m->get_data_size();
-      for (unsigned int i = 0; i < n; i++)
-      {
-        x[i] = algo->user_function(x[i]);
-      }
-    } else {
+      if (!(engine.run())) return;
+      
+      send_output_handle("Output", omatrix);
+      return;   
+    } 
+    else 
+    {
       warning("Don't know operation "+op);
       return;
     }
 
     send_output_handle("Output", m);
   }
-}
-
-
-CompileInfoHandle
-EvaluateLinAlgUnaryAlgo::get_compile_info(const string &function,
-				  int hashoffset)
-
-{
-  unsigned int hashval = Hash(function, 0x7fffffff) + hashoffset;
-
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  const string template_name("EvaluateLinAlgUnaryInstance" + to_string(hashval));
-  static const string base_class_name("EvaluateLinAlgUnaryAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_name + ".",
-		       base_class_name,
-		       template_name + ";//",
-		       "");
-
-  // Code for the function.
-  string class_declaration =
-    string("using namespace SCIRun;\n\n") + 
-    "class " + template_name + " : public EvaluateLinAlgUnaryAlgo\n" +
-    "{\n" +
-    "  virtual double user_function(double x)\n" +
-    "  {\n" +
-    "    return (" + function + ");\n" +
-    "  }\n" +
-    "\n" +
-    "  virtual string identify()\n" +
-    "  { return string(\"" + string_Cify(function) + "\"); }\n" +
-    "};\n";
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_post_include(class_declaration);
-  return rval;
 }
 
 

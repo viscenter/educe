@@ -119,17 +119,18 @@ run(FieldHandle input, MatrixHandle data, FieldHandle& output)
   bool found = false;
 
 
-  if ((data->nrows() >= numnodes+numelems)||(data->ncols() >= numnodes+numelems))
+  if ((data->nrows() >= numnodes+numelems) ||
+      (data->ncols() >= numnodes+numelems))
   {
-    imesh->synchronize_edges();
+    imesh->synchronize(Mesh::EDGES_E);
     numenodes = numnodes + imesh->num_edges();
   }
 
   // try to see whether the matrix dimensions fit the field size
-  if ((data->nrows() == numnodes)||(data->nrows() == numelems)||(data->nrows() == numenodes))
+  if ((data->nrows() == numnodes) ||
+      (data->nrows() == numelems) ||
+      (data->nrows() == numenodes))
   {
-    found = true;
-    
     // do we have a scalar, vector, or tensor
     if (data->ncols() == 1) 
     {
@@ -137,20 +138,20 @@ run(FieldHandle input, MatrixHandle data, FieldHandle& output)
       get_option("scalardatatype",scalardatatype);
       
       fi.set_data_type(scalardatatype);
+      found = true;
     }
     else if (data->ncols() == 3) 
     {
       fi.make_vector();
+      found = true;
     }
     else if ((data->ncols() == 6)||
+	     (data->ncols() == 7)||
 	     (data->ncols() == 9))
     {
       fi.make_tensor();
+      found = true;
     } 
-    else
-    {
-      found = false;
-    }
     
     if (found)
     {
@@ -169,8 +170,9 @@ run(FieldHandle input, MatrixHandle data, FieldHandle& output)
       }
     }
   }
-  else if ((!found)&&((data->ncols() == numnodes)||(data->ncols() == numelems))
-            ||(data->ncols() == numenodes))
+  else if ((!found)&&((data->ncols() == numnodes) ||
+		      (data->ncols() == numelems))
+	   ||(data->ncols() == numenodes))
   {
     found = true;
     
@@ -186,7 +188,9 @@ run(FieldHandle input, MatrixHandle data, FieldHandle& output)
     { 
       fi.make_vector(); 
     }
-    else if ((data->nrows() == 6)||(data->nrows() == 9)) 
+    else if ((data->nrows() == 6)||
+	     (data->nrows() == 7)||
+	     (data->nrows() == 9)) 
     { 
       fi.make_tensor(); 
     }
@@ -229,7 +233,9 @@ run(FieldHandle input, MatrixHandle data, FieldHandle& output)
       { 
         fi.make_vector(); 
       }
-      else if ((data->ncols() == 6)||(data->ncols() == 9)) 
+      else if ((data->ncols() == 6)||
+	       (data->nrows() == 7)||
+	       (data->ncols() == 9)) 
       {  
         fi.make_tensor(); 
       }    
@@ -252,7 +258,9 @@ run(FieldHandle input, MatrixHandle data, FieldHandle& output)
       { 
         fi.make_vector(); 
       }
-      else if ((data->nrows() == 6)||(data->nrows() == 9))
+      else if ((data->nrows() == 6)||
+	       (data->nrows() == 7)||
+	       (data->nrows() == 9))
       { 
         fi.make_tensor(); 
       }
@@ -469,6 +477,21 @@ bool
 SetFieldDataAlgo::
 run(FieldHandle input, NrrdDataHandle data, FieldHandle& output)
 {
+  algo_start("SetFieldData",false);
+
+  algo_start("SetFieldData",false);
+  if (!(input.get_rep()))
+  {
+    error("No input field was provided");
+    algo_end(); return (false);  
+  }
+
+  if (!(data.get_rep()))
+  {
+    error("No input nrrd was provided");
+    algo_end(); return (false);    
+  }
+    
   FieldInformation fi(input);
 
   VMesh* imesh = input->vmesh();
@@ -480,15 +503,14 @@ run(FieldHandle input, NrrdDataHandle data, FieldHandle& output)
   VMesh::size_type numvals = 0;
 
   // If structured see if the nrrd looks like the mesh
-  VMesh::dimension_type dims;
-
-  imesh->get_dimensions( dims );
-  if( dims.size() > 1 ) 
+  if( imesh->is_structuredmesh() ) 
   {
-    if( data->nrrd_->dim   == dims.size() ||
-      data->nrrd_->dim-1 == dims.size() ) 
-    {
+    VMesh::dimension_type dims;
+    imesh->get_dimensions( dims );
 
+    if( data->nrrd_->dim   == dims.size() ||
+        data->nrrd_->dim-1 == dims.size() ) 
+    {
       numvals = 1;
 
       // count number of entries, disregarding vector or tensor
@@ -509,7 +531,8 @@ run(FieldHandle input, NrrdDataHandle data, FieldHandle& output)
         // check dimensions
         for (int d=data->nrrd_->dim-1, m=dims.size()-1; m>=0; d--, m--) 
         {
-          if (static_cast<Mesh::size_type>(data->nrrd_->axis[d].size) != dims[m]) 
+          if (static_cast<Mesh::size_type>(data->nrrd_->axis[d].size) !=
+	      dims[m]) 
           {
             numvals = 0;
             break;
@@ -537,7 +560,6 @@ run(FieldHandle input, NrrdDataHandle data, FieldHandle& output)
       {
         numvals = 0;
       }
-	
 
       if( numvals ) 
       {
@@ -554,11 +576,19 @@ run(FieldHandle input, NrrdDataHandle data, FieldHandle& output)
           output_datatype = "Vector";
           fi.make_vector();
         } 
-        else if ( data->nrrd_->axis[0].size == 6 ||
-                  data->nrrd_->axis[0].size == 7 ||
-		              data->nrrd_->axis[0].size == 9 ) 
+        else if ( data->nrrd_->axis[0].size == 6 )
         {
-          output_datatype = "Tensor";
+          output_datatype = "Tensor6";
+          fi.make_tensor();        
+        }
+        else if ( data->nrrd_->axis[0].size == 7 )
+        {
+          output_datatype = "Tensor7";
+          fi.make_tensor();        
+        }
+        else if ( data->nrrd_->axis[0].size == 9 )
+        {
+          output_datatype = "Tensor9";
           fi.make_tensor();
         }
       }
@@ -566,20 +596,20 @@ run(FieldHandle input, NrrdDataHandle data, FieldHandle& output)
   }
 
   // If unstructured or a single list
-  if( output_datatype == "" ) 
+  else
   {
     if( data->nrrd_->dim == 1 &&
         (static_cast<Mesh::size_type>(data->nrrd_->axis[0].size) == numnodes ||
          static_cast<Mesh::size_type>(data->nrrd_->axis[0].size) == numelems) ) 
-    {
+      {
 
       numvals = data->nrrd_->axis[0].size;
 
       output_datatype = "Scalar";
     } 
     else if( data->nrrd_->dim == 2 &&
-	           (static_cast<Mesh::size_type>(data->nrrd_->axis[1].size) == numnodes ||
-		          static_cast<Mesh::size_type>(data->nrrd_->axis[1].size) == numelems) ) 
+	     (static_cast<Mesh::size_type>(data->nrrd_->axis[1].size) == numnodes ||
+	      static_cast<Mesh::size_type>(data->nrrd_->axis[1].size) == numelems) ) 
     {
 
       numvals = data->nrrd_->axis[1].size;
@@ -587,7 +617,7 @@ run(FieldHandle input, NrrdDataHandle data, FieldHandle& output)
       if( data->nrrd_->axis[0].size == 1 ) 
       {
         output_datatype = "Scalar";
-	    } 
+      } 
       else if ( data->nrrd_->axis[0].size == 3 ) 
       {
         output_datatype = "Vector";
@@ -607,6 +637,57 @@ run(FieldHandle input, NrrdDataHandle data, FieldHandle& output)
       {
         output_datatype = "Tensor9";
         fi.make_tensor();
+      }
+    }
+
+    // Nrrd data dimensions do not match but there are enough values
+    // for the field so stuff them in anyways.
+    else
+    {
+      numvals = 1;
+
+      for( unsigned int i=0; i<data->nrrd_->dim; ++i)
+      {
+        numvals *= data->nrrd_->axis[i].size;
+      }
+
+      if (numvals == numnodes || numvals == numelems)
+      {
+        warning("NrrdData dimensions do not match any of the fields dimensions");
+        warning("except the total number so reshaping the dimensions to match.");
+
+        output_datatype = "Scalar";
+      }
+      else
+      {
+        numvals /= data->nrrd_->axis[0].size;
+
+        if (numvals == numnodes || numvals == numelems)
+        {
+          warning("NrrdData dimensions do not match any of the fields dimensions");
+          warning("except the total number so reshaping the dimensions to match.");
+
+          if ( data->nrrd_->axis[0].size == 3 ) 
+          {
+            output_datatype = "Vector";
+            fi.make_vector();
+          } 
+          else if ( data->nrrd_->axis[0].size == 6 )
+          {
+            output_datatype = "Tensor6";
+            fi.make_tensor();        
+          }
+          else if ( data->nrrd_->axis[0].size == 7 )
+          {
+            output_datatype = "Tensor7";
+            fi.make_tensor();        
+          }
+          else if ( data->nrrd_->axis[0].size == 9 )
+          {
+            output_datatype = "Tensor9";
+            fi.make_tensor();
+          }
+        }
       }
     }
 

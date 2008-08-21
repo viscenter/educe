@@ -29,13 +29,18 @@
 # CMakeLists.txt for Packages/Teem/Dataflow/Modules/DataIO
 
 SET(Packages_Teem_Dataflow_Modules_DataIO_SRCS
-  ImportNrrdFromAnalyze.cc
-  ImportNrrdFromDicom.cc
   ExportImage.cc
   ImportImage.cc
   ReadNrrd.cc
   WriteNrrd.cc
 )
+
+#IF(ITK_FOUND)
+#  SET(Packages_Teem_Dataflow_Modules_DataIO_SRCS 
+#      ${Packages_Teem_Dataflow_Modules_DataIO_SRCS}
+#  ImportNrrdFromAnalyze.cc)
+#  ImportNrrdFromDicom.cc
+#ENDIF(ITK_FOUND)
 
 SCIRUN_ADD_LIBRARY(Packages_Teem_Dataflow_Modules_DataIO ${Packages_Teem_Dataflow_Modules_DataIO_SRCS})
 
@@ -49,7 +54,6 @@ TARGET_LINK_LIBRARIES(Packages_Teem_Dataflow_Modules_DataIO
   Core_GeomInterface
   Dataflow_GuiInterface
   Core_ImportExport
-  Core_OS
   Core_Persistent
   Core_Thread
   Dataflow_TkExtensions
@@ -59,15 +63,15 @@ TARGET_LINK_LIBRARIES(Packages_Teem_Dataflow_Modules_DataIO
   ${PNG_LIBRARY}
   ${Z_LIBRARY}
   ${MAGICK_LIBRARY}
-  ${GDCM_LIBRARY}
 )
 
-IF(ITK_FOUND)
-  TARGET_LINK_LIBRARIES(Packages_Teem_Dataflow_Modules_DataIO
-  ITKIO
-  ITKCommon
-  )
-ENDIF(ITK_FOUND)
+#IF(ITK_FOUND)
+#  TARGET_LINK_LIBRARIES(Packages_Teem_Dataflow_Modules_DataIO
+#  ITKIO
+#  ITKCommon
+#  ${GDCM_LIBRARY}
+#  )
+#ENDIF(ITK_FOUND)
 
 IF(BUILD_SHARED_LIBS)
   ADD_DEFINITIONS(-DBUILD_Packages_Teem_Dataflow_Modules_DataIO)

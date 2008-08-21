@@ -40,31 +40,26 @@
  *  Copyright (C) 2001 SCI Institute
  */
 
-#include <Dataflow/Network/Module.h>
+#include <Core/Algorithms/Converter/ConvertToNrrd.h>
+
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Geometry/BBox.h>
-#include <Core/Datatypes/FieldInterface.h>
-#include <Core/Algorithms/Converter/ConvertToNrrd.h>
-#include <iostream>
-#include <utility>
-
-using std::endl;
-using std::pair;
+#include <Dataflow/Network/Module.h>
 
 namespace SCITeem {
 
 using namespace SCIRun;
 
 class SplitFieldIntoNrrdData : public Module {
-public:
-  SplitFieldIntoNrrdData(GuiContext *ctx);
-  virtual ~SplitFieldIntoNrrdData();
-  virtual void execute();
+  public:
+    SplitFieldIntoNrrdData(GuiContext *ctx);
+    virtual ~SplitFieldIntoNrrdData() {}
+    virtual void execute();
 
-private:
-  GuiString    gui_label_;
+  private:
+    GuiString gui_label_;
+    
+    SCIRunAlgo::ConvertToNrrdAlgo algo_;
 };
 
 } // end namespace SCITeem
@@ -77,13 +72,8 @@ SplitFieldIntoNrrdData::SplitFieldIntoNrrdData(GuiContext *ctx):
   Module("SplitFieldIntoNrrdData", ctx, Filter, "Converters", "Teem"),
   gui_label_(get_ctx()->subVar("label"), "unknown")
 {
+  algo_.set_progress_reporter(this);
 }
-
-
-SplitFieldIntoNrrdData::~SplitFieldIntoNrrdData()
-{
-}
-
 
 void
 SplitFieldIntoNrrdData::execute()
@@ -96,66 +86,52 @@ SplitFieldIntoNrrdData::execute()
   bool compute_connects_p = true;
   bool compute_data_p = true;
 
-  if (!field_handle->mesh()->is_editable())
+  if (!field_handle->vmesh()->is_editable())
   {
     remark("Not computing connections for non-editable mesh type.");
     compute_connects_p = false;
   }
   
-  const string meshstr =
-    field_handle->get_type_description(Field::FIELD_NAME_ONLY_E)->get_name().substr(0, 6);
-  if (!(field_handle->mesh()->is_editable() || meshstr == "Struct"))
-  {
-    remark("Not computing points for strict lattice.");
-    compute_points_p = false;
-  }
-  
-  if (field_handle->basis_order() == -1)
+  if (field_handle->vfield()->basis_order() == -1)
   {
     remark("No data in input field.");
     compute_data_p = false;
   }
 
   if (inputs_changed_ ||
-      gui_label_.changed(true) ||
-      !oport_cached("Points") ||
-      !oport_cached("Connections") ||
-      !oport_cached("Data") )
+      gui_label_.changed() ||
+      (compute_points_p && !oport_cached("Points")) ||
+      (compute_connects_p && !oport_cached("Connections")) ||
+      (compute_data_p && !oport_cached("Data")) )
   {
     NrrdDataHandle points_handle, connect_handle, data_handle;
 
-    const TypeDescription *td = field_handle->get_type_description();
-    CompileInfoHandle ci = ConvertToNrrdBase::get_compile_info(td);
-    Handle<ConvertToNrrdBase> algo;
-    if (!module_dynamic_compile(ci, algo)) return;  
-    
-    algo->convert_to_nrrd(field_handle,
-			  points_handle, 
-			  connect_handle,
-			  data_handle,
-			  compute_points_p,
-			  compute_connects_p,
-			  compute_data_p,
-			  gui_label_.get());
+    algo_.set_bool("build_points",compute_points_p);
+    algo_.set_bool("build_connections",compute_connects_p);
+    algo_.set_bool("build_data",compute_data_p);
+    algo_.set_string("data_label",gui_label_.get());
+    if(!(algo_.run(field_handle,points_handle, connect_handle, data_handle))) return;
 
     // Set the Nrrd names and send them.
     string property;
     string nrrd_name = "Unknown";
-    if (field_handle->get_property( "name", property ) &&
-	property != "Unknown") 
+    if (field_handle->get_property( "name", property ) && property != "Unknown") 
       nrrd_name = property;
 
-    if (points_handle.get_rep()) {
+    if (points_handle.get_rep()) 
+    {
       points_handle->set_property("Name", nrrd_name + "-Points", false);
       send_output_handle("Points", points_handle);
     }
 
-    if (connect_handle.get_rep()) {
+    if (connect_handle.get_rep()) 
+    {
       connect_handle->set_property("Name", nrrd_name + "-Connectivity", false);
       send_output_handle("Connections", connect_handle);
     }
 
-    if (data_handle.get_rep()) {
+    if (data_handle.get_rep()) 
+    {
       data_handle->set_property("Name", nrrd_name + "-Data", false);
       send_output_handle("Data", data_handle);
     }

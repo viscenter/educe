@@ -31,7 +31,6 @@
 //    Date   : Wed Jan 15 10:59:57 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Containers/StringUtil.h>
 #include <Core/Containers/Array1.h>
@@ -47,7 +46,7 @@ using namespace SCIRun;
 class UnuJoin : public Module {
 public:
   UnuJoin(SCIRun::GuiContext *ctx);
-  virtual ~UnuJoin();
+  virtual ~UnuJoin() {}
 
   virtual void execute();
 
@@ -82,70 +81,60 @@ UnuJoin::UnuJoin(SCIRun::GuiContext *ctx) :
 {
 }
 
-
-UnuJoin::~UnuJoin()
-{
-}
-
-
 void 
 UnuJoin::execute()
 {
-  port_range_type range = get_iports("Nrrds");
-  if (range.first == range.second) { return; }
-
-  unsigned int i = 0;
+  vector<NrrdDataHandle> nrrd_handles_temp;
   vector<NrrdDataHandle> nrrd_handles;
+  get_dynamic_input_handles("Nrrds",nrrd_handles_temp,true);
+  if (nrrd_handles_temp.size() == 0) {return;}
+
+  size_t i = 0;
   bool do_join = false;
   unsigned int max_dim = 0;
-  port_map_type::iterator pi = range.first;
-  while (pi != range.second)
-  {
-    NrrdIPort *inrrd = (NrrdIPort *)get_iport(pi->second);
-    NrrdDataHandle nrrd_handle;
-    
-    if (inrrd->get(nrrd_handle) && nrrd_handle.get_rep())
-    {
-      // check to see if we need to do the join or can output the cached onrrd.
-      if (in_generation_.size() <= i)
-      {
-	// this is a new input, never been joined.
-	do_join = true;
-	in_generation_.push_back(nrrd_handle->generation);
-	onrrd_type_ = nrrdTypeLast;
-      }
-      else if (in_generation_[i] != nrrd_handle->generation)
-      {
-	// different input than last execution
-	do_join = true;
-	in_generation_[i] = nrrd_handle->generation;
-	onrrd_type_ = nrrdTypeLast;
-      }
 
-      // the output nrrd must be of one type, so find the type that accomodates
-      // all of the nrrds we have as input.
-      if (onrrd_type_ == nrrdTypeLast)
-      {
-	// first time this value is set
-	onrrd_type_ = nrrd_handle->nrrd_->type;
-      }
-      if ((onrrd_type_ != nrrd_handle->nrrd_->type) && 
-	  (onrrd_type_ != nrrdTypeDouble))
-      {
-	//! promote to the biggest type
-	if (nrrdTypeSize[nrrd_handle->nrrd_->type] > nrrdTypeSize[onrrd_type_])
-        {
-	  onrrd_type_ = nrrd_handle->nrrd_->type;
-	}
-      }
-      
-      if (nrrd_handle->nrrd_->dim > max_dim)
-      {
-	max_dim = nrrd_handle->nrrd_->dim;
-      }
-      nrrd_handles.push_back(nrrd_handle);
+  for (i=0; i < nrrd_handles_temp.size(); i++)
+  {
+    NrrdDataHandle nrrd_handle = nrrd_handles_temp[i];
+    
+    // check to see if we need to do the join or can output the cached onrrd.
+    if (in_generation_.size() <= i)
+    {
+      // this is a new input, never been joined.
+      do_join = true;
+      in_generation_.push_back(nrrd_handle->generation);
+      onrrd_type_ = nrrdTypeLast;
     }
-    ++pi; ++i;
+    else if (in_generation_[i] != nrrd_handle->generation)
+    {
+      // different input than last execution
+      do_join = true;
+      in_generation_[i] = nrrd_handle->generation;
+      onrrd_type_ = nrrdTypeLast;
+    }
+
+    // the output nrrd must be of one type, so find the type that accomodates
+    // all of the nrrds we have as input.
+    if (onrrd_type_ == nrrdTypeLast)
+    {
+      // first time this value is set
+      onrrd_type_ = nrrd_handle->nrrd_->type;
+    }
+    if ((onrrd_type_ != nrrd_handle->nrrd_->type) && 
+    (onrrd_type_ != nrrdTypeDouble))
+    {
+      //! promote to the biggest type
+      if (nrrdTypeSize[nrrd_handle->nrrd_->type] > nrrdTypeSize[onrrd_type_])
+      {
+        onrrd_type_ = nrrd_handle->nrrd_->type;
+      }
+    }
+
+    if (nrrd_handle->nrrd_->dim > max_dim)
+    { 
+      max_dim = nrrd_handle->nrrd_->dim;
+    }
+    nrrd_handles.push_back(nrrd_handle);
   }
 
   dim_.reset();
@@ -167,7 +156,7 @@ UnuJoin::execute()
     do_join = true;
     old_incr_dim_ = incr_dim_.get();
   }
-  
+
   vector<Nrrd*> arr(nrrd_handles.size());
   if (do_join || !onrrd_handle_.get_rep())
   {
@@ -183,27 +172,28 @@ UnuJoin::execute()
       // Does it need conversion to the bigger type?
       if (cur_nrrd->nrrd_->type != onrrd_type_)
       {
-	Nrrd* new_nrrd = nrrdNew();
-	if (nrrdConvert(new_nrrd, cur_nrrd->nrrd_, onrrd_type_))
+        Nrrd* new_nrrd = nrrdNew();
+        if (nrrdConvert(new_nrrd, cur_nrrd->nrrd_, onrrd_type_))
         {
-	  char *err = biffGetDone(NRRD);
-	  error(string("Conversion Error: ") +  err);
-	  free(err);
-	  return;
-	}
-	arr[i] = new_nrrd;
+          char *err = biffGetDone(NRRD);
+          error(string("Conversion Error: ") +  err);
+          free(err);
+          return;
+        }
+        arr[i] = new_nrrd;
       }
       else
       {
-	arr[i] = cur_nrrd->nrrd_;
+        arr[i] = cur_nrrd->nrrd_;
       }
       ++i;
     }
-    
+
     join_axis_.reset();
     incr_dim_.reset();
 
-    NrrdData *onrrd = scinew NrrdData();
+    NrrdData *onrrd = new NrrdData();
+    
     if (nrrdJoin(onrrd->nrrd_, &arr[0], nrrd_handles.size(),
 		 join_axis_.get(), incr_dim_.get()))
     {
@@ -212,9 +202,9 @@ UnuJoin::execute()
       free(err);
       return;
     }
-
     onrrd_handle_ = onrrd;
   }
+
 
   send_output_handle("JoinedNrrd", onrrd_handle_, true);
 }

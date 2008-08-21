@@ -165,15 +165,15 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
 
     # create a new gui window
 
-    toplevel $w 
+    sci_toplevel $w 
     wm minsize $w 100 150
 
 
-    iwidgets::labeledframe $w.ioframe -labeltext "INPUT/OUPUT"
+    sci_labeledframe $w.ioframe -labeltext "INPUT/OUPUT"
     set childframe [$w.ioframe childsite]
     pack $w.ioframe -fill x
 
-    iwidgets::tabnotebook $childframe.pw -height 200 -tabpos n
+    sci_tabnotebook $childframe.pw -height 200 -tabpos n
     $childframe.pw add -label "Bundles" 
     $childframe.pw select 0
 
@@ -183,27 +183,27 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
 
     set $this-bundle-menu $bundle
 
-    frame $bundle.in
-    frame $bundle.out
+    sci_frame $bundle.in
+    sci_frame $bundle.out
     pack $bundle.in $bundle.out -side left -padx 5p -anchor n 
 
-    label $bundle.in.t -text "INPUT BUNDLES"
+    sci_label $bundle.in.t -text "INPUT BUNDLES"
     pack $bundle.in.t -side top -anchor n	
 
-    label $bundle.out.t -text "OUTPUT BUNDLES"
+    sci_label $bundle.out.t -text "OUTPUT BUNDLES"
     pack $bundle.out.t -side top -anchor n	
 
     for {set x 0} {$x < [set $this-numport-bundle]} {incr x} {
 
-      frame $bundle.in.m-$x
+      sci_frame $bundle.in.m-$x
       pack $bundle.in.m-$x -side top -fill x -expand yes
 
-      label $bundle.in.m-$x.label -text [format "bundle %d" [expr $x+1]]
-      entry $bundle.in.m-$x.name 
+      sci_label $bundle.in.m-$x.label -text [format "bundle %d" [expr $x+1]]
+      sci_entry $bundle.in.m-$x.name 
       
       $bundle.in.m-$x.name insert 0 [lindex [set $this-input-bundle-name] $x] 
 
-      iwidgets::optionmenu $bundle.in.m-$x.array
+      sci_optionmenu $bundle.in.m-$x.array
       foreach dformat {{numeric array} {struct array}} {
         $bundle.in.m-$x.array insert end $dformat
       }
@@ -213,15 +213,15 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
       
       pack $bundle.in.m-$x.label $bundle.in.m-$x.name $bundle.in.m-$x.array -side left
 
-      frame $bundle.out.m-$x
+      sci_frame $bundle.out.m-$x
       pack $bundle.out.m-$x  -side top -fill x -expand yes
       
-      label $bundle.out.m-$x.label -text [format "bundle %d" [expr $x+1]]
-      entry $bundle.out.m-$x.name 
+      sci_label $bundle.out.m-$x.label -text [format "bundle %d" [expr $x+1]]
+      sci_entry $bundle.out.m-$x.name 
 
       $bundle.out.m-$x.name insert 0 [lindex [set $this-output-bundle-name] $x] 
 
-      iwidgets::optionmenu $bundle.out.m-$x.pnrrds
+      sci_optionmenu $bundle.out.m-$x.pnrrds
       foreach dformat {{prefer matrices} {prefer nrrds}} {
         $bundle.out.m-$x.pnrrds insert end $dformat
       }
@@ -229,7 +229,7 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
       set dataformatindex [lsearch {{prefer matrices} {prefer nrrds}} [lindex [set $this-output-bundle-pnrrds] $x]]
       if [expr $dataformatindex > 0] { $bundle.out.m-$x.pnrrds select $dataformatindex }
 
-      iwidgets::optionmenu $bundle.out.m-$x.pbundles
+      sci_optionmenu $bundle.out.m-$x.pbundles
       foreach dformat {{prefer sciobjects} {prefer bundles}} {
         $bundle.out.m-$x.pbundles insert end $dformat
       }
@@ -240,32 +240,32 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
       pack $bundle.out.m-$x.label $bundle.out.m-$x.name $bundle.out.m-$x.pnrrds $bundle.out.m-$x.pbundles -side left
     }
 
-    iwidgets::labeledframe $w.inetframe -labeltext "MATLAB ENGINE ADDRESS"
+    sci_labeledframe $w.inetframe -labeltext "MATLAB ENGINE ADDRESS"
     set childframe [$w.inetframe childsite]
     pack $w.inetframe -fill x
-    frame $childframe.f1
-    frame $childframe.f2
-    frame $childframe.f3
-    frame $childframe.f4
-    frame $childframe.f5
-    frame $childframe.f6
+    sci_frame $childframe.f1
+    sci_frame $childframe.f2
+    sci_frame $childframe.f3
+    sci_frame $childframe.f4
+    sci_frame $childframe.f5
+    sci_frame $childframe.f6
     pack $childframe.f5 $childframe.f6 -side bottom -anchor w
     pack $childframe.f1 $childframe.f2 $childframe.f3 -side left -fill x -expand yes
     pack $childframe.f4 -side top -anchor e
 
-    label $childframe.f1.addresslabel -text "Address:"
-    entry $childframe.f1.address -textvariable $this-inet-address
-    label $childframe.f2.portlabel -text "Port:" 
-    entry $childframe.f2.port -textvariable $this-inet-port
-    label $childframe.f3.passwdlabel -text "Password:" 
-    entry $childframe.f3.passwd -textvariable $this-inet-passwd -show "*"
-    label $childframe.f4.sessionlabel -text "Session:" 
-    entry $childframe.f4.session -textvariable $this-inet-session
+    sci_label $childframe.f1.addresslabel -text "Address:"
+    sci_entry $childframe.f1.address -textvariable $this-inet-address
+    sci_label $childframe.f2.portlabel -text "Port:" 
+    sci_entry $childframe.f2.port -textvariable $this-inet-port
+    sci_label $childframe.f3.passwdlabel -text "Password:" 
+    sci_entry $childframe.f3.passwd -textvariable $this-inet-passwd -show "*"
+    sci_label $childframe.f4.sessionlabel -text "Session:" 
+    sci_entry $childframe.f4.session -textvariable $this-inet-session
 
-    label $childframe.f5.info -text "Note: leave the addressbar empty for a matlab engine on local machine"
+    sci_label $childframe.f5.info -text "Note: leave the addressbar empty for a matlab engine on local machine"
     pack $childframe.f5.info -anchor w -side left
 
-    button $childframe.f6.localconfig -text "Edit Local Config of Matlab Engine" -command "$this editconfig"
+    sci_button $childframe.f6.localconfig -text "Edit Local Config of Matlab Engine" -command "$this editconfig"
     pack $childframe.f6.localconfig -anchor w -side left
 
     pack $childframe.f1.addresslabel -side left -padx 3p -pady 2p -padx 4p
@@ -278,11 +278,11 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
     pack $childframe.f4.session -side left -padx 3p -pady 2p -anchor e
 
 
-    iwidgets::labeledframe $w.matlabframe -labeltext "MATLAB"
+    sci_labeledframe $w.matlabframe -labeltext "MATLAB"
     set childframe [$w.matlabframe childsite]
     pack $w.matlabframe -fill both -expand yes
     
-    iwidgets::tabnotebook $childframe.pw -tabpos n -height 300
+    sci_tabnotebook $childframe.pw -tabpos n -height 300
     $childframe.pw add -label "Matlab Code"
     $childframe.pw add -label "Matlab Engine Output" 
     $childframe.pw add -label "Matlab Engine Status" 
@@ -297,33 +297,31 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
     set output [$childframe.pw childsite 1]
     set status [$childframe.pw childsite 2]
     
-    frame $code.f1
-    frame $output.f1
-    frame $status.f1
-    frame $code.f2
-    frame $code.f3
-    frame $output.f2
-    frame $status.f2
+    sci_frame $code.f1
+    sci_frame $output.f1
+    sci_frame $status.f1
+    sci_frame $code.f2
+    sci_frame $code.f3
+    sci_frame $output.f2
+    sci_frame $status.f2
     pack $code.f1 $output.f1 $status.f1 -side top -fill both -expand yes
     pack $code.f2 $code.f3 $output.f2 $status.f2 -side top -fill x  
 
     option add *textBackground white	
-    iwidgets::scrolledtext $code.f1.cmd -vscrollmode dynamic \
-            -labeltext "Matlab Commands" -height 150 
+    sci_scrolledtext $code.f1.cmd -vscrollmode dynamic -height 100 
     $code.f1.cmd insert end [set $this-matlab-code]
     pack $code.f1.cmd -fill both -expand yes
-    button $code.f2.clear -text "clear" -command "$this ClearMCode"
-    button $code.f2.load -text "load" -command "$this LoadMCode"
-    button $code.f2.save -text "save" -command "$this SaveMCode"
+    sci_button $code.f2.clear -text "clear" -command "$this ClearMCode"
+    sci_button $code.f2.load -text "load" -command "$this LoadMCode"
+    sci_button $code.f2.save -text "save" -command "$this SaveMCode"
 
     pack $code.f2.load $code.f2.save $code.f2.clear -anchor e -side left
 
-    label $code.f3.info -text "Please do not use the 'keyboard' instruction in the matlab code"
-    label $code.f3.info2 -text "This module assumes that all input and output matrices are matlab structs; Each individual field of the output matrices will be translated into a separate SCIRun object"
+    sci_label $code.f3.info -text "Please do not use the 'keyboard' instruction in the matlab code"
+    sci_label $code.f3.info2 -text "This module assumes that all input and output matrices are matlab structs; Each individual field of the output matrices will be translated into a separate SCIRun object"
     pack $code.f3.info -anchor w -side left
 
-    iwidgets::scrolledtext $output.f1.display -vscrollmode dynamic \
-            -labeltext "Matlab Output" -height 150 
+    sci_scrolledtext $output.f1.display -vscrollmode dynamic -height 100 
 
     set textwidget [$output.f1.display component text]
     bind $textwidget <KeyPress> "$this KeyStroke %A %K"
@@ -331,18 +329,17 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
     $output.f1.display insert end [set $this-matlab-output]
     set $this-matlab-var $this-matlab-output
     pack $output.f1.display -fill both -expand yes
-    button $output.f2.clear -text "clear" -command "$this ClearOutput"
+    sci_button $output.f2.clear -text "clear" -command "$this ClearOutput"
     pack $output.f2.clear -anchor e -side left
 
 
-    iwidgets::scrolledtext $status.f1.status -vscrollmode dynamic \
-        -labeltext "Matlab Engine Information" -height 150
+    sci_scrolledtext $status.f1.status -vscrollmode dynamic -height 100
     $status.f1.status clear	
     $status.f1.status insert end [set $this-matlab-status]
     pack $status.f1.status -fill both -expand yes
 
-    button $status.f2.disconnect -text "disconnect" -command "$this-c disconnect"
-    button $status.f2.connect -text "connect" -command "$this-c connect"
+    sci_button $status.f2.disconnect -text "disconnect" -command "$this-c disconnect"
+    sci_button $status.f2.connect -text "connect" -command "$this-c connect"
 
     pack $status.f2.connect $status.f2.disconnect  -anchor e -side left 
 
@@ -418,7 +415,7 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
       return
     }
 
-    toplevel $w -class TkFDialog
+    sci_toplevel $w -class TkFDialog
 
     set initdir ""
 
@@ -493,7 +490,7 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
       return
     }
 
-    toplevel $w -class TkFDialog
+    sci_toplevel $w -class TkFDialog
 
     set initdir ""
 
@@ -612,25 +609,25 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlabViaBundles {
         return
     }
     
-    toplevel $w -class TkFDialog        
+    sci_toplevel $w -class TkFDialog        
 
-    iwidgets::labeledframe $w.config -labeltext "CONFIGURATION FILE"
+    sci_labeledframe $w.config -labeltext "CONFIGURATION FILE"
     set childframe [$w.config childsite]
 
     pack $w.config -fill both -expand true
 
-    iwidgets::scrolledtext $childframe.file -labeltext "matlab engine configuration file" \
-    -visibleitems 70x20 -vscrollmode dynamic -hscrollmode dynamic -wrap none
+    sci_scrolledtext $childframe.file -labeltext "matlab engine configuration file" \
+      -visibleitems 70x20 -vscrollmode dynamic -hscrollmode dynamic -wrap none
 
     pack $childframe.file -fill both -expand true
     set a $childframe
     set b [set $this-configfile]
     $childframe.file import [set $this-configfile]
-    frame $childframe.f1
+    sci_frame $childframe.f1
     pack $childframe.f1 -side bottom -anchor e
 
-    button $childframe.f1.load -text "load" -command "$a.file clear; $a.file import $b"
-    button $childframe.f1.save -text "save" -command "$a.file export $b"
+    sci_button $childframe.f1.load -text "load" -command "$a.file clear; $a.file import $b"
+    sci_button $childframe.f1.save -text "save" -command "$a.file export $b"
 
     pack $childframe.f1.load $childframe.f1.save -anchor e -side left
                       

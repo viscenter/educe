@@ -38,86 +38,94 @@
  *   Copyright (C) 2006 SCI Group
  */
 
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/FieldInformation.h>
+#include <Core/Datatypes/Matrix.h>
+#include <Core/Datatypes/ColumnMatrix.h>
 
-#include <Packages/BioPSE/Dataflow/Modules/Forward/BuildBEMSrcToInfTransferMatrix.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Dataflow/Network/Module.h>
 
 namespace BioPSE {
 
 using namespace SCIRun;
 
-
 class BuildBEMSrcToInfTransferMatrix : public Module {
-public:
-  BuildBEMSrcToInfTransferMatrix(GuiContext* ctx);
-  virtual ~BuildBEMSrcToInfTransferMatrix();
-  virtual void execute();
+  public:
+    BuildBEMSrcToInfTransferMatrix(GuiContext* ctx);
+    virtual ~BuildBEMSrcToInfTransferMatrix() {}
+    virtual void execute();
 };
 
-
 DECLARE_MAKER(BuildBEMSrcToInfTransferMatrix)
-
 
 BuildBEMSrcToInfTransferMatrix::BuildBEMSrcToInfTransferMatrix(GuiContext *context):
   Module("BuildBEMSrcToInfTransferMatrix", context, Source, "Forward", "BioPSE")
 {
 }
 
-
-BuildBEMSrcToInfTransferMatrix::~BuildBEMSrcToInfTransferMatrix()
-{
-}
-
-
 void
 BuildBEMSrcToInfTransferMatrix::execute()
 {
   FieldHandle surface, dipoles;
-  if (!get_input_handle("Surface", surface)) return;
-  if (!get_input_handle("Dipoles", dipoles)) return;
+  
+  get_input_handle("Surface", surface, true);
+  get_input_handle("Dipoles", dipoles, true);
  
   // TODO: Check for point cloud of vectors in dipoles!
  
-  const TypeDescription *mtd = surface->mesh()->get_type_description();
-  const TypeDescription *ltd = surface->order_type_description();
-  CompileInfoHandle ci = BuildBEMSrcToInfTransferMatrixAlgo::get_compile_info(mtd, ltd);
-  Handle<BuildBEMSrcToInfTransferMatrixAlgo> algo;
-  if (!DynamicCompilation::compile(ci, algo, this)) return;
+  FieldInformation sfi(surface);
+  FieldInformation dfi(dipoles);
+ 
+  if (!(dfi.is_vector()))
+  {
+    error("Dipoles needs to have vector data");
+    return;
+  }
+  
+  VMesh*   smesh = surface->vmesh();
+  VMesh*   dmesh = dipoles->vmesh();
+  VField*  sfield = surface->vfield();
+  VField*  dfield = dipoles->vfield();
+  
+  VField::size_type num_values = sfield->num_values();
+    
+  MatrixHandle output = new ColumnMatrix(num_values);
+  output->zero();
+  double* output_data = output->get_data_pointer();
+  
+  VField::size_type num_dipoles = dfield->num_values();  
 
-  MatrixHandle output(algo->execute(this, surface, dipoles));
+  Point p;
+  Vector v;  
+  for (VField::index_type idx = 0;idx<num_dipoles;idx++)
+  {
+  
+    dfield->get_center(p,idx);
+    dfield->get_value(v, idx);
+    
+    for (VField::index_type sidx = 0;sidx<num_values;sidx++)
+    {
+      Point surface_point;
+      sfield->get_center(surface_point, sidx);
+
+      double result;
+      // Run some function of p, v, surface_point, put in result;
+      
+      result = (v.x() * (surface_point.x()-p.x()) +
+                v.y() * (surface_point.y()-p.y()) +
+                v.z() * (surface_point.z()-p.z())) /
+               (4 * M_PI * pow(pow(surface_point.x()-p.x(),2) +
+                           pow(surface_point.y()-p.y(),2) +
+                           pow(surface_point.z()-p.z(),2), 3/2));
+
+      output_data[sidx] = output_data[sidx]+result;
+    }
+  }
   
   send_output_handle("Surface Potentials", output);
 }
 
 } // end namespace BioPSE
-
-
-namespace SCIRun {
-
-CompileInfoHandle
-BuildBEMSrcToInfTransferMatrixAlgo::get_compile_info(const TypeDescription *mesh_td,
-                                          const TypeDescription *loc_td)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("BuildBEMSrcToInfTransferMatrixAlgoT");
-  static const string base_class_name("BuildBEMSrcToInfTransferMatrixAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       mesh_td->get_filename() + "." +
-                       loc_td->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       mesh_td->get_name() + ", " + loc_td->get_name());
-
-  // Add in the include path to compile this obj.
-  rval->add_include(include_path);
-  mesh_td->fill_compile_info(rval);
-  loc_td->fill_compile_info(rval);
-  return rval;
-}
-
-
-} // end namespace SCIRun

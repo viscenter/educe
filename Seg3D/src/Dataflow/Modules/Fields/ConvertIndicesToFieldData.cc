@@ -31,13 +31,15 @@
 #include <Dataflow/Network/Ports/FieldPort.h>
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCIRun {
 
 class ConvertIndicesToFieldData : public Module {
 public:
   ConvertIndicesToFieldData(GuiContext*);
+  virtual ~ConvertIndicesToFieldData() {}
+  
   virtual void execute();
 private:
 

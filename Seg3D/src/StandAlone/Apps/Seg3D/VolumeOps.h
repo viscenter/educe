@@ -71,6 +71,11 @@ public:
   static void bit_xor(NrrdDataHandle &dst, unsigned int dbit,
                       NrrdDataHandle &src1, unsigned int sbit1,
                       NrrdDataHandle &src2, unsigned int sbit2);
+  static void bit_andnot(NrrdDataHandle &dst, unsigned int dbit,
+                         NrrdDataHandle &src1, unsigned int sbit1,
+                         NrrdDataHandle &src2, unsigned int sbit2);
+
+  static size_t bit_count(NrrdDataHandle &src, unsigned int sbit);
 
   static void merge_label_into_segmentation(NrrdDataHandle &seg,
                                             unsigned int svalue,
@@ -84,6 +89,10 @@ public:
 
   static void threshold(NrrdDataHandle &dst, unsigned int dbit,
                         NrrdDataHandle &src, float minval, float maxval);
+
+  // This sets all the values in dst to newval outside of the mask region.
+  static void mask_data(NrrdDataHandle &dst, NrrdDataHandle &src,
+                        NrrdDataHandle &mask, unsigned int mbit, float newval);
 
   static NrrdDataHandle         clear_nrrd(NrrdDataHandle &);
   static NrrdDataHandle         create_clear_nrrd(NrrdDataHandle &, 

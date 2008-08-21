@@ -31,13 +31,17 @@
 //    Author : Michael Callahan
 //    Date   : August 2001
 
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/FieldInformation.h>
+
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/GeometryPort.h>
-#include <Dataflow/Modules/Fields/SelectFieldROIWithBoxWidget.h>
 #include <Dataflow/Widgets/BoxWidget.h>
 #include <Core/Datatypes/Clipper.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
+
 
 #include <iostream>
 #include <stdio.h>
@@ -46,21 +50,23 @@ namespace SCIRun {
 
 class SelectFieldROIWithBoxWidget : public Module
 {
-private:
-  FieldHandle output_field_;
-  CrowdMonitor widget_lock_;
-  BoxWidget *box_;
+  public:
+    SelectFieldROIWithBoxWidget(GuiContext* ctx);
+    virtual ~SelectFieldROIWithBoxWidget();
+    
+    virtual void execute();
+  private:
+    FieldHandle output_field_;
+    CrowdMonitor widget_lock_;
+    BoxWidget *box_;
 
-  GuiInt value_;
-  GuiInt mode_;  // 0 nothing 1 accumulate 2 replace
+    GuiInt value_;
+    GuiInt mode_;  // 0 nothing 1 accumulate 2 replace
 
-  int  last_generation_;
-  BBox last_bounds_;
-  int  widgetid_;
-public:
-  SelectFieldROIWithBoxWidget(GuiContext* ctx);
-  virtual ~SelectFieldROIWithBoxWidget();
-  virtual void execute();
+    int  last_generation_;
+    BBox last_bounds_;
+    int  widgetid_;
+
 };
 
 
@@ -73,8 +79,10 @@ SelectFieldROIWithBoxWidget::SelectFieldROIWithBoxWidget(GuiContext* ctx)
     last_generation_(0),
     widgetid_(0)
 {
-  box_ = scinew BoxWidget(this, &widget_lock_, 1.0, false, false);
-  box_->Connect((GeometryOPort*)get_oport("Selection Widget"));
+  box_ = new BoxWidget(this, &widget_lock_, 1.0, false, false);
+  GeometryOPortHandle ogport;
+  get_oport_handle("Selection Widget",ogport);
+  box_->Connect(ogport.get_rep());
 }
 
 
@@ -91,9 +99,9 @@ SelectFieldROIWithBoxWidget::execute()
 {
   // Get input field.
   FieldHandle ifieldhandle;
-  if (!get_input_handle("Input Field", ifieldhandle)) return;
+  get_input_handle("Input Field", ifieldhandle, true);
 
-  if (!ifieldhandle->query_scalar_interface(this).get_rep())
+  if (!(ifieldhandle->vfield()->is_scalar()))
   {
     error("This module only works on scalar fields.");
     return;
@@ -101,17 +109,12 @@ SelectFieldROIWithBoxWidget::execute()
 
   bool forward_p = false;
 
-  if (output_field_.get_rep() == NULL ||
+  if (output_field_.get_rep() == 0 ||
       last_generation_ != ifieldhandle->generation)
   {
-    const TypeDescription *mtd = ifieldhandle->mesh()->get_type_description();
-    const TypeDescription *ftd = ifieldhandle->get_type_description();
-    CompileInfoHandle ci = SelectFieldROIWithBoxWidgetCreateAlgo::get_compile_info(mtd, ftd);
-    DynamicAlgoHandle algo_handle;
-    Handle<SelectFieldROIWithBoxWidgetCreateAlgo> algo;
-    if (!module_dynamic_compile(ci, algo)) return;    
-    output_field_ =
-      algo->execute(ifieldhandle->mesh(), ifieldhandle->basis_order());
+    FieldInformation fi(ifieldhandle);
+    fi.make_int();
+    output_field_ = CreateField(fi,ifieldhandle->mesh());
 
     // Copy the properties.
     output_field_->copy_properties(ifieldhandle.get_rep());
@@ -127,27 +130,22 @@ SelectFieldROIWithBoxWidget::execute()
       const BBox bbox = output_field_->mesh()->get_bounding_box();
       const Point &bmin = bbox.min();
       const Point &bmax = bbox.max();
-#if 0
-      const Point center = bmin + Vector(bmax - bmin) * 0.5;
-      const Point right = center + Vector((bmax.x()-bmin.x())/2.,0,0);
-      const Point down = center + Vector(0,(bmax.y()-bmin.y())/2.,0);
-      const Point in = center + Vector(0,0,(bmax.z()-bmin.z())/2.);
-#else
+
       const Point center = bmin + Vector(bmax - bmin) * 0.25;
       const Point right = center + Vector((bmax.x()-bmin.x())/4.0, 0, 0);
       const Point down = center + Vector(0, (bmax.y()-bmin.y())/4.0, 0);
       const Point in = center + Vector(0, 0, (bmax.z()-bmin.z())/4.0);
-#endif
+
       const double l2norm = (bmax - bmin).length();
 
       box_->SetScale(l2norm * 0.015);
       box_->SetPosition(center, right, down, in);
 
-      GeomGroup *widget_group = scinew GeomGroup;
+      GeomGroup *widget_group = new GeomGroup;
       widget_group->add(box_->GetWidget());
 
-      GeometryOPort *ogport=0;
-      ogport = (GeometryOPort*)get_oport("Selection Widget");
+      GeometryOPortHandle ogport;
+      get_oport_handle("Selection Widget",ogport);
       widgetid_ = ogport->addObj(widget_group, "SelectFieldROIWithBoxWidget Selection Widget",
 				 &widget_lock_);
       ogport->flushViews();
@@ -159,18 +157,30 @@ SelectFieldROIWithBoxWidget::execute()
 
   if (mode_.get() == 1 || mode_.get() == 2)
   {
-    output_field_.detach();
-    const TypeDescription *oftd = output_field_->get_type_description();
-    const TypeDescription *oltd = output_field_->order_type_description();
-    CompileInfoHandle ci = SelectFieldROIWithBoxWidgetFillAlgo::get_compile_info(oftd, oltd);
-    Handle<SelectFieldROIWithBoxWidgetFillAlgo> algo;
-    if (!module_dynamic_compile(ci, algo)) return;    
-
+  
+    ClipperHandle clipper = box_->get_clipper();
+    double value = value_.get();
+    
     bool replace_p = false;
     if (mode_.get() == 2) { replace_p = true; }
-
-    ClipperHandle clipper = box_->get_clipper();
-    algo->execute(output_field_, clipper, value_.get(), replace_p, 0);
+        
+    output_field_.detach();
+    VField* ofield = output_field_->vfield();
+    
+    VField::size_type num_values = ofield->num_values();
+    for (VField::index_type idx=0; idx<num_values;idx++)
+    {
+      Point p;
+      ofield->get_center(p,idx);
+      if (clipper->inside_p(p))
+      {
+        ofield->set_value(value,idx);
+      }
+      else if (replace_p)
+      {
+        ofield->set_value(0.0,idx);
+      }
+    }
 
     forward_p = true;
   }
@@ -180,59 +190,6 @@ SelectFieldROIWithBoxWidget::execute()
     send_output_handle("Output Field", output_field_, true);
   }
 }
-
-
-
-CompileInfoHandle
-SelectFieldROIWithBoxWidgetCreateAlgo::get_compile_info(const TypeDescription *msrc,
-					const TypeDescription *fsrc)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("SelectFieldROIWithBoxWidgetCreateAlgoT");
-  static const string base_class_name("SelectFieldROIWithBoxWidgetCreateAlgo");
-
-  const string::size_type loc = fsrc->get_name().find_first_of('<');
-  const string fout = fsrc->get_name().substr(0, loc) + "<int> ";
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       msrc->get_filename() + "." +
-		       to_filename(fout) + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       msrc->get_name() + ", " + fout);
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  fsrc->fill_compile_info(rval);
-  return rval;
-}
-
-
-CompileInfoHandle
-SelectFieldROIWithBoxWidgetFillAlgo::get_compile_info(const TypeDescription *fsrc,
-				      const TypeDescription *lsrc)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("SelectFieldROIWithBoxWidgetFillAlgoT");
-  static const string base_class_name("SelectFieldROIWithBoxWidgetFillAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       fsrc->get_filename() + "." +
-		       lsrc->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       fsrc->get_name() + ", " + lsrc->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  fsrc->fill_compile_info(rval);
-  return rval;
-}
-
 
 
 } // End namespace SCIRun

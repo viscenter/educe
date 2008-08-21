@@ -38,33 +38,32 @@ itcl_class BioPSE_Forward_CreateTrigCurrentPattern {
     }
 
     method set_defaults {} {
-	global $this-magnitudeTCL
-	set $this-magnitudeTCL 1.0
+        global $this-magnitudeTCL
+        set $this-magnitudeTCL 1.0
     }
 
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
 
     method ui {} {
-	global $this-magnitudeTCL
+        global $this-magnitudeTCL
 
         set w .ui[modname]
         if {[winfo exists $w]} {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	make_entry $w.magnitude "Current Magnitude: " $this-magnitudeTCL "$this-c needexecute"
-	bind $w.magnitude <Return> "$this-c needexecute"
-	pack $w.magnitude -side top -fill x
-
+        make_entry $w.magnitude "Current Magnitude: " $this-magnitudeTCL "$this-c needexecute"
+        bind $w.magnitude <Return> "$this-c needexecute"
+        pack $w.magnitude -side top -fill x
     }
 }
 

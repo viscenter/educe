@@ -27,7 +27,7 @@
 */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
@@ -91,7 +91,7 @@ void DMDCreateDomain::execute()
     if(ElementType->is_property("ElemLink")) ElementType->get_property("ElemLink",ElemLink);
 
     // Create the output object:
-    BundleHandle output = scinew Bundle();
+    BundleHandle output = new Bundle();
     if (output.get_rep() == 0)
     {
       error("Could not allocate output Bundle");
@@ -107,7 +107,7 @@ void DMDCreateDomain::execute()
     if (InitialPotential.get_rep()) output->setField("InitialPotential",InitialPotential);
     
     std::string sourcefile = "DomainSPRfile.c ";
-    StringHandle SourceFile = scinew String(sourcefile);
+    StringHandle SourceFile = new String(sourcefile);
     if (SourceFile.get_rep() == 0)
     {
       error("Could not allocate String");
@@ -116,7 +116,7 @@ void DMDCreateDomain::execute()
     output->setString("SourceFile",SourceFile);
     
     std::string parameters = "scale_int=1.0\nscale_ext=1.0\nscale_bath=1.0\nscale_area=1.0\n";
-    StringHandle Parameters = scinew String(parameters);
+    StringHandle Parameters = new String(parameters);
     if (Parameters.get_rep() == 0)
     {
       error("Could not allocate String");
@@ -127,7 +127,7 @@ void DMDCreateDomain::execute()
     
     // Wrap the bundle in a new bundle so we can merge everything together
     // downstream:
-    BundleHandle DomainBundle = scinew Bundle;
+    BundleHandle DomainBundle = new Bundle;
     if (DomainBundle.get_rep() == 0)
     {
       error("Could not allocate DomainBundle");

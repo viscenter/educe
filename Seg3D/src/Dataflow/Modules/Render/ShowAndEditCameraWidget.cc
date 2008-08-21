@@ -29,8 +29,7 @@
 #include <Dataflow/Widgets/ViewWidget.h>
 
 #include <Core/Geom/View.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Containers/StringUtil.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Geom/Path.h>
@@ -43,6 +42,7 @@
 
 #include <Core/Geometry/Quaternion.h>
 #include <Core/Geometry/Transform.h>
+
 #include <teem/limn.h>
 
 #ifndef _WIN32
@@ -50,12 +50,12 @@
 #endif
 
 #include <math.h>
-#include <vector>
 
+#include <vector>
 #include <map>
 #include <iostream>
-using namespace std;
 
+using namespace std;
 
 namespace SCIRun {
 
@@ -226,7 +226,7 @@ ShowAndEditCameraWidget::insert_keyframe(unsigned int frame_number)
   advance(z_iter, frame_number);
 
   widget_iter = keyframe_widgets_.insert
-    (widget_iter,scinew ViewWidget(this,&keyframe_widget_lock_,scale,aspect));
+    (widget_iter,new ViewWidget(this,&keyframe_widget_lock_,scale,aspect));
   ViewWidget &widget = *(*widget_iter);
 
   widget.Connect(ogeom_);

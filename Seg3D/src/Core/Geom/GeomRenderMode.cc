@@ -44,7 +44,7 @@
 #include <Core/Util/NotFinished.h>
 #include <Core/Geom/GeomTri.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::ostream;
 
@@ -52,7 +52,7 @@ namespace SCIRun {
 
 Persistent* make_GeomRenderMode()
 {
-    return scinew GeomRenderMode(GeomRenderMode::WireFrame, 0);
+    return new GeomRenderMode(GeomRenderMode::WireFrame, 0);
 }
 
 PersistentTypeID GeomRenderMode::type_id("GeomRenderMode", "GeomObj", make_GeomRenderMode);
@@ -69,7 +69,7 @@ GeomRenderMode::GeomRenderMode(const GeomRenderMode& copy)
 
 GeomObj* GeomRenderMode::clone()
 {
-    return scinew GeomRenderMode(*this);
+    return new GeomRenderMode(*this);
 }
 
 #define GEOMRENDERMODE_VERSION 1

@@ -39,7 +39,7 @@
 
 #include <Core/Geom/TexSquare.h>
 #include <Core/Util/NotFinished.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Geometry/BBox.h>
 
 using std::ostream;
@@ -47,7 +47,7 @@ using std::ostream;
 namespace SCIRun {
 
 Persistent *make_TexSquare() {
-  return scinew TexSquare();
+  return new TexSquare();
 }
 
 PersistentTypeID TexSquare::type_id("TexSquare", "GeomObj", make_TexSquare);
@@ -110,7 +110,7 @@ TexSquare::set_alpha_cutoff(double alpha)
 
 GeomObj* TexSquare::clone()
 {
-  return scinew TexSquare( *this );
+  return new TexSquare( *this );
 }
 
 void TexSquare::get_bounds( BBox& bb )

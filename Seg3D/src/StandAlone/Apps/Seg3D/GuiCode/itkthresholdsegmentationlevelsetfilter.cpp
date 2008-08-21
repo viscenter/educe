@@ -50,7 +50,7 @@ BEGIN_EVENT_TABLE( ITKThresholdSegmentationLevelSetFilter, wxPanel )
 
 ////@begin ITKThresholdSegmentationLevelSetFilter event table entries
 ////@end ITKThresholdSegmentationLevelSetFilter event table entries
-  EVT_BUTTON( XRCID("SET_SEEDLAYER_BUTTON"), ITKThresholdSegmentationLevelSetFilter::OnSetSeedLayerButtonClick )
+  EVT_BUTTON( XRCID("SET_DATALAYER_BUTTON"), ITKThresholdSegmentationLevelSetFilter::OnSetDataLayerButtonClick )
   EVT_BUTTON( XRCID("START_BUTTON"), ITKThresholdSegmentationLevelSetFilter::OnStartButtonClick )
   EVT_BUTTON( XRCID("STOP_BUTTON"), ITKThresholdSegmentationLevelSetFilter::OnStopButtonClick )
   EVT_BUTTON( XRCID("CLOSE_BUTTON"), ITKThresholdSegmentationLevelSetFilter::OnCloseButtonClick )

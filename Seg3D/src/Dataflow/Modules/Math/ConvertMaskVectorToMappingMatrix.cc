@@ -41,7 +41,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/NrrdData.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
@@ -87,9 +87,9 @@ ConvertMaskVectorToMappingMatrix::execute()
 
 
   const size_type dim = static_cast<size_type>(nrrd->axis[0].size);
-  Matrix::index_type *rr = scinew Matrix::index_type[dim+1];
-  Matrix::index_type *cc = scinew Matrix::index_type[dim];
-  double *data = scinew double[dim];
+  Matrix::index_type *rr = new Matrix::index_type[dim+1];
+  Matrix::index_type *cc = new Matrix::index_type[dim];
+  double *data = new double[dim];
   const unsigned char *mask = (const unsigned char *)nrrd->data;
   for (Matrix::index_type i = 0; i < dim; ++i) {
     rr[i] = i;
@@ -99,7 +99,7 @@ ConvertMaskVectorToMappingMatrix::execute()
   
   rr[dim] = dim;  
 
-  MatrixHandle mtmp(scinew SparseRowMatrix(dim, dim, rr, cc, dim, data));
+  MatrixHandle mtmp(new SparseRowMatrix(dim, dim, rr, cc, dim, data));
   send_output_handle("MappingMatrix", mtmp);
 }
 

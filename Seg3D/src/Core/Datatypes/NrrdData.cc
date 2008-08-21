@@ -39,7 +39,7 @@
 
 #include <Core/Datatypes/NrrdData.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 
 namespace SCIRun {
@@ -47,7 +47,7 @@ namespace SCIRun {
 Persistent *
 NrrdData::maker()
 {
-  return scinew NrrdData;
+  return new NrrdData;
 }
 
 PersistentTypeID NrrdData::type_id("NrrdData", "PropertyManager", maker);
@@ -280,7 +280,7 @@ void NrrdData::io(Piostream& stream)
 	stream.io(unit);
 	// dupiclate the strings so they are not deallocated when label and
 	// unit are destroyed. This uses the nrrd allocato for obtaining memory
-	// for the strings, we should not mix malloc and scinew..
+	// for the strings, we should not mix malloc and new..
 			
 	// Need error checking here as well
 	nrrd_->axis[q].label= airStrdup(label.c_str());
@@ -746,6 +746,14 @@ void get_nrrd_compile_type( const unsigned int type,
     typeStr = string("float");
     typeName = string("float");
   }
+}
+
+string
+nrrd_type_to_string(unsigned int ntype)
+{
+  string result, dummy;
+  get_nrrd_compile_type(ntype, result, dummy);
+  return result;
 }
 
 

@@ -56,8 +56,6 @@ TARGET_LINK_LIBRARIES(Packages_CardioWaveInterface_Dataflow_Modules_DiscreteMult
   Core_Geometry
   Core_GeomInterface
   Dataflow_TkExtensions
-  Core_Bundle
-  Core_OS
   Core_Algorithms_Converter
   Core_Algorithms_Fields
   Core_Algorithms_Math

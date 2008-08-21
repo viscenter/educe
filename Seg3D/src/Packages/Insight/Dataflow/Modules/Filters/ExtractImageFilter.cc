@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
@@ -296,7 +296,7 @@ ExtractImageFilter::run( itk::Object *obj_InputImage)
     error(err.GetDescription());
   }
   
-  ITKDatatype *nrrd = scinew ITKDatatype;
+  ITKDatatype *nrrd = new ITKDatatype;
   nrrd->data_ = filter->GetOutput();
   last_imgH_ = nrrd;
   send_output_handle("OutputImage", last_imgH_, true);

@@ -35,10 +35,10 @@
 #include <Core/Geom/DrawInfoOpenGL.h>
 #include <Core/Geom/GeomResourceManager.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include   <iostream>
 #include   <string>
-#include <sgi_stl_warnings_on.h>
+
 
 using std::cerr;
 using std::endl;

@@ -40,6 +40,9 @@
  *  Copyright (C) 1997 SCI Group
  */
 
+#include <Core/Thread/Thread.h>
+#include <Core/Thread/ConditionVariable.h>
+#include <Core/Thread/Mutex.h>
 #include <Core/Thread/AtomicCounter.h>
 
 namespace SCIRun {
@@ -66,9 +69,8 @@ AtomicCounter_private::~AtomicCounter_private()
 AtomicCounter::AtomicCounter(const char* name)
     : name_(name)
 {
-  if(!Thread::isInitialized()){
-    if(getenv("THREAD_SHOWINIT"))
-      fprintf(stderr, "AtomicCounter: %s\n", name);
+  if(!Thread::isInitialized())
+  {
     Thread::initialize();
   }
   priv_=new AtomicCounter_private;

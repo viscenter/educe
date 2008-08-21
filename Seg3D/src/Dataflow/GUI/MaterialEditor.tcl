@@ -83,56 +83,56 @@ proc makeMaterialEditor {w var command cancel} {
 
     setMaterial $w $var
 
-    frame $w.lmr
-    frame $w.lmr.left
+    sci_frame $w.lmr
+    sci_frame $w.lmr.left
     set left $w.lmr.left
-    frame $w.lmr.mr -relief groove -borderwidth 4
-    frame $w.lmr.mr.middle
+    sci_frame $w.lmr.mr -relief groove -borderwidth 4
+    sci_frame $w.lmr.mr.middle
     set middle $w.lmr.mr.middle
-    frame $w.lmr.mr.right
+    sci_frame $w.lmr.mr.right
     set right $w.lmr.mr.right
 
-    label $middle.ambient -text Ambient
+    sci_label $middle.ambient -text Ambient
     set ir [expr int([set $w-ambient-r] * 65535)]
     set ig [expr int([set $w-ambient-g] * 65535)]
     set ib [expr int([set $w-ambient-b] * 65535)]
-    button $right.amb -relief sunken -borderwidth 4 -height 1 -width 17 \
+    sci_button $right.amb -relief sunken -borderwidth 4 -height 1 -width 17 \
 	    -background [format #%04x%04x%04x $ir $ig $ib] \
 	    -activebackground [format #%04x%04x%04x $ir $ig $ib]
     global ambient
     set ambient $right.amb
 
-    label $middle.diffuse -text Diffuse
+    sci_label $middle.diffuse -text Diffuse
     set ir [expr int([set $w-diffuse-r] * 65535)]
     set ig [expr int([set $w-diffuse-g] * 65535)]
     set ib [expr int([set $w-diffuse-b] * 65535)]
-    button $right.dif -relief sunken -borderwidth 4 -height 1 -width 17 \
+    sci_button $right.dif -relief sunken -borderwidth 4 -height 1 -width 17 \
 	    -background [format #%04x%04x%04x $ir $ig $ib] \
 	    -activebackground [format #%04x%04x%04x $ir $ig $ib]
     global diffuse
     set diffuse $right.dif
 
-    label $middle.specular -text Specular
+    sci_label $middle.specular -text Specular
     set ir [expr int([set $w-specular-r] * 65535)]
     set ig [expr int([set $w-specular-g] * 65535)]
     set ib [expr int([set $w-specular-b] * 65535)]
-    button $right.spe -relief sunken -borderwidth 4 -height 1 -width 17 \
+    sci_button $right.spe -relief sunken -borderwidth 4 -height 1 -width 17 \
 	    -background [format #%04x%04x%04x $ir $ig $ib] \
 	    -activebackground [format #%04x%04x%04x $ir $ig $ib]
     global specular
     set specular $right.spe
 
-    label $middle.shiny -text Shininess
-    scale $right.shi -from 0.0 -to 128.0 -showvalue true -width 3m \
+    sci_label $middle.shiny -text Shininess
+    sci_scale $right.shi -from 0.0 -to 128.0 -showvalue true -width 3m \
 	    -orient horizontal -resolution .01 \
 	    -digits 3 -variable $w-shininess
     set shiny $right.shi
 
-    label $middle.emission -text Emission
+    sci_label $middle.emission -text Emission
     set ir [expr int([set $w-emission-r] * 65535)]
     set ig [expr int([set $w-emission-g] * 65535)]
     set ib [expr int([set $w-emission-b] * 65535)]
-    button $right.emi -relief sunken -borderwidth 4 -height 1 -width 17 \
+    sci_button $right.emi -relief sunken -borderwidth 4 -height 1 -width 17 \
 	    -background [format #%04x%04x%04x $ir $ig $ib] \
 	    -activebackground [format #%04x%04x%04x $ir $ig $ib]
     global emission
@@ -144,14 +144,14 @@ proc makeMaterialEditor {w var command cancel} {
 	    -digits 3 -variable $w-reflectivity
     set reflect $right.ref
 
-    label $middle.transp -text Transparency
-    scale $right.tra -from 0.0 -to 1.0 -showvalue true -width 3m \
+    sci_label $middle.transp -text Transparency
+    sci_scale $right.tra -from 0.0 -to 1.0 -showvalue true -width 3m \
 	    -orient horizontal -resolution .01 \
 	    -digits 3 -variable $w-transparency
     set transp $right.tra
 
-    label $middle.refract -text "Refraction Index"
-    scale $right.rin -from 0.5 -to 2.0 -showvalue true -width 3m \
+    sci_label $middle.refract -text "Refraction Index"
+    sci_scale $right.rin -from 0.5 -to 2.0 -showvalue true -width 3m \
 	    -orient horizontal -resolution .01 \
 	    -digits 3 -variable $w-refraction_index
     set refract $right.rin
@@ -173,31 +173,31 @@ proc makeMaterialEditor {w var command cancel} {
     pack $middle.refract -in $middle -side top -padx 2 -anchor nw -expand y -fill y
     pack $refract -in $right -side top -anchor nw -fill both -expand 1
 
-    frame $w.material
-    frame $w.material.color -relief groove -borderwidth 4
+    sci_frame $w.material
+    sci_frame $w.material.color -relief groove -borderwidth 4
     set material $w.material.color
 
-    frame $material.picks
+    sci_frame $material.picks
     set picks $material.picks
 
-    frame $picks.rgb -relief groove -borderwidth 4
-    frame $picks.rgb.labels
+    sci_frame $picks.rgb -relief groove -borderwidth 4
+    sci_frame $picks.rgb.labels
     set labels $picks.rgb.labels
-    label $labels.r -text R
-    label $labels.g -text G
-    label $labels.b -text B
+    sci_label $labels.r -text R
+    sci_label $labels.g -text G
+    sci_label $labels.b -text B
     pack $labels.r -in $labels -side top -padx 2 -pady 2 -anchor nw -expand y -fill y
     pack $labels.g -in $labels -side top -padx 2 -pady 2 -anchor nw -expand y -fill y
     pack $labels.b -in $labels -side top -padx 2 -pady 2 -anchor nw -expand y -fill y
-    frame $picks.rgb.sliders
+    sci_frame $picks.rgb.sliders
     set rgb $picks.rgb.sliders
-    scale $rgb.s1 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
+    sci_scale $rgb.s1 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
 	    -orient horizontal -resolution .01 \
 	    -digits 3 -variable $material-r
-    scale $rgb.s2 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
+    sci_scale $rgb.s2 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
 	    -orient horizontal -resolution .01 \
 	    -digits 3 -variable $material-g
-    scale $rgb.s3 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
+    sci_scale $rgb.s3 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
 	    -orient horizontal -resolution .01 \
 	    -digits 3 -variable $material-b
     pack $rgb.s1 -in $rgb -side top -padx 2 -anchor nw -fill y
@@ -210,24 +210,24 @@ proc makeMaterialEditor {w var command cancel} {
     $rgb.s2 set [set $w-ambient-g]
     $rgb.s3 set [set $w-ambient-b]
 
-    frame $picks.hsv -relief groove -borderwidth 4 
-    frame $picks.hsv.labels
+    sci_frame $picks.hsv -relief groove -borderwidth 4 
+    sci_frame $picks.hsv.labels
     set labels $picks.hsv.labels
-    label $labels.h -text H
-    label $labels.s -text S
-    label $labels.v -text V
+    sci_label $labels.h -text H
+    sci_label $labels.s -text S
+    sci_label $labels.v -text V
     pack $labels.h -in $labels -side top -padx 2 -anchor nw -expand y -fill y
     pack $labels.s -in $labels -side top -padx 2 -anchor nw -expand y -fill y
     pack $labels.v -in $labels -side top -padx 2 -anchor nw -expand y -fill y
-    frame $picks.hsv.sliders
+    sci_frame $picks.hsv.sliders
     set hsv $picks.hsv.sliders
-    scale $hsv.s1 -from 0.0 -to 360.0 -length 5c -showvalue true -width 3m \
+    sci_scale $hsv.s1 -from 0.0 -to 360.0 -length 5c -showvalue true -width 3m \
 	    -orient horizontal -resolution .01 \
 	    -digits 3 -variable $material-h
-    scale $hsv.s2 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
+    sci_scale $hsv.s2 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
 	    -orient horizontal -resolution .01 \
 	    -digits 3 -variable $material-s
-    scale $hsv.s3 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
+    sci_scale $hsv.s3 -from 0.0 -to 1.0 -length 5c -showvalue true -width 3m \
 	    -orient horizontal -resolution .01 \
 	    -digits 3 -variable $material-v
     pack $hsv.s1 -in $hsv -side top -padx 2 -anchor nw -fill y
@@ -237,11 +237,11 @@ proc makeMaterialEditor {w var command cancel} {
     pack $hsv -in $picks.hsv -side left -padx 2 -anchor nw -fill y
     pack $picks.hsv -in $picks -side left -padx 2 -anchor nw -expand y -fill y
 
-    frame $material.opts
+    sci_frame $material.opts
     set ir [expr int([set $w-ambient-r] * 65535)]
     set ig [expr int([set $w-ambient-g] * 65535)]
     set ib [expr int([set $w-ambient-b] * 65535)]
-    frame $material.opts.col -relief sunken -borderwidth 4 -height 8m -width 2.5c \
+    sci_frame $material.opts.col -relief sunken -borderwidth 4 -height 8m -width 2.5c \
 	    -background [format #%04x%04x%04x $ir $ig $ib]
     set col $material.opts.col
 
@@ -260,15 +260,15 @@ proc makeMaterialEditor {w var command cancel} {
 
     global $w-i
     set $w-i 0
-    radiobutton $material.opts.amb -text Ambient -value 0 -variable $w-i \
+    sci_radiobutton $material.opts.amb -text Ambient -value 0 -variable $w-i \
 	    -command "meset $w 0"
-    radiobutton $material.opts.dif -text Diffuse -value 1 -variable $w-i \
+    sci_radiobutton $material.opts.dif -text Diffuse -value 1 -variable $w-i \
 	    -command "meset $w 1"
-    radiobutton $material.opts.spe -text Specular -value 2 -variable $w-i \
+    sci_radiobutton $material.opts.spe -text Specular -value 2 -variable $w-i \
 	    -command "meset $w 2"
-    radiobutton $material.opts.emi -text Emission -value 3 -variable $w-i \
+    sci_radiobutton $material.opts.emi -text Emission -value 3 -variable $w-i \
 	    -command "meset $w 3"
-    button $material.opts.replace -text Replace -command "mecommitcolor $w"
+    sci_button $material.opts.replace -text Replace -command "mecommitcolor $w"
     pack $material.opts.amb $material.opts.dif $material.opts.spe $material.opts.emi $col \
 	    -in $material.opts -side left -pady 2 -fill both -anchor w
     pack $material.opts.replace -in $material.opts -side left -padx 2 -pady 2 -anchor w
@@ -278,14 +278,14 @@ proc makeMaterialEditor {w var command cancel} {
 
     pack $w.material.color -in $w.material -side left -padx 2 -pady 2 -anchor nw
 
-    frame $left.sample -relief groove -borderwidth 4
-    frame $left.sample.opts
+    sci_frame $left.sample -relief groove -borderwidth 4
+    sci_frame $left.sample.opts
     set opts $left.sample.opts
 
-    button $opts.ok -text OK -command "mecommit $w \"$command\""
-    button $opts.cancel -text Cancel -command $cancel
-    button $opts.preview -text Preview -command "puts \"Preview not implemented!\""
-    button $opts.resync -text Resync -command "meresync $w"
+    sci_button $opts.ok -text OK -command "mecommit $w \"$command\""
+    sci_button $opts.cancel -text Cancel -command $cancel
+    sci_button $opts.preview -text Preview -command "puts \"Preview not implemented!\""
+    sci_button $opts.resync -text Resync -command "meresync $w"
     pack $opts.ok $opts.cancel $opts.preview $opts.resync -in $opts -side left -anchor nw
     pack $opts -in $left.sample -side top -fill both -anchor nw
 

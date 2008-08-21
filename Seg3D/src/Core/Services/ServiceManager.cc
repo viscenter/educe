@@ -41,7 +41,7 @@ ServiceManager::ServiceManager(ServiceDBHandle db, IComAddress address,
   address_(address)
 {
   // create an empty log
-  if (log_.get_rep() == 0) log_ = scinew ServiceLog("");
+  if (log_.get_rep() == 0) log_ = new ServiceLog("");
 }
 
 ServiceManager::~ServiceManager()
@@ -130,10 +130,10 @@ void ServiceManager::run()
 
       // Since this is a runnable it will destroy itself on exit
       ServiceFrame *sf;
-      sf = scinew ServiceFrame(clientsocket,db_,log_);
+      sf = new ServiceFrame(clientsocket,db_,log_);
 
       // The new thread to be launched
-      Thread* thread = scinew Thread(sf,"service server");
+      Thread* thread = new Thread(sf,"service server");
       log_->putmsg("ServiceManager: new thread to handle service");
       thread->detach();	// It will do all it's stuff by itself
     }

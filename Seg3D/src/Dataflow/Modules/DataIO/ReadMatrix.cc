@@ -48,17 +48,16 @@ namespace SCIRun {
 template class GenericReader<MatrixHandle>;
 
 class ReadMatrix : public GenericReader<MatrixHandle> {
-protected:
-  GuiString gui_types_;
-  GuiString gui_filetype_;
+  protected:
+    GuiString gui_types_;
+    GuiString gui_filetype_;
 
-  virtual bool call_importer(const string &filename, MatrixHandle &fHandle);
+    virtual bool call_importer(const string &filename, MatrixHandle &fHandle);
 
-public:
-  ReadMatrix(GuiContext* ctx);
-  virtual ~ReadMatrix();
-
-  virtual void execute();
+  public:
+    ReadMatrix(GuiContext* ctx);
+    virtual ~ReadMatrix() {}
+    virtual void execute();
 };
 
 DECLARE_MAKER(ReadMatrix)
@@ -92,12 +91,6 @@ ReadMatrix::ReadMatrix(GuiContext* ctx)
 
   gui_types_.set(importtypes);
 }
-
-
-ReadMatrix::~ReadMatrix()
-{
-}
-
 
 bool
 ReadMatrix::call_importer(const string &filename, MatrixHandle &mHandle)

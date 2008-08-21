@@ -59,9 +59,9 @@
 #include <Core/Geom/GeomQuads.h>
 #include <Core/Geom/GeomResourceManager.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include   <iostream>
-#include <sgi_stl_warnings_on.h>
+
 
 #ifdef _WIN32
 #  include <Core/Thread/Time.h>
@@ -121,7 +121,7 @@ OpenGL::OpenGL(GuiInterface* gui, ViewScene *viewer, ViewWindow *vw) :
   helper_thread_(0),
   viewer_(viewer),
   view_window_(vw),
-  drawinfo_(scinew DrawInfoOpenGL),
+  drawinfo_(new DrawInfoOpenGL),
   dead_(false),
   do_hi_res_(false),
   encoding_mpeg_(false),
@@ -224,7 +224,6 @@ OpenGLHelper::~OpenGLHelper()
 void
 OpenGLHelper::run()
 {
-  Thread::allow_sgi_OpenGL_page0_sillyness();
   opengl->redraw_loop();
 }
 
@@ -238,7 +237,7 @@ OpenGL::redraw(double tbeg, double tend, int nframes, double framerate)
   animate_num_frames_ = nframes;
   animate_framerate_ = framerate;
   
-  RenderWindowMsgHandle rwm = scinew RenderWindowMsg(DO_REDRAW);
+  RenderWindowMsgHandle rwm = new RenderWindowMsg(DO_REDRAW);
   mailbox_.send(rwm);
   rwm->wait_signal();
 }
@@ -255,8 +254,8 @@ OpenGL::start_helper()
 #endif
   if (!helper_)
   {
-    helper_ = scinew OpenGLHelper(this);
-    helper_thread_ = scinew Thread(helper_,
+    helper_ = new OpenGLHelper(this);
+    helper_thread_ = new Thread(helper_,
                                    string("OpenGL: "+myname_).c_str(),
                                    0, Thread::NotActivated);
     helper_thread_->setStackSize(1024*1024);
@@ -272,7 +271,7 @@ OpenGL::kill_helper()
   dead_ = true;
   if (helper_thread_)
   {
-    RenderWindowMsgHandle rwm= scinew RenderWindowMsg(86);
+    RenderWindowMsgHandle rwm= new RenderWindowMsg(86);
     mailbox_.send(rwm);
     helper_thread_->join();
     helper_thread_ = 0;
@@ -548,7 +547,7 @@ OpenGL::redraw_loop()
     while (apple_wait_a_second_)
     {
       apple_wait_a_second_=false;
-      sleep(1);
+//      sleep(1);
     }
 #endif
 
@@ -701,8 +700,8 @@ OpenGL::render_and_save_image( int x, int y,
   try
   {
     // Allocate enough memory to save the full image
-    pixels = scinew unsigned char[hi_res_.resx*hi_res_.resy*pix_size];
-    tmp_row = scinew unsigned char[hi_res_.resx*pix_size];   
+    pixels = new unsigned char[hi_res_.resx*hi_res_.resy*pix_size];
+    tmp_row = new unsigned char[hi_res_.resx*pix_size];   
   }
   catch (...)
   {
@@ -716,6 +715,7 @@ OpenGL::render_and_save_image( int x, int y,
   // THE FIRST DRAW IS BAD. 
   // SOMEHOW WE DO NOT SET ALL STATE VARIABLES. AFTER THIS
   // CALL EVERYTHING SHOULD BE SET PROPERLY
+
   doing_image_p_ = true; // forces pbuffer if available
   redraw_frame();
   doing_image_p_ = false;
@@ -898,14 +898,6 @@ OpenGL::redraw_frame()
       glGetIntegerv(GL_MAX_LIGHTS, data);
       max_gl_lights_=data[0];
       // Look for multisample extension...
-#ifdef __sgi
-      if (strstr((char*)glGetString(GL_EXTENSIONS), "GL_SGIS_multisample"))
-      {
-        cerr << "Enabling multisampling...\n";
-        glEnable(GL_MULTISAMPLE_SGIS);
-        glSamplePatternSGIS(GL_1PASS_SGIS);
-      }
-#endif
     }
   }
   CHECK_OPENGL_ERROR();
@@ -944,10 +936,9 @@ OpenGL::redraw_frame()
     if (!frame_buffer_id_) {
       CHECK_OPENGL_ERROR();
 
-      GLuint db;
       glGenFramebuffersEXT(1, &frame_buffer_id_);
       glGenRenderbuffersEXT(1, &render_buffer_id_);
-      glGenRenderbuffersEXT(1, &db);
+      glGenRenderbuffersEXT(1, &render_buffer_depth_id_);
       
       //color buffer
       glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_buffer_id_);
@@ -955,7 +946,7 @@ OpenGL::redraw_frame()
 			       xres_, yres_);
 
       // depth buffer
-      glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, db);
+      glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_buffer_depth_id_);
       glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, 
 			       xres_, yres_);
 
@@ -967,7 +958,7 @@ OpenGL::redraw_frame()
 
       glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, 
 				   GL_DEPTH_ATTACHMENT_EXT,
-				   GL_RENDERBUFFER_EXT, db);
+				   GL_RENDERBUFFER_EXT, render_buffer_depth_id_);
       CHECK_OPENGL_ERROR();
     }
 
@@ -980,8 +971,10 @@ OpenGL::redraw_frame()
 				    GL_RENDERBUFFER_HEIGHT_EXT, &h);
     CHECK_OPENGL_ERROR();
     if (w != xres_ || h != yres_) {
+      glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_buffer_id_);
       glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, 
 			       xres_, yres_);
+      glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_buffer_depth_id_);
       glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, 
 			       xres_, yres_);
     }
@@ -1348,11 +1341,11 @@ OpenGL::redraw_frame()
     {
       pps = drawinfo_->polycount_;
     }
-    str << view_window_->id_ << " updatePerf \"";
-    str << drawinfo_->polycount_ << " polygons in " << timer.time()
-        << " seconds\" \"" << pps
-        << " polygons/second\"" << " \"" << fps_whole << "."
-        << fps_tenths << " frames/sec\"" << '\0';
+//    str << view_window_->id_ << " updatePerf \"";
+//    str << drawinfo_->polycount_ << " polygons in " << timer.time()
+//        << " seconds\" \"" << pps
+//        << " polygons/second\"" << " \"" << fps_whole << "."
+//        << fps_tenths << " frames/sec\"" << '\0';
   }
   else if (fps_timer_.time() > 0)
   {
@@ -1500,7 +1493,7 @@ OpenGL::redraw_frame()
   if (!dead_) {
     // may only pertain to exp tcl thread:
     // -  if the ViewWindow is going down, the ViewWindow tcl command may already be gone
-    gui_->execute(str.str());
+    // gui_->execute(str.str());
   }
   CHECK_OPENGL_ERROR();
 }
@@ -1511,7 +1504,7 @@ OpenGL::get_pick(int x, int y,
                  GeomHandle& pick_obj, GeomPickHandle& pick_pick,
                  int& pick_index)
 {
-  RenderWindowMsgHandle rwm = scinew RenderWindowMsg(DO_PICK,x,y);
+  RenderWindowMsgHandle rwm = new RenderWindowMsg(DO_PICK,x,y);
   
   mailbox_.send(rwm);
   rwm->wait_signal();
@@ -1708,7 +1701,7 @@ OpenGL::dump_image(const string& fname, const string& ftype)
 
   const int pix_size = 3;  // for RGB
   const int n = pix_size * vp[2] * vp[3];
-  unsigned char* pixels = scinew unsigned char[n];
+  unsigned char* pixels = new unsigned char[n];
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   //glReadBuffer(GL_FRONT);
   glReadPixels(0, 0, vp[2], vp[3], GL_RGB, GL_UNSIGNED_BYTE, pixels);
@@ -1835,7 +1828,7 @@ OpenGL::dump_image(const string& fname, const string& ftype)
 
     // OpenGL renders upside-down to ppm_file writing.
     unsigned char *top_row, *bot_row;     
-    unsigned char *tmp_row = scinew unsigned char[ vp[2] * pix_size];
+    unsigned char *tmp_row = new unsigned char[ vp[2] * pix_size];
     int top, bot;
     for ( top = vp[3] - 1, bot = 0; bot < vp[3]/2; top --, bot++){
       top_row = pixels + vp[2] * top * pix_size;
@@ -1857,7 +1850,7 @@ OpenGL::dump_image(const string& fname, const string& ftype)
 void
 OpenGL::put_scanline(int y, int width, Color* scanline, int repeat)
 {
-  float* pixels = scinew float[width*3];
+  float* pixels = new float[width*3];
   float* p = pixels;
   int i;
   for (i=0; i<width; i++)
@@ -1994,21 +1987,21 @@ OpenGL::saveImage(const string& fname,
                   const string& type,
                   int x, int y)
 {
-  RenderWindowMsgHandle rwm = scinew RenderWindowMsg(DO_IMAGE,fname,type,x,y);
+  RenderWindowMsgHandle rwm = new RenderWindowMsg(DO_IMAGE,fname,type,x,y);
   mailbox_.send(rwm);
 }
 
 void
 OpenGL::scheduleSyncFrame()
 {
-  RenderWindowMsgHandle rwm = scinew RenderWindowMsg(DO_SYNC_FRAME);
+  RenderWindowMsgHandle rwm = new RenderWindowMsg(DO_SYNC_FRAME);
   mailbox_.send(rwm);
 }
 
 void
 OpenGL::getData(int datamask, FutureValue<GeometryData*>* result)
 {
-  RenderWindowMsgHandle rwm = scinew RenderWindowMsg(DO_GETDATA,datamask,result);
+  RenderWindowMsgHandle rwm = new RenderWindowMsg(DO_GETDATA,datamask,result);
   mailbox_.send(rwm);
 }
 
@@ -2086,7 +2079,7 @@ OpenGL::StartMpeg(const string& fname)
   // Get the default options.
   MPEGe_default_options( &mpeg_options_ );
   // Change a couple of the options.
-  char *pattern = scinew char[4];
+  char *pattern = new char[4];
   strncpy(pattern, "II\0", 4);
   mpeg_options_.frame_pattern = pattern;
   mpeg_options_.search_range[1]=0;
@@ -2163,7 +2156,7 @@ OpenGL::AddMpegFrame()
   glPopMatrix();
 
   const int r = 3 * width;
-  unsigned char* row = scinew unsigned char[r];
+  unsigned char* row = new unsigned char[r];
   unsigned char* p0, *p1;
 
   int k, j;
@@ -2485,13 +2478,13 @@ OpenGL::render_clip_frames()
   // a frame is on, let's draw it.
   view_window_->setState(drawinfo_, "global");
 
-  GeomGroup *frames = scinew GeomGroup;
-  Material *frame_color = scinew Material(Color(0.0, 0.0, 0.0),
+  GeomGroup *frames = new GeomGroup;
+  Material *frame_color = new Material(Color(0.0, 0.0, 0.0),
                                           Color(.44, .50, .86),
                                           Color(.5,.5,.5), 20);
-  GeomTranspQuads *quads = scinew GeomTranspQuads;
+  GeomTranspQuads *quads = new GeomTranspQuads;
   const Color black(0,0,0), gray(0.3,0.3,0.3);
-  Material *screen = scinew Material(black, gray, gray, 5);
+  Material *screen = new Material(black, gray, gray, 5);
   screen->transparency = 0.8;
 
   for(i = 0; i < view_window_->viewwindow_clip_frames_.size(); i++){
@@ -2500,8 +2493,8 @@ OpenGL::render_clip_frames()
         view_window_->viewwindow_clip_frames_[i];
       
       for(ii = 0; ii < cf->edges_.size(); ii++){
-        frames->add(scinew GeomSphere(*(cf->corners_[ii])));
-        frames->add(scinew GeomCylinder(*(cf->edges_[ii])));
+        frames->add(new GeomSphere(*(cf->corners_[ii])));
+        frames->add(new GeomCylinder(*(cf->edges_[ii])));
 
       }
 
@@ -2529,7 +2522,7 @@ OpenGL::render_clip_frames()
 
   // Put everything in a GeometryHandle.  This should
   // clean up all of the GeomObjects we just made.
-  GeomHandle objs = scinew GeomMaterial(frames, frame_color);
+  GeomHandle objs = new GeomMaterial(frames, frame_color);
   // now draw it.
   objs->draw(drawinfo_,viewer_->default_material_.get_rep(), current_time_);
 

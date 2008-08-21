@@ -115,9 +115,9 @@ RemoveHexVolSheetAlgoHex<FIELD>::execute(
 
   typename FIELD::mesh_type *mesh_rep = 
       dynamic_cast<typename FIELD::mesh_type *>(hexfieldh->mesh().get_rep());
-  typename FIELD::mesh_type *kept_mesh = scinew typename FIELD::mesh_type();
+  typename FIELD::mesh_type *kept_mesh = new typename FIELD::mesh_type();
   kept_mesh->copy_properties( mesh_rep );
-  typename FIELD::mesh_type *extracted_mesh = scinew typename FIELD::mesh_type();
+  typename FIELD::mesh_type *extracted_mesh = new typename FIELD::mesh_type();
   extracted_mesh->copy_properties( mesh_rep );
 
   original_mesh->synchronize( Mesh::EDGES_E | Mesh::NODE_NEIGHBORS_E );
@@ -324,8 +324,8 @@ RemoveHexVolSheetAlgoHex<FIELD>::execute(
     ++citer;
   }
   
-  keptfield = scinew FIELD( kept_mesh );
-  extractedfield = scinew FIELD( extracted_mesh );
+  keptfield = new FIELD( kept_mesh );
+  extractedfield = new FIELD( extracted_mesh );
   keptfield->copy_properties( hexfieldh.get_rep() );
   extractedfield->copy_properties( hexfieldh.get_rep() );
 }

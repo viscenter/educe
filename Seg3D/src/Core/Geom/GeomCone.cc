@@ -45,7 +45,7 @@
 #include <Core/Geom/GeomSave.h>
 #include <Core/Geom/GeomTri.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/Trig.h>
 #include <Core/Persistent/PersistentSTL.h>
@@ -58,14 +58,14 @@ using std::ostream;
 
 Persistent* make_GeomCone()
 {
-    return scinew GeomCone;
+    return new GeomCone;
 }
 
 PersistentTypeID GeomCone::type_id("GeomCone", "GeomObj", make_GeomCone);
 
 Persistent* make_GeomCappedCone()
 {
-    return scinew GeomCappedCone(0,0);
+    return new GeomCappedCone(0,0);
 }
 
 PersistentTypeID GeomCappedCone::type_id("GeomCappedCone", "GeomObj", make_GeomCappedCone);
@@ -117,7 +117,7 @@ GeomCone::~GeomCone()
 
 GeomObj* GeomCone::clone()
 {
-    return scinew GeomCone(*this);
+    return new GeomCone(*this);
 }
 
 void GeomCone::adjust()
@@ -194,7 +194,7 @@ GeomCappedCone::~GeomCappedCone()
 
 GeomObj* GeomCappedCone::clone()
 {
-    return scinew GeomCappedCone(*this);
+    return new GeomCappedCone(*this);
 }
 
 #define GEOMCAPPEDCONE_VERSION 1

@@ -30,16 +30,21 @@
 
 SET(Core_Algorithms_DataIO_SRCS
   DataIOAlgo.cc
+  StreamData/StreamACQFile.cc
 )
 
-IF(ITK_FOUND)
-  SET(Core_Algorithms_DataIO_SRCS DataIOAlgo.cc
-      AnalyzeImage.cc AnalyzeReader.cc AnalyzeSliceImageIO.cc)
-ENDIF(ITK_FOUND)
+#IF(ITK_FOUND)
+#  SET(Core_Algorithms_DataIO_SRCS 
+#      ${Core_Algorithms_DataIO_SRCS}
+#      AnalyzeImage.cc 
+#      AnalyzeReader.cc 
+#      AnalyzeSliceImageIO.cc)
+#ENDIF(ITK_FOUND)
 
 SCIRUN_ADD_LIBRARY(Core_Algorithms_DataIO ${Core_Algorithms_DataIO_SRCS})
 
 TARGET_LINK_LIBRARIES(Core_Algorithms_DataIO 
+  Core_Algorithms_Util
   Core_Datatypes 
   Core_Containers 
   Core_Thread 
@@ -49,7 +54,6 @@ TARGET_LINK_LIBRARIES(Core_Algorithms_DataIO
   Core_Math 
   Core_Persistent 
   Core_Geom 
-  Core_Bundle 
   Core_ImportExport 
   Core_Volume
   ${TEEM_LIBRARY}
@@ -57,13 +61,13 @@ TARGET_LINK_LIBRARIES(Core_Algorithms_DataIO
   ${M_LIBRARY}
 )
 
-IF(ITK_FOUND)
-  TARGET_LINK_LIBRARIES(Core_Algorithms_DataIO
-    ITKCommon
-    ITKIO
-    ${GDCM_LIBRARY}
-    ${GL_LIBRARY})
-ENDIF(ITK_FOUND)
+#IF(ITK_FOUND)
+#  TARGET_LINK_LIBRARIES(Core_Algorithms_DataIO
+#    ITKCommon
+#    ITKIO
+#    ${GDCM_LIBRARY}
+#    ${GL_LIBRARY})
+#ENDIF(ITK_FOUND)
 
 IF(BUILD_SHARED_LIBS)
   ADD_DEFINITIONS(-DBUILD_Core_Algorithms_DataIO)

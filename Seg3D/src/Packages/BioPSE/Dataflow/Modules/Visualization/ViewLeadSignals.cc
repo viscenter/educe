@@ -36,7 +36,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Dataflow/GuiInterface/GuiVar.h>

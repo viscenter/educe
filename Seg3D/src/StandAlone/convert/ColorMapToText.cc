@@ -47,7 +47,7 @@
 // of colors, unless the user specifies the -noHeader command-line 
 // argument.
 
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 #include <Core/Persistent/Pstreams.h>
 #include <StandAlone/convert/FileUtils.h>
 #include <Core/Init/init.h>

@@ -38,13 +38,13 @@ itcl_class Teem_UnuAtoM_UnuJoin {
 
     # Do not allow spaces in the label.
     method valid_string {ind str} {
-	set char "a"
-	
-	set char [string index $str $ind]
-	if {$ind >= 0 && [string equal $char " "]} {
-	    return 0
-	}
-	return 1
+        set char "a"
+        
+        set char [string index $str $ind]
+        if {$ind >= 0 && [string equal $char " "]} {
+            return 0
+        }
+        return 1
     }
 
 
@@ -53,23 +53,23 @@ itcl_class Teem_UnuAtoM_UnuJoin {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.f -borderwidth 2
-	pack $w.f -side top -e y -f both -padx 5 -pady 5
+        sci_frame $w.f -borderwidth 2
+        pack $w.f -side top -e y -f both -padx 5 -pady 5
 
-	iwidgets::entryfield $w.f.axis -labeltext "Join Axis:" \
-	    -labelpos w -textvariable $this-join-axis \
-	    -width 5
+        sci_entryfield $w.f.axis -labeltext "Join Axis:" \
+            -labelpos w -textvariable $this-join-axis \
+            -width 5
 
-	checkbutton $w.f.incrdim \
-		-text "Increment Dimension" \
-		-variable $this-incr-dim
-	
-	pack $w.f.axis $w.f.incrdim -side top -anchor nw
+        sci_checkbutton $w.f.incrdim \
+          -text "Increment Dimension" \
+          -variable $this-incr-dim
+        
+        pack $w.f.axis $w.f.incrdim -side top -anchor nw
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
     }
 }

@@ -42,7 +42,7 @@
 #include <map>
 #include <vector>
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Events/OpenGLBase.h>
 #include <Core/Events/EventManager.h>
 #include <Core/Events/ToolManager.h>
@@ -67,10 +67,6 @@
 #ifdef HAVE_MPEG
 #  include <mpege.h>
 #endif // HAVE_MPEG
-
-#ifdef __sgi
-#  include <X11/extensions/SGIStereo.h>
-#endif // __sgi
 
 #include <Core/Events/OGLView/share.h>
 namespace SCIRun {

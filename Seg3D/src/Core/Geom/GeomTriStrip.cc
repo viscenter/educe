@@ -45,7 +45,7 @@
 #include <Core/Geom/GeomSave.h>
 #include <Core/Geom/GeomTri.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::cerr;
 using std::ostream;
@@ -54,14 +54,14 @@ namespace SCIRun {
 
 Persistent* make_GeomTriStrip()
 {
-    return scinew GeomTriStrip;
+    return new GeomTriStrip;
 }
 
 PersistentTypeID GeomTriStrip::type_id("GeomTriStrip", "GeomObj", make_GeomTriStrip);
 
 Persistent* make_GeomTriStripList()
 {
-    return scinew GeomTriStripList;
+    return new GeomTriStripList;
 }
 
 PersistentTypeID GeomTriStripList::type_id("GeomTriStripList", "GeomObj",
@@ -81,7 +81,7 @@ GeomTriStrip::~GeomTriStrip() {
 
 GeomObj* GeomTriStrip::clone()
 {
-    return scinew GeomTriStrip(*this);
+    return new GeomTriStrip(*this);
 }
 
 #define GEOMTRISTRIP_VERSION 1

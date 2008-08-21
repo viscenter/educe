@@ -40,7 +40,7 @@
  */
 
 #include <Dataflow/Network/Ports/PathPort.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCIRun {
 
@@ -53,10 +53,10 @@ namespace SCIRun {
 
 extern "C" {
 SCISHARE IPort* make_PathIPort(Module* module, const string& name) {
-  return scinew SimpleIPort<PathHandle>(module,name);
+  return new SimpleIPort<PathHandle>(module,name);
 }
 SCISHARE OPort* make_PathOPort(Module* module, const string& name) {
-  return scinew SimpleOPort<PathHandle>(module,name);
+  return new SimpleOPort<PathHandle>(module,name);
 }
 }
 

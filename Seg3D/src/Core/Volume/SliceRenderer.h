@@ -49,7 +49,7 @@ public:
 		vector<SLIVR::ColorMap2*>    &cmap2,
                 int tex_mem);
   SliceRenderer(const SliceRenderer&);
-  ~SliceRenderer();
+  virtual ~SliceRenderer();
 
   void lock() { mutex_.lock(); }
   void unlock() { mutex_.unlock(); }

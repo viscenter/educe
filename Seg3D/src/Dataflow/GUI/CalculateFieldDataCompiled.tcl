@@ -61,10 +61,10 @@ itcl_class SCIRun_ChangeFieldData_CalculateFieldDataCompiled {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
 # Output Data Type
-	frame $w.output -relief groove -borderwidth 2
+	sci_frame $w.output -relief groove -borderwidth 2
 
 	labelcombo $w.output.otype "Output Data Type" \
 	    {"port 0 input" \
@@ -77,18 +77,18 @@ itcl_class SCIRun_ChangeFieldData_CalculateFieldDataCompiled {
 	pack $w.output -side top -fill x -padx 5 -pady 5
 
 # Function
-	frame $w.function -borderwidth 2
+	sci_frame $w.function -borderwidth 2
 
-	label $w.function.info -text "F(x, y, z, v0, v1, ..., result, count):"
+	sci_label $w.function.info -text "F(x, y, z, v0, v1, ..., result, count):"
 
 
-	label $w.function.info1 -text "where 'x', 'y', and 'z' are the coordinate values, 'v0', 'v1', 'v2', etc."
-	label $w.function.info2 -text "are data values that correspond to each valid input field, and optionally"
-	label $w.function.info3 -text "'result' corresponds to the previous output field (if cached - otherwise zero) and"
-	label $w.function.info4 -text "'count' corresponds to the number of times the cached output field has been used."
+	sci_label $w.function.info1 -text "where 'x', 'y', and 'z' are the coordinate values, 'v0', 'v1', 'v2', etc."
+	sci_label $w.function.info2 -text "are data values that correspond to each valid input field, and optionally"
+	sci_label $w.function.info3 -text "'result' corresponds to the previous output field (if cached - otherwise zero) and"
+	sci_label $w.function.info4 -text "'count' corresponds to the number of times the cached output field has been used."
 
 	option add *textBackground white
-	iwidgets::scrolledtext $w.function.row1 -height 60 -hscrollmode dynamic
+	sci_scrolledtext $w.function.row1 -height 60 -hscrollmode dynamic
 
 	$w.function.row1 insert end [set $this-function]
 
@@ -102,17 +102,17 @@ itcl_class SCIRun_ChangeFieldData_CalculateFieldDataCompiled {
 	pack $w.function -side top -fill both -expand true -padx 5 -pady 5
 
 # Caching
-	iwidgets::labeledframe $w.caching -labelpos nw -labeltext "Caching"
+	sci_labeledframe $w.caching -labelpos nw -labeltext "Caching"
 	set caching [$w.caching childsite]
 
-	checkbutton $caching.cache -text "Cache result" \
+	sci_checkbutton $caching.cache -text "Cache result" \
 		-variable $this-cache
-	button $caching.clear \
+	sci_button $caching.clear \
 	    -text " Clear cached result " -command "$this-c clear"
 
-	label $caching.label -text "Count:"
+	sci_label $caching.label -text "Count:"
 
-	entry $caching.count -width 5 -textvariable $this-count  -state disabled
+	sci_entry $caching.count -width 5 -textvariable $this-count  -state disabled
 	
 	pack $caching.cache -side left -padx  5 -pady 5
 	pack $caching.label -side left -pady 5
@@ -128,12 +128,12 @@ itcl_class SCIRun_ChangeFieldData_CalculateFieldDataCompiled {
 
 
     method labelcombo { win text1 arglist var} {
-	frame $win 
+	sci_frame $win 
 	pack $win -side top -padx 5
-	label $win.l1 -text $text1 \
+	sci_label $win.l1 -text $text1 \
 		      -anchor w -just left
-	label $win.colon  -text ":" -width 2 -anchor w -just left
-	iwidgets::optionmenu $win.c -foreground darkred \
+	sci_label $win.colon  -text ":" -width 2 -anchor w -just left
+	sci_optionmenu $win.c -foreground darkred \
 		-command " $this comboget $win.c $var "
 
 	set i 0
@@ -153,7 +153,7 @@ itcl_class SCIRun_ChangeFieldData_CalculateFieldDataCompiled {
 
 	$win.c select [set $var]
 
-	label $win.l2 -text "" -width 20 -anchor w -just left
+	sci_label $win.l2 -text "" -width 20 -anchor w -just left
 
 	# hack to associate optionmenus with a textvariable
 	# bind $win.c <Map> "$win.c select {[set $var]}"

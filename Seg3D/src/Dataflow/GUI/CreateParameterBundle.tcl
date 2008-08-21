@@ -27,14 +27,14 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
             return
         }
         
-        toplevel $w
+        sci_toplevel $w
         
         wm minsize $w 600 100
         
-        iwidgets::labeledframe $w.paramlist
+        sci_labeledframe $w.paramlist
         set paramlist [$w.paramlist childsite]       
         
-        iwidgets::scrolledframe $paramlist.d \
+        sci_scrolledframe $paramlist.d \
           -vscrollmode dynamic \
           -hscrollmode dynamic
         pack $paramlist.d        
@@ -42,12 +42,12 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
         
         update_gui
 
-        frame $w.paramedit 
+        sci_frame $w.paramedit 
         pack $w.paramedit -anchor e -side top
         set paramedit $w.paramedit       
 
-        button $paramedit.delete -text "Delete Parameters" -command "$this delete_parameters"
-        button $paramedit.add -text "Add Parameter" -command "$this add_parameter"
+        sci_button $paramedit.delete -text "Delete Parameters" -command "$this delete_parameters"
+        sci_button $paramedit.add -text "Add Parameter" -command "$this add_parameter"
         
         grid $paramedit.delete -row 0 -column 0 -sticky news
         grid $paramedit.add -row 0 -column 1 -sticky news        
@@ -77,7 +77,7 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
         
         pack forget $paramlist.d
         destroy $paramlist.d
-        iwidgets::scrolledframe $paramlist.d \
+        sci_scrolledframe $paramlist.d \
           -vscrollmode dynamic \
           -hscrollmode dynamic -background $header_color
         pack $paramlist.d -fill both -expand yes
@@ -85,27 +85,27 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
         set len [llength [set $this-data]]
         set d [$paramlist.d childsite]   
 
-        frame $d.h -relief raised -background $header_color
+        sci_frame $d.h -relief raised -background $header_color
         grid $d.h -row 0 -column 0 -sticky we
 
-        frame $d.h.f -relief raised -background $header_color
+        sci_frame $d.h.f -relief raised -background $header_color
         pack $d.h.f -anchor w
 
-        label $d.h.f.check -width 4 -text "  " -background $header_color
+        sci_label $d.h.f.check -width 4 -text "  " -background $header_color
         grid  $d.h.f.check -row 0 -column 0 
 
         if {[expr [set $this-use-global] == 1]} {
-          label $d.h.f.arg -width 10 -text "GLOBAL" -background $header_color
+          sci_label $d.h.f.arg -width 10 -text "GLOBAL" -background $header_color
           grid  $d.h.f.arg -row 0 -column 1 
         }
        
-        label $d.h.f.type -width 10 -text "FIELDTYPE" -background $header_color
+        sci_label $d.h.f.type -width 10 -text "FIELDTYPE" -background $header_color
         grid  $d.h.f.type -row 0 -column 2 
 
-        label $d.h.f.name -width 25 -text "FIELDNAME" -background $header_color
+        sci_label $d.h.f.name -width 25 -text "FIELDNAME" -background $header_color
         grid  $d.h.f.name -row 0 -column 3 
 
-        label $d.h.f.data -width 20 -text "FIELDDATA" -background $header_color
+        sci_label $d.h.f.data -width 20 -text "FIELDDATA" -background $header_color
         grid  $d.h.f.data -row 0 -column 4 
         
 
@@ -120,32 +120,32 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
           
           if {[string equal $partype "boolean"]} {
 
-            frame $d.$p -relief raised -background $boolean_color
+            frame $d.$p -relief raised -background $boolean_color -borderwidth 0
             grid $d.$p -row [expr $p + 1] -column 0 -sticky we
 
-            frame $d.$p.f -relief raised -background $boolean_color
+            frame $d.$p.f -relief raised -background $boolean_color 
             pack $d.$p.f -anchor w
                       
             global $this-cb-$p          
-            checkbutton $d.$p.f.check -foreground black -background $boolean_color -variable $this-cb-$p -command "$this update_data $p"
+            checkbutton $d.$p.f.check -foreground black -background $boolean_color -variable $this-cb-$p -command "$this update_data $p" -borderwidth 1
             grid $d.$p.f.check -row 0 -column 0 
             $d.$p.f.check deselect
             if {[expr $parcheck == 1]} {
               $d.$p.f.check select
             }
             
-            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -background $boolean_color -textbackground $boolean_color -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -background $boolean_color -textbackground $boolean_color -textfont paramlist_font -borderwidth 1
             grid $d.$p.f.name -row 0 -column 3 -sticky snew
             $d.$p.f.name insert 0 $parname
             
-            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $boolean_color
+            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $boolean_color -borderwidth 1
             foreach q $partypes {
               $d.$p.f.type insert end $q
             }
             grid $d.$p.f.type -row 0 -column 2 -sticky snew
             $d.$p.f.type select $partype
             
-            iwidgets::optionmenu $d.$p.f.data -command "$this update_data $p; $this maybe_execute"  -background $boolean_color 
+            iwidgets::optionmenu $d.$p.f.data -command "$this update_data $p; $this maybe_execute"  -background $boolean_color -borderwidth 1
             grid $d.$p.f.data -row 0 -column 4 -sticky snew            
             foreach q {true false} {
               $d.$p.f.data insert 0 $q
@@ -153,7 +153,7 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
             $d.$p.f.data select $pardata
 
             if {[expr [set $this-use-global] == 1]} {
-              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $boolean_color -textbackground $boolean_color -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $boolean_color -textbackground $boolean_color -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.script -row 0 -column 1 -sticky snew
               $d.$p.f.script insert 0 $parscript            
             }
@@ -161,37 +161,37 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
 
           if {[string equal $partype "string"]} {
 
-            frame $d.$p -relief raised -background $string_color
+            frame $d.$p -relief raised -background $string_color -borderwidth 0
             grid $d.$p -row [expr $p + 1] -column 0 -sticky we
 
-            frame $d.$p.f -relief raised -background $string_color
+            frame $d.$p.f -relief raised -background $string_color -borderwidth 0
             pack $d.$p.f -anchor w
                       
             global $this-cb-$p          
-            checkbutton $d.$p.f.check -foreground black -background $string_color -variable $this-cb-$p -command "$this update_data $p"
+            checkbutton $d.$p.f.check -foreground black -background $string_color -variable $this-cb-$p -command "$this update_data $p" -borderwidth 1
             grid $d.$p.f.check -row 0 -column 0 
             $d.$p.f.check deselect
             if {[expr $parcheck == 1]} {
               $d.$p.f.check select
             }
             
-            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -background $string_color -textbackground $string_color -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -background $string_color -textbackground $string_color -textfont paramlist_font  -borderwidth 1
             grid $d.$p.f.name -row 0 -column 3 -sticky snew
             $d.$p.f.name insert 0 $parname
             
-            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $string_color
+            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $string_color -borderwidth 1
             foreach q $partypes {
               $d.$p.f.type insert end $q
             }
             grid $d.$p.f.type -row 0 -column 2 -sticky snew
             $d.$p.f.type select $partype
             
-            iwidgets::entryfield $d.$p.f.data -width 50 -command "$this update_data $p; $this maybe_execute" -foreground black -background $string_color -textbackground $string_color  -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.data -width 50 -command "$this update_data $p; $this maybe_execute" -foreground black -background $string_color -textbackground $string_color  -textfont paramlist_font -borderwidth 1
             grid $d.$p.f.data -row 0 -column 4 -sticky snew            
             $d.$p.f.data insert 0 $pardata
 
             if {[expr [set $this-use-global] == 1]} {
-              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $string_color -textbackground $string_color -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $string_color -textbackground $string_color -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.script -row 0 -column 1 -sticky snew
               $d.$p.f.script insert 0 $parscript            
             }
@@ -199,43 +199,43 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
 
           if {[string equal $partype "filename"]} {
 
-            frame $d.$p -relief raised -background $filename_color
+            frame $d.$p -relief raised -background $filename_color  -borderwidth 0
             grid $d.$p -row [expr $p + 1] -column 0 -sticky we
 
-            frame $d.$p.f -relief raised -background $filename_color
+            frame $d.$p.f -relief raised -background $filename_color  -borderwidth 0
             pack $d.$p.f -anchor w
                       
             global $this-cb-$p          
-            checkbutton $d.$p.f.check -foreground black -background $filename_color -variable $this-cb-$p -command "$this update_data $p"
+            checkbutton $d.$p.f.check -foreground black -background $filename_color -variable $this-cb-$p -command "$this update_data $p" -borderwidth 1
             grid $d.$p.f.check -row 0 -column 0 
             $d.$p.f.check deselect
             if {[expr $parcheck == 1]} {
               $d.$p.f.check select
             }
             
-            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -background $filename_color -textbackground $filename_color -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -background $filename_color -textbackground $filename_color -textfont paramlist_font -borderwidth 1
             grid $d.$p.f.name -row 0 -column 3 -sticky snew
             $d.$p.f.name insert 0 $parname
             
-            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $filename_color
+            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $filename_color -borderwidth 1
             foreach q $partypes {
               $d.$p.f.type insert end $q
             }
             grid $d.$p.f.type -row 0 -column 2 -sticky snew
             $d.$p.f.type select $partype
             
-            frame $d.$p.f.data -width 30 -background $filename_color -bd 0
+            frame $d.$p.f.data -width 30 -background $filename_color -borderwidth 0
             grid $d.$p.f.data -row 0 -column 4 -sticky snew   
 
-            button $d.$p.f.data.browse -text "Browse" -command "$this browse_filename $p" -background $filename_color 
+            button $d.$p.f.data.browse -text "Browse" -command "$this browse_filename $p" -background $filename_color  -borderwidth 1
             grid $d.$p.f.data.browse -row 0 -column 1 -sticky snew            
 
-            iwidgets::entryfield $d.$p.f.data.filename -width 42 -command "$this update_data $p; $this maybe_execute" -foreground black -background $filename_color -textbackground $filename_color  -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.data.filename -width 42 -command "$this update_data $p; $this maybe_execute" -foreground black -background $filename_color -textbackground $filename_color  -textfont paramlist_font -borderwidth 1
             grid $d.$p.f.data.filename -row 0 -column 0 -sticky snew            
             $d.$p.f.data.filename insert 0 $pardata
 
             if {[expr [set $this-use-global] == 1]} {
-              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $filename_color -textbackground $filename_color -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $filename_color -textbackground $filename_color -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.script -row 0 -column 1 -sticky snew
               $d.$p.f.script insert 0 $parscript            
             }
@@ -243,37 +243,37 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
 
           if {[string equal $partype "scalar"]} {
 
-            frame $d.$p -relief raised -background $scalar_color
+            frame $d.$p -relief raised -background $scalar_color -borderwidth 0
             grid $d.$p -row [expr $p + 1] -column 0 -sticky we
 
-            frame $d.$p.f -relief raised -background $scalar_color
+            frame $d.$p.f -relief raised -background $scalar_color -borderwidth 0
             pack $d.$p.f -anchor w
                         
             global $this-cb-$p            
-            checkbutton $d.$p.f.check -background $scalar_color -variable $this-cb-$p -command "$this update_data $p"
+            checkbutton $d.$p.f.check -background $scalar_color -variable $this-cb-$p -command "$this update_data $p" -borderwidth 1
             grid $d.$p.f.check -row 0 -column 0 
             $d.$p.f.check deselect
             if {[expr $parcheck == 1]} {
               $d.$p.f.check select
             }
                       
-            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -foreground black -background $scalar_color -textbackground $scalar_color  -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -foreground black -background $scalar_color -textbackground $scalar_color  -textfont paramlist_font -borderwidth 1
             grid $d.$p.f.name -row 0 -column 3 -sticky snew
             $d.$p.f.name insert 0 $parname
             
-            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $scalar_color
+            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $scalar_color -borderwidth 1
             foreach q $partypes {
               $d.$p.f.type insert end $q
             }
             grid $d.$p.f.type -row 0 -column 2 -sticky snew
             $d.$p.f.type select $partype
             
-            iwidgets::entryfield $d.$p.f.data -width 10 -command "$this update_data $p; $this maybe_execute" -validate real -foreground black -background $scalar_color   -textbackground $scalar_color  -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.data -width 10 -command "$this update_data $p; $this maybe_execute" -validate real -foreground black -background $scalar_color  -textbackground $scalar_color  -textfont paramlist_font -borderwidth 1
             grid $d.$p.f.data -row 0 -column 4 -sticky snew          
             $d.$p.f.data insert 0 $pardata
 
             if {[expr [set $this-use-global] == 1]} {
-              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $scalar_color -textbackground $scalar_color -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $scalar_color -textbackground $scalar_color -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.script -row 0 -column 1 -sticky snew
               $d.$p.f.script insert 0 $parscript            
             }
@@ -281,36 +281,36 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
         
           if {[string equal $partype "vector"]} {
 
-            frame $d.$p -relief raised -background $vector_color
+            frame $d.$p -relief raised -background $vector_color -borderwidth 0
             grid $d.$p -row [expr $p + 1] -column 0 -sticky we          
 
-            frame $d.$p.f -relief raised -background $vector_color
+            frame $d.$p.f -relief raised -background $vector_color -borderwidth 0
             pack $d.$p.f -anchor w
                    
             global $this-cb-$p                 
-            checkbutton $d.$p.f.check  -background $vector_color -variable $this-cb-$p -command "$this update_data $p"
+            checkbutton $d.$p.f.check  -background $vector_color -variable $this-cb-$p -command "$this update_data $p" -borderwidth 1
             grid $d.$p.f.check -row 0 -column 0           
             $d.$p.f.check deselect
             if {[expr $parcheck == 1]} {
               $d.$p.f.check select
             }
             
-            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -foreground black -background $vector_color -textbackground $vector_color  -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -foreground black -background $vector_color -textbackground $vector_color  -textfont paramlist_font -borderwidth 1
             grid $d.$p.f.name -row 0 -column 3 -sticky snew
             $d.$p.f.name insert 0 $parname
             
-            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $vector_color 
+            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $vector_color  -borderwidth 1
             foreach q $partypes {
               $d.$p.f.type insert end $q
             }
             grid $d.$p.f.type -row 0 -column 2 -sticky snew
             $d.$p.f.type select $partype
             
-            frame $d.$p.f.data -width 30 -background $vector_color -bd 0
+            frame $d.$p.f.data -width 30 -background $vector_color -borderwidth 0
             grid $d.$p.f.data -row 0 -column 4 -sticky snew   
             
             for {set r 0} {$r < 3} {incr r} {
-              iwidgets::entryfield $d.$p.f.data.$r -command "$this update_data $p; $this maybe_execute" -width 10 -foreground black -background $vector_color -textbackground $vector_color  -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.data.$r -command "$this update_data $p; $this maybe_execute" -width 10 -foreground black -background $vector_color -textbackground $vector_color  -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.data.$r -row 0 -column $r -sticky snew             
               
               set subdata [lindex $pardata $r]
@@ -318,7 +318,7 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
             }
 
             if {[expr [set $this-use-global] == 1]} {
-              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $vector_color -textbackground $vector_color -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $vector_color -textbackground $vector_color -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.script -row 0 -column 1 -sticky snew
               $d.$p.f.script insert 0 $parscript            
             }
@@ -326,36 +326,36 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
         
           if {[string equal $partype "tensor"]} {
 
-            frame $d.$p -relief raised -background $tensor_color
+            frame $d.$p -relief raised -background $tensor_color -borderwidth 0
             grid $d.$p -row [expr $p + 1] -column 0 -sticky we          
 
-            frame $d.$p.f -relief raised -background $tensor_color
+            frame $d.$p.f -relief raised -background $tensor_color -borderwidth 0
             pack $d.$p.f -anchor w
                    
             global $this-cb-$p                 
-            checkbutton $d.$p.f.check  -background $tensor_color -variable $this-cb-$p -command "$this update_data $p"
+            checkbutton $d.$p.f.check  -background $tensor_color -variable $this-cb-$p -command "$this update_data $p" -borderwidth 1
             grid $d.$p.f.check -row 0 -column 0           
             $d.$p.f.check deselect
             if {[expr $parcheck == 1]} {
               $d.$p.f.check select
             }
             
-            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -foreground black -background $tensor_color -textbackground $tensor_color  -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -foreground black -background $tensor_color -textbackground $tensor_color  -textfont paramlist_font -borderwidth 1
             grid $d.$p.f.name -row 0 -column 3 -sticky snew
             $d.$p.f.name insert 0 $parname
             
-            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $tensor_color 
+            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $tensor_color  -borderwidth 1
             foreach q $partypes {
               $d.$p.f.type insert end $q
             }
             grid $d.$p.f.type -row 0 -column 2 -sticky snew
             $d.$p.f.type select $partype
             
-            frame $d.$p.f.data -width 30 -background $tensor_color -bd 0
+            frame $d.$p.f.data -width 30 -background $tensor_color -borderwidth 0
             grid $d.$p.f.data -row 0 -column 4 -sticky snew   
             
             for {set r 0} {$r < 6} {incr r} {
-              iwidgets::entryfield $d.$p.f.data.$r -command "$this update_data $p; $this maybe_execute" -width 10 -foreground black -background $tensor_color -textbackground $tensor_color  -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.data.$r -command "$this update_data $p; $this maybe_execute" -width 10 -foreground black -background $tensor_color -textbackground $tensor_color  -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.data.$r -row 0 -column $r -sticky snew             
               
               set subdata [lindex $pardata $r]
@@ -363,7 +363,7 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
             }
 
             if {[expr [set $this-use-global] == 1]} {
-              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $tensor_color -textbackground $tensor_color -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $tensor_color -textbackground $tensor_color -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.script -row 0 -column 1 -sticky snew
               $d.$p.f.script insert 0 $parscript                        
             }
@@ -371,41 +371,41 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
 
           if {[string equal $partype "array"]} {
 
-            frame $d.$p -relief raised -background $array_color
+            frame $d.$p -relief raised -background $array_color -borderwidth 0
             grid $d.$p -row [expr $p + 1] -column 0 -sticky we          
 
-            frame $d.$p.f -relief raised -background $array_color
+            frame $d.$p.f -relief raised -background $array_color -borderwidth 0
             pack $d.$p.f -anchor w
                    
             global $this-cb-$p                 
-            checkbutton $d.$p.f.check  -background $array_color -variable $this-cb-$p -command "$this update_data $p"
+            checkbutton $d.$p.f.check  -background $array_color -variable $this-cb-$p -command "$this update_data $p" -borderwidth 1
             grid $d.$p.f.check -row 0 -column 0           
             $d.$p.f.check deselect
             if {[expr $parcheck == 1]} {
               $d.$p.f.check select
             }
             
-            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -foreground black -background $array_color -textbackground $array_color  -textfont paramlist_font
+            iwidgets::entryfield $d.$p.f.name -width 25 -command "$this update_data $p" -foreground black -background $array_color -textbackground $array_color  -textfont paramlist_font -borderwidth 1
             grid $d.$p.f.name -row 0 -column 3 -sticky snew
             $d.$p.f.name insert 0 $parname
             
-            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $array_color 
+            iwidgets::optionmenu $d.$p.f.type -command "$this update_type $p" -foreground black -background $array_color  -borderwidth 1
             foreach q $partypes {
               $d.$p.f.type insert end $q
             }
             grid $d.$p.f.type -row 0 -column 2 -sticky snew
             $d.$p.f.type select $partype
             
-            frame $d.$p.f.data -width 30 -background $array_color -bd 0
+            frame $d.$p.f.data -width 30 -background $array_color -borderwidth 0
             grid $d.$p.f.data -row 0 -column 4 -sticky snew   
             
             set alen [llength $pardata]
-            iwidgets::entryfield $d.$p.f.data.len -command "$this update_data $p" -labeltext "#" -width 3 -foreground black -background $array_color -textbackground $array_color  -textfont paramlist_font -labelfont paramlist_font
+            iwidgets::entryfield $d.$p.f.data.len -command "$this update_data $p" -labeltext "#" -width 3 -foreground black -background $array_color -textbackground $array_color  -textfont paramlist_font -labelfont paramlist_font -borderwidth 1
             grid $d.$p.f.data.len -row 0 -column 0 -sticky snew -padx 8            
             $d.$p.f.data.len insert 0 $alen
             
             for {set r 0} {$r < $alen} {incr r} {
-              iwidgets::entryfield $d.$p.f.data.$r -command "$this update_data $p; $this maybe_execute" -width 10 -foreground black -background $array_color -textbackground $array_color  -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.data.$r -command "$this update_data $p; $this maybe_execute" -width 10 -foreground black -background $array_color -textbackground $array_color  -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.data.$r -row 0 -column [expr $r + 1] -sticky snew             
               
               set subdata [lindex $pardata $r]
@@ -413,7 +413,7 @@ itcl_class SCIRun_Bundle_CreateParameterBundle {
             }
 
             if {[expr [set $this-use-global] == 1]} {
-              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $array_color -textbackground $array_color -textfont paramlist_font
+              iwidgets::entryfield $d.$p.f.script -width 12 -command "$this update_data $p" -background $array_color -textbackground $array_color -textfont paramlist_font -borderwidth 1
               grid $d.$p.f.script -row 0 -column 1 -sticky snew
               $d.$p.f.script insert 0 $parscript                        
             }

@@ -167,6 +167,9 @@ public:
   //Re-size the Array
   void resize(size_type, size_type, size_type);
 
+  void zero()
+    { size_type sz = size(); for(size_type j=0; j<sz; j++) obj[j] = T(0); } 
+
   //////////
   //Initialize all elements to T
   void initialize(const T&);

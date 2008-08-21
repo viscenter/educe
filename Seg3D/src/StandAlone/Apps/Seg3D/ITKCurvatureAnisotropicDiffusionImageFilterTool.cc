@@ -54,7 +54,7 @@ ITKCurvatureAnisotropicDiffusionImageFilterTool::run_filter()
 {
   string name = "ITKCurvatureAnisotropic";
 
-  name = painter_->unique_layer_name(name);
+  name = painter_->unique_layer_name(name + " Diffused");
   NrrdDataHandle nrrdh = painter_->current_volume_->nrrd_handle_;
   nrrdh.detach();
   NrrdVolume *vol = new NrrdVolume(painter_, name, nrrdh);
@@ -82,6 +82,11 @@ ITKCurvatureAnisotropicDiffusionImageFilterTool::run_filter()
   filter_.start(nrrdh);
   painter_->finish_progress();
   
+  UndoHandle undo =
+    new UndoReplaceLayer(painter_, "Undo Anisotropic Diffusion",
+                         0, painter_->current_volume_, 0);
+  painter_->push_undo(undo);
+
   painter_->current_volume_->set_dirty();
   painter_->extract_all_window_slices();
   painter_->redraw_all();

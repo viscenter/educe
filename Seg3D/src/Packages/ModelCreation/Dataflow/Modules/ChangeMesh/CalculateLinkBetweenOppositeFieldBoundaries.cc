@@ -26,11 +26,11 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
-#include <Core/Datatypes/Matrix.h>
-#include <Core/Datatypes/Field.h>
+#include <Core/Algorithms/FiniteElements/Periodic/DefinePeriodicBoundaries.h>
+
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
+
 #include <Dataflow/Network/Module.h>
 
 namespace ModelCreation {
@@ -47,6 +47,8 @@ private:
   GuiInt guilinky_;
   GuiInt guilinkz_;
   GuiDouble guitol_;
+
+  SCIRunAlgo::DefinePeriodicBoundariesAlgo algo_;
   
 };
 
@@ -59,6 +61,7 @@ CalculateLinkBetweenOppositeFieldBoundaries::CalculateLinkBetweenOppositeFieldBo
   guilinkz_(get_ctx()->subVar("linkz")),
   guitol_(get_ctx()->subVar("tol"))
 {
+  algo_.set_progress_reporter(this);
 }
 
 
@@ -74,13 +77,12 @@ CalculateLinkBetweenOppositeFieldBoundaries::execute()
       guilinkz_.changed() || guitol_.changed() || !oport_cached("Field") ||
       !oport_cached("NodeLink") || !oport_cached("ElemLink"))
   {
-    const double tol = guitol_.get();
-    const bool   linkx = guilinkx_.get();
-    const bool   linky = guilinky_.get();
-    const bool   linkz = guilinkz_.get();
-
-    SCIRunAlgo::FieldsAlgo fieldsalgo(this);
-    if(!(fieldsalgo.CalculateLinkBetweenOppositeFieldBoundaries(input,NodeLink,ElemLink,tol,linkx,linky,linkz))) return;
+    algo_.set_bool("link_x_boundary",guilinkx_.get());
+    algo_.set_bool("link_y_boundary",guilinky_.get());
+    algo_.set_bool("link_z_boundary",guilinkz_.get());
+    algo_.set_scalar("tolerance",guitol_.get());
+    
+    if(!(algo_.run(input,NodeLink,ElemLink))) return;
     
     output = input->clone();
     output->set_property("NodeLink",NodeLink,false);

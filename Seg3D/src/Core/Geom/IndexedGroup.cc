@@ -42,7 +42,7 @@
 
 #include <Core/Geom/IndexedGroup.h>
 #include <Core/Util/NotFinished.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Core/Persistent/PersistentSTL.h>
 
@@ -81,13 +81,18 @@ GeomIndexedGroup::~GeomIndexedGroup()
 //----------------------------------------------------------------------
 GeomObj* GeomIndexedGroup::clone()
 {
-    return scinew GeomIndexedGroup(*this);
+    return new GeomIndexedGroup(*this);
 }
 
 //----------------------------------------------------------------------
 void GeomIndexedGroup::reset_bbox()
 {
-    NOT_FINISHED("GeomIndexedGroup::reset_bbox");
+  MapIntGeomObj::iterator itr = objs.begin();
+  while (itr != objs.end())
+  {
+    (*itr).second->reset_bbox();
+    ++itr;
+  }
 }
 
 //----------------------------------------------------------------------

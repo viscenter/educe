@@ -61,7 +61,7 @@ bool CompareFieldsAlgo::CompareFields(ProgressReporter *pr, FieldHandle field1, 
   
   // Setup dynamic files
 
-  SCIRun::CompileInfoHandle ci = scinew CompileInfo(
+  SCIRun::CompileInfoHandle ci = new CompileInfo(
     "ALGOCompareFields."+fi1.get_field_filename()+".",
     "CompareFieldsAlgo","CompareFieldsAlgoT",
     fi1.get_field_name());

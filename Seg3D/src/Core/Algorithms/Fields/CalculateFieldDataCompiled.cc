@@ -43,8 +43,10 @@
 
 #include <Core/Algorithms/Fields/CalculateFieldDataCompiled.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
-#include <Core/Containers/HashTable.h>
 #include <Core/Containers/StringUtil.h>
+
+#include <sci_hash_map.h>
+
 #include <iostream>
 
 namespace SCIRun {
@@ -125,7 +127,12 @@ get_compile_info( vector< FieldHandle >& field_input_handles,
 		  string function,
 		  int hashoffset)
 {
-  unsigned int hashval = Hash(function, 0x7fffffff) + hashoffset;
+#if defined(__ECC) || defined(_MSC_VER)
+  hash_compare<const char*> H;
+#else
+  hash<const char*> H;
+#endif
+  unsigned int hashval = H(function.c_str()) + hashoffset;
 
   // use cc_to_h if this is in the .cc file, otherwise just __FILE__
   static const string include_path(TypeDescription::cc_to_h(__FILE__));
@@ -153,7 +160,7 @@ get_compile_info( vector< FieldHandle >& field_input_handles,
   }
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_name + "." +
+    new CompileInfo(template_name + "." +
 
 		       // The file name gets too long for the file
 		       // system. But because the meshes should be the
@@ -215,7 +222,7 @@ get_compile_info( vector< FieldHandle >& field_input_handles,
     "      oField->thaw();\n" +
     "\n" +
     "    } else {\n" +
-    "      oField = scinew OFIELD(iMesh);\n" +
+    "      oField = new OFIELD(iMesh);\n" +
     "    }\n" +
     "\n" +
     "    typename LOC::iterator ibi, iei;\n" +

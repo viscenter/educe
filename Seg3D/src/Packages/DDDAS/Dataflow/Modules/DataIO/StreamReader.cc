@@ -32,7 +32,7 @@
   
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Malloc/Allocator.h>
+
 
 
 
@@ -208,8 +208,8 @@ Listener::run()
     if (sock_.accept(*s)) {
       mod_->remark("new connection accepted");
       // spawn the data handler thread, and go back to accepting.
-      DataHandler *dh = scinew DataHandler(mod_, s);
-      Thread *t = scinew Thread(dh, "StreamReader DataHandler thread.");
+      DataHandler *dh = new DataHandler(mod_, s);
+      Thread *t = new Thread(dh, "StreamReader DataHandler thread.");
       t->detach();
     } else {
       dead_ = true;
@@ -236,8 +236,8 @@ StreamReader::StreamReader(GuiContext* ctx) :
 
   if (! listener_) {
     int port = listenport_.get();
-    listener_ = scinew Listener(port, this);
-    listener_thread_ = scinew Thread(listener_, "StreamReader listener");
+    listener_ = new Listener(port, this);
+    listener_thread_ = new Thread(listener_, "StreamReader listener");
     listener_thread_->detach();
   }
   

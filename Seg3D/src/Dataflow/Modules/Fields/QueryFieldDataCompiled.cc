@@ -50,23 +50,23 @@ namespace SCIRun {
 
 class QueryFieldDataCompiled : public Module
 {
-public:
-  QueryFieldDataCompiled(GuiContext* ctx);
-  virtual ~QueryFieldDataCompiled();
+  public:
+    QueryFieldDataCompiled(GuiContext* ctx);
+    virtual ~QueryFieldDataCompiled() {}
 
-  virtual void execute();
-  virtual void tcl_command(GuiArgs& args, void* userdata);
+    virtual void execute();
+    virtual void tcl_command(GuiArgs& args, void* userdata);
 
-  virtual void presave();
-  virtual void post_read();
+    virtual void presave();
+    virtual void post_read();
 
-protected:
-  GuiString gui_output_data_type_;
-  GuiString gui_function_;
-  GuiInt    gui_number_of_datasets_;
-  GuiInt    gui_count_;
+  protected:
+    GuiString gui_output_data_type_;
+    GuiString gui_function_;
+    GuiInt    gui_number_of_datasets_;
+    GuiInt    gui_count_;
 
-  FieldHandle field_output_handle_;
+    FieldHandle field_output_handle_;
 };
 
 
@@ -82,12 +82,6 @@ QueryFieldDataCompiled::QueryFieldDataCompiled(GuiContext* ctx)
     field_output_handle_(0)
 {
 }
-
-
-QueryFieldDataCompiled::~QueryFieldDataCompiled()
-{
-}
-
 
 void
 QueryFieldDataCompiled::execute()

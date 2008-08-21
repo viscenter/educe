@@ -40,8 +40,8 @@
  *  Copyright (C) 1994 SCI Group
  */
 
-#ifndef SCI_project_Datatype_h
-#define SCI_project_Datatype_h 1
+#ifndef CORE_DATATYPES_DATATYPE_H
+#define CORE_DATATYPES_DATATYPE_H 1
 
 #include <Core/Persistent/Persistent.h>
 #include <Core/Thread/Mutex.h>

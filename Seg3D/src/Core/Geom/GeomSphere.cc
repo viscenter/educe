@@ -44,7 +44,7 @@
 #include <Core/Geom/GeomSave.h>
 #include <Core/Geom/GeomTri.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/Trig.h>
 #include <Core/Persistent/PersistentSTL.h>
 
@@ -56,7 +56,7 @@ namespace SCIRun {
 
 Persistent* make_GeomSphere()
 {
-    return scinew GeomSphere;
+    return new GeomSphere;
 }
 
 PersistentTypeID GeomSphere::type_id("GeomSphere", "GeomObj", make_GeomSphere);
@@ -105,7 +105,7 @@ void GeomSphere::adjust()
 
 GeomObj* GeomSphere::clone()
 {
-    return scinew GeomSphere(*this);
+    return new GeomSphere(*this);
 }
 
 
@@ -144,7 +144,7 @@ void GeomSphere::getnunv(int num_polygons, int &nu, int &nv) {
 
 Persistent* GeomSuperquadric::maker()
 {
-    return scinew GeomSuperquadric();
+    return new GeomSuperquadric();
 }
 
 PersistentTypeID GeomSuperquadric::type_id("GeomSuperquadric",
@@ -347,7 +347,7 @@ GeomSuperquadric::~GeomSuperquadric()
 
 GeomObj* GeomSuperquadric::clone()
 {
-    return scinew GeomSuperquadric(*this);
+    return new GeomSuperquadric(*this);
 }
 
 
@@ -376,7 +376,7 @@ void GeomSuperquadric::io(Piostream& stream)
 
 Persistent* make_GeomSpheres()
 {
-  return scinew GeomSpheres;
+  return new GeomSpheres;
 }
 
 
@@ -413,7 +413,7 @@ GeomSpheres::~GeomSpheres()
 GeomObj *
 GeomSpheres::clone()
 {
-  return scinew GeomSpheres(*this);
+  return new GeomSpheres(*this);
 }
 
 

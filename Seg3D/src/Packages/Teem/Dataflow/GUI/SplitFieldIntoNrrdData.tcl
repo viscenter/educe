@@ -33,18 +33,18 @@ itcl_class Teem_Converters_SplitFieldIntoNrrdData {
     inherit Module
 
     constructor {config} {
-        set name SplitFieldIntoNrrdData
+      set name SplitFieldIntoNrrdData
     }
 
     # Do not allow spaces in the label.
     method valid_string {ind str} {
-	set char "a"
-	
-	set char [string index $str $ind]
-	if {$ind >= 0 && [string equal $char " "]} {
-	    return 0
-	}
-	return 1
+      set char "a"
+      
+      set char [string index $str $ind]
+      if {$ind >= 0 && [string equal $char " "]} {
+          return 0
+      }
+      return 1
     }
 
     method ui {} {
@@ -52,23 +52,23 @@ itcl_class Teem_Converters_SplitFieldIntoNrrdData {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.lab -relief groove -borderwidth 2
+        sci_frame $w.lab -relief groove -borderwidth 2
 
-	pack $w.lab -side top -e y -f both -padx 5 -pady 5
-	
-	label $w.lab.label -text "Label Data:"
-	entry $w.lab.dat-label -textvariable $this-label \
-	    -validate key -validatecommand "$this valid_string %i %P"
+        pack $w.lab -side top -e y -f both -padx 5 -pady 5
+        
+        sci_label $w.lab.label -text "Label Data:"
+        sci_entry $w.lab.dat-label -textvariable $this-label \
+            -validate key -validatecommand "$this valid_string %i %P"
 
-	pack $w.lab.label $w.lab.dat-label -side left -padx 4 -pady 4
+        pack $w.lab.label $w.lab.dat-label -side left -padx 4 -pady 4
 
-	button $w.execute -text "Set Label:" -command "wm withdraw $w"
-	pack $w.execute -side top -e n -f both -padx 4 -pady 2
+        sci_button $w.execute -text "Set Label:" -command "wm withdraw $w"
+        pack $w.execute -side top -e n -f both -padx 4 -pady 2
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

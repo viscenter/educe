@@ -762,7 +762,7 @@ VolumeRenderer::draw_wireframe(bool orthographic_p)
   GLboolean lighting = glIsEnabled(GL_LIGHTING);
   glDisable(GL_LIGHTING);
   vector<TextureBrick*> bricks;
-  tex_->get_sorted_bricks(bricks, view_ray, orthographic_p);
+  tex_->get_sorted_bricks(bricks, view_ray, 0, orthographic_p);
 
   const double rate = imode_ ? irate_ : sampling_rate_;
   const Vector diag = tex_->bbox().diagonal();

@@ -31,7 +31,7 @@
 //    Date   : Mon Sep  8 09:46:49 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Containers/StringUtil.h>
@@ -95,7 +95,7 @@ UnuFlip::execute()
   nout->axis[axis_.get()].min = nin->axis[axis_.get()].min;
   nout->axis[axis_.get()].max = nin->axis[axis_.get()].max;
 
-  NrrdDataHandle out(scinew NrrdData(nout));
+  NrrdDataHandle out(new NrrdData(nout));
 
   // Copy the properties.
   out->copy_properties(nrrd_handle.get_rep());

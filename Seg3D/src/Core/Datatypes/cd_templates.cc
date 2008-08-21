@@ -41,14 +41,8 @@ find . -name "*.ii" -print | xargs cat | sort | uniq -c | sort -nr | more
  */
 
 #include <Core/Containers/LockingHandle.h>
-#include <Core/Malloc/Allocator.h>
-
-
 
 using namespace SCIRun;
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1468
-#endif
 
 #include <Core/Geometry/Tensor.h>
 #include <Core/Datatypes/ColumnMatrix.h>
@@ -58,24 +52,6 @@ using namespace SCIRun;
 #include <Core/Datatypes/PropertyManager.h>
 #include <Core/Datatypes/GenericField.h>
 #include <vector>
-
-#if !defined(__sgi)
-// Needed for optimized linux build only
-#  if 0
-template void Pio<char, char>(Piostream&, pair<char, char>&);
-template void Pio<int, int>(Piostream&, pair<int, int>&);
-template void Pio<float, float>(Piostream&, pair<float, float>&);
-template void Pio<int, double>(Piostream&, pair<int, double>&);
-template void Pio<double, double>(Piostream&, pair<double, double>&);
-template void Pio<short, short>(Piostream&, pair<short, short>&);
-template void Pio<unsigned char, unsigned char>(Piostream&, pair<unsigned char,
-		  unsigned char>&);
-template void Pio<unsigned int, unsigned int>(Piostream&, pair<unsigned int,
-		  unsigned int>&);
-template void Pio<unsigned short, unsigned short>(Piostream&, pair<unsigned short,
-		  unsigned short>&);
-#  endif
-#endif
 
 template class LockingHandle<ColumnMatrix>;
 template class LockingHandle<Matrix>;
@@ -113,7 +89,3 @@ template class Property<vector<pair<int,double> > >;
 template class Property<LockingHandle<Matrix> >;
 template class Property<LockingHandle<NrrdData> >;
 template class Property<NodeIndex<unsigned int> >;
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#  pragma reset woff 1468
-#endif

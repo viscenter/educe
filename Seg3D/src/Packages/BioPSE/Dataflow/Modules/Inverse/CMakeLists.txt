@@ -44,7 +44,7 @@ TARGET_LINK_LIBRARIES(Packages_BioPSE_Dataflow_Modules_Inverse
   Packages_BioPSE_Core_Algorithms_NumApproximation
   Packages_BioPSE_Core_Datatypes
   Core_Algorithms_Geometry
-  Core_Algorithms_Math
+  Core_Algorithms_FiniteElements
   Core_Basis
   Core_Containers
   Core_Datatypes

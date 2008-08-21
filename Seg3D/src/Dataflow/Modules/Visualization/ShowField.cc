@@ -40,9 +40,10 @@
  *  Copyright (C) 2007 SCI Institute
  */
 
-#include <Core/Malloc/Allocator.h>
+
+#include <Core/Containers/StringUtil.h>
 #include <Core/Datatypes/Field.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
@@ -82,9 +83,6 @@ protected:
   //! input ports
   int                      mesh_generation_;
   bool                     color_map_present_;
-
-  //! output port
-  GeometryOPort           *ogeom_;
 
   //! Scene graph ID's
   int                      nodes_id_;
@@ -181,7 +179,6 @@ ShowField::ShowField(GuiContext* ctx) :
   Module("ShowField", ctx, Filter, "Visualization", "SCIRun","2.0"),
   mesh_generation_(-1),
   color_map_present_(0),
-  ogeom_(0),
   nodes_id_(0),
   edges_id_(0),
   faces_id_(0),
@@ -218,7 +215,7 @@ ShowField::ShowField(GuiContext* ctx) :
   text_show_edges_(get_ctx()->subVar("text_show_edges"), 0),
   text_show_faces_(get_ctx()->subVar("text_show_faces"), 0),
   text_show_cells_(get_ctx()->subVar("text_show_cells"), 0),
-  text_material_(scinew Material(Color(0.75, 0.75, 0.75))),
+  text_material_(new Material(Color(0.75, 0.75, 0.75))),
 
   field_data_basis_type_("none"),
 
@@ -252,7 +249,7 @@ ShowField::ShowField(GuiContext* ctx) :
   cur_mesh_scale_factor_(1.0)
 {
   Color gray(0.5, 0.5, 0.5);
-  def_material_ = scinew Material(gray);
+  def_material_ = new Material(gray);
   
   render_state_[NODE] = 0;
   render_state_[EDGE] = 0;
@@ -277,7 +274,8 @@ ShowField::execute()
 
   bool update_algo = false;
 
-  ogeom_ = (GeometryOPort *)get_oport("Scene Graph");
+  GeometryOPortHandle ogeom;
+  get_oport_handle("Scene Graph",ogeom);
 
   FieldHandle fld_handle;
 
@@ -329,7 +327,7 @@ ShowField::execute()
     {
       if (fld_handle->has_virtual_interface())
       {
-        renderer_ = scinew RenderFieldV;
+        renderer_ = new RenderFieldV;
         BBox bbox = fld_handle->vmesh()->get_bounding_box();
 
         if (bbox.valid()) 
@@ -535,16 +533,16 @@ ShowField::execute()
 				    gui_nodes_resolution_.get(),
 				    render_state_[NODE] );
 
-    GeomHandle gmat = scinew GeomMaterial(mesh_geometry, def_material_);
-    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
-    if (nodes_id_) ogeom_->delObj(nodes_id_);
-    nodes_id_ = ogeom_->addObj(geom, fname +
+    GeomHandle gmat = new GeomMaterial(mesh_geometry, def_material_);
+    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
+    if (nodes_id_) ogeom->delObj(nodes_id_);
+    nodes_id_ = ogeom->addObj(geom, fname +
 			       (nodes_transparency_.get()?
 				"Transparent Nodes":"Nodes"));
   }
   else if (!(render_state_[NODE]&IS_ON))
   {
-    if (nodes_id_) ogeom_->delObj(nodes_id_);  
+    if (nodes_id_) ogeom->delObj(nodes_id_);  
     nodes_id_ = 0;
   }
 
@@ -559,16 +557,16 @@ ShowField::execute()
 				    render_state_[EDGE],
 				    approx_div_.get() );
     
-    GeomHandle gmat = scinew GeomMaterial(mesh_geometry, def_material_);
-    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
-    if (edges_id_) ogeom_->delObj(edges_id_);
-    edges_id_ = ogeom_->addObj(geom, fname +
+    GeomHandle gmat = new GeomMaterial(mesh_geometry, def_material_);
+    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
+    if (edges_id_) ogeom->delObj(edges_id_);
+    edges_id_ = ogeom->addObj(geom, fname +
 			       (edges_transparency_.get()?
 				"Transparent Edges":"Edges"));
   }
   else if (!(render_state_[EDGE]&IS_ON))
   {
-    if (edges_id_) ogeom_->delObj(edges_id_);
+    if (edges_id_) ogeom->delObj(edges_id_);
     edges_id_ = 0;
   }
 
@@ -584,16 +582,16 @@ ShowField::execute()
 				   render_state_[FACE],
 				   approx_div_.get() );
     
-    GeomHandle gmat = scinew GeomMaterial(mesh_geometry, def_material_);
-    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
-    if (faces_id_) ogeom_->delObj(faces_id_);
-    faces_id_ = ogeom_->addObj(geom, fname +
+    GeomHandle gmat = new GeomMaterial(mesh_geometry, def_material_);
+    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
+    if (faces_id_) ogeom->delObj(faces_id_);
+    faces_id_ = ogeom->addObj(geom, fname +
 			       (faces_transparency_.get()?
 				"Transparent Faces":"Faces"));
   }
   else if (!(render_state_[FACE]&IS_ON))
   {
-    if (faces_id_) ogeom_->delObj(faces_id_);
+    if (faces_id_) ogeom->delObj(faces_id_);
     faces_id_ = 0;
   }
 
@@ -616,16 +614,16 @@ ShowField::execute()
 			     text_show_cells_.get(),
 			     text_always_visible_.get());
     
-    GeomHandle gmat = scinew GeomMaterial(text_geometry, text_material_);
-    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
-    if (text_id_) ogeom_->delObj(text_id_);
-    text_id_ = ogeom_->addObj(geom, fname +
+    GeomHandle gmat = new GeomMaterial(text_geometry, text_material_);
+    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
+    if (text_id_) ogeom->delObj(text_id_);
+    text_id_ = ogeom->addObj(geom, fname +
 			      (text_backface_cull_.get()?
 			       "Culled Text Data":"Text Data"));
   }
   else if (!(render_state_[TEXT]&IS_ON))
   {
-    if (text_id_) ogeom_->delObj(text_id_);
+    if (text_id_) ogeom->delObj(text_id_);
     text_id_ = 0;
   }
 
@@ -634,7 +632,7 @@ ShowField::execute()
   clear_flag( render_state_[FACE], DIRTY);
   clear_flag( render_state_[TEXT], DIRTY);
 
-  ogeom_->flushViews();
+  ogeom->flushViews();
 }
 
 
@@ -716,16 +714,22 @@ ShowField::tcl_command(GuiArgs& args, void* userdata)
     def_material_->diffuse =
       Color(def_color_r_.get(), def_color_g_.get(), def_color_b_.get());
     def_material_->transparency = def_color_a_.get();
-    if (ogeom_) ogeom_->flushViews();
+    GeometryOPortHandle ogeom;
+    get_oport_handle("Scene Graph",ogeom);
+    if (ogeom.get_rep()) ogeom->flushViews();
   } else if (args[1] == "text_color_change") {
     text_color_r_.reset();
     text_color_g_.reset();
     text_color_b_.reset();
     text_material_->diffuse =
       Color(text_color_r_.get(), text_color_g_.get(), text_color_b_.get());
-    if( ogeom_ ) ogeom_->flushViews();
+    GeometryOPortHandle ogeom;
+    get_oport_handle("Scene Graph",ogeom);
+    if( ogeom.get_rep() ) ogeom->flushViews();
 
-  } else if (args[1] == "toggle_display_nodes") {
+  } 
+  else if (args[1] == "toggle_display_nodes") 
+  {
     // Toggle the GeomSwitches.
     nodes_on_.reset();
     if (nodes_on_.get())
@@ -735,11 +739,15 @@ ShowField::tcl_command(GuiArgs& args, void* userdata)
     }
     else if (nodes_id_)
     {
-      ogeom_->delObj(nodes_id_);
-      ogeom_->flushViews();
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Scene Graph",ogeom);
+      ogeom->delObj(nodes_id_);
+      ogeom->flushViews();
       nodes_id_ = 0;
     }
-  } else if (args[1] == "toggle_display_edges") {
+  } 
+  else if (args[1] == "toggle_display_edges") 
+  {
     // Toggle the GeomSwitch.
     edges_on_.reset();
     if (edges_on_.get())
@@ -749,11 +757,15 @@ ShowField::tcl_command(GuiArgs& args, void* userdata)
     }
     else if (edges_id_)
     {
-      ogeom_->delObj(edges_id_);
-      ogeom_->flushViews();
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Scene Graph",ogeom);
+      ogeom->delObj(edges_id_);
+      ogeom->flushViews();
       edges_id_ = 0;
     }
-  } else if (args[1] == "toggle_display_faces") {
+  } 
+  else if (args[1] == "toggle_display_faces") 
+  {
     // Toggle the GeomSwitch.
     faces_on_.reset();
     if (faces_on_.get())
@@ -763,11 +775,15 @@ ShowField::tcl_command(GuiArgs& args, void* userdata)
     }
     else if (faces_id_)
     {
-      ogeom_->delObj(faces_id_);
-      ogeom_->flushViews();
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Scene Graph",ogeom);
+      ogeom->delObj(faces_id_);
+      ogeom->flushViews();
       faces_id_ = 0;
     }
-  } else if (args[1] == "toggle_display_text"){
+  } 
+  else if (args[1] == "toggle_display_text")
+  {
     // Toggle the GeomSwitch.
     text_on_.reset();
     if ((text_on_.get()) && (text_id_ == 0))
@@ -777,34 +793,51 @@ ShowField::tcl_command(GuiArgs& args, void* userdata)
     }
     else if (!text_on_.get() && text_id_)
     {
-      ogeom_->delObj(text_id_);
-      ogeom_->flushViews();
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Scene Graph",ogeom);
+      ogeom->delObj(text_id_);
+      ogeom->flushViews();
       text_id_ = 0;
     }
-  } else if (args[1] == "rerender_all") {
+  } 
+  else if (args[1] == "rerender_all") 
+  {
     set_flag( render_state_[NODE], DIRTY);
     set_flag( render_state_[EDGE], DIRTY);
     set_flag( render_state_[FACE], DIRTY);
     set_flag( render_state_[TEXT], DIRTY);
     maybe_execute(ALL);
-  } else if (args[1] == "rerender_nodes") {
+  } 
+  else if (args[1] == "rerender_nodes") 
+  {
     set_flag( render_state_[NODE], DIRTY);
     maybe_execute(NODE);
-  } else if (args[1] == "rerender_edges") {
+  } 
+  else if (args[1] == "rerender_edges") 
+  {
     set_flag( render_state_[EDGE], DIRTY);
     maybe_execute(EDGE);
-  } else if (args[1] == "rerender_faces") {
+  } 
+  else if (args[1] == "rerender_faces") 
+  {
     set_flag( render_state_[FACE], DIRTY);
     maybe_execute(FACE);
-  } else if (args[1] == "rerender_text") {
+  } 
+  else if (args[1] == "rerender_text") 
+  {
     set_flag( render_state_[TEXT], DIRTY);
     maybe_execute(TEXT);
-
-  } else if (args[1] == "execute_policy") {
-  } else if (args[1] == "calcdefs") {
+  } 
+  else if (args[1] == "execute_policy") 
+  {
+  } 
+  else if (args[1] == "calcdefs") 
+  {
     set_default_display_values();
     maybe_execute(ALL);
-  } else {
+  } 
+  else 
+  {
     Module::tcl_command(args, userdata);
   }
 }
@@ -945,10 +978,10 @@ ShowField::post_read()
 
   if( get_gui()->get(modName+"def-color-a", val, get_ctx()) )
   {
-    double dval = atof( val.c_str() );
+    double dval;
+    from_string(val,dval);
 
     dval = dval * dval * dval * dval;
-
     val = to_string( dval );
 
     get_gui()->set(modName+"def_color-a", val, get_ctx());

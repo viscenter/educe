@@ -60,18 +60,18 @@ itcl_class SCIRun_DataArrayMath_CalculateDataArray {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w  
+        sci_toplevel $w  
 
-        iwidgets::labeledframe $w.inf -labeltext "Create Data Array"
+        sci_labeledframe $w.inf -labeltext "Create Data Array"
         set infoframe [$w.inf childsite]
-        frame $infoframe.info
+        sci_frame $infoframe.info
         pack $infoframe.info -side left
         set info $infoframe.info
-        label $info.info1 -text "Function: RESULT = function(DATA,A,B,C,...)"
-        label $info.info2 -text "Input array: DATA, A, B, C, ... (scalar,vector, or tensor)"
-        label $info.info3 -text "Output array: RESULT (scalar)"
-        label $info.info4 -text "Element index: INDEX (scalar)"
-        label $info.info5 -text "Number of elements: SIZE (scalar)"
+        sci_label $info.info1 -text "Function: RESULT = function(DATA,A,B,C,...)"
+        sci_label $info.info2 -text "Input array: DATA, A, B, C, ... (scalar,vector, or tensor)"
+        sci_label $info.info3 -text "Output array: RESULT (scalar)"
+        sci_label $info.info4 -text "Element index: INDEX (scalar)"
+        sci_label $info.info5 -text "Number of elements: SIZE (scalar)"
         grid $info.info1 -row 0 -column 0 -sticky w
         grid $info.info2 -row 1 -column 0 -sticky w
         grid $info.info3 -row 2 -column 0 -sticky w
@@ -79,7 +79,7 @@ itcl_class SCIRun_DataArrayMath_CalculateDataArray {
         grid $info.info5 -row 4 -column 0 -sticky w
         pack $w.inf -side top -anchor w -fill x
 
-        iwidgets::labeledframe $w.of -labeltext "output type"
+        sci_labeledframe $w.of -labeltext "output type"
         set otype [$w.of childsite]
         pack $w.of -side top -anchor w -fill x
         
@@ -87,17 +87,17 @@ itcl_class SCIRun_DataArrayMath_CalculateDataArray {
           {Scalar Vector Tensor} \
           $this-format
         
-        iwidgets::labeledframe $w.ff -labeltext "function"
+        sci_labeledframe $w.ff -labeltext "function"
         set function [$w.ff childsite]
         option add *textBackground white	
-        iwidgets::scrolledtext $function.function -height 60 -hscrollmode dynamic
+        sci_scrolledtext $function.function -height 60 -hscrollmode dynamic
         $function.function insert end [set $this-function]
         bind $function.function <Leave> "$this update_text"
 
         pack $w.ff -side top -anchor w -fill both 
         pack $function.function -side top -fill both 
 
-        button $w.help -text "Available Functions" -command "$this showhelp"
+        sci_button $w.help -text "Available Functions" -command "$this showhelp"
         pack $w.help -side top -anchor e      
         
         makeSciButtonPanel $w $w $this
@@ -117,12 +117,12 @@ itcl_class SCIRun_DataArrayMath_CalculateDataArray {
 	    	return
       }
 	
-      toplevel $w -class TkFDialog
+      sci_toplevel $w -class TkFDialog
 
       global $this-help
       $this-c gethelp   
             
-      iwidgets::labeledframe $w.hf -labeltext "available functions"
+      sci_labeledframe $w.hf -labeltext "available functions"
       set help [$w.hf childsite]
       option add *textBackground white	
       iwidgets::scrolledhtml $help.help -height 60 -hscrollmode dynamic -width 500p -height 300p        
@@ -133,12 +133,12 @@ itcl_class SCIRun_DataArrayMath_CalculateDataArray {
     
     
     method labelcombo { win text1 arglist var} {
-      frame $win 
+      sci_frame $win 
       pack $win -side top -padx 5
-      label $win.l1 -text $text1 \
+      sci_label $win.l1 -text $text1 \
               -anchor w -just left
-      label $win.colon  -text ":" -width 2 -anchor w -just left
-      iwidgets::optionmenu $win.c -foreground darkred \
+      sci_label $win.colon  -text ":" -width 2 -anchor w -just left
+      sci_optionmenu $win.c -foreground darkred \
         -command " $this comboget $win.c $var "
 
       set i 0
@@ -157,7 +157,7 @@ itcl_class SCIRun_DataArrayMath_CalculateDataArray {
 
       $win.c select [set $var]
 
-      label $win.l2 -text "" -width 20 -anchor w -just left
+      sci_label $win.l2 -text "" -width 20 -anchor w -just left
 
       # hack to associate optionmenus with a textvariable
       # bind $win.c <Map> "$win.c select {[set $var]}"

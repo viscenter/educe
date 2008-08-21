@@ -95,7 +95,6 @@ SET(SCIRUN_LIBRARIES
   Core_Geom
   Core_Events
   Core_Volume
-  Core_Bundle
   Core_Skinner
   Core_Matlab
   Core_Algorithms_ArrayMath

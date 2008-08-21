@@ -11,9 +11,44 @@ IF(APPLE)
     #SCIRUN_VERSION_STRING
     #CMAKE_INSTALL_PREFIX
     #SCIRUN_THIRDPARTY_DIR
-
+    IF (NBITS EQUAL 64)
+      SET(SCIRUN_BUILD_TYPE "osx-universal64")
+    ELSE (NBITS EQUAL 64)
+      SET(SCIRUN_BUILD_TYPE "osx-universal32")
+    ENDIF (NBITS EQUAL 64)
+    IF (HAVE_TETGEN)
+      SET(SCIRUN_BUILD_DIST "SCIRunWithMeshingTools_4.0")
+    ELSE(HAVE_TETGEN)  
+      SET(SCIRUN_BUILD_DIST "SCIRun_4.0")
+    ENDIF(HAVE_TETGEN)
+    
     CONFIGURE_FILE(buildApp.template.sh ${CMAKE_BINARY_DIR}/buildApp.sh
       @ONLY)
 
+    IF (NBITS EQUAL 64)
+      SET(SCIRUN_BUILD_TYPE "osx-universal64")
+    ELSE (NBITS EQUAL 64)
+      SET(SCIRUN_BUILD_TYPE "osx-universal32")
+    ENDIF (NBITS EQUAL 64)
+    SET(SCIRUN_BUILD_DIST "BioFEM_4.0")
+    SET(SCIRUN_STARTUP_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/startup-biofem.sh")
+    SET(SCIRUN_APP_NAME BioFEM.app)
+    
+    CONFIGURE_FILE(buildApp.template.sh ${CMAKE_BINARY_DIR}/buildBioFEM.sh
+      @ONLY)
+
+    IF (NBITS EQUAL 64)
+      SET(SCIRUN_BUILD_TYPE "osx-universal64")
+    ELSE (NBITS EQUAL 64)
+      SET(SCIRUN_BUILD_TYPE "osx-universal32")
+    ENDIF (NBITS EQUAL 64)
+    SET(SCIRUN_BUILD_DIST "BioTensor_4.0")
+    SET(SCIRUN_STARTUP_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/startup-biotensor.sh")
+    SET(SCIRUN_APP_NAME BioTensor.app)
+    
+    CONFIGURE_FILE(buildApp.template.sh ${CMAKE_BINARY_DIR}/buildBioTensor.sh
+      @ONLY)
+
+
   ENDIF(PLATYPUS_EXECUTABLE)
-ENDIF(APPLE)  
+ENDIF(APPLE)    

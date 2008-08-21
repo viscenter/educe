@@ -31,7 +31,7 @@
 //    Date   : Sat Feb  9 11:36:47 2002
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Algorithms/Geometry/SurfaceLaplacian.h>
 
 #include <Dataflow/Network/Ports/MatrixPort.h>

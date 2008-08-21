@@ -27,9 +27,9 @@
 */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 
-#include <Core/Bundle/Bundle.h>
+
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Field.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
@@ -74,7 +74,7 @@ void CBDCreateDomain::execute()
   if(MembraneType->is_property("NodeLink")) MembraneType->get_property("NodeLink",NodeLink);
   if(MembraneType->is_property("ElemLink")) MembraneType->get_property("ElemLink",ElemLink);
 
-  BundleHandle output = scinew Bundle();
+  BundleHandle output = new Bundle();
   if (output.get_rep() == 0)
   {
     error("Could not allocate output Bundle");
@@ -89,7 +89,7 @@ void CBDCreateDomain::execute()
   output->setMatrix("ElemLink",ElemLink);
   
   std::string sourcefile = "DomainSPRfile.c ";
-  StringHandle SourceFile = scinew String(sourcefile);
+  StringHandle SourceFile = new String(sourcefile);
   if (SourceFile.get_rep() == 0)
   {
     error("Could not allocate String");
@@ -98,7 +98,7 @@ void CBDCreateDomain::execute()
   output->setString("SourceFile",SourceFile);
   
   std::string parameters = "scale_int=1.0\nscale_ext=1.0\nscale_bath=1.0\nscale_area=1.0\n";
-  StringHandle Parameters = scinew String(parameters);
+  StringHandle Parameters = new String(parameters);
   if (Parameters.get_rep() == 0)
   {
     error("Could not allocate String");
@@ -106,7 +106,7 @@ void CBDCreateDomain::execute()
   }
   output->setString("Parameters",Parameters);
   
-  BundleHandle DomainBundle = scinew Bundle;
+  BundleHandle DomainBundle = new Bundle;
   if (DomainBundle.get_rep() == 0)
   {
     error("Could not allocate DomainBundle");

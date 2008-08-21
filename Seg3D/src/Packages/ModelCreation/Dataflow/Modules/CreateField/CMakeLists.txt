@@ -29,11 +29,8 @@
 # CMakeLists.txt for Packages/ModelCreation/Dataflow/Modules/CreateField
 
 SET(Packages_ModelCreation_Dataflow_Modules_CreateField_SRCS
-  ClipFieldByFunction.cc
-  ClipFieldByMesh.cc
   ClipFieldBySelectionMask.cc
   MergeMeshes.cc
-  SplitFieldByConnectedRegion.cc
 )
 
 SCIRUN_ADD_LIBRARY(Packages_ModelCreation_Dataflow_Modules_CreateField ${Packages_ModelCreation_Dataflow_Modules_CreateField_SRCS})
@@ -52,7 +49,6 @@ TARGET_LINK_LIBRARIES(Packages_ModelCreation_Dataflow_Modules_CreateField
   Core_Geometry
   Core_GeomInterface
   Dataflow_TkExtensions
-  Core_Algorithms_ArrayMath
   Core_Algorithms_Converter
   Core_Algorithms_Fields
   ${TK_LIBRARY}

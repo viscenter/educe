@@ -357,7 +357,7 @@ CM2View::redraw_frame()
 
   if (save_ppm_) {
     save_ppm_ = false;
-    unsigned char* img = scinew unsigned char[width() * height() * 3];
+    unsigned char* img = new unsigned char[width() * height() * 3];
     glReadBuffer(GL_BACK);
     glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
     glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
@@ -437,7 +437,7 @@ CM2View::add_rectangle_widget()
 					    widgets_.size() - 1,
 					    0, id());
   EventManager::add_event(e);
-  widgets_.push_back(scinew RectangleCM2Widget());
+  widgets_.push_back(new RectangleCM2Widget());
   EventManager::add_event(e);
   select_widget(widgets_.size() - 1, 1);
   widget_changed_notify();
@@ -451,7 +451,7 @@ CM2View::add_triangle_widget()
 					    widgets_.size() - 1,
 					    0, id());
   EventManager::add_event(e);
-  widgets_.push_back(scinew TriangleCM2Widget());
+  widgets_.push_back(new TriangleCM2Widget());
   EventManager::add_event(e);
   select_widget(widgets_.size() - 1, 1);
   widget_changed_notify();
@@ -465,7 +465,7 @@ CM2View::add_ellipsoid_widget()
 					    widgets_.size() - 1,
 					    0, id());
   EventManager::add_event(e);
-  widgets_.push_back(scinew EllipsoidCM2Widget());
+  widgets_.push_back(new EllipsoidCM2Widget());
   EventManager::add_event(e);
   select_widget(widgets_.size() - 1, 1);
   widget_changed_notify();
@@ -480,7 +480,7 @@ CM2View::add_paraboloid_widget()
 					    0, id());
   EventManager::add_event(e);
 
-  widgets_.push_back(scinew ParaboloidCM2Widget());
+  widgets_.push_back(new ParaboloidCM2Widget());
   EventManager::add_event(e);
   select_widget(widgets_.size() - 1, 1);
   widget_changed_notify();

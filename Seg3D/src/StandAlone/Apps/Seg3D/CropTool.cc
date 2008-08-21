@@ -85,35 +85,41 @@ CropTool::CropTool(Painter *painter) :
   // TODO: If the user selects a differently sized data layer after
   // starting a crop the range will be incorrect as it will match the
   // first one.  Need to reupdate the range on layer selection.
-  CropSetRangeStruct *csrs = new CropSetRangeStruct;
-  if (painter_->current_volume_.get_rep())
-  {
-    csrs->min_x = Max(minmax_[1][1]-1, 0);
-    csrs->min_y = Max(minmax_[1][2]-1, 0);
-    csrs->min_z = Max(minmax_[1][3]-1, 0);
-    csrs->max_x = minmax_[1][1];
-    csrs->max_y = minmax_[1][2];
-    csrs->max_z = minmax_[1][3];
-  }
-  else
-  {
-    // No layer selected, no range to set.  Use big rather than 0.
-    csrs->min_x = 0x7fffffff;
-    csrs->min_y = 0x7fffffff;
-    csrs->min_z = 0x7fffffff;
-    csrs->max_x = 0x7fffffff;
-    csrs->max_y = 0x7fffffff;
-    csrs->max_z = 0x7fffffff;
-  }
-  wxCommandEvent event(wxEVT_CROP_SET_RANGE, wxID_ANY);
-  event.SetClientData((void *)csrs);
   wxPanel *panel = Painter::global_seg3dframe_pointer_->CurrentToolPanel();
-  if (panel) { wxPostEvent(panel, event); }
+  if (panel)
+  {
+    CropSetRangeStruct *csrs = new CropSetRangeStruct;
+    if (painter_->current_volume_.get_rep())
+    {
+      csrs->min_x = Max(minmax_[1][1]-1, 0);
+      csrs->min_y = Max(minmax_[1][2]-1, 0);
+      csrs->min_z = Max(minmax_[1][3]-1, 0);
+      csrs->max_x = minmax_[1][1];
+      csrs->max_y = minmax_[1][2];
+      csrs->max_z = minmax_[1][3];
+    }
+    else
+    {
+      // No layer selected, no range to set.  Use big rather than 0.
+      csrs->min_x = 0x7fffffff;
+      csrs->min_y = 0x7fffffff;
+      csrs->min_z = 0x7fffffff;
+      csrs->max_x = 0x7fffffff;
+      csrs->max_y = 0x7fffffff;
+      csrs->max_z = 0x7fffffff;
+    }
+    wxCommandEvent event(wxEVT_CROP_SET_RANGE, wxID_ANY);
+    event.SetClientData((void *)csrs);
+    wxPostEvent(panel, event);
+  }
+
+  painter_->redraw_all();
 }
 
 
 CropTool::~CropTool()
 {
+  painter_->redraw_all();
 }
 
 
@@ -224,10 +230,6 @@ CropTool::process_event(event_handle_t event)
     finish();
   }
 
-  if (dynamic_cast<QuitEvent *>(event.get_rep())) {
-    return QUIT_AND_CONTINUE_E;
-  }
- 
   return CONTINUE_E;
 }
 
@@ -359,7 +361,11 @@ CropTool::draw_gl(SliceWindow &window)
 void
 CropTool::finish()
 {
-  if (!painter_->current_volume_.get_rep()) return;
+  if (!painter_->current_volume_.get_rep())
+  {
+    painter_->set_status("Crop tool requires an active volume.");
+    return;
+  }
 
   // Check for invalid crop volume, creatable with entry boxes.
   // Punt out if volume is not fixable, otherwise just fix it.
@@ -385,8 +391,10 @@ CropTool::finish()
     }
   }
 
-  if(minmax[0][2] > minmax[1][2])
-	  minmax[1][2] = minmax[0][2]+ 10;
+  if (minmax[0][2] > minmax[1][2])
+  {
+    minmax[1][2] = minmax[0][2]+ 10;
+  }
 
   NrrdDataHandle nout_handle = new NrrdData();
   if (nrrdCrop(nout_handle->nrrd_,
@@ -398,19 +406,24 @@ CropTool::finish()
     throw str;
   }
   
-  painter_->current_volume_->set_nrrd(nout_handle);
-  
-  const Point center = painter_->current_volume_->center();
-  for (unsigned int i = 0; i < painter_->windows_.size(); ++ i) {
-    painter_->windows_[i]->center_ = center;
-  }
-
   delete[] minmax[0];
   delete[] minmax[1];
-  painter_->extract_all_window_slices();
 
-  // Reset the slices to match the new volume.
-  painter_->extract_all_window_slices();
+  // Make a new cropped volume similar to the old volume.
+  NrrdVolumeHandle croppedvol =
+    new NrrdVolume(painter_, painter_->current_volume_->name_,
+                   nout_handle, painter_->current_volume_->label_);
+  if (croppedvol->label_)
+  {
+    croppedvol->set_label_color(painter_->current_volume_->get_label_color());
+  }
+  
+  // Replace the old volume with the new volume.
+  NrrdVolumeHandle oldvol = painter_->current_volume_;
+  size_t loc = painter_->remove_volume(painter_->current_volume_, false);
+  loc = loc + 1; // We're off by one for some reason.
+  painter_->insert_volume(croppedvol, loc);
+  painter_->current_volume_ = croppedvol;
 
   // Reset the volume rendering.
   if (painter_->current_volume_ == painter_->current_vrender_target_ &&
@@ -422,9 +435,27 @@ CropTool::finish()
     EventManager::add_event(lve);
   }
 
+  // Push this undo item.
+  UndoHandle undo = new UndoReplaceLayer(painter_, "Undo Crop",
+                                         oldvol, croppedvol, loc);
+  painter_->push_undo(undo);
+
+  // Center the probe on the new cropped volume.
+  const Point center = painter_->current_volume_->center();
+  for (unsigned int i = 0; i < painter_->windows_.size(); ++ i) {
+    painter_->windows_[i]->center_ = center;
+  }
+
+  // Reset the slices to match the new volume.
+  painter_->rebuild_layer_buttons();
+  painter_->extract_all_window_slices();
+  painter_->redraw_all();
+
   // Autoview to the cropped volume.
   event_handle_t empty;
   painter_->Autoview(empty);
+
+  painter_->hide_tool_panel();
 }
 
 

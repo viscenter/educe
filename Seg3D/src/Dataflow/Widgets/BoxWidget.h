@@ -76,6 +76,31 @@ public:
   void SetRatioI( const double ratio );
   double GetRatioI() const;
 
+  void RestrictTranslationXYZ()
+    { restrict_translation_rdi_ = false; 
+      restrict_translation_xyz_ = true; 
+      execute(0); }
+  void SetRestrictX( const bool val )
+    { restrict_x_ = val; execute(0); }
+  void SetRestrictY( const bool val )
+    { restrict_y_ = val; execute(0); }
+  void SetRestrictZ( const bool val )
+    { restrict_z_ = val; execute(0); }
+  void RestrictTranslationRDI()
+    { restrict_translation_rdi_ = true; 
+      restrict_translation_xyz_ = false; 
+      execute(0); }
+  void SetRestrictR( const bool val )
+    { restrict_r_ = val; execute(0); }
+  void SetRestrictD( const bool val )
+    { restrict_d_ = val; execute(0); }
+  void SetRestrictI( const bool val )
+    { restrict_i_ = val; execute(0); }
+  void UnRestrictTranslation()
+    { restrict_translation_rdi_ = false; 
+      restrict_translation_xyz_ = false; 
+      execute(0); }
+
   const Vector& GetRightAxis();
   const Vector& GetDownAxis();
   const Vector& GetInAxis();
@@ -100,6 +125,16 @@ protected:
 private:
   bool is_aligned_;
   bool is_slideable_;
+
+  bool restrict_translation_xyz_;
+  bool restrict_x_;
+  bool restrict_y_;
+  bool restrict_z_;
+  
+  bool restrict_translation_rdi_;
+  bool restrict_r_;
+  bool restrict_d_;
+  bool restrict_i_;
 
   Vector oldrightaxis, olddownaxis, oldinaxis;
   Point pick_centervar_;

@@ -40,16 +40,21 @@
  *  Copyright (C) 1994 SCI Group
  */
 
-#ifndef SCI_project_MatrixPort_h
-#define SCI_project_MatrixPort_h 1
+#ifndef DATAFLOW_NETWORK_PORTS_MATRIXPORT_H
+#define DATAFLOW_NETWORK_PORTS_MATRIXPORT_H 1
+
+#include <Core/Datatypes/Matrix.h>
+#include <Core/Containers/LockingHandle.h>
 
 #include <Dataflow/Network/Ports/SimplePort.h>
-#include <Core/Datatypes/Matrix.h>
 
 namespace SCIRun {
 
-typedef SimpleIPort<MatrixHandle> MatrixIPort;
-typedef SimpleOPort<MatrixHandle> MatrixOPort;
+typedef SimpleIPort<MatrixHandle>  MatrixIPort;
+typedef SimpleOPort<MatrixHandle>  MatrixOPort;
+typedef LockingHandle<MatrixIPort> MatrixIPortHandle;
+typedef LockingHandle<MatrixOPort> MatrixOPortHandle;
+
 
 } // End namespace SCIRun
 

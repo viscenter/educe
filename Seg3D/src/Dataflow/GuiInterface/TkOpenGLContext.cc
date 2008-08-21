@@ -35,10 +35,11 @@
  *
  */
 
+#include <slivr/ShaderProgramARB.h>
 #include <Core/Containers/StringUtil.h>
 #include <Core/Datatypes/Color.h>
 #include <Core/Exceptions/InternalError.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h> // for SWAP
 #include <Core/Thread/Thread.h>
 #include <Core/Util/Assert.h>
@@ -315,7 +316,7 @@ TkOpenGLContext::tkglCallback(Tk_Window tkwin, Window parent)
   make_current();
   ReportCapabilities();
 
-  if (!context_) throw scinew InternalError("Cannot create WGL Context", __FILE__, __LINE__);
+  if (!context_) throw new InternalError("Cannot create WGL Context", __FILE__, __LINE__);
   
   /* Just for portability, define the simplest visinfo */
   vi_->visual = DefaultVisual(display_, DefaultScreen(display_));   
@@ -330,7 +331,7 @@ TkOpenGLContext::tkglCallback(Tk_Window tkwin, Window parent)
 
   int result = Tk_SetWindowVisual(tkwin_, vi_->visual, 
 				  vi_->depth,colormap_ );
-  if (result != 1) throw scinew InternalError("Cannot set Tk Window Visual", 
+  if (result != 1) throw new InternalError("Cannot set Tk Window Visual", 
 					      __FILE__, __LINE__);
 
   SelectPalette(hDC_, ((TkWinColormap *)colormap_)->palette, TRUE);
@@ -371,11 +372,11 @@ TkOpenGLContext::make_x11_gl_context(const string &id, int visualid,
 
   mainwin_ = Tk_MainWindow(the_interp);
   if (!mainwin_) 
-    throw scinew InternalError("Cannot find main Tk window",__FILE__,__LINE__);
+    throw new InternalError("Cannot find main Tk window",__FILE__,__LINE__);
 
   display_ = Tk_Display(mainwin_);
   if (!display_) 
-    throw scinew InternalError("Cannot find X Display", __FILE__, __LINE__);
+    throw new InternalError("Cannot find X Display", __FILE__, __LINE__);
 
   screen_number_ = Tk_ScreenNumber(mainwin_);
   x11_win_  = 0;
@@ -400,13 +401,13 @@ TkOpenGLContext::make_x11_gl_context(const string &id, int visualid,
     vi_ = XGetVisualInfo(display_, VisualIDMask, &temp_vi, &n);
     if(!vi_ || n!=1) {
       throw 
-        scinew InternalError("Cannot find Visual ID #"+to_string(visualid_), 
+        new InternalError("Cannot find Visual ID #"+to_string(visualid_), 
                              __FILE__, __LINE__);
     }
   }
 
   if (!vi_) 
-    throw scinew InternalError("Cannot find Visual", __FILE__, __LINE__);
+    throw new InternalError("Cannot find Visual", __FILE__, __LINE__);
 
   colormap_ = XCreateColormap(display_, Tk_WindowId(mainwin_), 
 			      vi_->visual, AllocNone);
@@ -417,14 +418,14 @@ TkOpenGLContext::make_x11_gl_context(const string &id, int visualid,
 				   (char *) NULL);
 
   if (!tkwin_) 
-    throw scinew InternalError("Cannot create Tk Window", __FILE__, __LINE__);
+    throw new InternalError("Cannot create Tk Window", __FILE__, __LINE__);
 
 
 
   Tk_GeometryRequest(tkwin_, width, height);
   int result = Tk_SetWindowVisual(tkwin_, vi_->visual, vi_->depth, colormap_);
   if (result != 1) 
-    throw scinew InternalError("Tk_SetWindowVisual failed",__FILE__,__LINE__);
+    throw new InternalError("Tk_SetWindowVisual failed",__FILE__,__LINE__);
 
   Tk_MakeWindowExist(tkwin_);
   if (Tk_WindowId(tkwin_) == 0) {
@@ -433,7 +434,7 @@ TkOpenGLContext::make_x11_gl_context(const string &id, int visualid,
 
   x11_win_ = Tk_WindowId(tkwin_);
   if (!x11_win_) 
-    throw scinew InternalError("Cannot get Tk X11 window ID",__FILE__,__LINE__);
+    throw new InternalError("Cannot get Tk X11 window ID",__FILE__,__LINE__);
 
   XSync(display_, False);
 
@@ -443,7 +444,7 @@ TkOpenGLContext::make_x11_gl_context(const string &id, int visualid,
   }
   context_ = glXCreateContext(display_, vi_, first_context, 1);
   if (!context_) 
-    throw scinew InternalError("Cannot create GLX Context",__FILE__,__LINE__);
+    throw new InternalError("Cannot create GLX Context",__FILE__,__LINE__);
 #endif
 }
 
@@ -459,11 +460,11 @@ TkOpenGLContext::make_win32_gl_context(const string &id, int visualid,
 
   mainwin_ = Tk_MainWindow(the_interp);
   if (!mainwin_) 
-    throw scinew InternalError("Cannot find main Tk window",__FILE__,__LINE__);
+    throw new InternalError("Cannot find main Tk window",__FILE__,__LINE__);
 
   display_ = Tk_Display(mainwin_);
   if (!display_) 
-    throw scinew InternalError("Cannot find X Display", __FILE__, __LINE__);
+    throw new InternalError("Cannot find X Display", __FILE__, __LINE__);
 
   screen_number_ = Tk_ScreenNumber(mainwin_);
   x11_win_  = 0;
@@ -487,7 +488,7 @@ TkOpenGLContext::make_win32_gl_context(const string &id, int visualid,
     vi_ = XGetVisualInfo(display_, VisualIDMask, &temp_vi, &n);
     if(!vi_ || n!=1) {
       throw 
-        scinew InternalError("Cannot find Visual ID #"+to_string(visualid_), 
+        new InternalError("Cannot find Visual ID #"+to_string(visualid_), 
                              __FILE__, __LINE__);
     }
   }
@@ -497,7 +498,7 @@ TkOpenGLContext::make_win32_gl_context(const string &id, int visualid,
 				   (char *) NULL);
 
   if (!tkwin_) 
-    throw scinew InternalError("Cannot create Tk Window", __FILE__, __LINE__);
+    throw new InternalError("Cannot create Tk Window", __FILE__, __LINE__);
 
 #  ifdef HAVE_TK_SETCLASSPROCS
   Tk_ClassProcs *procsPtr;
@@ -530,7 +531,7 @@ TkOpenGLContext::make_win32_gl_context(const string &id, int visualid,
 
   x11_win_ = Tk_WindowId(tkwin_);
   if (!x11_win_) 
-    throw scinew InternalError("Cannot get Tk X11 window ID", __FILE__, __LINE__);
+    throw new InternalError("Cannot get Tk X11 window ID", __FILE__, __LINE__);
 
   XSync(display_, False);
 
@@ -649,6 +650,13 @@ if(glXGetConfig(display, &vinfo[i], attrib, &value) != 0){\
   return string(""); \
 }
 
+bool
+TkOpenGLContext::has_shaders()
+{
+  return(SLIVR::ShaderProgramARB::shaders_supported());
+}
+
+
 
 string
 TkOpenGLContext::listvisuals()
@@ -743,14 +751,6 @@ TkOpenGLContext::listvisuals()
     tag += to_string(value) + ":";
     GETCONFIG(GLX_ACCUM_ALPHA_SIZE);
     tag += to_string(value);
-#ifdef __sgi
-    tag += ", samples=";
-    GETCONFIG(GLX_SAMPLES_SGIS);
-    if(value)
-      score+=50;
-    tag += to_string(value);
-#endif
-
     tag += ", score=" + to_string(score);
     
     visualtags.push_back(tag);
@@ -762,9 +762,9 @@ TkOpenGLContext::listvisuals()
     {
       if(scores[i] < scores[j])
       {
-	SWAP(scores[i], scores[j]);
-	SWAP(visualtags[i], visualtags[j]);
-	SWAP(valid_visuals_[i], valid_visuals_[j]);
+        SWAP(scores[i], scores[j]);
+        SWAP(visualtags[i], visualtags[j]);
+        SWAP(valid_visuals_[i], valid_visuals_[j]);
       }
     }
   }

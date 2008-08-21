@@ -285,26 +285,13 @@ public:
   //! will typically not be used outside of the thread implementation.
   static bool isInitialized();
 
- 
-  //! SGI (irix 6.2-6.5.6 at least) maps page 0 for some
-  //! OpenGL registers.  This is extremely silly, because now
-  //! all programs that dereference null will not crash at
-  //! the deref, and will be much harder to debug.  The
-  //! thread library mprotects page 0 so that a deref of null
-  //! WILL crash.  However, OpenGL programs then break.  This
-  //! call unprotects page 0, making OpenGL work and also
-  //! making a deref of 0 succeed.  You should call it before
-  //! calling your first OpenGL function - usually
-  //! glXQueryExtension or glXChooseVisual, glXGetConfig or
-  //! similar.  Calling it multiple times is unncessary, but
-  //! harmless.
-  static void allow_sgi_OpenGL_page0_sillyness();
-  static void disallow_sgi_OpenGL_page0_sillyness();
-
   //! set to "exit" (or something else) so we don't have to always 
   //! wait for the user to input something
   static void setDefaultAbortMode(const char* abortMode);
+
+  static void initialize();
 private:
+
 #ifdef _WIN32
   //! in windows, we can't get around this with #define private public
   //!   since it knows which symbols at link-time are public and private.
@@ -330,7 +317,6 @@ private:
   Thread(ThreadGroup* g, const char* name);
 
   static bool initialized;
-  static void initialize();
   static void checkExit();
 
   static const char* defaultAbortMode;

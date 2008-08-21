@@ -50,7 +50,7 @@
 // SCIRun includes
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 
@@ -459,7 +459,7 @@ NrrdData * ImportNrrdFromAnalyze::join_nrrds( vector<Nrrd*> arr )
   }
 
   // Join all nrrds together into one 4D nrrd object
-  NrrdData *sciNrrd = scinew NrrdData();
+  NrrdData *sciNrrd = new NrrdData();
   sciNrrd->nrrd_ = nrrdNew();
   
   bool incr = true;

@@ -45,66 +45,66 @@ itcl_class Teem_Tend_TendEvecRGB {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	frame $w.f.options.f1 -borderwidth 2 -relief groove
-	make_labeled_radio $w.f.options.f1.evec \
-	    "Eigenvector to use" "" top 1 $this-evec \
-	    {{"Major" 0}
-		{"Medium" 1}
-		{"Minor" 2}}
-	pack $w.f.options.f1.evec -side top -expand yes -fill x
-	pack $w.f.options.f1 -side top -expand yes -fill x
+        sci_frame $w.f.options.f1 -borderwidth 2 -relief groove
+        make_labeled_radio $w.f.options.f1.evec \
+            "Eigenvector to use" "" top 1 $this-evec \
+            {{"Major" 0}
+          {"Medium" 1}
+          {"Minor" 2}}
+        pack $w.f.options.f1.evec -side top -expand yes -fill x
+        pack $w.f.options.f1 -side top -expand yes -fill x
 
-	frame $w.f.options.f2 -borderwidth 2 -relief groove
-	make_labeled_radio $w.f.options.f2.aniso_metric \
-	    "Anisotropy Metric"  "" top 1 $this-aniso_metric \
-	    {{"Westin's linear (first version)" "tenAniso_Cl1"} 
-		{"Westin's planar (first version)" "tenAniso_Cp1"} 
-		{"Westin's linear + planar (first version)" "tenAniso_Ca1"}
-		{"Westin's spherical (first version)" "tenAniso_Cs1"}
-		{"gk's anisotropy type (first version)" "tenAniso_Ct1"}
-		{"Westin's linear (second version)" "tenAniso_Cl2"}
-		{"Westin's planar (second version)" "tenAniso_Cp2"}
-		{"Westin's linear + planar (second version)" "tenAniso_Ca2"}
-		{"Westin's spherical (second version)" "tenAniso_Cs2"}
-		{"gk's anisotropy type (second version)" "tenAniso_Ct2"}
-		{"Bass+Pier's relative anisotropy" "tenAniso_RA"}
-		{"(Bass+Pier's fractional anisotropy)/sqrt(2)" "tenAniso_FA"}
-		{"volume fraction = 1-(Bass+Pier's volume ratio)" "tenAniso_VF"}
-		{"plain old trace" "tenAniso_Tr"}}
-	pack $w.f.options.f2.aniso_metric -side top -expand yes -fill x
-	pack $w.f.options.f2 -side top -expand yes -fill x
+        sci_frame $w.f.options.f2 -borderwidth 2 -relief groove
+        make_labeled_radio $w.f.options.f2.aniso_metric \
+            "Anisotropy Metric"  "" top 1 $this-aniso_metric \
+            {{"Westin's linear (first version)" "tenAniso_Cl1"} 
+          {"Westin's planar (first version)" "tenAniso_Cp1"} 
+          {"Westin's linear + planar (first version)" "tenAniso_Ca1"}
+          {"Westin's spherical (first version)" "tenAniso_Cs1"}
+          {"gk's anisotropy type (first version)" "tenAniso_Ct1"}
+          {"Westin's linear (second version)" "tenAniso_Cl2"}
+          {"Westin's planar (second version)" "tenAniso_Cp2"}
+          {"Westin's linear + planar (second version)" "tenAniso_Ca2"}
+          {"Westin's spherical (second version)" "tenAniso_Cs2"}
+          {"gk's anisotropy type (second version)" "tenAniso_Ct2"}
+          {"Bass+Pier's relative anisotropy" "tenAniso_RA"}
+          {"(Bass+Pier's fractional anisotropy)/sqrt(2)" "tenAniso_FA"}
+          {"volume fraction = 1-(Bass+Pier's volume ratio)" "tenAniso_VF"}
+          {"plain old trace" "tenAniso_Tr"}}
+        pack $w.f.options.f2.aniso_metric -side top -expand yes -fill x
+        pack $w.f.options.f2 -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.background -labeltext \
-	    "Background:" -textvariable $this-background
+        sci_entryfield $w.f.options.background -labeltext \
+          "Background:" -textvariable $this-background
         pack $w.f.options.background -side top -expand yes -fill x
-	Tooltip $w.f.options.background "Gray level to use\nfor voxels who's\nconfidence is zero"
+        Tooltip $w.f.options.background "Gray level to use\nfor voxels who's\nconfidence is zero"
 
-        iwidgets::entryfield $w.f.options.gray -labeltext \
-	    "Gray:" -textvariable $this-gray
+        sci_entryfield $w.f.options.gray -labeltext \
+          "Gray:" -textvariable $this-gray
         pack $w.f.options.gray -side top -expand yes -fill x
-	Tooltip $w.f.options.gray "Gray level to desaturate\ntowards an anisotropy"
+        Tooltip $w.f.options.gray "Gray level to desaturate\ntowards an anisotropy"
 
-        iwidgets::entryfield $w.f.options.gamma -labeltext \
-	    "Gamma:" -textvariable $this-gamma
+        sci_entryfield $w.f.options.gamma -labeltext \
+          "Gamma:" -textvariable $this-gamma
         pack $w.f.options.gamma -side top -expand yes -fill x
-	Tooltip $w.f.options.gamma "Gamma to use on color components"
+        Tooltip $w.f.options.gamma "Gamma to use on color components"
 
-        iwidgets::entryfield $w.f.options.threshold -labeltext \
-	    "Threshold:" -textvariable $this-threshold
+        sci_entryfield $w.f.options.threshold -labeltext \
+          "Threshold:" -textvariable $this-threshold
         pack $w.f.options.threshold -side top -expand yes -fill x
-	Tooltip $w.f.options.threshold "Confidence Threshold"
+        Tooltip $w.f.options.threshold "Confidence Threshold"
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

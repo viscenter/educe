@@ -30,7 +30,6 @@
 //    Date   : Tue Sep 26 18:44:34 2006
 
 #include <StandAlone/Apps/Seg3D/Painter.h>
-#include <Core/Util/Timer.h>
 
 #include <StandAlone/Apps/Seg3D/ITKNeighborhoodConnectedImageFilterTool.h>
 #include <sci_gl.h>
@@ -43,10 +42,20 @@
 
 namespace SCIRun {
 
+SeedTool::seeds_t ITKNeighborhoodConnectedImageFilterTool::seed_cache_;
+
 ITKNeighborhoodConnectedImageFilterTool::
 ITKNeighborhoodConnectedImageFilterTool(Painter *painter) :
   SeedTool("ITKNeighborhoodConnectedImageFilterTool", painter)
 {
+  seeds_ = seed_cache_;
+  painter_->redraw_all();
+}
+
+
+ITKNeighborhoodConnectedImageFilterTool::~ITKNeighborhoodConnectedImageFilterTool()
+{
+  seed_cache_ = seeds_;
 }
 
 
@@ -102,29 +111,6 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
   vector<vector<int> > todo[2];
   int current = 0;
 
-  // Add the seeds.
-  float min, max;
-  unsigned int axes = 0;
-  for (size_t i = 0; i < iseeds.size(); ++i) {
-    const float fillval =
-      srcdata[VolumeOps::index_to_offset(snrrd->nrrd_, iseeds[i])];
-
-    // Push back the seed point
-    todo[current].push_back(iseeds[i]);
-    
-    if (!axes) { axes = iseeds[i].size(); }
-
-    if (i == 0)
-    {
-      min = max = fillval;
-    }
-    else
-    {
-      min = Min(min, fillval);
-      max = Max(max, fillval);
-    }
-  }
-
   // Allocated a nrrd to mark where the flood fill has visited
   NrrdDataHandle done_handle = new NrrdData();
   size_t size[NRRD_DIM_MAX];
@@ -142,8 +128,7 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
          source_volume->nrrd_handle_->nrrd_->axis[3].size);
 
   // Copy the mask into the visited array so that it won't be visited.
-  // TODO:  Seed points aren't masked properly.
-  if (painter_->mask_volume_.get_rep())
+  if (painter_->check_for_valid_mask("Neighborhood connected image filter"))
   {
     VolumeOps::bit_copy(done_handle, 1,
                         painter_->mask_volume_->nrrd_handle_,
@@ -151,6 +136,34 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
   }
 
   unsigned char *done_data = (unsigned char *)done_handle->nrrd_->data;
+
+  // Add the seeds.
+  float min = 0, max = 0;
+  unsigned int axes = 0;
+  for (size_t i = 0; i < iseeds.size(); ++i)
+  {
+    if (!axes) { axes = iseeds[i].size(); }
+
+    const size_t offset =
+      VolumeOps::index_to_offset(snrrd->nrrd_, iseeds[i]);
+
+    const float fillval = srcdata[offset];
+    if (i == 0)
+    {
+      min = max = fillval;
+    }
+    else
+    {
+      min = Min(min, fillval);
+      max = Max(max, fillval);
+    }
+
+    // Mask this seed point.
+    if (done_data[offset]) continue;
+    
+    // Push back the seed point
+    todo[current].push_back(iseeds[i]);
+  }
 
   // Set up the progress counters.
   size_t pcounter = 0;
@@ -216,6 +229,11 @@ ITKNeighborhoodConnectedImageFilterTool::run_filter()
     }
   }
   painter_->finish_progress();
+
+  UndoHandle undo =
+    new UndoReplaceLayer(painter_, "Undo Neighborhood Connected",
+                         0, painter_->current_volume_, 0);
+  painter_->push_undo(undo);
 
   painter_->extract_all_window_slices();
   painter_->redraw_all();

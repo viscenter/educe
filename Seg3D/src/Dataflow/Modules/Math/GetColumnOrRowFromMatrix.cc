@@ -126,7 +126,7 @@ GetColumnOrRowFromMatrix::send_selection(MatrixHandle mh, int which,
   {
     if (ncopy == 1) 
     {
-      ColumnMatrix *cm = scinew ColumnMatrix(mh->ncols());
+      ColumnMatrix *cm = new ColumnMatrix(mh->ncols());
       double *data = cm->get_data();
       for (int c = 0; c<mh->ncols(); c++)
       {
@@ -136,7 +136,7 @@ GetColumnOrRowFromMatrix::send_selection(MatrixHandle mh, int which,
     } 
     else 
     {
-      DenseMatrix *dm = scinew DenseMatrix(ncopy, mh->ncols());
+      DenseMatrix *dm = new DenseMatrix(ncopy, mh->ncols());
       for (int i = 0; i < ncopy; i++)
         for (int c = 0; c < mh->ncols(); c++)
           dm->put(i, c, mh->get(which + i, c));
@@ -148,7 +148,7 @@ GetColumnOrRowFromMatrix::send_selection(MatrixHandle mh, int which,
   {
     if (ncopy == 1) 
     {
-      ColumnMatrix *cm = scinew ColumnMatrix(mh->nrows());
+      ColumnMatrix *cm = new ColumnMatrix(mh->nrows());
       double *data = cm->get_data();
       for (int r = 0; r<mh->nrows(); r++)
         data[r] = mh->get(r, which);
@@ -156,7 +156,7 @@ GetColumnOrRowFromMatrix::send_selection(MatrixHandle mh, int which,
     } 
     else 
     {
-      DenseMatrix *dm = scinew DenseMatrix(mh->nrows(), ncopy);
+      DenseMatrix *dm = new DenseMatrix(mh->nrows(), ncopy);
       for (int r = 0; r < mh->nrows(); r++)
         for (int i = 0; i < ncopy; i++)
             dm->put(r, i, mh->get(r, which + i));
@@ -168,7 +168,7 @@ GetColumnOrRowFromMatrix::send_selection(MatrixHandle mh, int which,
   //ovec->set_cache( cache );
   send_output_handle("Vector", matrix);
 
-  ColumnMatrix *selected = scinew ColumnMatrix(1);
+  ColumnMatrix *selected = new ColumnMatrix(1);
   selected->put(0, 0, (double)which);
 
   MatrixHandle stmp(selected);
@@ -355,7 +355,7 @@ GetColumnOrRowFromMatrix::execute()
       int nnrows = w->nrows();
       int nncols = mh->ncols();
       
-      dm = scinew DenseMatrix(nnrows,nncols);
+      dm = new DenseMatrix(nnrows,nncols);
       if (dm == 0)
       {
         error("Could not obtain enough memory for output matrix");
@@ -392,7 +392,7 @@ GetColumnOrRowFromMatrix::execute()
       int nncols = w->nrows();
       int nnrows = mh->nrows();
       
-      dm = scinew DenseMatrix(nnrows,nncols);
+      dm = new DenseMatrix(nnrows,nncols);
       if (dm == 0)
       {
         error("Could not obtain enough memory for output matrix");

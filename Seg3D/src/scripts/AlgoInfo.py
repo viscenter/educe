@@ -107,7 +107,10 @@ def parse_algo_info(fn) :
                     dv = float(n.getAttribute('default'))
                 elif t == 'bool'  :
                     typ = t
-                    dv = bool(n.getAttribute('default'))
+                    tmp = int(n.getAttribute('default'))
+                    dv = "false"
+                    if bool(tmp) :
+                        dv = "true"
                 elif t == 'string'  :
                     typ = t
                     dv = n.getAttribute('default')
@@ -124,6 +127,11 @@ def parse_algo_info(fn) :
         for i in inodes :
             nm = i.getAttribute('name')
             t = i.getAttribute('type')
+            if i.hasAttribute('seq') :
+                t = 'sequence(%s)' % t
+                nm = "%s_seq" % nm
+
+
             a.inputs_.append((nm, t))
         onodes = dn.getElementsByTagName('output')
         for o in onodes :

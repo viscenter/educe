@@ -83,325 +83,316 @@ itcl_class SCIRun_Visualization_ExtractIsosurface {
     }
 
     method setColor {col color colMsg} {
-	 global $color
-	 global $color-r
-	 global $color-g
-	 global $color-b
-	 set ir [expr int([set $color-r] * 65535)]
-	 set ig [expr int([set $color-g] * 65535)]
-	 set ib [expr int([set $color-b] * 65535)]
+       global $color
+       global $color-r
+       global $color-g
+       global $color-b
+       set ir [expr int([set $color-r] * 65535)]
+       set ig [expr int([set $color-g] * 65535)]
+       set ib [expr int([set $color-b] * 65535)]
 
-	 set window .ui[modname]
-	 $col config -background [format #%04x%04x%04x $ir $ig $ib]
-	 $this-c $colMsg
+       set window .ui[modname]
+       $col config -background [format #%04x%04x%04x $ir $ig $ib]
+       $this-c $colMsg
     }
 
     method addColorSelection {frame text color colMsg} {
-	 #add node color picking 
-	 global $color
-	 global $color-r
-	 global $color-g
-	 global $color-b
-	 set ir [expr int([set $color-r] * 65535)]
-	 set ig [expr int([set $color-g] * 65535)]
-	 set ib [expr int([set $color-b] * 65535)]
-	 
-	 frame $frame.colorFrame
-	 frame $frame.colorFrame.col -relief ridge -borderwidth \
-		 4 -height 0.8c -width 1.0c \
-		 -background [format #%04x%04x%04x $ir $ig $ib]
-	 
-	 set cmmd "$this raiseColor $frame.colorFrame.col $color $colMsg"
-	 button $frame.colorFrame.set_color \
-		 -text $text -command $cmmd
-	 
-	 #pack the node color frame
-	 pack $frame.colorFrame.set_color $frame.colorFrame.col -side left -padx 2
-	 pack $frame.colorFrame -side left
+       #add node color picking 
+       global $color
+       global $color-r
+       global $color-g
+       global $color-b
+       set ir [expr int([set $color-r] * 65535)]
+       set ig [expr int([set $color-g] * 65535)]
+       set ib [expr int([set $color-b] * 65535)]
+       
+       sci_frame $frame.colorFrame
+       sci_frame $frame.colorFrame.col -relief ridge -borderwidth \
+         4 -height 0.8c -width 1.0c \
+         -background [format #%04x%04x%04x $ir $ig $ib]
+       
+       set cmmd "$this raiseColor $frame.colorFrame.col $color $colMsg"
+       sci_button $frame.colorFrame.set_color \
+         -text $text -command $cmmd
+       
+       #pack the node color frame
+       pack $frame.colorFrame.set_color $frame.colorFrame.col -side left -padx 2
+       pack $frame.colorFrame -side left
     }
 
     method switch_to_active_tab {name1 name2 op} {
-	set window .ui[modname]
-	if {[winfo exists $window]} {
-	    set mf [$window.f.meth childsite]
-	    $mf.tabs view [set $this-active_tab]
-	}
+      set window .ui[modname]
+      if {[winfo exists $window]} {
+          set mf [$window.f.meth childsite]
+          $mf.tabs view [set $this-active_tab]
+      }
     }
 
     method ui {} {
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    return
-	}
-	
-	toplevel $w
-	frame $w.f 
-	pack $w.f -padx 2 -pady 2 -expand 1 -fill x
-	set n "$this-c needexecute"
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          return
+      }
+      
+      sci_toplevel $w
+      sci_frame $w.f 
+      pack $w.f -padx 2 -pady 2 -expand 1 -fill x
+      set n "$this-c needexecute"
 
-	set oldmeth [set $this-active-isoval-selection-tab]
+      set oldmeth [set $this-active-isoval-selection-tab]
 
-# Iso Value Selection Methods
-	iwidgets::labeledframe $w.f.iso -labelpos nw \
-	    -labeltext "Isovalue Selection"
-	set isf [$w.f.iso childsite]
-	global Color
-	iwidgets::tabnotebook $isf.tabs -raiseselect true -height 200 \
-	    -backdrop $Color(Basecolor)
-	pack $isf.tabs -side top -fill x -expand 1
-	pack $w.f.iso -side top -fill x -expand 1
+    # Iso Value Selection Methods
+      sci_labeledframe $w.f.iso -labelpos nw \
+          -labeltext "Isovalue Selection"
+      set isf [$w.f.iso childsite]
+      global Color
+      sci_tabnotebook $isf.tabs -raiseselect true -height 200 \
+          -backdrop $Color(Basecolor)
+      pack $isf.tabs -side top -fill x -expand 1
+      pack $w.f.iso -side top -fill x -expand 1
 
 
-###### Iso Value using slider
-	set isoslider [$isf.tabs add -label "Slider" \
-		     -command "set $this-active-isoval-selection-tab 0"]
+    ###### Iso Value using slider
+      set isoslider [$isf.tabs add -label "Slider" \
+             -command "set $this-active-isoval-selection-tab 0"]
 
-	scaleEntry2 $isoslider.isoval \
-	    [set $this-isoval-min] [set $this-isoval-max] \
-	     4c $this-isoval $this-isoval-typed
+      scaleEntry2 $isoslider.isoval \
+          [set $this-isoval-min] [set $this-isoval-max] \
+           4c $this-isoval $this-isoval-typed
 
-	iwidgets::labeledframe $isoslider.opt -labelpos nw -labeltext "Options"
-	set opt [$isoslider.opt childsite]
+      sci_labeledframe $isoslider.opt -labelpos nw -labeltext "Options"
+      set opt [$isoslider.opt childsite]
 
-	iwidgets::optionmenu $opt.update -labeltext "Update:" \
-		-labelpos w -command "$this set_update_type $opt.update"
-	$opt.update insert end "On Release" Manual Auto
-	$opt.update select [set $this-update_type]
+      sci_optionmenu $opt.update -labeltext "Update:" \
+        -labelpos w -command "$this set_update_type $opt.update"
+      $opt.update insert end "On Release" Manual Auto
+      $opt.update select [set $this-update_type]
 
-	global $this-update
-	set $this-update $opt.update
+      global $this-update
+      set $this-update $opt.update
 
-	pack $opt.update -side top -anchor w -pady 25
+      pack $opt.update -side top -anchor w -pady 25
 
-	pack $isoslider.isoval $isoslider.opt -side top -anchor w -fill x
+      pack $isoslider.isoval $isoslider.opt -side top -anchor w -fill x
 
 
 ###### Iso Value using quantity	
-	set isoquant [$isf.tabs add -label "Quantity" \
-		     -command "set $this-active-isoval-selection-tab 1"]
-	
+      set isoquant [$isf.tabs add -label "Quantity" \
+             -command "set $this-active-isoval-selection-tab 1"]
+      
 
 ###### Save the isoval-quantity since the iwidget resets it
-	global $this-isoval-quantity
-	set quantity [set $this-isoval-quantity]
-	iwidgets::spinint $isoquant.q -labeltext "Number of evenly-spaced isovals: " \
-	    -range {0 100} -step 1 \
-	    -textvariable $this-isoval-quantity \
-	    -width 10 -fixed 10 -justify right
-	
-	$isoquant.q delete 0 end
-	$isoquant.q insert 0 $quantity
+      global $this-isoval-quantity
+      set quantity [set $this-isoval-quantity]
+      sci_spinint $isoquant.q -labeltext "Number of evenly-spaced isovals: " \
+          -range {0 100} -step 1 \
+          -textvariable $this-isoval-quantity \
+          -width 10 -fixed 10 -justify right
+      
+      $isoquant.q delete 0 end
+      $isoquant.q insert 0 $quantity
 
-	frame $isoquant.f
-	label $isoquant.f.l -text "List of Isovals:"
-	entry $isoquant.f.e -width 40 -text $this-quantity-list -state disabled
-	pack $isoquant.f.l $isoquant.f.e -side left -fill both -expand 1
+      sci_frame $isoquant.f
+      sci_label $isoquant.f.l -text "List of Isovals:"
+      sci_entry $isoquant.f.e -width 40 -text $this-quantity-list -state disabled
+      pack $isoquant.f.l $isoquant.f.e -side left -fill both -expand 1
 
-	frame $isoquant.m
-	radiobutton $isoquant.m.c -text "ColorMap MinMax" \
-		-variable $this-quantity-range -value "colormap" \
-		-command "$this-c needexecute"
-	radiobutton $isoquant.m.f -text "Field MinMax" \
-		-variable $this-quantity-range -value "field" \
-		-command "$this-c needexecute"
-	radiobutton $isoquant.m.m -text "Manual" \
-		-variable $this-quantity-range -value "manual" \
-		-command "$this-c needexecute"
+      sci_frame $isoquant.m
+      sci_radiobutton $isoquant.m.c -text "ColorMap MinMax" \
+        -variable $this-quantity-range -value "colormap" \
+        -command "$this-c needexecute"
+      sci_radiobutton $isoquant.m.f -text "Field MinMax" \
+        -variable $this-quantity-range -value "field" \
+        -command "$this-c needexecute"
+      sci_radiobutton $isoquant.m.m -text "Manual" \
+        -variable $this-quantity-range -value "manual" \
+        -command "$this-c needexecute"
 
-	frame $isoquant.m.t 
-	label $isoquant.m.t.minl -text "Min"
-	entry $isoquant.m.t.mine -width 6 -text $this-quantity-min
-	label $isoquant.m.t.maxl -text "Max"
-	entry $isoquant.m.t.maxe -width 6 -text $this-quantity-max
-	bind $isoquant.m.t.mine <Return> "$this-c needexecute"
-	bind $isoquant.m.t.maxe <Return> "$this-c needexecute"
-	pack $isoquant.m.t.minl $isoquant.m.t.mine $isoquant.m.t.maxl $isoquant.m.t.maxe \
-		-side left -fill x -expand 1
+      sci_frame $isoquant.m.t 
+      sci_label $isoquant.m.t.minl -text "Min"
+      sci_entry $isoquant.m.t.mine -width 6 -text $this-quantity-min
+      sci_label $isoquant.m.t.maxl -text "Max"
+      sci_entry $isoquant.m.t.maxe -width 6 -text $this-quantity-max
+      bind $isoquant.m.t.mine <Return> "$this-c needexecute"
+      bind $isoquant.m.t.maxe <Return> "$this-c needexecute"
+      pack $isoquant.m.t.minl $isoquant.m.t.mine $isoquant.m.t.maxl $isoquant.m.t.maxe \
+        -side left -fill x -expand 1
 
-	pack $isoquant.m.c $isoquant.m.f -side top -anchor w
-	pack $isoquant.m.m $isoquant.m.t -side left -anchor w
+      pack $isoquant.m.c $isoquant.m.f -side top -anchor w
+      pack $isoquant.m.m $isoquant.m.t -side left -anchor w
 
-	frame $isoquant.t
-	radiobutton $isoquant.t.e -text "Exclusive" \
-		-variable $this-quantity-clusive -value "exclusive" \
-		-command "$this-c needexecute"
-	radiobutton $isoquant.t.i -text "Inclusive" \
-		-variable $this-quantity-clusive -value "inclusive" \
-		-command "$this-c needexecute"
+      sci_frame $isoquant.t
+      sci_radiobutton $isoquant.t.e -text "Exclusive" \
+        -variable $this-quantity-clusive -value "exclusive" \
+        -command "$this-c needexecute"
+      sci_radiobutton $isoquant.t.i -text "Inclusive" \
+        -variable $this-quantity-clusive -value "inclusive" \
+        -command "$this-c needexecute"
 
-	pack $isoquant.t.e $isoquant.t.i -side left -anchor w
+      pack $isoquant.t.e $isoquant.t.i -side left -anchor w
 
-	pack $isoquant.q $isoquant.m $isoquant.t -side top -expand 1 -fill x -pady 5
+      pack $isoquant.q $isoquant.m $isoquant.t -side top -expand 1 -fill x -pady 5
 
-	pack $isoquant.f -fill x
-
-
-###### Iso Value using list
-	set isolist [$isf.tabs add -label "List" \
-			 -command "set $this-active-isoval-selection-tab 2"]
-
-	
-	frame $isolist.f
-	label $isolist.f.l -text "List of Isovals:"
-	entry $isolist.f.e -width 40 -text $this-isoval-list
-	bind $isolist.f.e <Return> "$this-c needexecute"
-	pack $isolist.f.l $isolist.f.e -side left -fill both -expand 1
-	pack $isolist.f -fill x
+      pack $isoquant.f -fill x
 
 
-###### Iso Value using matrix
-	set isomatrix [$isf.tabs add -label "Matrix" \
-			   -command "set $this-active-isoval-selection-tab 3"]
+      ###### Iso Value using list
+      set isolist [$isf.tabs add -label "List" \
+           -command "set $this-active-isoval-selection-tab 2"]
 
-	frame $isomatrix.f
-	label $isomatrix.f.l -text "List of Isovals:"
-	entry $isomatrix.f.e -width 40 -text $this-matrix-list -state disabled
-	pack $isomatrix.f.l $isomatrix.f.e -side left -fill both -expand 1
-	pack $isomatrix.f -fill x
-
-
-# Pack the Iso Value Selection Tabs
-
-	$isf.tabs view $oldmeth
-	$isf.tabs configure -tabpos "n"
-
-	pack $isf.tabs -side top
-	pack $w.f.iso -side top
+      
+      sci_frame $isolist.f
+      sci_label $isolist.f.l -text "List of Isovals:"
+      sci_entry $isolist.f.e -width 40 -text $this-isoval-list
+      bind $isolist.f.e <Return> "$this-c needexecute"
+      pack $isolist.f.l $isolist.f.e -side left -fill both -expand 1
+      pack $isolist.f -fill x
 
 
-#  Options
+      ###### Iso Value using matrix
+      set isomatrix [$isf.tabs add -label "Matrix" \
+             -command "set $this-active-isoval-selection-tab 3"]
 
-	iwidgets::labeledframe $w.f.options -labelpos nw -labeltext "Options"
-	set opts [$w.f.options childsite]
-	
-	global $this-build_trisurf
-	checkbutton $opts.buildsurf -text "Build Output Field" \
-		-variable $this-build_trisurf
+      sci_frame $isomatrix.f
+      sci_label $isomatrix.f.l -text "List of Isovals:"
+      sci_entry $isomatrix.f.e -width 40 -text $this-matrix-list -state disabled
+      pack $isomatrix.f.l $isomatrix.f.e -side left -fill both -expand 1
+      pack $isomatrix.f -fill x
 
-	global $this-build_geom
-	frame $opts.buildgeom
 
-	checkbutton $opts.buildgeom.check -text "Build Output Geometry" \
-		-variable $this-build_geom
+      # Pack the Iso Value Selection Tabs
 
-	checkbutton $opts.buildgeom.tranps -text "Enable Transparency (Geometry Only)" \
-		-variable $this-transparency
+      $isf.tabs view $oldmeth
+      $isf.tabs configure -tabpos "n"
 
-	pack $opts.buildgeom.check $opts.buildgeom.tranps -side top -anchor w
+      pack $isf.tabs -side top
+      pack $w.f.iso -side top
 
-	pack $opts.buildsurf $opts.buildgeom \
-	    -side top -anchor w
 
-	addColorSelection $opts "Default Color" \
-	    $this-color "default_color_change"
+      #  Options
 
-	pack $w.f.options -side top -fill x -expand 1
+      sci_labeledframe $w.f.options -labelpos nw -labeltext "Options"
+      set opts [$w.f.options childsite]
+      
+      global $this-build_trisurf
+      sci_checkbutton $opts.buildsurf -text "Build Output Field" \
+        -variable $this-build_trisurf
 
-	#  Methods
-	iwidgets::labeledframe $w.f.meth -labelpos nw \
-	    -labeltext "Computation Method"
-	set mf [$w.f.meth childsite]
+      global $this-build_geom
+      sci_frame $opts.buildgeom
 
-	frame $mf.mc
-	radiobutton $mf.mc.r -text "Marching Cubes" \
-	    -variable $this-algorithm -value 0 -command "$this select-alg"
+      sci_checkbutton $opts.buildgeom.check -text "Build Output Geometry" \
+        -variable $this-build_geom
 
-	label $mf.mc.lthreads -text "Threads:"
-	entry $mf.mc.ethreads -textvar $this-np -width 3
+      sci_checkbutton $opts.buildgeom.tranps -text "Enable Transparency (Geometry Only)" \
+        -variable $this-transparency
 
-	pack $mf.mc.r -side left
-	pack $mf.mc.ethreads $mf.mc.lthreads -side right -padx 5
+      pack $opts.buildgeom.check $opts.buildgeom.tranps -side top -anchor w
 
-	bind $mf.mc.ethreads <Return> "$this select-alg"
+      pack $opts.buildsurf $opts.buildgeom \
+          -side top -anchor w
 
-	radiobutton $mf.noise -text "NOISE" \
-	    -variable $this-algorithm -value 1 -command "$this select-alg"
+      addColorSelection $opts "Default Color" \
+          $this-color "default_color_change"
 
-	pack $mf.mc -side top -anchor w -expand y -fill x
-	pack $mf.noise -side top -anchor w
+      pack $w.f.options -side top -fill x -expand 1
 
-	pack $w.f.meth -side top -fill x -expand 1
+      #  Methods
+      sci_labeledframe $w.f.meth -labelpos nw \
+          -labeltext "Computation Method"
+      set mf [$w.f.meth childsite]
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      sci_frame $mf.mc
+      sci_radiobutton $mf.mc.r1 -text "Marching Cubes (Multi Threaded)" \
+          -variable $this-num-threads -value 0 -command "$this select-alg"
+      sci_radiobutton $mf.mc.r2 -text "Marching Cubes (Single Threaded)" \
+          -variable $this-num-threads -value 1 -command "$this select-alg"
+
+      pack $mf.mc.r1 $mf.mc.r2 -side top
+
+      pack $mf.mc -side top -anchor w -expand y -fill x
+      pack $w.f.meth -side top -fill x -expand 1
+
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
     }
 
     method set-isoval {} {
-	global $this-update
+      global $this-update
 
-	set type [[set $this-update] get]
+      set type [[set $this-update] get]
 
-	if { $type == "On Release" } {
-	    eval "$this-c needexecute"
-	}
-    }
-    
+      if { $type == "On Release" } {
+          eval "$this-c needexecute"
+      }
+        }
+        
     method set-isoquant-list { vals } {
-	global $this-quantity-list
-	
-	set $this-quantity-list $vals
-    }
-    
+      global $this-quantity-list
+      
+      set $this-quantity-list $vals
+        }
+        
     method set-isomatrix-list { vals } {
-	global $this-matrix-list
-	
-	set $this-matrix-list $vals
-    }
-    
+      global $this-matrix-list
+      
+      set $this-matrix-list $vals
+        }
+        
     method orient { tab page { val 4 }} {
-	global $page
-	global $tab
-	
-	$tab.tabs configure -tabpos [$page.orient get]
+      global $page
+      global $tab
+      
+      $tab.tabs configure -tabpos [$page.orient get]
     }
 
     method select-alg {} {
-	global $this-update
+      global $this-update
 
-	set type [[set $this-update] get]
+      set type [[set $this-update] get]
 
-	if { $type != "Manual" } {
-	    eval "$this-c needexecute"
-	}
-    }
+      if { $type != "Manual" } {
+          eval "$this-c needexecute"
+      }
+        }
 
     method update_type_callback { name1 name2 op } {
-	set window .ui[modname]
-	if {[winfo exists $window]} {
-	    [set $this-update] select [set $this-update_type]
-	}
-    }
+      set window .ui[modname]
+      if {[winfo exists $window]} {
+          [set $this-update] select [set $this-update_type]
+      }
+        }
 
     method set_update_type { w } {
-	global $w
-	global $this-continuous
-	global $this-update_type
+      global $w
+      global $this-continuous
+      global $this-update_type
 
-	set $this-update_type [$w get]
-	if { [set $this-update_type] == "Auto" } {
-	    set $this-continuous 1
-	} else {
-	    set $this-continuous 0
-	}
+      set $this-update_type [$w get]
+      if { [set $this-update_type] == "Auto" } {
+          set $this-continuous 1
+      } else {
+          set $this-continuous 0
+      }
     }
 
     method update_minmax_callback { name1 name2 op } {
-	set_min_max
+      set_min_max
     }
 
     method set_min_max { } {
-	set w .ui[modname]
-	global $this-isoval-min
-	global $this-isoval-max
+      set w .ui[modname]
+      global $this-isoval-min
+      global $this-isoval-max
 
-	set min [set $this-isoval-min]
-	set max [set $this-isoval-max]
+      set min [set $this-isoval-min]
+      set max [set $this-isoval-max]
 
-	if [ expr [winfo exists $w] ] {
+      if [ expr [winfo exists $w] ] {
 
-            if { $max == $min } {
-                set max [expr $min + 1]
-            }
+                if { $max == $min } {
+                    set max [expr $min + 1]
+                }
 
 	    set lg [expr floor( log10($max-$min) ) ]
 	    set range [expr pow(10.0, $lg )]
@@ -409,7 +400,7 @@ itcl_class SCIRun_Visualization_ExtractIsosurface {
 	    set scale 1.0
 
 	    if { $lg > 5.0 } {
-		set scale [expr pow(10.0, $lg-5 )]
+        set scale [expr pow(10.0, $lg-5 )]
 	    }
 
 	    set win $w.f.iso.childsite.tabs.canvas.notebook.cs.page1.cs.isoval
@@ -426,58 +417,58 @@ itcl_class SCIRun_Visualization_ExtractIsosurface {
     }
 
     method scaleEntry2 { win start stop length var_slider var_typed } {
-	frame $win 
+        sci_frame $win 
 
-	frame $win.l
-	frame $win.r
+        sci_frame $win.l
+        sci_frame $win.r
 	
         if { $start == $stop } { 
             set stop [expr $start + 1]
         }
 
-	set lg [expr floor( log10($stop-$start) ) ]
-	set range [expr pow(10.0, $lg )]
+        set lg [expr floor( log10($stop-$start) ) ]
+        set range [expr pow(10.0, $lg )]
 
-	set scale 1.0
+        set scale 1.0
 
- 	if { $lg > 5.0 } {
-	    set scale [expr pow(10.0, $lg-5 )]
-	}
+        if { $lg > 5.0 } {
+            set scale [expr pow(10.0, $lg-5 )]
+        }
 
-	scale $win.l.s \
-	    -from $start -to $stop \
-	    -length $length \
-	    -variable $var_slider -orient horizontal -showvalue false \
-	    -command "$this updateSliderEntry $var_slider $var_typed" \
-	    -resolution [expr $range/(1.0e4*$scale)] \
-	    -tickinterval [expr ($stop - $start)]
+        sci_scale $win.l.s \
+            -from $start -to $stop \
+            -length $length \
+            -variable $var_slider -orient horizontal -showvalue false \
+            -command "$this updateSliderEntry $var_slider $var_typed" \
+            -resolution [expr $range/(1.0e4*$scale)] \
+            -tickinterval [expr ($stop - $start)]
 
-	entry $win.r.e -width 7 -text $var_typed
+        sci_entry $win.r.e -width 7 -text $var_typed
 
-	bind $win.l.s <ButtonRelease> "$this set-isoval"
+        bind $win.l.s <ButtonRelease> "$this set-isoval"
 
-	bind $win.r.e <Return> "$this manualSliderEntryReturn \
-             $start $stop $var_slider $var_typed"
-	bind $win.r.e <KeyRelease> "$this manualSliderEntry \
-             $start $stop $var_slider $var_typed"
+        bind $win.r.e <Return> "$this manualSliderEntryReturn \
+                   $start $stop $var_slider $var_typed"
+        bind $win.r.e <KeyRelease> "$this manualSliderEntry \
+                   $start $stop $var_slider $var_typed"
 
-	pack $win.l.s -side top -expand 1 -fill x -padx 5
-	pack $win.r.e -side top -padx 5 -pady 3
-	pack $win.l -side left -expand 1 -fill x
-	pack $win.r -side right -fill y
+        pack $win.l.s -side top -expand 1 -fill x -padx 5
+        pack $win.r.e -side top -padx 5 -pady 3
+        pack $win.l -side left -expand 1 -fill x
+        pack $win.r -side right -fill y
     }
 
     method updateSliderEntry {var_slider var_typed someUknownVar} {
-	global $this-continuous
-        global $var_slider
-        global $var_typed
-	set $var_typed [set $var_slider]
+        global $this-continuous
+              global $var_slider
+              global $var_typed
+        set $var_typed [set $var_slider]
 
-	if { [set $this-continuous] == 1.0 } {
-	    eval "$this-c needexecute"
-	} elseif { [set $this-update_type] == "Auto" } {
-	    set $this-continuous 1
-	}
+        if { [set $this-continuous] == 1.0 } {
+            eval "$this-c needexecute"
+        } elseif { [set $this-update_type] == "Auto" } {
+            set $this-continuous 1
+        }
     }
 
     method manualSliderEntryReturn { start stop var_slider var_typed } {

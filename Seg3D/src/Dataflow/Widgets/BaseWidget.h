@@ -49,7 +49,7 @@
 #include <Core/Geometry/Vector.h>
 #include <Core/Geom/GeomObj.h>
 #include <Core/Geom/GeomGroup.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/GeomInterface/Pickable.h>
 #include <Core/Geom/GeomPick.h>
 #include <Core/Geom/GeomSwitch.h>
@@ -160,9 +160,6 @@ protected:
   vector<GeomHandle>      picks_;
   vector<GeomMaterial*>   materials;
 
-#ifdef sgi  
-#pragma set woff 1424  // shut up sgi compiler.  
-#endif
   template <class T> T geometry(int i) {
     ASSERT(geometries[i].get_rep());
     T tmp = dynamic_cast<T>(geometries[i].get_rep());
@@ -176,9 +173,6 @@ protected:
     ASSERT(p);
     return p;
   }
-#ifdef sgi  
-#pragma reset woff 1424  // shut up sgi compiler.  
-#endif
 
   enum {Mode0=0,Mode1,Mode2,Mode3,Mode4,Mode5,Mode6,Mode7,Mode8,Mode9};
   vector<long>        modes;

@@ -273,6 +273,19 @@ VolumeOps::extract_label_from_segmentation(NrrdDataHandle &label,
 }
 
 
+template<class T>
+static void
+templated_threshold(T *src, label_type *dst, size_t size,
+                    unsigned int dbit, float minval, float maxval)
+{
+  for (size_t i = 0; i < size; ++i, ++dst, ++src)
+  {
+    if (*src >= minval && *src <= maxval) { *dst |= dbit; }
+    else { *dst &= ~dbit; }
+  }
+}
+
+
 void
 VolumeOps::threshold(NrrdDataHandle &dnrrd, unsigned int dbit,
                      NrrdDataHandle &snrrd, float minval, float maxval)
@@ -280,14 +293,124 @@ VolumeOps::threshold(NrrdDataHandle &dnrrd, unsigned int dbit,
   const size_t ssize = nrrd_elem_count(snrrd);
   const size_t dsize = nrrd_elem_count(dnrrd);
   ASSERT(ssize == dsize);
-  ASSERT(snrrd->nrrd_->type == nrrdTypeFloat);
   ASSERT(dnrrd->nrrd_->type == LabelNrrdType);
-
-  float *src = (float *)snrrd->nrrd_->data;
   label_type *dst = (label_type *)dnrrd->nrrd_->data;
-  for (size_t i = 0; i < dsize; ++i, ++dst, ++src) {
-    if (*src >= minval && *src <= maxval) { *dst |= dbit; }
-    else { *dst &= ~dbit; }
+
+  switch (snrrd->nrrd_->type) {
+  case nrrdTypeChar:
+    templated_threshold((char *)snrrd->nrrd_->data, dst, ssize,
+                        dbit, minval, maxval);
+    break;
+  case nrrdTypeUChar:
+    templated_threshold((unsigned char *)snrrd->nrrd_->data, dst, ssize,
+                        dbit, minval, maxval);
+    break;
+  case nrrdTypeShort:
+    templated_threshold((short *)snrrd->nrrd_->data, dst, ssize,
+                        dbit, minval, maxval);
+    break;
+  case nrrdTypeUShort:
+    templated_threshold((unsigned short *)snrrd->nrrd_->data, dst, ssize,
+                        dbit, minval, maxval);
+    break;
+  case nrrdTypeInt:
+    templated_threshold((int *)snrrd->nrrd_->data, dst, ssize,
+                        dbit, minval, maxval);
+    break;
+  case nrrdTypeUInt:
+    templated_threshold((unsigned int *)snrrd->nrrd_->data, dst, ssize,
+                        dbit, minval, maxval);
+    break;
+  case nrrdTypeFloat:
+    templated_threshold((float *)snrrd->nrrd_->data, dst, ssize,
+                        dbit, minval, maxval);
+    break;
+  case nrrdTypeDouble:
+    templated_threshold((double *)snrrd->nrrd_->data, dst, ssize,
+                        dbit, minval, maxval);
+    break;
+  default:
+    ASSERTFAIL("Unsupported data type.");
+  }
+}
+
+
+template<class T>
+static void
+templated_mask_data(T *dst, T *src, label_type *mask, size_t size,
+                    unsigned int mbit, T newval)
+{
+  for (size_t i = 0; i < size; ++i)
+  {
+    dst[i] = (mask[i] & mbit) ? src[i] : newval;
+  }
+}
+
+
+void
+VolumeOps::mask_data(NrrdDataHandle &dnrrd, NrrdDataHandle &snrrd,
+                     NrrdDataHandle &mnrrd, unsigned int mbit, float newval)
+{
+  const size_t dsize = VolumeOps::nrrd_elem_count(dnrrd);
+  const size_t ssize = VolumeOps::nrrd_elem_count(snrrd);
+  const size_t msize = VolumeOps::nrrd_elem_count(mnrrd);
+  ASSERT(dsize == msize && ssize == dsize);
+  ASSERT(mnrrd->nrrd_->type == LabelNrrdType);
+  ASSERT(dnrrd->nrrd_->type == snrrd->nrrd_->type);
+
+  label_type *mask = (label_type *)mnrrd->nrrd_->data;
+
+  switch (snrrd->nrrd_->type) {
+  case nrrdTypeChar:
+    templated_mask_data((char *)snrrd->nrrd_->data,
+                        (char *)snrrd->nrrd_->data,
+                        mask, ssize, mbit,
+                        (char)newval);
+    break;
+  case nrrdTypeUChar:
+    templated_mask_data((unsigned char *)snrrd->nrrd_->data,
+                        (unsigned char *)snrrd->nrrd_->data,
+                        mask, ssize, mbit,
+                        (unsigned char)newval);
+    break;
+  case nrrdTypeShort:
+    templated_mask_data((short *)snrrd->nrrd_->data,
+                        (short *)snrrd->nrrd_->data,
+                        mask, ssize, mbit,
+                        (short)newval);
+    break;
+  case nrrdTypeUShort:
+    templated_mask_data((unsigned short *)snrrd->nrrd_->data,
+                        (unsigned short *)snrrd->nrrd_->data,
+                        mask, ssize, mbit,
+                        (unsigned short)newval);
+    break;
+  case nrrdTypeInt:
+    templated_mask_data((int *)snrrd->nrrd_->data,
+                        (int *)snrrd->nrrd_->data,
+                        mask, ssize, mbit,
+                        (int)newval);
+    break;
+  case nrrdTypeUInt:
+    templated_mask_data((unsigned int *)snrrd->nrrd_->data,
+                        (unsigned int *)snrrd->nrrd_->data,
+                        mask, ssize, mbit,
+                        (unsigned int)newval);
+    break;
+  case nrrdTypeFloat:
+    templated_mask_data((float *)snrrd->nrrd_->data,
+                        (float *)snrrd->nrrd_->data,
+                        mask, ssize, mbit,
+                        (float)newval);
+    break;
+  case nrrdTypeDouble:
+    templated_mask_data((double *)snrrd->nrrd_->data,
+                        (double *)snrrd->nrrd_->data,
+                        mask, ssize, mbit,
+                        (double)newval);
+    break;
+  default:
+    ASSERTFAIL("Unsupported data type.");
   }
 }
 
@@ -309,8 +432,7 @@ VolumeOps::create_clear_nrrd(NrrdDataHandle &inh, unsigned int type)
 
 
 NrrdDataHandle
-VolumeOps::create_nrrd(NrrdDataHandle &inh,
-                       unsigned int type)
+VolumeOps::create_nrrd(NrrdDataHandle &inh, unsigned int type)
 {
   Nrrd *src = inh->nrrd_;
 

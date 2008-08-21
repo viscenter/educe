@@ -37,8 +37,10 @@
  
 
 #include <Core/SystemCall/SystemCallManager.h> 
-#include <Core/OS/Dir.h>
+#include <Core/Util/Dir.h>
 #include <signal.h>
+
+#include <Core/SystemCall/share.h>
 
 namespace SCIRun {
 
@@ -273,7 +275,7 @@ int SystemCallManager::exec(std::string command)
     if (child_in_ < 0) throw (SystemCallError("SystemManager has not been opened",0,SCE_NOSYSMANAGER));
     if (child_out_ < 0) throw (SystemCallError("SystemManager has not been opened",0,SCE_NOSYSMANAGER));
     
-    SystemCallProcess* proc = scinew SystemCallProcess(processidcnt_++);    
+    SystemCallProcess* proc = new SystemCallProcess(processidcnt_++);    
     
     // The following communication protocol assumes that the communication with the child over 
     // internal pipes is pretty robust. If this communication fails, the child is not properly
@@ -936,12 +938,14 @@ void SystemCallManager::killall()
 #endif    
 }
 
+/*
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
 #  undef SCISHARE
 #  define SCISHARE __declspec(dllexport)
 #else
 #  define SCISHARE
 #endif
+*/
 
 SCISHARE SystemCallManager*    systemcallmanager_;
 

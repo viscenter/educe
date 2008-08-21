@@ -47,17 +47,16 @@ namespace SCIRun {
 template class GenericWriter<ColorMap2Handle>;
 
 class WriteColorMap2D : public GenericWriter<ColorMap2Handle> {
-protected:
-  GuiString gui_types_;
-  GuiString gui_exporttype_;
+  protected:
+    GuiString gui_types_;
+    GuiString gui_exporttype_;
 
-  virtual bool call_exporter(const string &filename);
+    virtual bool call_exporter(const string &filename);
 
-public:
-  WriteColorMap2D(GuiContext* ctx);
-  virtual ~WriteColorMap2D();
-
-  virtual void execute();
+  public:
+    WriteColorMap2D(GuiContext* ctx);
+    virtual ~WriteColorMap2D() {}
+    virtual void execute();
 };
 
 
@@ -76,19 +75,11 @@ WriteColorMap2D::WriteColorMap2D(GuiContext* ctx)
   gui_types_.set(exporttypes);
 }
 
-
-WriteColorMap2D::~WriteColorMap2D()
-{
-}
-
-
 bool
 WriteColorMap2D::call_exporter(const string &/*filename*/)
 {
   return false;
 }
-
-
 
 void
 WriteColorMap2D::execute()
@@ -106,7 +97,5 @@ WriteColorMap2D::execute()
 
   GenericWriter<ColorMap2Handle>::execute();
 }
-
-
 
 } // End namespace SCIRun

@@ -54,7 +54,7 @@
 #include <Core/Datatypes/QuadSurfMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <StandAlone/convert/FileUtils.h>
 #include <Core/Init/init.h>
 

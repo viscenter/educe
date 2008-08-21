@@ -43,7 +43,7 @@
 #include <sci_gl.h>
 
 #ifdef _WIN32
-#  include <Core/OS/Rand.h>
+#  include <Core/Util/Rand.h>
 #endif
 
 namespace SCIRun {

@@ -47,7 +47,7 @@ void
 AlgoCallBackList::do_callbacks()
 {
   std::list<AlgoCallBack*>::iterator it = callbacks_.begin();
-  while (it != callbacks_.end()) (*it)->callback();
+  while (it != callbacks_.end()) { (*it)->callback(); ++it; }
 }
   
 

@@ -29,7 +29,7 @@
 
 #include <Dataflow/Network/Module.h>
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/String.h>
 #include <Core/Datatypes/Matrix.h>
@@ -40,11 +40,11 @@
 #include <Packages/CardioWaveInterface/Core/XML/SynapseXML.h>
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <sstream>
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h> 
+ 
 
 namespace CardioWaveInterface {
 
@@ -124,7 +124,7 @@ void DMDAddStimulus::execute()
     
     if (StimulusBundle.get_rep() == 0)
     {
-      StimulusBundle = scinew Bundle();
+      StimulusBundle = new Bundle();
       if (StimulusBundle.get_rep() == 0)
       {
         error("Could not allocate new stimulus bundle");
@@ -179,7 +179,7 @@ void DMDAddStimulus::execute()
     }
 
     BundleHandle Stimulus;
-    Stimulus = scinew Bundle();
+    Stimulus = new Bundle();
     if (Stimulus.get_rep() == 0)
     {
       error("Could not allocate new stimulus bundle");
@@ -224,10 +224,10 @@ void DMDAddStimulus::execute()
     Stimulus->setMatrix("FieldDensity",FieldDensity);
     Stimulus->setMatrix("UseElements",UseElements);
 
-    StringHandle SourceFile = scinew String("StimFile.c ");
+    StringHandle SourceFile = new String("StimFile.c ");
     Stimulus->setString("SourceFile",SourceFile);
 
-    StringHandle Parameters = scinew String("");
+    StringHandle Parameters = new String("");
     Stimulus->setString("Parameters",Parameters);
 
     // Send new data downstream:

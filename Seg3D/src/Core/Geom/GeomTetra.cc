@@ -44,7 +44,7 @@
 #include <Core/Util/NotFinished.h>
 #include <Core/Geom/GeomLine.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::ostream;
 
@@ -52,7 +52,7 @@ namespace SCIRun {
 
 Persistent* make_GeomTetra()
 {
-    return scinew GeomTetra(Point(0,0,0), Point(0,0,1), Point(0,1,0), Point(1,0,0));
+    return new GeomTetra(Point(0,0,0), Point(0,0,1), Point(0,1,0), Point(1,0,0));
 }
 
 PersistentTypeID GeomTetra::type_id("GeomTetra", "GeomObj", make_GeomTetra);
@@ -74,7 +74,7 @@ GeomTetra::~GeomTetra()
 
 GeomObj* GeomTetra::clone()
 {
-    return scinew GeomTetra(*this);
+    return new GeomTetra(*this);
 }
 
 void GeomTetra::get_bounds(BBox& bb)

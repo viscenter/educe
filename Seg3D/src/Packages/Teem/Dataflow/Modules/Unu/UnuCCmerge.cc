@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -100,7 +100,7 @@ UnuCCmerge::execute()
     free(err);
   }
 
-  NrrdDataHandle out(scinew NrrdData(nout));
+  NrrdDataHandle out(new NrrdData(nout));
 
   send_output_handle("OutputNrrd", out);
 }

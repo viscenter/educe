@@ -54,8 +54,11 @@
 #include <Core/Basis/Constant.h>
 #include <Core/Basis/TetLinearLgn.h>
 #include <Core/Datatypes/TetVolMesh.h>
+#include <Core/Datatypes/Matrix.h>
+#include <Core/Datatypes/SparseRowMatrix.h>
+
 #include <Core/Datatypes/GenericField.h>
-#include <Core/Algorithms/Math/MathAlgo.h>
+#include <Core/Algorithms/FiniteElements/BuildMatrix/BuildFEMatrix.h>
 #include <iostream>
 
 
@@ -145,11 +148,12 @@ void
 OptimizeConductivities::build_basis_matrices()
 {
   MatrixHandle FEM;
-  MatrixHandle cond =  scinew ColumnMatrix(NDIM_);
+  MatrixHandle cond =  new ColumnMatrix(NDIM_);
   cond->zero();
   
-  SCIRunAlgo::MathAlgo numericalgo(this);
-  if(!(numericalgo.BuildFEMatrix(mesh_in_,FEM,-1,cond))) return;
+  SCIRunAlgo::BuildFEMatrixAlgo fealgo;
+  fealgo.set_progress_reporter(this);
+  if(!(fealgo.run(mesh_in_,cond,FEM))) return;
   
   AmatH_ = FEM;
   AmatH_.detach();
@@ -159,7 +163,7 @@ OptimizeConductivities::build_basis_matrices()
   {
     cond->put(i,0,1.0);
 
-    if(!(numericalgo.BuildFEMatrix(mesh_in_,FEM,-1,cond))) return;
+    if(!(fealgo.run(mesh_in_,cond,FEM))) return;
     SparseRowMatrix *m = dynamic_cast<SparseRowMatrix*>(FEM.get_rep());
     data_basis_[i].resize(m->nnz);
     for (Matrix::index_type j=0; j<m->nnz; j++)

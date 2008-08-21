@@ -44,13 +44,13 @@ itcl_class SCIRun_Math_AppendMatrix {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
     
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
         
-        radiobutton $w.f.b1 -text "Append rows" -variable $this-row-or-column -value "row"
-        radiobutton $w.f.b2 -text "Append columns" -variable $this-row-or-column -value "column"
+        sci_radiobutton $w.f.b1 -text "Append rows" -variable $this-row-or-column -value "row"
+        sci_radiobutton $w.f.b2 -text "Append columns" -variable $this-row-or-column -value "column"
         
         grid $w.f.b1 -column 0 -row 0 -sticky w
         grid $w.f.b2 -column 0 -row 1 -sticky w

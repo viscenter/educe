@@ -29,6 +29,9 @@
 # CMakeLists.txt for Packages/FusionPSE/Dataflow/Modules/Fields
 
 SET(Packages_FusionPSE_Dataflow_Modules_Fields_SRCS
+  SubsampleGTCMesh.cc
+  CreateGTCMeshConnections.cc
+  GetFieldZeroCrossings.cc
   StreamlineAnalyzer.cc
   StreamlineAnalyzerLib.cc
 )

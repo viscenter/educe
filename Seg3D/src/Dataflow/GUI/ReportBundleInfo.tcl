@@ -50,13 +50,13 @@ itcl_class SCIRun_Bundle_ReportBundleInfo {
 
         # create a new gui window
 
-        toplevel $w 
+        sci_toplevel $w 
 
-        iwidgets::labeledframe $w.frame -labeltext "BUNDLE CONTENTS"
+        sci_labeledframe $w.frame -labeltext "BUNDLE CONTENTS"
         set childframe [$w.frame childsite]
         pack $w.frame -fill both -expand yes
 
-        iwidgets::scrolledlistbox $childframe.listbox -selectmode single -width 500p -height 300p
+        sci_scrolledlistbox $childframe.listbox -selectmode single -width 500p -height 300p
         $childframe.listbox component listbox configure -listvariable $this-tclinfostring
         pack $childframe.listbox -fill both -expand yes
 

@@ -37,6 +37,7 @@ using namespace SCIRun;
 class ProjectPointsOntoMesh : public Module {
 public:
   ProjectPointsOntoMesh(GuiContext*);
+  virtual ~ProjectPointsOntoMesh() {}
   virtual void execute();
   
 private:

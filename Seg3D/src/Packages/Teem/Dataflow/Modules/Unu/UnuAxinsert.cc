@@ -31,7 +31,7 @@
 //    Date   : Mon Sep  8 09:46:49 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Containers/StringUtil.h>
@@ -97,7 +97,7 @@ UnuAxinsert::execute()
     nout->axis[axis].label = airStrdup(label_.get().c_str());
   }
 
-  NrrdDataHandle out(scinew NrrdData(nout));
+  NrrdDataHandle out(new NrrdData(nout));
 
   // Copy the properties.
   out->copy_properties(nrrd_handle.get_rep());

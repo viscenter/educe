@@ -46,6 +46,10 @@
 #include <Core/Datatypes/FieldVIndex.h>
 #include <Core/Datatypes/FieldVIterator.h>
 
+#include <Core/Geometry/Point.h>
+#include <Core/Geometry/Vector.h>
+#include <Core/Geometry/Tensor.h>
+
 //! Need the environment
 #include <Core/Util/Environment.h>
 
@@ -93,7 +97,7 @@ public:
   typedef SCIRun::index_type                 index_type;
   typedef SCIRun::index_type                 size_type;
   typedef std::vector<index_type>            array_type;
-  typedef vector<size_type>                   dimension_type;
+  typedef vector<size_type>                  dimension_type;
 
 
   //! Constructor
@@ -144,8 +148,11 @@ public:
     NODE_LOCATE_E		= 1 << 10,
     ELEM_LOCATE_E		= 1 << 11,
     LOCATE_E		= NODE_LOCATE_E | ELEM_LOCATE_E,
-    EPSILON_E = 1 << 12
-
+    EPSILON_E = 1 << 12,
+    BOUNDING_BOX_E = 1 << 12,
+    FIND_CLOSEST_NODE_E		= 1 << 13,
+    FIND_CLOSEST_ELEM_E		= 1 << 14,
+    FIND_CLOSEST_E = FIND_CLOSEST_NODE_E | FIND_CLOSEST_ELEM_E
   };
 
   virtual bool synchronize(mask_type) { return false; };
@@ -185,16 +192,7 @@ public:
     if (vmesh()) return (true);
     return false;
   }  
-  
-  //! Check whether we should deallocate acceleration tables after use.
-  //! These tables can take up a large amount of memory, but can speed up
-  //! the software as well. This function retrieves the settings from the
-  //! environment.
-  bool deallocate_tables_after_use() { return (deallocate_tables_after_use_); }
-  
-  private:
-    bool deallocate_tables_after_use_;
-  
+    
 };
 
 

@@ -199,7 +199,7 @@ main(int argc, char **argv) {
   }
 
   //   TVMesh::handle_type tvmH(tvm);
-  //   TVField *tv = scinew TVField(tvmH);
+  //   TVField *tv = new TVField(tvmH);
 
   //   for (i=0; i<nnodes; i++)
   //     tv->fdata()[i]=vals[i];

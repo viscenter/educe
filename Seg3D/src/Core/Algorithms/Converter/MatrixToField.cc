@@ -28,9 +28,9 @@
 
 #include <Core/Algorithms/Converter/MatrixToField.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Basis/NoData.h>
 #include <Core/Basis/Constant.h>
@@ -58,8 +58,8 @@ bool MatrixToFieldAlgo::MatrixToField(ProgressReporter* pr, MatrixHandle input, 
   
   if (datalocation == "Node")
   {
-    ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = scinew ImageMesh<QuadBilinearLgn<Point> >(m,n,Point(static_cast<double>(m),0.0,0.0),Point(0.0,static_cast<double>(n),0.0));
-    GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<double>, FData2d<double, ImageMesh<QuadBilinearLgn<Point> > > >* field = scinew GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<double>, FData2d<double, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
+    ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = new ImageMesh<QuadBilinearLgn<Point> >(m,n,Point(static_cast<double>(m),0.0,0.0),Point(0.0,static_cast<double>(n),0.0));
+    GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<double>, FData2d<double, ImageMesh<QuadBilinearLgn<Point> > > >* field = new GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<double>, FData2d<double, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
     output = dynamic_cast<Field *>(field);
     ImageMesh<QuadBilinearLgn<Point> >::Node::iterator it, it_end;
     mesh_handle->begin(it);
@@ -72,8 +72,8 @@ bool MatrixToFieldAlgo::MatrixToField(ProgressReporter* pr, MatrixHandle input, 
   }
   else if (datalocation == "Element")
   {
-    ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = scinew ImageMesh<QuadBilinearLgn<Point> >(m+1,n+1,Point(static_cast<double>(m+1),0.0,0.0),Point(0.0,static_cast<double>(n+1),0.0));
-    GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<double>, FData2d<double, ImageMesh<QuadBilinearLgn<Point> > > >* field = scinew GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<double>, FData2d<double, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
+    ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = new ImageMesh<QuadBilinearLgn<Point> >(m+1,n+1,Point(static_cast<double>(m+1),0.0,0.0),Point(0.0,static_cast<double>(n+1),0.0));
+    GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<double>, FData2d<double, ImageMesh<QuadBilinearLgn<Point> > > >* field = new GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<double>, FData2d<double, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
     output = dynamic_cast<Field *>(field);
     ImageMesh<QuadBilinearLgn<Point> >::Elem::iterator it, it_end;
     mesh_handle->begin(it);

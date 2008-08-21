@@ -103,7 +103,8 @@ public:
   inline void set_bbox(const BBox& bbox) { bbox_ = bbox; }
   inline const Transform &transform() const { return transform_; }
   inline void set_transform(Transform tform) { transform_ = tform; }
-  
+
+  // TODO:  This is being called with is_orthographic in the wrong slot. fix.
   void get_sorted_bricks(vector<TextureBrick*>& bricks,
 			 const Ray& view, 
 			 int idx = 0, 

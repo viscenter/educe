@@ -83,9 +83,9 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
   FSRC *ifield = dynamic_cast<FSRC*>(input.get_rep());
 
   typename FSRC::mesh_handle_type imesh = ifield->get_typed_mesh();
-  typename FDST::mesh_handle_type omesh = scinew typename FDST::mesh_type();
+  typename FDST::mesh_handle_type omesh = new typename FDST::mesh_type();
 
-  FDST *ofield = scinew FDST(omesh.get_rep());
+  FDST *ofield = new FDST(omesh.get_rep());
   output = dynamic_cast<Field *>(ofield);
   output->copy_properties(input.get_rep());
 
@@ -121,8 +121,8 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
     return(false);
   }
 
-  std::vector<unsigned int> nodemap(numnodes,static_cast<unsigned int>(numnodes));
-  std::vector<unsigned int> elemmap;
+  std::vector<Field::index_type> nodemap(numnodes,static_cast<Field::index_type>(numnodes));
+  std::vector<Field::index_type> elemmap;
 
   typename FSRC::mesh_type::Elem::iterator bi, ei;
  
@@ -140,8 +140,8 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
       typename FSRC::mesh_type::Node::array_type onodes;
       imesh->get_nodes(onodes, *(bi));
 
-      int counter = 0;
-      for (unsigned int i = 0; i < onodes.size(); i++)
+      size_t counter = 0;
+      for (size_t i = 0; i < onodes.size(); i++)
       {
         if (selmask[onodes[i]]) counter++;
       }
@@ -167,14 +167,14 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
       // Add this element to the new mesh.
       typename FDST::mesh_type::Node::array_type nnodes(onodes.size());
 
-      for (unsigned int i = 0; i<onodes.size(); i++)
+      for (size_t i = 0; i<onodes.size(); i++)
       {
         if (nodemap[static_cast<unsigned int>(onodes[i])] == numnodes)
         {
           Point np;
           imesh->get_center(np, onodes[i]);
           const typename FDST::mesh_type::Node::index_type nodeindex = omesh->add_point(np);
-          nodemap[static_cast<unsigned int>(onodes[i])] = static_cast<unsigned int>(nodeindex);
+          nodemap[static_cast<Field::index_type>(onodes[i])] = static_cast<Field::index_type>(nodeindex);
           nnodes[i] = nodeindex;
           if (ifield->basis_order() == 1)
           {
@@ -185,14 +185,14 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
         }
         else
         {
-          nnodes[i] = static_cast<typename FDST::mesh_type::Node::index_type>(nodemap[static_cast<unsigned int>(onodes[i])]);
+          nnodes[i] = static_cast<typename FDST::mesh_type::Node::index_type>(nodemap[static_cast<Field::index_type>(onodes[i])]);
         }
       }
 
       typename FDST::mesh_type::Elem::index_type eidx = omesh->add_elem(nnodes);
       if (ifield->basis_order() == 0)
       {
-        elemmap.push_back(static_cast<unsigned int>(*bi));
+        elemmap.push_back(static_cast<Field::index_type>(*bi));
         typename FSRC::value_type val;
         ifield->value(val,*bi);
         ofield->fdata().push_back(val);
@@ -204,11 +204,11 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
 
   if (ifield->basis_order() == 1)
   {
-    const int nrows = static_cast<int>(ofield->fdata().size());
-    const int ncols = static_cast<int>(numnodes);
-    int *rr = scinew int[nrows+1];
-    int *cc = scinew int[nrows];
-    double *d = scinew double[nrows];
+    const Matrix::size_type nrows = static_cast<Matrix::size_type>(ofield->fdata().size());
+    const Matrix::size_type ncols = static_cast<Matrix::size_type>(numnodes);
+    Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+    Matrix::index_type *cc = new Matrix::index_type[nrows];
+    double *d = new double[nrows];
     if ((rr ==0)||(cc==0)||(d==0))
     {
       if (rr) delete[] rr;
@@ -218,8 +218,8 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
       return(false);
     }
 
-    int k = 0;
-    for (int p=0; p < static_cast<int>(numnodes); p++)
+    Matrix::index_type k = 0;
+    for (Matrix::index_type p=0; p < static_cast<Matrix::index_type>(numnodes); p++)
     {
       if (nodemap[p] != numnodes)
       {
@@ -227,7 +227,7 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
       }    
     }
   
-    int i;
+    Matrix::index_type i;
     for (i = 0; i < nrows; i++)
     {
       rr[i] = i;
@@ -235,15 +235,15 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
     }
     rr[i] = i; // An extra entry goes on the end of rr.
 
-    interpolant = dynamic_cast<Matrix *>(scinew SparseRowMatrix(nrows, ncols, rr, cc, nrows, d));
+    interpolant = dynamic_cast<Matrix *>(new SparseRowMatrix(nrows, ncols, rr, cc, nrows, d));
   }
   else if (ifield->basis_order() == 0)
   {
-    const int nrows = elemmap.size();
-    const int ncols = numelems;
-    int *rr = scinew int[nrows+1];
-    int *cc = scinew int[nrows];
-    double *d = scinew double[nrows];
+    const Matrix::size_type nrows = elemmap.size();
+    const Matrix::size_type ncols = numelems;
+    Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+    Matrix::index_type *cc = new Matrix::index_type[nrows];
+    double *d = new double[nrows];
     if ((rr ==0)||(cc==0)||(d==0))
     {
       pr->error("ClipFieldBySelectionMask: Could not allocate Interpolant Matrix");
@@ -262,7 +262,7 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
       cc[i] = elemmap[i];
     }
 
-    int j;
+    Matrix::index_type j;
     for (j = 0; j < nrows; j++)
     {
       rr[j] = j;
@@ -270,7 +270,7 @@ bool ClipBySelectionMaskAlgoT<FSRC,FDST>::ClipBySelectionMask(ProgressReporter *
     }
     rr[j] = j; // An extra entry goes on the end of rr
 
-    interpolant = dynamic_cast<Matrix *>(scinew SparseRowMatrix(nrows, ncols, rr, cc, nrows, d));
+    interpolant = dynamic_cast<Matrix *>(new SparseRowMatrix(nrows, ncols, rr, cc, nrows, d));
   }
   else
   {

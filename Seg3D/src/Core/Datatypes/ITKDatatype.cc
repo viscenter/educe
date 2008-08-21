@@ -38,7 +38,7 @@
 //  Copyright (C) 2001 SCI Institute
 
 #include <Core/Datatypes/ITKDatatype.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 
 
@@ -47,7 +47,7 @@ using std::cerr;
 namespace SCIRun {
 
 static Persistent* make_ITKDatatype() {
-  return scinew ITKDatatype;
+  return new ITKDatatype;
 }
 
 PersistentTypeID ITKDatatype::type_id("ITKDatatype", "Datatype", make_ITKDatatype);

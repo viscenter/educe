@@ -42,10 +42,25 @@ namespace SCIRun {
 class Painter;
 class SliceWindow;
   
-class KeyToolSelectorTool : public KeyTool {
+class SliceWindowKeyToolSelectorTool : public KeyTool {
 public:
-  KeyToolSelectorTool(Painter *painter);
-  virtual ~KeyToolSelectorTool();
+  SliceWindowKeyToolSelectorTool(Painter *painter);
+  virtual ~SliceWindowKeyToolSelectorTool();
+
+  virtual propagation_state_e  key_press(string key, int keyval,
+					 unsigned int modifiers,
+					 unsigned int time);
+  
+protected:
+  Painter *           painter_;
+  ToolManager &       tm_;
+};
+
+
+class GlobalKeyToolSelectorTool : public KeyTool {
+public:
+  GlobalKeyToolSelectorTool(Painter *painter);
+  virtual ~GlobalKeyToolSelectorTool();
 
   virtual propagation_state_e  key_press(string key, int keyval,
 					 unsigned int modifiers,

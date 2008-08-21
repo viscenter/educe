@@ -35,10 +35,10 @@
 #include <Core/Math/MiscMath.h>
 #include <Core/Geom/GeomResourceManager.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include   <string>
 #include   <iostream>
-#include <sgi_stl_warnings_on.h>
+
 
 using std::cerr;
 using std::endl;

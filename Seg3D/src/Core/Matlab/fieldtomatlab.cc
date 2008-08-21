@@ -39,33 +39,9 @@ namespace MatlabIO {
 using namespace std;
 using namespace SCIRun;
 
-CompileInfoHandle
-FieldToMatlabAlgo::get_compile_info(SCIRun::FieldHandle field)
+
+FieldToMatlabAlgo::~FieldToMatlabAlgo()
 {
-  const TypeDescription *fieldTD = field->get_type_description();
-
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("FieldToMatlabAlgoT");
-  static const string base_class_name("FieldToMatlabAlgo");
-  
-  // Everything we did is in the MatlabIO namespace so we need to add this
-  // Otherwise the dynamically code generator will not sgenerate a "using namespace ...."
-  static const string name_space_name("MatlabIO");
-
-  // Supply the dynamic compiler with enough information to build a file in the
-  // on-the-fly libs which will have the templated function in there
-  string filename = template_class_name + "." + fieldTD->get_filename() + ".";
-  CompileInfoHandle ci = 
-    scinew CompileInfo(filename,base_class_name,template_class_name,fieldTD->get_name());
-
-  // Add in the include path to compile this obj
-  ci->add_include(include_path); 
-  // Add the MatlabIO namespace
-  ci->add_namespace(name_space_name);
-  // Fill out any other default values
-  fieldTD->fill_compile_info(ci.get_rep());
-  return(ci);
 }
 
 

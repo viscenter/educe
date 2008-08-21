@@ -33,7 +33,7 @@
 
 
 
-<component name="CalculateFieldDataCompiled" category="ChangeFieldData">
+<component name="CalculateFieldDataCompiled" category="ChangeFieldData" dynamic="true">
   <overview>
     <authors>
       <author>Michael Callahan</author>

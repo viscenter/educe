@@ -32,10 +32,10 @@
 #include <Core/Util/soloader.h>
 #include <Core/Util/Environment.h>
 #include <Core/Thread/Mutex.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <iostream>
 #include <string>
-#include <sgi_stl_warnings_on.h>
+
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
@@ -75,7 +75,7 @@ void* GetLibrarySymbolAddress(const string libname, const string symbolname, str
   
   dl_lock_.lock();  
   // If an error occured retrieve this one before we unlock
-  LibraryHandle = dlopen(name.c_str(), RTLD_LAZY|RTLD_GLOBAL);
+  LibraryHandle = dlopen(name.c_str(), RTLD_NOW|RTLD_GLOBAL);
   if (LibraryHandle == 0) { char *msg = dlerror();  if(msg) errormsg = string(msg); }
 
   dl_lock_.unlock();
@@ -85,7 +85,7 @@ void* GetLibrarySymbolAddress(const string libname, const string symbolname, str
     // dlopen of absolute path failed...  Perhaps they have a DYLD_LIBRARY_PATH var set...
     // If so, if we try again without the path, then maybe it will succeed...
     dl_lock_.lock();
-    LibraryHandle = dlopen(libname.c_str(), RTLD_LAZY|RTLD_GLOBAL);
+    LibraryHandle = dlopen(libname.c_str(), RTLD_NOW|RTLD_GLOBAL);
     if (LibraryHandle == 0) { char *msg = dlerror();  if(msg) errormsg = string(msg); }
     dl_lock_.unlock();
   }
@@ -269,15 +269,13 @@ LIBRARY_HANDLE GetLibraryHandle(const string libname,string& errormsg)
     }
     else
     {
-//      if (SCIRun::sci_getenv_p("SCI_REGRESSION_TESTING")) cerr << "LOADING: " << name << "\n";
-      lh = dlopen(name.c_str(), RTLD_LAZY|RTLD_GLOBAL);
-//      if (SCIRun::sci_getenv_p("SCI_REGRESSION_TESTING")) cerr << "LOADING DONE\n";
+      lh = dlopen(name.c_str(), RTLD_NOW|RTLD_GLOBAL);
       scirun_open_libs_[libname] = lh;
     }
   }
   else
   {
-    lh = dlopen(NULL, RTLD_LAZY|RTLD_GLOBAL);
+    lh = dlopen(NULL, RTLD_NOW|RTLD_GLOBAL);
   }
   
   if (lh == 0) { char *msg = dlerror();  if(msg) errormsg = string(msg); }

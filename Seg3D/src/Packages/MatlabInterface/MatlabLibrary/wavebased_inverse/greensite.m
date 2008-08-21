@@ -1,4 +1,4 @@
-function X_reg=greensite_l_curve(A,Y,trunc_deg)
+function X_reg=greensite(A,Y,trunc_deg)
 % Function to calculate the Greensite inverse solution
 %   A - forward matrix
 %   Y - data
@@ -8,24 +8,26 @@ function X_reg=greensite_l_curve(A,Y,trunc_deg)
 
 % set the default truncation degree to 10
 if nargin < 3
-    trunc_deg = 10;
+    trunc_deg = 10
 end
 
 % 'whiten' the data using SVD
 % use reg_tools if available
-if exist('csvd')
-    [U,S,V]=csvd(Y'*Y);
-    [Ua,Sa,Va]=csvd(A,0);        
+% 03/12/08 AVK - for now use built in SVD
+%if exist('csvd')
+%    [U,S,V]=csvd(Y'*Y);
+%    [Ua,Sa,Va]=csvd(A,0);     
     
 % otherwise use built in SVD
-else
+%else
     [U,S,V]=svd(Y'*Y);
     [Ua,Sa,Va]=svd(A,0);
-end
+%end
 
 trans_Y=Y*U;
 sa=diag(Sa);
 Ua_trans_Y=Ua'*trans_Y;
+
 
 % calculate regularized solution for each frame
 % until the truncation degree is reached

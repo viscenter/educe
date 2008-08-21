@@ -154,6 +154,9 @@ def write_param_file(algo_info, outpath) :
         i = 0
         for pname, ptype in algo_info.inputs_ :
             t = 'size_t'
+            if ptype[:8] == 'sequence' :
+                t = 'vector<size_t>'
+                ptype = ptype[9:-1]
             pn = change_string_format(ptype) + '_id%d' % i
             if ptype == 'String' :
                 t = "string"

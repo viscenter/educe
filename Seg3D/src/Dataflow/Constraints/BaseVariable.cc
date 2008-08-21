@@ -208,7 +208,7 @@ BaseVariable::printc( ostream& os, const Index c )
 
 /******* Miscellaneous Functions *******/
 
-char*
+const char*
 PriorityString( const VPriority p )
 {
    static char temp[20];
@@ -226,7 +226,7 @@ PriorityString( const VPriority p )
 }
 
 
-char*
+const char*
 SchemeString( const Scheme s )
 {
    static char temp[20];

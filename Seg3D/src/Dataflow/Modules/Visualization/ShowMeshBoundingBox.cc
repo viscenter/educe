@@ -147,13 +147,13 @@ ShowMeshBoundingBox::execute()
     if (bounding_vector_) delete bounding_vector_;
     if (bounding_min_) delete bounding_min_;
 
-    GeomLines* lines = scinew GeomLines;
+    GeomLines* lines = new GeomLines;
     lines->setLineWidth(1.0);
-    GeomSwitch *cage_switch = scinew GeomSwitch(scinew GeomDL(lines));
+    GeomSwitch *cage_switch = new GeomSwitch(new GeomDL(lines));
 
-    MaterialHandle red = scinew Material(Color(1.0, 0.0, 0.0));
-    MaterialHandle green = scinew Material(Color(0.0, 1.0, 0.0));
-    MaterialHandle blue = scinew Material(Color(0.0, 0.0, 1.0));
+    MaterialHandle red = new Material(Color(1.0, 0.0, 0.0));
+    MaterialHandle green = new Material(Color(0.0, 1.0, 0.0));
+    MaterialHandle blue = new Material(Color(0.0, 0.0, 1.0));
 
     // for Image and LatVols have the field cage coordinates 
     // correspond to the exact corner cooords
@@ -260,8 +260,8 @@ ShowMeshBoundingBox::execute()
       add_lines(p1, p2, p4, red, lines, x_incr, xn-1);
       add_lines(p2, p3, p1, green, lines, y_incr, yn-1);
     } else {
-      bounding_vector_ = scinew Vector();
-      bounding_min_ = scinew Point();
+      bounding_vector_ = new Vector();
+      bounding_min_ = new Point();
 
       *bounding_vector_ = fld_handle->mesh()->get_bounding_box().diagonal();
       *bounding_min_ = fld_handle->mesh()->get_bounding_box().min();

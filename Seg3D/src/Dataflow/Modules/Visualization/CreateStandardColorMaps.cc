@@ -61,7 +61,7 @@ DESCRIPTION
 
 #include <Dataflow/Network/Module.h> 
 #include <Dataflow/Network/Ports/ColorMapPort.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <math.h>
 #include <vector>
@@ -108,39 +108,37 @@ DESCRIPTION
 class CreateStandardColorMaps : public Module { 
   class StandardColorMap;
   
-public: 
-  
+  public: 
+    // GROUP: Constructors: 
+    ////////// 
+    // Contructor taking 
+    // [in] string as an identifier
+    CreateStandardColorMaps(GuiContext* ctx); 
 
-  // GROUP: Constructors: 
-  ////////// 
-  // Contructor taking 
-  // [in] string as an identifier
-  CreateStandardColorMaps(GuiContext* ctx); 
+    // GROUP: Destructors: 
+    ////////// 
+    // Destructor
+    virtual ~CreateStandardColorMaps() {}
 
-  // GROUP: Destructors: 
-  ////////// 
-  // Destructor
-  virtual ~CreateStandardColorMaps(); 
+    ////////// 
+    // execution scheduled by scheduler   
+    virtual void execute(); 
 
-  ////////// 
-  // execution scheduled by scheduler   
-  virtual void execute(); 
+  private:
+    ColorMapHandle genMap(const string& s, int res, double gamma, bool faux);
 
-private:
-  ColorMapHandle genMap(const string& s, int res, double gamma, bool faux);
+    ColorMapHandle cmap_out_handle_;
 
-  ColorMapHandle cmap_out_handle_;
-
-  GuiString gui_map_name_;
-  GuiDouble gui_gamma_;
-  GuiInt gui_resolution_;
-  GuiInt gui_reverse_;
-  GuiInt gui_faux_;
-  GuiString gui_position_list_;
-  GuiString gui_node_list_;
-  GuiInt gui_width_;
-  GuiInt gui_height_;
-  
+    GuiString gui_map_name_;
+    GuiDouble gui_gamma_;
+    GuiInt gui_resolution_;
+    GuiInt gui_reverse_;
+    GuiInt gui_faux_;
+    GuiString gui_position_list_;
+    GuiString gui_node_list_;
+    GuiInt gui_width_;
+    GuiInt gui_height_;
+    
 }; //!class CreateStandardColorMaps
 
 
@@ -160,12 +158,6 @@ CreateStandardColorMaps::CreateStandardColorMaps(GuiContext* ctx)
 { 
 } 
 
-
-CreateStandardColorMaps::~CreateStandardColorMaps()
-{
-} 
-
-
 void CreateStandardColorMaps::execute() 
 {
   string tclRes;
@@ -181,10 +173,10 @@ void CreateStandardColorMaps::execute()
       gui_position_list_.changed( true ) ||
       gui_node_list_.changed( true ) ) {
     
-    update_state(Executing);
+      update_state(Executing);
 
-    cmap_out_handle_ =
-      genMap(tclRes, gui_resolution_.get(), gui_gamma_.get(), gui_faux_.get());
+      cmap_out_handle_ =
+        genMap(tclRes, gui_resolution_.get(), gui_gamma_.get(), gui_faux_.get());
   }
 
   send_output_handle( "ColorMap", cmap_out_handle_, true );
@@ -260,7 +252,7 @@ CreateStandardColorMaps::genMap(const string& s, int res, double gamma, bool fau
     }
     
     TCLTask::unlock();
-    return scinew ColorMap(rgbs, rgbT, alphas, alphaT, res);
+    return new ColorMap(rgbs, rgbT, alphas, alphaT, res);
   }
 }
 

@@ -26,19 +26,11 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-/*
- *  WriteBundle.cc:
- *
- *  Written by:
- *   jeroen
- *   TODAY'S DATE HERE
- *
- */
+#include <Core/Datatypes/Bundle.h>
 
-#include <Core/Bundle/Bundle.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Modules/DataIO/GenericWriter.h>
 
 using namespace SCIRun;
@@ -46,15 +38,14 @@ using namespace std;
 
 
 class WriteBundle  : public GenericWriter<BundleHandle> {
-public:
-  WriteBundle(GuiContext*);
-
-  virtual ~WriteBundle();
-
-  virtual void execute();
-protected:
-  GuiString guiTypes_;
-  GuiString guiFileType_;
+  public:
+    WriteBundle(GuiContext*);
+    virtual ~WriteBundle() {}
+    virtual void execute();
+    
+  protected:
+    GuiString guiTypes_;
+    GuiString guiFileType_;
 };
 
 
@@ -70,10 +61,6 @@ WriteBundle::WriteBundle(GuiContext* ctx)
   exporttypes += "}";
 
   guiTypes_.set(exporttypes);
-}
-
-WriteBundle::~WriteBundle()
-{
 }
 
 void

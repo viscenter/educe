@@ -26,44 +26,33 @@
    DEALINGS IN THE SOFTWARE.
 */
 
- 
-/*
- * FILE: ImportDatatypesFromMatlab.cc
- * AUTH: Jeroen G Stinstra
- * DATE: 30 MAR 2004
- */
- 
 /* 
  * This module reads a matlab file and converts it to a SCIRun matrix
  *
  */
 
 
-/* 
- * This file was adapted from mlMatricesReader.h 
- */
-
-#include <sgi_stl_warnings_off.h>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Matrix.h>
+#include <Core/Datatypes/NrrdData.h>
+#include <Core/Datatypes/String.h>
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Datatypes/Field.h>
+
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
-#include <Core/Datatypes/DenseMatrix.h>
-#include <Core/Datatypes/SparseRowMatrix.h>
-#include <Core/Datatypes/Matrix.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Dataflow/Network/Ports/StringPort.h>
+
 #include <Core/Matlab/matlabfile.h>
 #include <Core/Matlab/matlabarray.h>
 #include <Core/Matlab/matlabconverter.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Datatypes/String.h>
-#include <Dataflow/Network/Ports/StringPort.h>
 
 namespace MatlabIO {
 
@@ -137,9 +126,9 @@ DECLARE_MAKER(ImportDatatypesFromMatlab)
 ImportDatatypesFromMatlab::ImportDatatypesFromMatlab(GuiContext* ctx)
   : Module("ImportDatatypesFromMatlab", ctx, Source, "DataIO", "MatlabInterface"),
     guifilename_(get_ctx()->subVar("filename")),
-    guifilenameset_(get_ctx()->subVar("filename-set")),
-    guimatrixinfotextslist_(get_ctx()->subVar("matrixinfotextslist")),     
-    guimatrixnameslist_(get_ctx()->subVar("matrixnameslist")),    
+    guifilenameset_(get_ctx()->subVar("filename-set",false)),
+    guimatrixinfotextslist_(get_ctx()->subVar("matrixinfotextslist",false)),     
+    guimatrixnameslist_(get_ctx()->subVar("matrixnameslist",false)),    
     guimatrixname_(get_ctx()->subVar("matrixname"))
 {
   indexmatlabfile(false);
@@ -224,7 +213,7 @@ void ImportDatatypesFromMatlab::execute()
 			send_output_handle(p+6,mh,true);
     }
     
-    SCIRun::StringHandle filenameH = scinew String(filename);
+    SCIRun::StringHandle filenameH = new String(filename);
     send_output_handle("Filename",filenameH,true);    
   }
 

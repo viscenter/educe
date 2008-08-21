@@ -34,260 +34,260 @@ catch {rename ViewLeadSignals ""}
 itcl_class BioPSE_Visualization_ViewLeadSignals {
     inherit Module
     constructor {config} {
-	set name ViewLeadSignals
-	set_defaults
+      set name ViewLeadSignals
+      set_defaults
     }
     
     protected range_selected false
 
     method set_defaults {} {
-	#current color
-	global $this-r
-	global $this-g
-	global $this-b
+      #current color
+      global $this-r
+      global $this-g
+      global $this-b
 
-	#position of range lines
-	global $this-range1
-	global $this-range2
-	global $this-range-top
-	global $this-range-bot
+      #position of range lines
+      global $this-range1
+      global $this-range2
+      global $this-range-top
+      global $this-range-bot
 
-	#stored vals
-	global $this-xvals
-	global $this-yvals
-	
-	# vertical scale between leads
-	global $this-vscale
-	global $this-min
-	global $this-max
+      #stored vals
+      global $this-xvals
+      global $this-yvals
+      
+      # vertical scale between leads
+      global $this-vscale
+      global $this-min
+      global $this-max
 
-	#units info for time
-	global $this-time-units
-	global $this-time-min
-	global $this-time-max
+      #units info for time
+      global $this-time-units
+      global $this-time-min
+      global $this-time-max
 
-	set $this-r 20
-	set $this-g 45
-	set $this-b 100
-	set $this-range1 0
-	set $this-range2 0
-	set $this-range-top 10
-	set $this-range-bot -1
-	set $this-xvals {}
-	set $this-yvals {}
-	set $this-vscale 0.125
-	set $this-min 0.0
-	set $this-max 10.0
-	set $this-time-units "s"
-	set $this-time-min .1
-	set $this-time-max .789
+      set $this-r 20
+      set $this-g 45
+      set $this-b 100
+      set $this-range1 0
+      set $this-range2 0
+      set $this-range-top 10
+      set $this-range-bot -1
+      set $this-xvals {}
+      set $this-yvals {}
+      set $this-vscale 0.125
+      set $this-min 0.0
+      set $this-max 10.0
+      set $this-time-units "s"
+      set $this-time-min .1
+      set $this-time-max .789
 
     }
     
 
     method scale_graph {val} {
-	global $this-vscale
-	global $this-min
-	global $this-max
-	set w .ui[modname]
-	
-	set min [set $this-min]
-	set max [set $this-max]
-	if {$min >= $max} {
-	    set $this-min $max
-	}
+      global $this-vscale
+      global $this-min
+      global $this-max
+      set w .ui[modname]
+      
+      set min [set $this-min]
+      set max [set $this-max]
+      if {$min >= $max} {
+          set $this-min $max
+      }
 
-	clear_graph
-	draw_leads
+      clear_graph
+      draw_leads
     }
     
     method min_changed {} {
-	global $this-min
-	set w .ui[modname]
-	
-	set min [set $this-min]
-	$w.np.max configure -from $min
+      global $this-min
+      set w .ui[modname]
+      
+      set min [set $this-min]
+      $w.np.max configure -from $min
     }
 
     method max_changed {} {
-	global $this-max
-	set w .ui[modname]
-	
-	set max [set $this-max]
-	$w.np.min configure -to $max
+      global $this-max
+      set w .ui[modname]
+      
+      set max [set $this-max]
+      $w.np.min configure -to $max
     }
     
     method ui {} {
-	global $this-vscale
-	global $this-min
-	global $this-max
+      global $this-vscale
+      global $this-min
+      global $this-max
 
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    raise $w
-	    return;
-	}
-	
-	toplevel $w
-	wm minsize $w 450 200
-	set n "$this-c needexecute "
-	
-	button $w.execute -text "Execute" -command $n
-	pack $w.execute -side top -fill x -pady 2 -padx 2
-        
-	frame $w.np
-	pack $w.np -side top
-	
-	scale $w.np.min -label "Show lead from:" \
-		-orient horizontal -variable $this-min \
-		-command "$this scale_graph"
-	scale $w.np.max -label "to:" \
-		-orient horizontal -variable $this-max \
-		-command "$this scale_graph"
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          raise $w
+          return;
+      }
+      
+      sci_toplevel $w
+      wm minsize $w 450 200
+      set n "$this-c needexecute "
+      
+      sci_button $w.execute -text "Execute" -command $n
+      pack $w.execute -side top -fill x -pady 2 -padx 2
+            
+      sci_frame $w.np
+      pack $w.np -side top
+      
+      sci_scale $w.np.min -label "Show lead from:" \
+        -orient horizontal -variable $this-min \
+        -command "$this scale_graph"
+      sci_scale $w.np.max -label "to:" \
+        -orient horizontal -variable $this-max \
+        -command "$this scale_graph"
 
-	$w.np.min configure  -from 0 -to [set $this-max]
-	$w.np.max configure -from  [set $this-min] -to [set $this-max]
-	
-	bind $w.np.min <ButtonRelease-1> "$this min_changed"
-	bind $w.np.max <ButtonRelease-1> "$this max_changed"
+      $w.np.min configure  -from 0 -to [set $this-max]
+      $w.np.max configure -from  [set $this-min] -to [set $this-max]
+      
+      bind $w.np.min <ButtonRelease-1> "$this min_changed"
+      bind $w.np.max <ButtonRelease-1> "$this max_changed"
 
-	pack $w.np.min $w.np.max -side left
+      pack $w.np.min $w.np.max -side left
 
-	expscale $w.slide -label "Vertical Scale" \
-		-orient horizontal -variable $this-vscale	
-	bind $w.slide.scale <ButtonRelease-1> "$this draw_leads"
+      expscale $w.slide -label "Vertical Scale" \
+        -orient horizontal -variable $this-vscale	
+      bind $w.slide.scale <ButtonRelease-1> "$this draw_leads"
 
-	blt::graph $w.graph -title "Leads" -height 450 \
-		-plotbackground black
-	$w.graph yaxis configure -title ""  
-	$w.graph xaxis configure -title "" -loose true
-	bind $w.graph <ButtonPress-1> "$this select_range %x %y"
-	bind $w.graph <Button1-Motion> "$this move_range %x %y"
-	bind $w.graph <ButtonRelease-1> "$this deselect_range %x %y"
+      blt::graph $w.graph -title "Leads" -height 450 \
+        -plotbackground black
+      $w.graph yaxis configure -title ""  
+      $w.graph xaxis configure -title "" -loose true
+      bind $w.graph <ButtonPress-1> "$this select_range %x %y"
+      bind $w.graph <Button1-Motion> "$this move_range %x %y"
+      bind $w.graph <ButtonRelease-1> "$this deselect_range %x %y"
 
-	##puts [$w.graph axis names]
-	$w.graph axis configure y  -command "$this draw_yaxis"
-	$w.graph axis configure x  -command "$this draw_xaxis"
+      ##puts [$w.graph axis names]
+      $w.graph axis configure y  -command "$this draw_yaxis"
+      $w.graph axis configure x  -command "$this draw_xaxis"
 
-	draw_leads
-	pack $w.graph
+      draw_leads
+      pack $w.graph
     }
     
     # time axis
     method draw_xaxis {arg arg1} {
-	set units [set $this-time-units]
-	set t0 [set $this-time-min]
-	set t1 [set $this-time-max]
-	set t [expr ($arg1 * ($t1-$t0)) + $t0]
-	return [format "%.2f%s" $t $units]
+      set units [set $this-time-units]
+      set t0 [set $this-time-min]
+      set t1 [set $this-time-max]
+      set t [expr ($arg1 * ($t1-$t0)) + $t0]
+      return [format "%.2f%s" $t $units]
     }
 
     method draw_yaxis {arg arg1} {
-	return "$arg1"
+      return "$arg1"
     }
 
     method get_color {} {
-	global $this-r
-	global $this-g
-	global $this-b
-	
-	set r [set $this-r]
-	set g [set $this-g]
-	set b [set $this-b]
+      global $this-r
+      global $this-g
+      global $this-b
+      
+      set r [set $this-r]
+      set g [set $this-g]
+      set b [set $this-b]
 
-	set r [expr $r + 85]
-	set g [expr $g + 85]
-	set b [expr $b + 85]
+      set r [expr $r + 85]
+      set g [expr $g + 85]
+      set b [expr $b + 85]
 
-	if {[expr $r >= 255]} {set r [expr $r % 255 + 11]}
-	if {[expr $g >= 255]} {set g [expr $g % 255 + 13]}
-	if {[expr $b >= 255]} {set b [expr $b % 255 + 17]}
+      if {[expr $r >= 255]} {set r [expr $r % 255 + 11]}
+      if {[expr $g >= 255]} {set g [expr $g % 255 + 13]}
+      if {[expr $b >= 255]} {set b [expr $b % 255 + 17]}
 
-	set $this-r $r
-	set $this-g $g
-	set $this-b $b
+      set $this-r $r
+      set $this-g $g
+      set $this-b $b
 
-	return [format "#%02x%02x%02x" $r $g $b]
+      return [format "#%02x%02x%02x" $r $g $b]
     }
 
     method set_min_max_index {min max} {
-	set w .ui[modname]
+      set w .ui[modname]
 
-	if {[winfo exists $w.np.min]} {
-	    #configure the min and max sliders
-	    $w.np.min configure  -from 0 -to [expr $max]
-	    $w.np.max configure -from  $min -to [expr $max]
-	}
+      if {[winfo exists $w.np.min]} {
+          #configure the min and max sliders
+          $w.np.min configure  -from 0 -to [expr $max]
+          $w.np.max configure -from  $min -to [expr $max]
+      }
 
-	set $this-min $min
-	set $this-max $max
+      set $this-min $min
+      set $this-max $max
     }
 
     method draw_leads {} {
-	set w .ui[modname]
-	if {! [winfo exists $w]} {
-	    return;
-	}
-	
-	global $this-xvals
-	global $this-yvals
-	global $this-vscale
-	set w .ui[modname]
-	set ydat [set $this-yvals]
-	set leads [llength $ydat]
-	if {$leads <= 0} { return }
+      set w .ui[modname]
+      if {! [winfo exists $w]} {
+          return;
+      }
+      
+      global $this-xvals
+      global $this-yvals
+      global $this-vscale
+      set w .ui[modname]
+      set ydat [set $this-yvals]
+      set leads [llength $ydat]
+      if {$leads <= 0} { return }
 
 
-	set xvals [lindex [set $this-xvals] 0]
-	set begin [expr int([set $this-min])]
-	set end [expr int([set $this-max])]
-	set absmin [lindex [lindex $ydat $begin] 0]
-	set absmax [lindex [lindex $ydat $begin] 0]
-	set offset_idx 0
-	for {set ind $begin} {$ind <= $end} {incr ind} {
-	    #puts $ind
-	    set yvals [lindex $ydat $ind]
-	    #puts $yvals
-	    # offest the values so that they fit in their own 
-	    # space in the graph
-	    
-	    set offset [expr [set $this-vscale] * $offset_idx]
+      set xvals [lindex [set $this-xvals] 0]
+      set begin [expr int([set $this-min])]
+      set end [expr int([set $this-max])]
+      set absmin [lindex [lindex $ydat $begin] 0]
+      set absmax [lindex [lindex $ydat $begin] 0]
+      set offset_idx 0
+      for {set ind $begin} {$ind <= $end} {incr ind} {
+        #puts $ind
+        set yvals [lindex $ydat $ind]
+        #puts $yvals
+        # offest the values so that they fit in their own 
+        # space in the graph
+        
+        set offset [expr [set $this-vscale] * $offset_idx]
 
-	    set ovals {}
-	    set zlvals {}
-	    ##puts [lindex $yvals 0]
-	    #return
-	    for {set i 0} { $i < [llength $yvals] } { incr i } {
-		set val [expr [lindex $yvals $i] + $offset]
-		lappend ovals $val
-		lappend zlvals $offset
-		#puts $val
-		if {$val > $absmax} { set absmax $val } 
-		if {$val < $absmin} { set absmin $val } 
-	    }
-	    set col [get_color]
-	    # add the element to the graph
-	    set name [format "%s%d" "lead-" $ind]
-	    blt::vector create xvec$ind 
-	    blt::vector create yvec$ind
-	    blt::vector create zlvec$ind
+        set ovals {}
+        set zlvals {}
+        ##puts [lindex $yvals 0]
+        #return
+        for {set i 0} { $i < [llength $yvals] } { incr i } {
+          set val [expr [lindex $yvals $i] + $offset]
+          lappend ovals $val
+          lappend zlvals $offset
+          #puts $val
+          if {$val > $absmax} { set absmax $val } 
+          if {$val < $absmin} { set absmin $val } 
+        }
+        set col [get_color]
+        # add the element to the graph
+        set name [format "%s%d" "lead-" $ind]
+        blt::vector create xvec$ind 
+        blt::vector create yvec$ind
+        blt::vector create zlvec$ind
 
-	    xvec$ind set $xvals
-	    yvec$ind set $ovals
-	    zlvec$ind set $zlvals
-	    if {[$w.graph element exists $name]} {
-		$w.graph element configure $name -linewidth 1 -label ""\
-		    -xdata xvec$ind -ydata yvec$ind -symbol ""
-	    } else {
-		$w.graph element create $name -linewidth 1 -label ""\
-		    -xdata xvec$ind -ydata yvec$ind -symbol "" -color $col
-	    }
-	    # add 0 line
-	    set zl [format "%s%s" $name "-zl"]
-	    if {[$w.graph element exists $zl]} {
-		$w.graph element configure $zl -linewidth .5 \
-		    -xdata xvec$ind -ydata zlvec$ind -symbol "" -label ""
-	    } else {
+        xvec$ind set $xvals
+        yvec$ind set $ovals
+        zlvec$ind set $zlvals
+        if {[$w.graph element exists $name]} {
+          $w.graph element configure $name -linewidth 1 -label ""\
+            -xdata xvec$ind -ydata yvec$ind -symbol ""
+        } else {
+          $w.graph element create $name -linewidth 1 -label ""\
+            -xdata xvec$ind -ydata yvec$ind -symbol "" -color $col
+        }
+        # add 0 line
+        set zl [format "%s%s" $name "-zl"]
+        if {[$w.graph element exists $zl]} {
+          $w.graph element configure $zl -linewidth .5 \
+            -xdata xvec$ind -ydata zlvec$ind -symbol "" -label ""
+        } else {
 		$w.graph element create $zl -linewidth .5 \
 		    -xdata xvec$ind -ydata zlvec$ind -symbol "" -label "" \
 		    -color #414141 -dashes { 10 2 1 2 }

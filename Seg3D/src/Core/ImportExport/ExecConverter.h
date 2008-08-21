@@ -110,7 +110,7 @@ Exec_writer(ProgressReporter *pr,
 
   Exec_setup_command(cfilename, precommand, command, tmpfilename);
 
-  Piostream *stream = scinew BinaryPiostream(tmpfilename, Piostream::Write);
+  Piostream *stream = new BinaryPiostream(tmpfilename, Piostream::Write);
   if (stream->error())
   {
     delete stream;

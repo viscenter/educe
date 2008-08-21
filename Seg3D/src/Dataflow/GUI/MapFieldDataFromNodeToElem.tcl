@@ -44,9 +44,9 @@ itcl_class SCIRun_ChangeFieldData_MapFieldDataFromNodeToElem {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        iwidgets::Labeledframe $w.method -labelpos nw \
+        sci_labeledframe $w.method -labelpos nw \
 		               -labeltext "Method for Computing Element Data" 
 			       
         pack $w.method 
@@ -62,64 +62,64 @@ itcl_class SCIRun_ChangeFieldData_MapFieldDataFromNodeToElem {
 
 
     method labelcombo { win text1 arglist var var2} {
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 \
-		      -anchor w -just left
-	label $win.colon  -text ":" -width 2 -anchor w -just left
-	iwidgets::optionmenu $win.c -foreground darkred \
-		-command " $this comboget $win.c $var "
+        sci_frame $win 
+        pack $win -side top -padx 5
+        sci_label $win.l1 -text $text1 \
+                -anchor w -just left
+        sci_label $win.colon  -text ":" -width 2 -anchor w -just left
+        sci_optionmenu $win.c -foreground darkred \
+          -command " $this comboget $win.c $var "
 
-	set i 0
-	set found 0
-	set length [llength $arglist]
-	for {set elem [lindex $arglist $i]} {$i<$length} \
-	    {incr i 1; set elem [lindex $arglist $i]} {
-	    if {"$elem"=="[set $var]"} {
-		set found 1
-	    }
-	    $win.c insert end $elem
-	}
+        set i 0
+        set found 0
+        set length [llength $arglist]
+        for {set elem [lindex $arglist $i]} {$i<$length} \
+            {incr i 1; set elem [lindex $arglist $i]} {
+            if {"$elem"=="[set $var]"} {
+          set found 1
+            }
+            $win.c insert end $elem
+        }
 
-	if {!$found} {
-	    $win.c insert end [set $var]
-	}
+        if {!$found} {
+            $win.c insert end [set $var]
+        }
 
-	label $win.l2 -text "" -width 40 -anchor w -just left
+        sci_label $win.l2 -text "" -width 40 -anchor w -just left
 
-  $win.c select [set $var]
+        $win.c select [set $var]
 
-	pack $win.l1 $win.colon -side left
-	pack $win.c $win.l2 -side left	
+        pack $win.l1 $win.colon -side left
+        pack $win.c $win.l2 -side left	
     }
 
     method comboget { win var } {
-	if {![winfo exists $win]} {
-	    return
-	}
-	if { "$var"!="[$win get]" } {
-	    set $var [$win get]
-	}
+        if {![winfo exists $win]} {
+            return
+        }
+        if { "$var"!="[$win get]" } {
+            set $var [$win get]
+        }
     }
 
     method config_labelcombo { win arglist sel} {
-	if {![winfo exists $win]} {
-	    return
-	}
-	$win.c delete 0 end
-	if {[llength $arglist]==0} {
-	    $win.c insert end ""
-	}
-	set i 0
-	set length [llength $arglist]
-	for {set elem [lindex $arglist $i]} {$i<$length} \
-	    {incr i 1; set elem [lindex $arglist $i]} {
-	    $win.c insert end $elem
-	}
-	
-	if {"$sel"!="---"} {
-	    $win.c select $sel
-	}
+        if {![winfo exists $win]} {
+            return
+        }
+        $win.c delete 0 end
+        if {[llength $arglist]==0} {
+            $win.c insert end ""
+        }
+        set i 0
+        set length [llength $arglist]
+        for {set elem [lindex $arglist $i]} {$i<$length} \
+            {incr i 1; set elem [lindex $arglist $i]} {
+            $win.c insert end $elem
+        }
+        
+        if {"$sel"!="---"} {
+            $win.c select $sel
+        }
 }
     
     

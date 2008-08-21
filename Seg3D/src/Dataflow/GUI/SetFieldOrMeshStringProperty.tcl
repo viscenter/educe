@@ -47,11 +47,11 @@ itcl_class SCIRun_MiscField_SetFieldOrMeshStringProperty {
     }
 
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
         global $v
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
@@ -63,24 +63,24 @@ itcl_class SCIRun_MiscField_SetFieldOrMeshStringProperty {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 200 80
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
-	global $this-prop
-	global $this-val
-	global $this-meshprop
-	make_entry $w.f.p "Property:" $this-prop "$this-c needexecute"
-	make_entry $w.f.v "Value:" $this-val "$this-c needexecute"
-	make_labeled_radio $w.f.m "Property belongs to:" "" \
-		top 1 $this-meshprop \
-		{{"Field" 0} \
-		{"Mesh" 1}}
+        global $this-prop
+        global $this-val
+        global $this-meshprop
+        make_entry $w.f.p "Property:" $this-prop "$this-c needexecute"
+        make_entry $w.f.v "Value:" $this-val "$this-c needexecute"
+        make_labeled_radio $w.f.m "Property belongs to:" "" \
+          top 1 $this-meshprop \
+          {{"Field" 0} \
+          {"Mesh" 1}}
 
-	pack $w.f.p $w.f.v $w.f.m -side top -expand yes -fill x
-	pack $w.f -expand 1 -fill x
+        pack $w.f.p $w.f.v $w.f.m -side top -expand yes -fill x
+        pack $w.f -expand 1 -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }

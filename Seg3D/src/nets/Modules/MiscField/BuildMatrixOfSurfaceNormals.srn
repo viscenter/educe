@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE network PUBLIC "-//SCIRun/Network DTD" "network.dtd">
-<network version="v3.1.0" name="{Main}" bbox="{49 37 739 464}" creationDate="{Fri Oct 12 2007}" creationTime="{15:28:35}" geometry="{800x800+0+0}">
+<network version="v4.0" netversion="0" name="{Main}" bbox="{76 37 453 366}" creationDate="{Mon May 19 2008}" creationTime="{11:04:02}" geometry="{800x800+0+0}">
   <environment>
     <var name="scisub_datadir" val="SCIRUN_DATA"/>
     <var name="scisub_datafile" val="SCIRUN_DATAFILE"/>
@@ -9,7 +9,7 @@
   <note>{}</note>
   <modules>
     <module id="m1" package="SCIRun" category="MiscField" name="BuildMatrixOfSurfaceNormals" version="1.0">
-      <position x="259" y="165"/>
+      <position x="230" y="112"/>
     </module>
     <module id="m2" package="SCIRun" category="DataIO" name="ReadField" version="1.0">
       <position x="111" y="37"/>
@@ -19,16 +19,16 @@
       <var name="ui_geometry" val="{412x403+62+235}" substitute="no"/>
     </module>
     <module id="m3" package="SCIRun" category="ChangeFieldData" name="SwapFieldDataWithMatrixEntries" version="1.0">
-      <position x="126" y="266"/>
+      <position x="77" y="178"/>
       <var name="preserve-scalar-type" val="{0}" substitute="no"/>
     </module>
     <module id="m4" package="SCIRun" category="ChangeFieldData" name="ConvertFieldDataType" version="1.0">
-      <position x="49" y="152"/>
+      <position x="77" y="111"/>
       <var name="outputdatatype" val="{Vector}" substitute="no"/>
       <var name="ui_geometry" val="{397x187+428+18}" substitute="no"/>
     </module>
     <module id="m5" package="SCIRun" category="Visualization" name="ShowField" version="2.0">
-      <position x="126" y="343"/>
+      <position x="76" y="244"/>
       <var name="nodes_on" val="{1}" substitute="no"/>
       <var name="nodes_transparency" val="{0}" substitute="no"/>
       <var name="nodes_color_type" val="{1}" substitute="no"/>
@@ -77,11 +77,11 @@
       <var name="ui_geometry" val="{370x669+229+401}" substitute="no"/>
     </module>
     <module id="m6" package="SCIRun" category="Render" name="ViewScene" version="1.0">
-      <position x="126" y="420"/>
+      <position x="77" y="314"/>
       <gui_callback>
         <callback>addViewer</callback>
       </gui_callback>
-      <var name="ViewWindow_0-geometry" val="654x609+650+539" substitute="no"/>
+      <var name="ViewWindow_0-geometry" val="654x608+656+55" substitute="no"/>
       <var name="ViewWindow_0-view-eyep-x" val="{-240.893155998}" substitute="no"/>
       <var name="ViewWindow_0-view-eyep-y" val="{642.733676055}" substitute="no"/>
       <var name="ViewWindow_0-view-eyep-z" val="{-279.507691898}" substitute="no"/>
@@ -118,7 +118,7 @@
       <var name="ViewWindow_0-fog-start" val="{0.0}" substitute="no"/>
       <var name="ViewWindow_0-fog-end" val="{0.714265}" substitute="no"/>
       <var name="ViewWindow_0-fog-visibleonly" val="{1}" substitute="no"/>
-      <var name="ViewWindow_0-inertia_mag" val="{4.49281450045}" substitute="no"/>
+      <var name="ViewWindow_0-inertia_loop_count" val="{45}" substitute="no"/>
       <var name="ViewWindow_0-inertia_x" val="{-0.994199581947}" substitute="no"/>
       <var name="ViewWindow_0-inertia_y" val="{-0.0313018931052}" substitute="no"/>
       <var name="ViewWindow_0-currentvisual" val="{0}" substitute="no"/>
@@ -142,7 +142,7 @@
       <var name="&quot;ViewWindow_0-Faces (1)&quot;" val="{1}" substitute="no"/>
     </module>
     <module id="m7" package="SCIRun" category="Visualization" name="CreateStandardColorMaps" version="1.0">
-      <position x="529" y="263"/>
+      <position x="285" y="179"/>
       <var name="mapName" val="{Rainbow}" substitute="no"/>
       <var name="gamma" val="{0.0}" substitute="no"/>
       <var name="resolution" val="{256}" substitute="no"/>

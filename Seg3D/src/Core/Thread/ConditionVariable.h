@@ -45,6 +45,7 @@
 
 #include <Core/Thread/Semaphore.h>
 #include <Core/Thread/Mutex.h>
+#include <Core/Thread/RecursiveMutex.h>
 
 #include <Core/Thread/share.h>
 
@@ -94,6 +95,7 @@ public:
   // used to guard access to the resource that the thread is
   // waiting for.
   void wait(Mutex& m);
+  void wait(RecursiveMutex& m);
 
   //////////
   // Wait for a condition.  This method atomically unlocks
@@ -103,6 +105,7 @@ public:
   // the ConditionVariable is signaled, this will return
   // false.  Otherewise it will return true.
   bool timedWait(Mutex& m, const struct ::timespec* abstime);
+  bool timedWait(RecursiveMutex& m, const struct ::timespec* abstime);
     
   //////////
   // Signal a condition.  This will unblock one of the waiting

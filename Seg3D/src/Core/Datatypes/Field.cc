@@ -29,10 +29,19 @@
 
 
 #include <Core/Datatypes/Field.h>
-#include <Core/Datatypes/FieldInterfaceAux.h>
+
 #include <Core/Util/ProgressReporter.h>
 #include <Core/Thread/Mutex.h>
+
 #include <map>
+
+// _DEBUG defined in Visual Studio debug builds
+#undef DEBUG
+#if defined (_DEBUG) || !defined (NDEBUG)
+# define DEBUG 1
+#else
+# define DEBUG 0
+#endif
 
 namespace SCIRun{
 
@@ -106,7 +115,7 @@ PersistentTypeID Field::type_id("Field", "PropertyManager", 0);
 
 // A list to keep a record of all the different Field types that
 // are supported through a virtual interface
-Mutex FieldTypeIDMutex("Field Type ID Table Lock");
+Mutex *FieldTypeIDMutex = 0;
 static std::map<string,FieldTypeID*>* FieldTypeIDTable = 0;
 
 FieldTypeID::FieldTypeID(const string&type,
@@ -116,10 +125,14 @@ FieldTypeID::FieldTypeID(const string&type,
     field_maker(field_maker),
     field_maker_mesh(field_maker_mesh)
 {
-  FieldTypeIDMutex.lock();
+  if (FieldTypeIDMutex == 0)
+  {
+    FieldTypeIDMutex = new Mutex("Field Type ID Table Lock");
+  }
+  FieldTypeIDMutex->lock();
   if (FieldTypeIDTable == 0)
   {
-    FieldTypeIDTable = scinew std::map<string,FieldTypeID*>;
+    FieldTypeIDTable = new std::map<string,FieldTypeID*>;
   }
   else
   {
@@ -132,15 +145,17 @@ FieldTypeID::FieldTypeID(const string&type,
       if (((*dummy).second->field_maker != field_maker) ||
           ((*dummy).second->field_maker_mesh != field_maker_mesh))
       {
+#if DEBUG
         std::cerr << "WARNING: duplicate field type exists: " << type << "\n";
-        FieldTypeIDMutex.unlock();
+#endif
+        FieldTypeIDMutex->unlock();
         return;
       }
     }
   }
   
   (*FieldTypeIDTable)[type] = this;
-  FieldTypeIDMutex.unlock();
+  FieldTypeIDMutex->unlock();
 }
 
 
@@ -148,7 +163,11 @@ FieldHandle
 CreateField(string type, MeshHandle mesh)
 {
   FieldHandle handle(0);
-  FieldTypeIDMutex.lock();
+  if (FieldTypeIDMutex == 0)
+  {
+    FieldTypeIDMutex = new Mutex("Field Type ID Table Lock");
+  }
+  FieldTypeIDMutex->lock();
   std::map<string,FieldTypeID*>::iterator it;
   it = FieldTypeIDTable->find(type);
   if (it != FieldTypeIDTable->end()) 
@@ -159,7 +178,7 @@ CreateField(string type, MeshHandle mesh)
   {
     std::cout << "Cannot find "<<type<<" in database\n";
   }
-  FieldTypeIDMutex.unlock();
+  FieldTypeIDMutex->unlock();
   return (handle);
 }
 
@@ -167,72 +186,19 @@ FieldHandle
 CreateField(string type)
 {
   FieldHandle handle(0);
-  FieldTypeIDMutex.lock();
+  if (FieldTypeIDMutex == 0)
+  {
+    FieldTypeIDMutex = new Mutex("Field Type ID Table Lock");
+  }
+  FieldTypeIDMutex->lock();
   std::map<string,FieldTypeID*>::iterator it;
   it = FieldTypeIDTable->find(type);
   if (it != FieldTypeIDTable->end()) 
   {
     handle = (*it).second->field_maker();
   }
-  FieldTypeIDMutex.unlock();
+  FieldTypeIDMutex->unlock();
   return (handle);
-}
-
-// Additional definitions for the FieldInterface classes
-
-ScalarFieldInterfaceHandle
-Field::query_scalar_interface(ProgressReporter *reporter)
-{
-  if (basis_order() == -1) { return 0; }
-
-  const TypeDescription *ftd = get_type_description();
-  const TypeDescription *ltd = order_type_description();
-  CompileInfoHandle ci = ScalarFieldInterfaceMaker::get_compile_info(ftd, ltd);
-  LockingHandle<ScalarFieldInterfaceMaker> algo(0);
-  
-  ProgressReporter my_reporter;
-  if (!reporter) reporter = &my_reporter;
-  if ( DynamicCompilation::compile( ci, algo, true, reporter ) )
-    return algo->make(this);
-  else
-    return 0;
-}
-
-
-VectorFieldInterfaceHandle
-Field::query_vector_interface(ProgressReporter *reporter)
-{
-  if (basis_order() == -1) { return 0; }
-  const TypeDescription *ftd = get_type_description();
-  const TypeDescription *ltd = order_type_description();
-  CompileInfoHandle ci = VectorFieldInterfaceMaker::get_compile_info(ftd, ltd);
-  LockingHandle<VectorFieldInterfaceMaker> algo(0);
-  
-  ProgressReporter my_reporter;
-  if (!reporter) reporter = &my_reporter;
-  if ( DynamicCompilation::compile( ci, algo, true, reporter ) )
-    return algo->make(this);
-  else
-    return 0;
-}
-
-
-TensorFieldInterfaceHandle
-Field::query_tensor_interface(ProgressReporter *reporter)
-{
-  if (basis_order() == -1) { return 0; }
-
-  const TypeDescription *ftd = get_type_description();
-  const TypeDescription *ltd = order_type_description();
-  CompileInfoHandle ci = TensorFieldInterfaceMaker::get_compile_info(ftd, ltd);
-  LockingHandle<TensorFieldInterfaceMaker> algo(0);
-  
-  ProgressReporter my_reporter;
-  if (!reporter) reporter = &my_reporter;
-  if ( DynamicCompilation::compile( ci, algo, true, reporter ) )
-    return algo->make(this);
-  else
-    return 0;
 }
 
 }

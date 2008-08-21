@@ -40,17 +40,23 @@
  *  Copyright (C) 1994 SCI Group
  */
 
-#ifndef SCI_project_ColorMapPort_h
-#define SCI_project_ColorMapPort_h 1
+#ifndef DATAFLOW_NETWORK_PORTS_COLORMAPPORT_H
+#define DATAFLOW_NETWORK_PORTS_COLORMAPPORT_H 1
+
+
+#include <Core/Datatypes/ColorMap.h>
+#include <Core/Containers/LockingHandle.h>
 
 #include <Dataflow/Network/Ports/SimplePort.h>
-#include <Core/Geom/ColorMap.h>
 
 namespace SCIRun {
 
 
-typedef SimpleIPort<ColorMapHandle> ColorMapIPort;
-typedef SimpleOPort<ColorMapHandle> ColorMapOPort;
+typedef SimpleIPort<ColorMapHandle>  ColorMapIPort;
+typedef SimpleOPort<ColorMapHandle>  ColorMapOPort;
+typedef LockingHandle<ColorMapIPort> ColorMapIPortHandle;
+typedef LockingHandle<ColorMapOPort> ColorMapOPortHandle;
+
 
 } // End namespace SCIRun
 

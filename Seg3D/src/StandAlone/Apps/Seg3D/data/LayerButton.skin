@@ -107,14 +107,21 @@
 
             <signal name="Button::clicked"
                     target="Skinner::Stop"/>
-
           </object>
 
-          <object name="Skinner::Collection">
+          <object name="FrameButton">
             <var name="row">2</var>
             <var name="col">3</var>
             <var name="cell-width">$button_width</var>
             <var name="cell-height">$button_height</var>
+            <var name="font" propagate="yes">graphite.ttf</var>
+            <var name="Button::Text::text" propagate="yes">i</var>
+
+            <signal name="Button::clicked"
+                    target="Painter::VolumeInformation">
+            </signal>
+
+            <signal name="Button::clicked" target="Skinner::Stop"/>
           </object>
 
           <object name="FrameButton">

@@ -33,15 +33,16 @@
 
 #include <StandAlone/Apps/Seg3D/PolylineTool.h>
 #include <Core/Geometry/CompGeom.h>
+#include <Core/Events/keysyms.h>
 #include <sci_gl.h>
 
 
 namespace SCIRun {
 
 PolylineTool::
-PolylineTool(Painter *painter) :
-  BaseTool("PolylineTool"),
-  PointerTool("PolylineTool"),
+PolylineTool(const string &name, Painter *painter) :
+  BaseTool(name),
+  PointerTool(name),
   painter_(painter),
   seeds_(),
   seed_lock_("PolylineTool"),
@@ -54,17 +55,27 @@ PolylineTool(Painter *painter) :
 BaseTool::propagation_state_e
 PolylineTool::pointer_down(int b, int x, int y, unsigned int m, int t)
 {
-  if (m) return CONTINUE_E;
+  if (m & EventModifiers::SHIFT_E) { return CONTINUE_E; }
 
   last_seed_index_ = -1;
 
-  if (b == 1)
+  if (m & EventModifiers::CONTROL_E)
+  {
+    // Drag all the points.
+    seed_lock_.lock();
+    drag_seeds_ = seeds_;
+    seed_lock_.unlock();
+    drag_point_ = painter_->pointer_pos_;
+    return STOP_E;
+  }
+  else if (b == 1)
   {
     // Add a new seed point.
     seed_lock_.lock();
     last_seed_window_ = painter_->cur_window_;
     seeds_.push_back(painter_->pointer_pos_);
     last_seed_index_ = seeds_.size() - 1;
+    seed_change_callback(last_seed_index_);
 
     seed_lock_.unlock();
     painter_->redraw_all();
@@ -77,9 +88,16 @@ PolylineTool::pointer_down(int b, int x, int y, unsigned int m, int t)
     last_seed_window_ = painter_->cur_window_;
     const double max_dist2_to_check = 25.0;
     double mind2 = max_dist2_to_check + 1.0;
+    const int axis = last_seed_window_->axis_;
+    Point curpos = painter_->pointer_pos_;
+    curpos(axis) = 0.0;
+    const Point sppos = last_seed_window_->world_to_screen(curpos);
     for (size_t i = 0; i < seeds_.size(); i++)
     {
-      const double d2 = (seeds_[i] - painter_->pointer_pos_).length2();
+      Point seed = seeds_[i];
+      seed(axis) = 0.0;
+      const double d2 =
+        (last_seed_window_->world_to_screen(seed) - sppos).length2();
       if (d2 < mind2 && d2 < max_dist2_to_check)
       {
         mind2 = d2;
@@ -89,30 +107,20 @@ PolylineTool::pointer_down(int b, int x, int y, unsigned int m, int t)
 
     if (last_seed_index_ != -1)
     {
+      const double axval = seeds_[last_seed_index_](axis);
       seeds_[last_seed_index_] = painter_->pointer_pos_;
+      seeds_[last_seed_index_](axis) = axval;
+      seed_change_callback(last_seed_index_);
     }
     else if (seeds_.size() > 1)
     {
-      // No seed point near.  Check for insertion of new point into an
-      // existing line segment.
-      const double max_dist2_to_check = 25.0;
-      double mind2 = max_dist2_to_check + 1.0;
-      for (size_t i = 0; i < seeds_.size(); i++)
-      {
-        const size_t j = (i + 1) % seeds_.size();
-        const double d2 = distance_to_line2(painter_->pointer_pos_,
-                                            seeds_[i], seeds_[j]);
-        if (d2 < mind2 && d2 < max_dist2_to_check)
-        {
-          mind2 = d2;
-          last_seed_index_ = i+1;
-        }
-      }
+      last_seed_index_ = compute_nearest_segment_index(curpos, axis);
 
       if (last_seed_index_ != -1)
       {
         seeds_.insert(seeds_.begin() + last_seed_index_,
                       painter_->pointer_pos_);
+        seed_change_callback(-2);
       }
     }
 
@@ -127,9 +135,16 @@ PolylineTool::pointer_down(int b, int x, int y, unsigned int m, int t)
     last_seed_window_ = painter_->cur_window_;
     const double max_dist2_to_check = 25.0;
     double mind2 = max_dist2_to_check + 1.0;
+    const int axis = last_seed_window_->axis_;
+    Point curpos = painter_->pointer_pos_;
+    curpos(axis) = 0.0;
+    const Point sppos = last_seed_window_->world_to_screen(curpos);
     for (size_t i = 0; i < seeds_.size(); i++)
     {
-      const double d2 = (seeds_[i] - painter_->pointer_pos_).length2();
+      Point seed = seeds_[i];
+      seed(axis) = 0.0;
+      const double d2 =
+        (last_seed_window_->world_to_screen(seed) - sppos).length2();
       if (d2 < mind2 && d2 < max_dist2_to_check)
       {
         mind2 = d2;
@@ -141,6 +156,7 @@ PolylineTool::pointer_down(int b, int x, int y, unsigned int m, int t)
     {
       seeds_.erase(seeds_.begin() + last_seed_index_);
       last_seed_index_ = -1;
+      seed_change_callback(-1);
     }
 
     seed_lock_.unlock();
@@ -152,6 +168,36 @@ PolylineTool::pointer_down(int b, int x, int y, unsigned int m, int t)
 }
 
 
+int
+PolylineTool::compute_nearest_segment_index(const Point &curpos, int axis)
+{
+  // No seed point near.  Check for insertion of new point into an
+  // existing line segment.
+  int index = -1;
+  const double max_dist2_to_check = 25.0;
+  double mind2 = max_dist2_to_check + 1.0;
+  const Point sppos = last_seed_window_->world_to_screen(curpos);
+
+  for (size_t i = 0; i < seeds_.size(); i++)
+  {
+    const size_t j = (i + 1) % seeds_.size();
+    Point seedi = seeds_[i];
+    Point seedj = seeds_[j];
+    seedi(axis) = 0.0;
+    seedj(axis) = 0.0;
+    const Point sseedi = last_seed_window_->world_to_screen(seedi);
+    const Point sseedj = last_seed_window_->world_to_screen(seedj);
+    const double d2 = distance_to_line2(sppos, sseedi, sseedj);
+
+    if (d2 < mind2 && d2 < max_dist2_to_check)
+    {
+      mind2 = d2;
+      index = i+1;
+    }
+  }
+  return index;
+}
+
 
 BaseTool::propagation_state_e
 PolylineTool::pointer_motion(int b, int x, int y, unsigned int m, int t)
@@ -159,7 +205,24 @@ PolylineTool::pointer_motion(int b, int x, int y, unsigned int m, int t)
   if (last_seed_index_ != -1)
   {
     seed_lock_.lock();
+    const int axis = last_seed_window_->axis_;
+    const double axval = seeds_[last_seed_index_](axis);
     seeds_[last_seed_index_] = painter_->pointer_pos_;
+    seeds_[last_seed_index_](axis) = axval;
+    seed_change_callback(last_seed_index_);
+    seed_lock_.unlock();
+    painter_->redraw_all();
+    return STOP_E;
+  }
+  else if (drag_seeds_.size())
+  {
+    seed_lock_.lock();
+    Vector offset = painter_->pointer_pos_ - drag_point_;
+    for (size_t i = 0; i < seeds_.size(); i++)
+    {
+      seeds_[i] = drag_seeds_[i] + offset;
+      seed_change_callback(-3);
+    }
     seed_lock_.unlock();
     painter_->redraw_all();
     return STOP_E;
@@ -173,6 +236,7 @@ BaseTool::propagation_state_e
 PolylineTool::pointer_up(int b, int x, int y, unsigned int m, int t)
 {
   last_seed_index_ = -1;
+  drag_seeds_.clear();
   return CONTINUE_E;
 }
 
@@ -189,12 +253,21 @@ PolylineTool::process_event(event_handle_t event)
   if (dynamic_cast<SetLayerEvent *>(event.get_rep())) {
     seed_lock_.lock();
     seeds_.clear();
+    seed_change_callback(-4);
     seed_lock_.unlock();
     painter_->redraw_all();
   }
 
   if (dynamic_cast<FinishEvent *>(event.get_rep())) {
-    run_filter();
+    const bool erase =
+      painter_->get_vars()->get_bool("Painter::polylinetool_erase");
+    return run_filter(erase);
+  }
+
+  KeyEvent *keyevent = dynamic_cast<KeyEvent *>(event.get_rep());
+  if (keyevent && keyevent->get_keyval() == SCIRun_f)
+  {
+    return run_filter(false);
   }
 
   return CONTINUE_E;
@@ -212,8 +285,7 @@ PolylineTool::draw_gl(SliceWindow &window)
   seed_lock_.unlock();
 
   // Set the color
-  Color rgb(0.3, 1.0, 1.0);
-  glColor4f(rgb.r(), rgb.g(), rgb.b(), 1.0);
+  glColor4f(0.3, 1.0, 1.0, 1.0);
 
   // Draw the line loop.
   glLineWidth(2.0);
@@ -243,7 +315,7 @@ PolylineTool::draw_gl(SliceWindow &window)
   }
 
   // Draw the control points.
-  glPointSize(3.0);
+  glPointSize(4.0);
 
   glBegin(GL_POINTS);
   for (i = 0; i < points.size(); i++)
@@ -258,8 +330,14 @@ PolylineTool::draw_gl(SliceWindow &window)
 }
 
 
+void
+PolylineTool::seed_change_callback(int index)
+{
+}
+
+
 BaseTool::propagation_state_e
-PolylineTool::run_filter()
+PolylineTool::run_filter(bool erase)
 {
   if (!painter_->check_for_active_label_volume("Polyline fill"))
   {
@@ -291,7 +369,7 @@ PolylineTool::run_filter()
   VolumeSliceHandle mask_slice;
   unsigned int mlabel = 0;
   NrrdDataHandle mnrrd;
-  if (painter_->mask_volume_.get_rep())
+  if (painter_->check_for_valid_mask("Polyline fill"))
   {
     mask_slice = painter_->mask_volume_->get_volume_slice(plane);
     mnrrd = mask_slice->nrrd_handle_;
@@ -308,16 +386,20 @@ PolylineTool::run_filter()
 
   const int axis = slice->get_axis();
 
-  vector<vector<int> > seeds;
+  vector<vector<float> > seeds;
   for (size_t i = 0; i < seeds_.size(); i++)
   {
-    vector<int> newseed = vol->world_to_index(seeds_[i]);
-    seeds.push_back(newseed);
-    seeds[i].erase(seeds[i].begin() + axis);
+    vector<double> newseed = vol->point_to_index(seeds_[i]);
+    vector<float> newseedf;
+    for (size_t j = 0; j < newseed.size(); j++)
+    {
+      if (j != axis) { newseedf.push_back(newseed[j] - 0.5); }
+    }
+    seeds.push_back(newseedf);
   }
 
-  // TODO: Rasterize the polyline here.
-  rasterize(cnrrd, clabel, mnrrd, mlabel, seeds);
+  // Rasterize the polyline here.
+  rasterize(cnrrd, clabel, mnrrd, mlabel, seeds, erase);
 
   // Put this slice back.
   painter_->volume_lock_.lock();
@@ -329,6 +411,11 @@ PolylineTool::run_filter()
   }
 
   const vector<int> window_center = vol->world_to_index(window->center_);
+
+  NrrdDataHandle undoslice = new NrrdData();
+  nrrdSlice(undoslice->nrrd_, vol->nrrd_handle_->nrrd_,
+            axis, window_center[axis]);
+  
   if (nrrdSplice(vol->nrrd_handle_->nrrd_,
                  vol->nrrd_handle_->nrrd_,
                  slice->nrrd_handle_->nrrd_,
@@ -348,6 +435,13 @@ PolylineTool::run_filter()
     return QUIT_AND_STOP_E;
   }
   
+  UndoHandle undo =
+    new UndoReplaceSlice(painter_,
+                         erase?"Undo Polyline Erase":"Undo Polyline Fill",
+                         vol, undoslice,
+                         (int)axis, window_center[axis]);
+  painter_->push_undo(undo);
+
   // Clear the slice pointers.
   slice = 0;
   mask_slice = 0;
@@ -365,7 +459,7 @@ PolylineTool::run_filter()
 
 // Boundary conditions
 bool
-PolylineTool::check_on_boundary(const vector<vector<int> > &seeds,
+PolylineTool::check_on_boundary(const vector<vector<float> > &seeds,
                                 float x, float y)
 {
   const float EPSILON = 1.e-6;
@@ -374,10 +468,10 @@ PolylineTool::check_on_boundary(const vector<vector<int> > &seeds,
   {
     const size_t i1 = (i0+1)%seeds.size();
 
-    const float x0 = (float)seeds[i0][1];
-    const float y0 = (float)seeds[i0][2];
-    const float x1 = (float)seeds[i1][1];
-    const float y1 = (float)seeds[i1][2];
+    const float x0 = seeds[i0][1];
+    const float y0 = seeds[i0][2];
+    const float x1 = seeds[i1][1];
+    const float y1 = seeds[i1][2];
 
     const float d = y0 - y1;
     if (fabs(d) < EPSILON)
@@ -415,13 +509,13 @@ PolylineTool::check_on_boundary(const vector<vector<int> > &seeds,
 
 
 bool
-PolylineTool::check_crossings(const vector<vector<int> > &seeds,
+PolylineTool::check_crossings(const vector<vector<float> > &seeds,
                               float x, float y)
 {
   const float EPSILON = 1.e-6;
 
   int inside = 0;
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 7; i++)
   {
     int crosses = 0;
     const float x3 = x;
@@ -433,10 +527,10 @@ PolylineTool::check_crossings(const vector<vector<int> > &seeds,
     {
       const size_t i1 = (i0+1)%seeds.size();
       
-      const float x1 = (float)seeds[i0][1];
-      const float y1 = (float)seeds[i0][2];
-      const float x2 = (float)seeds[i1][1];
-      const float y2 = (float)seeds[i1][2];
+      const float x1 = seeds[i0][1];
+      const float y1 = seeds[i0][2];
+      const float x2 = seeds[i1][1];
+      const float y2 = seeds[i1][2];
 
       const float d = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
       if (fabs(d) < EPSILON) continue; // parallel
@@ -457,15 +551,15 @@ PolylineTool::check_crossings(const vector<vector<int> > &seeds,
 
 
 void
-PolylineTool::compute_bbox(const vector<vector<int> > &seeds,
+PolylineTool::compute_bbox(const vector<vector<float> > &seeds,
                            float &x0, float &y0, float &x1, float &y1)
 {
   for (size_t i = 0; i < seeds.size(); i++)
   {
-    if (seeds[i][1] < x0) x0 = (float)seeds[i][1];
-    if (seeds[i][1] > x1) x1 = (float)seeds[i][1];
-    if (seeds[i][2] < y0) y0 = (float)seeds[i][2];
-    if (seeds[i][2] > y1) y1 = (float)seeds[i][2];
+    if (seeds[i][1] < x0) x0 = seeds[i][1];
+    if (seeds[i][1] > x1) x1 = seeds[i][1];
+    if (seeds[i][2] < y0) y0 = seeds[i][2];
+    if (seeds[i][2] > y1) y1 = seeds[i][2];
   }
 }
 
@@ -473,7 +567,8 @@ PolylineTool::compute_bbox(const vector<vector<int> > &seeds,
 void
 PolylineTool::rasterize(NrrdDataHandle dnrrd, unsigned int dlabel,
                         NrrdDataHandle mnrrd, unsigned int mlabel,
-                        const vector<vector<int> > &seeds)
+                        const vector<vector<float> > &seeds,
+                        bool erase)
 {
   // Set up the data pointers.
   label_type *dstdata = (label_type *)dnrrd->nrrd_->data;
@@ -508,7 +603,14 @@ PolylineTool::rasterize(NrrdDataHandle dnrrd, unsigned int dlabel,
         if (check_crossings(seeds, (float)i, (float)j) ||
             check_on_boundary(seeds, (float)i, (float)j))
         {
-          dstdata[j * isize + i] |= dlabel;
+          if (erase)
+          {
+            dstdata[j * isize + i] &= ~dlabel;
+          }
+          else
+          {
+            dstdata[j * isize + i] |= dlabel;
+          }
         }
       }
     }

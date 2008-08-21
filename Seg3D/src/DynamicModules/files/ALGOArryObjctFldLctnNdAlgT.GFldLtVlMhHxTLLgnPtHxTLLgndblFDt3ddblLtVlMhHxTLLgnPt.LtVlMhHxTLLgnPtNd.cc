@@ -10,6 +10,6 @@ using namespace SCIRunAlgo;
 
 extern "C" {
 ArrayObjectFieldLocationAlgo* maker_ALGOArryObjctFldLctnNdAlgT_GFldLtVlMhHxTLLgnPtHxTLLgndblFDt3ddblLtVlMhHxTLLgnPt_LtVlMhHxTLLgnPtNd () {
-  return scinew ArrayObjectFieldLocationNodeAlgoT<GenericField<LatVolMesh<HexTrilinearLgn<Point> > ,HexTrilinearLgn<double> ,FData3d<double,LatVolMesh<HexTrilinearLgn<Point> > > > >;
+  return new ArrayObjectFieldLocationNodeAlgoT<GenericField<LatVolMesh<HexTrilinearLgn<Point> > ,HexTrilinearLgn<double> ,FData3d<double,LatVolMesh<HexTrilinearLgn<Point> > > > >;
 }
 }

@@ -42,16 +42,16 @@ void VFData::get_evalue(type &val, VMesh::index_type idx) const \
 void  VFData::set_evalue(const type &val, VMesh::index_type idx) \
 { ASSERTFAIL("VFData interface has no virtual function implementation for set_evalue"); } \
 \
-void VFData::get_values(type *ptr, VMesh::size_type sz) const \
+void VFData::get_values(type *ptr, VMesh::size_type sz, VMesh::size_type offset) const \
 { ASSERTFAIL("VFData interface has no virtual function implementation for get_values"); } \
 \
-void VFData::set_values(const type *ptr, VMesh::size_type sz) \
+void VFData::set_values(const type *ptr, VMesh::size_type sz, VMesh::size_type offset) \
 { ASSERTFAIL("VFData interface has no virtual function implementation for set_values"); } \
 \
-void VFData::get_evalues(type *ptr, VMesh::size_type sz) const \
+void VFData::get_evalues(type *ptr, VMesh::size_type sz, VMesh::size_type offset) const \
 { ASSERTFAIL("VFData interface has no virtual function implementation for get_evalues"); } \
 \
-void VFData::set_evalues(const type *ptr, VMesh::size_type sz) \
+void VFData::set_evalues(const type *ptr, VMesh::size_type sz, VMesh::size_type offset) \
 { ASSERTFAIL("VFData interface has no virtual function implementation for set_evalues"); } \
 \
 void VFData::set_all_values(const type &val) \
@@ -63,6 +63,17 @@ void VFData::get_weighted_value(type &val, VMesh::index_type* idx, VMesh::weight
 void VFData::get_weighted_evalue(type &val, VMesh::index_type* idx, VMesh::weight_type* w, VMesh::size_type sz) const \
 { ASSERTFAIL("VFData interface has no virtual function implementation for get_weighted_values"); } \
 \
+void VFData::get_values(type *ptr, VMesh::Node::array_type& nodes ) const \
+{ ASSERTFAIL("VFData interface has no virtual function implementation for get_values"); } \
+\
+void VFData::get_values(type *ptr, VMesh::Elem::array_type& elems ) const \
+{ ASSERTFAIL("VFData interface has no virtual function implementation for get_values"); } \
+\
+void VFData::set_values(const type *ptr, VMesh::Node::array_type& nodes ) \
+{ ASSERTFAIL("VFData interface has no virtual function implementation for set_values"); } \
+\
+void VFData::set_values(const type *ptr, VMesh::Elem::array_type& elems ) \
+{ ASSERTFAIL("VFData interface has no virtual function implementation for set_values"); } \
 
 
 #define VFDATA_ACCESS_DEFINITION2(type) \
@@ -150,6 +161,18 @@ VFData::copy_evalue(VFData* fdata, VMesh::index_type vidx, VMesh::index_type idx
 }  
 
 void 
+VFData::copy_values(VFData* fdata, VMesh::index_type vidx, VMesh::index_type idx, VMesh::size_type num)
+{
+  ASSERTFAIL("VFData interface has no virtual function implementation for copy_values");
+}
+ 
+void 
+VFData::copy_evalues(VFData* fdata, VMesh::index_type vidx, VMesh::index_type idx, VMesh::size_type num)
+{
+  ASSERTFAIL("VFData interface has no virtual function implementation for copy_evalues");
+}  
+
+void 
 VFData::copy_weighted_value(VFData* fdata, VMesh::index_type* vidx, VMesh::weight_type* vw, VMesh::size_type sz, VMesh::index_type idx)
 {
   ASSERTFAIL("VFData interface has no virtual function implementation for copy_weighted_value");
@@ -192,6 +215,8 @@ VFDATA_ACCESS_DEFINITION(long long)
 VFDATA_ACCESS_DEFINITION(unsigned long long)
 VFDATA_ACCESS_DEFINITION(float)
 
+VFDATA_ACCESS_DEFINITION2(int)
+VFDATA_ACCESS_DEFINITION2(float)
 VFDATA_ACCESS_DEFINITION2(double)
 VFDATA_ACCESS_DEFINITION2(Vector)
 VFDATA_ACCESS_DEFINITION2(Tensor)

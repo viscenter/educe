@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Dataflow/Network/Ports/ColorMapPort.h>
@@ -86,7 +86,7 @@ ConvertColorMapToNrrd::execute()
 
     const unsigned int size = cmapH->resolution();
   
-    NrrdData *nd = scinew NrrdData();
+    NrrdData *nd = new NrrdData();
     size_t s[NRRD_DIM_MAX];
     s[0] = 4; s[1] = size;
     nrrdAlloc_nva(nd->nrrd_, nrrdTypeFloat, 2, s);

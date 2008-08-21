@@ -52,11 +52,12 @@ public:
 private:
   CatcherFunction_t           SetParameters;
 
-  void                        set_nrrd(NrrdDataHandle &);
+  void                        set_nrrd(NrrdDataHandle nrrd);
   bool                        load_colormap2(const string &filename);
   void                        create_default_colormap2(ColorMap2Handle h);
   void                        create_renderer();
   void                        clear_renderer();
+  NrrdDataHandle              resize_nrrd(NrrdDataHandle nrrd);
 
   Var<string>                 filename_;
   Var<string>                 cmap2_filename_;

@@ -26,21 +26,7 @@
    DEALINGS IN THE SOFTWARE.
 */
 
- 
-/*
- *  IComINetSocket.cc 
- *
- *  Written by:
- *  Jeroen Stinstra
- *
- */
-
 #include <Core/ICom/IComINetSocket.h>
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209 
-#endif
 
 namespace SCIRun {
 
@@ -764,7 +750,7 @@ bool	IComINetSocket::poll(IComPacketHandle &packet, IComSocketError &err)
 	char buffer[1];
 	int len = 0;
 
-	if (packet == 0) packet = scinew IComPacket;
+	if (packet == 0) packet = new IComPacket;
 	
 #ifdef _WIN32
         int flags = MSG_PEEK;
@@ -890,7 +876,7 @@ bool	IComINetSocket::recv(IComPacketHandle &packet, IComSocketError &err)
 	int  bytestoread = 0;
 	bool byteswap = false;
 
-	if (packet == 0) packet = scinew IComPacket();
+	if (packet == 0) packet = new IComPacket();
 
 	buffer[8] = 0;
 	
@@ -1033,9 +1019,4 @@ bool	IComINetSocket::isconnected(IComSocketError &err)
 
 
 } // end namespace
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209 
-#endif
 

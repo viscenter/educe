@@ -25,34 +25,28 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
- 
-/*
- * FILE: ImportBundlesFromMatlab.cc
- * AUTH: Jeroen G Stinstra
- * DATE: 30 MAR 2004
- */
  
 /* 
  * This module reads a matlab file and converts it to a SCIRun matrix
  *
  */
 
-#include <sgi_stl_warnings_off.h>
+
 #include <sstream>
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
+#include <Core/Datatypes/Bundle.h>
+#include <Core/Datatypes/String.h>
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
-#include <Core/Datatypes/NrrdData.h>
-#include <Core/Datatypes/String.h>
 #include <Dataflow/Network/Ports/StringPort.h>
+
 #include <Core/Matlab/matlabfile.h>
 #include <Core/Matlab/matlabarray.h>
 #include <Core/Matlab/matlabconverter.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 
 namespace MatlabIO {
@@ -113,9 +107,7 @@ private:
   GuiString				guimatrixinfotexts_;   	// A list of matrix-information strings of the contents of a .mat-file
   GuiString				guimatrixnames_;	// A list of matrix-names of the contents of a .mat-file 
   GuiString				guimatrixname_;		// the name of the matrix that has been selected
-  GuiString				guipnrrds_;	
   GuiString				guipnrrd_;	
-  GuiString				guipbundles_;	
   GuiString				guipbundle_;	
 };
 
@@ -130,13 +122,11 @@ DECLARE_MAKER(ImportBundlesFromMatlab)
 ImportBundlesFromMatlab::ImportBundlesFromMatlab(GuiContext* ctx)
   : Module("ImportBundlesFromMatlab", ctx, Source, "DataIO", "MatlabInterface"),
     guifilename_(get_ctx()->subVar("filename")),
-    guifilenameset_(get_ctx()->subVar("filename-set")),
-    guimatrixinfotexts_(get_ctx()->subVar("matrixinfotexts")),     
-    guimatrixnames_(get_ctx()->subVar("matrixnames")),    
+    guifilenameset_(get_ctx()->subVar("filename-set",false)),
+    guimatrixinfotexts_(get_ctx()->subVar("matrixinfotexts",false)),     
+    guimatrixnames_(get_ctx()->subVar("matrixnames",false)),    
     guimatrixname_(get_ctx()->subVar("matrixname")),
-    guipnrrds_(get_ctx()->subVar("pnrrds")),    
     guipnrrd_(get_ctx()->subVar("pnrrd")),
-    guipbundles_(get_ctx()->subVar("pbundles")),    
     guipbundle_(get_ctx()->subVar("pbundle"))
 {
 	indexmatlabfile(false);
@@ -233,7 +223,7 @@ void ImportBundlesFromMatlab::execute()
       send_output_handle(p,mh,true);
     }
     
-    SCIRun::StringHandle filenameH = scinew String(filename);
+    SCIRun::StringHandle filenameH = new String(filename);
     send_output_handle("Filename",filenameH,true);    
   }
   

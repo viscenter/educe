@@ -58,30 +58,30 @@ itcl_class Teem_Tend_TendEvec {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	checkbutton $w.f.options.major -text "Major" -variable $this-major
+        sci_checkbutton $w.f.options.major -text "Major" -variable $this-major
         pack $w.f.options.major -side top -expand yes -fill x
 
-	checkbutton $w.f.options.medium -text "Medium" -variable $this-medium
+        sci_checkbutton $w.f.options.medium -text "Medium" -variable $this-medium
         pack $w.f.options.medium -side top -expand yes -fill x
 
-	checkbutton $w.f.options.minor -text "Minor" -variable $this-minor
+        sci_checkbutton $w.f.options.minor -text "Minor" -variable $this-minor
         pack $w.f.options.minor -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.threshold -labeltext "Threshold:" \
-	    -textvariable $this-threshold
+        sci_entryfield $w.f.options.threshold -labeltext "Threshold:" \
+          -textvariable $this-threshold
         pack $w.f.options.threshold -side top -expand yes -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

@@ -47,7 +47,7 @@
 #include <Core/Geom/GeomCylinder.h>
 #include <Core/Geom/GeomSphere.h>
 #include <Core/Geometry/Transform.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
@@ -86,18 +86,18 @@ FrameWidget::FrameWidget( Module* module, CrowdMonitor* lock,
   olddownaxis(0, 1, 0)
 {
   const double INIT = 5.0*widget_scale;
-  variables[CenterVar] = scinew PointVariable("Center", solve, Scheme1, Point(0, 0, 0));
-  variables[PointRVar] = scinew PointVariable("PntR", solve, Scheme1, Point(INIT, 0, 0));
-  variables[PointDVar] = scinew PointVariable("PntD", solve, Scheme2, Point(0, INIT, 0));
-  variables[DistRVar] = scinew RealVariable("RDIST", solve, Scheme3, INIT);
-  variables[DistDVar] = scinew RealVariable("DDIST", solve, Scheme4, INIT);
-  variables[HypoVar] = scinew RealVariable("HYPO", solve, Scheme3, sqrt(2*INIT*INIT));
-  variables[SDistRVar] = scinew RealVariable("SDistR", solve, Scheme5, INIT/2.0);
-  variables[SDistDVar] = scinew RealVariable("SDistD", solve, Scheme5, INIT/2.0);
-  variables[RatioRVar] = scinew RealVariable("RatioR", solve, Scheme1, 0.5);
-  variables[RatioDVar] = scinew RealVariable("RatioD", solve, Scheme1, 0.5);
+  variables[CenterVar] = new PointVariable("Center", solve, Scheme1, Point(0, 0, 0));
+  variables[PointRVar] = new PointVariable("PntR", solve, Scheme1, Point(INIT, 0, 0));
+  variables[PointDVar] = new PointVariable("PntD", solve, Scheme2, Point(0, INIT, 0));
+  variables[DistRVar] = new RealVariable("RDIST", solve, Scheme3, INIT);
+  variables[DistDVar] = new RealVariable("DDIST", solve, Scheme4, INIT);
+  variables[HypoVar] = new RealVariable("HYPO", solve, Scheme3, sqrt(2*INIT*INIT));
+  variables[SDistRVar] = new RealVariable("SDistR", solve, Scheme5, INIT/2.0);
+  variables[SDistDVar] = new RealVariable("SDistD", solve, Scheme5, INIT/2.0);
+  variables[RatioRVar] = new RealVariable("RatioR", solve, Scheme1, 0.5);
+  variables[RatioDVar] = new RealVariable("RatioD", solve, Scheme1, 0.5);
 
-  constraints[ConstRatioR] = scinew RatioConstraint("ConstRatioR",
+  constraints[ConstRatioR] = new RatioConstraint("ConstRatioR",
 						    NumSchemes,
 						    variables[SDistRVar],
 						    variables[DistRVar],
@@ -108,7 +108,7 @@ FrameWidget::FrameWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstRatioR]->VarChoices(Scheme4, 0, 0, 0);
   constraints[ConstRatioR]->VarChoices(Scheme5, 2, 2, 2);
   constraints[ConstRatioR]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstRatioD] = scinew RatioConstraint("ConstRatioD",
+  constraints[ConstRatioD] = new RatioConstraint("ConstRatioD",
 						    NumSchemes,
 						    variables[SDistDVar],
 						    variables[DistDVar],
@@ -119,7 +119,7 @@ FrameWidget::FrameWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstRatioD]->VarChoices(Scheme4, 0, 0, 0);
   constraints[ConstRatioD]->VarChoices(Scheme5, 2, 2, 2);
   constraints[ConstRatioD]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstRD] = scinew DistanceConstraint("ConstRD",
+  constraints[ConstRD] = new DistanceConstraint("ConstRD",
 						   NumSchemes,
 						   variables[PointRVar],
 						   variables[PointDVar],
@@ -130,7 +130,7 @@ FrameWidget::FrameWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstRD]->VarChoices(Scheme4, 2, 2, 0);
   constraints[ConstRD]->VarChoices(Scheme5, 1, 0, 1);
   constraints[ConstRD]->Priorities(P_Default, P_Default, P_Default);
-  constraints[ConstPyth] = scinew PythagorasConstraint("ConstPyth",
+  constraints[ConstPyth] = new PythagorasConstraint("ConstPyth",
 						       NumSchemes,
 						       variables[DistRVar],
 						       variables[DistDVar],
@@ -141,7 +141,7 @@ FrameWidget::FrameWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstPyth]->VarChoices(Scheme4, 2, 2, 0);
   constraints[ConstPyth]->VarChoices(Scheme5, 1, 0, 1);
   constraints[ConstPyth]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstRC] = scinew DistanceConstraint("ConstRC",
+  constraints[ConstRC] = new DistanceConstraint("ConstRC",
 						   NumSchemes,
 						   variables[PointRVar],
 						   variables[CenterVar],
@@ -152,7 +152,7 @@ FrameWidget::FrameWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstRC]->VarChoices(Scheme4, 0, 0, 0);
   constraints[ConstRC]->VarChoices(Scheme5, 1, 0, 1);
   constraints[ConstRC]->Priorities(P_Highest, P_Highest, P_Default);
-  constraints[ConstDC] = scinew DistanceConstraint("ConstDC",
+  constraints[ConstDC] = new DistanceConstraint("ConstDC",
 						   NumSchemes,
 						   variables[PointDVar],
 						   variables[CenterVar],
@@ -165,56 +165,56 @@ FrameWidget::FrameWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstDC]->Priorities(P_Highest, P_Highest, P_Default);
 
   Index geom, pick;
-  GeomGroup* cyls = scinew GeomGroup;
+  GeomGroup* cyls = new GeomGroup;
   for (geom = GeomSPointUL; geom <= GeomSPointDL; geom++)
   {
-    geometries[geom] = scinew GeomSphere;
+    geometries[geom] = new GeomSphere;
     cyls->add(geometries[geom]);
   }
   for (geom = GeomCylU; geom <= GeomCylL; geom++)
   {
-    geometries[geom] = scinew GeomCylinder;
+    geometries[geom] = new GeomCylinder;
     cyls->add(geometries[geom]);
   }
-  picks_[PickCyls] = scinew GeomPick(cyls, module, this, PickCyls);
+  picks_[PickCyls] = new GeomPick(cyls, module, this, PickCyls);
   picks(PickCyls)->set_highlight(DefaultHighlightMaterial);
-  materials[EdgeMatl] = scinew GeomMaterial(picks_[PickCyls], DefaultEdgeMaterial);
+  materials[EdgeMatl] = new GeomMaterial(picks_[PickCyls], DefaultEdgeMaterial);
   CreateModeSwitch(0, materials[EdgeMatl]);
 
-  GeomGroup* pts = scinew GeomGroup;
+  GeomGroup* pts = new GeomGroup;
   for (geom = GeomPointU, pick = PickSphU;
        geom <= GeomPointL; geom++, pick++)
   {
-    geometries[geom] = scinew GeomSphere;
-    picks_[pick] = scinew GeomPick(geometries[geom], module, this, pick);
+    geometries[geom] = new GeomSphere;
+    picks_[pick] = new GeomPick(geometries[geom], module, this, pick);
     picks(pick)->set_highlight(DefaultHighlightMaterial);
     pts->add(picks_[pick]);
   }
-  materials[PointMatl] = scinew GeomMaterial(pts, DefaultPointMaterial);
+  materials[PointMatl] = new GeomMaterial(pts, DefaultPointMaterial);
   CreateModeSwitch(1, materials[PointMatl]);
    
-  GeomGroup* resizes = scinew GeomGroup;
+  GeomGroup* resizes = new GeomGroup;
   for (geom = GeomResizeU, pick = PickResizeU;
        geom <= GeomResizeL; geom++, pick++)
   {
-    geometries[geom] = scinew GeomCappedCylinder;
-    picks_[pick] = scinew GeomPick(geometries[geom], module, this, pick);
+    geometries[geom] = new GeomCappedCylinder;
+    picks_[pick] = new GeomPick(geometries[geom], module, this, pick);
     picks(pick)->set_highlight(DefaultHighlightMaterial);
     resizes->add(picks_[pick]);
   }
-  materials[ResizeMatl] = scinew GeomMaterial(resizes, DefaultResizeMaterial);
+  materials[ResizeMatl] = new GeomMaterial(resizes, DefaultResizeMaterial);
   CreateModeSwitch(2, materials[ResizeMatl]);
 
-  GeomGroup* sliders = scinew GeomGroup;
-  geometries[GeomSliderCylR] = scinew GeomCappedCylinder;
-  picks_[PickSliderR] = scinew GeomPick(geometries[GeomSliderCylR], module, this, PickSliderR);
+  GeomGroup* sliders = new GeomGroup;
+  geometries[GeomSliderCylR] = new GeomCappedCylinder;
+  picks_[PickSliderR] = new GeomPick(geometries[GeomSliderCylR], module, this, PickSliderR);
   picks(PickSliderR)->set_highlight(DefaultHighlightMaterial);
   sliders->add(picks_[PickSliderR]);
-  geometries[GeomSliderCylD] = scinew GeomCappedCylinder;
-  picks_[PickSliderD] = scinew GeomPick(geometries[GeomSliderCylD], module, this, PickSliderD);
+  geometries[GeomSliderCylD] = new GeomCappedCylinder;
+  picks_[PickSliderD] = new GeomPick(geometries[GeomSliderCylD], module, this, PickSliderD);
   picks(PickSliderD)->set_highlight(DefaultHighlightMaterial);
   sliders->add(picks_[PickSliderD]);
-  materials[SliderMatl] = scinew GeomMaterial(sliders, DefaultSliderMaterial);
+  materials[SliderMatl] = new GeomMaterial(sliders, DefaultSliderMaterial);
   CreateModeSwitch(3, materials[SliderMatl]);
 
   // Switch0 are the bars

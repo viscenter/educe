@@ -172,7 +172,7 @@ DenseMatrix *surfaceLaplacian(surfLaplMesh *tsm) {
   ////////////////////////////////////////////////////
 
 
-  DenseMatrix *laplacian = scinew DenseMatrix(pts.size(),pts.size());
+  DenseMatrix *laplacian = new DenseMatrix(pts.size(),pts.size());
   laplacian->zero();
 
   Array1<int> sub_tri, sub_tri_union, node_nbours;

@@ -49,10 +49,6 @@
 #  include <X11\XUtil.h>
 #endif
 
-#ifdef __sgi
-#  include <X11/extensions/SGIStereo.h>
-#endif
-
 #include <Core/Thread/Mutex.h>
 #include <Core/Geom/OpenGLContext.h>
 
@@ -76,12 +72,13 @@ public:
   static string		        listvisuals();
   virtual bool			make_current();
   virtual void			release();
-  virtual int			width();
-  virtual int			height();
+  virtual int       width();
+  virtual int       height();
   virtual void			swap();
   virtual void			lock();
   virtual void			unlock();
-
+  virtual bool      has_shaders();
+  
 private:
   #ifdef _WIN32
   const char*           ReportCapabilities();

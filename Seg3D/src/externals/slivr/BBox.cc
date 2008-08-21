@@ -109,7 +109,7 @@ BBox::overlaps_inside(const BBox & bb) const
 
 bool 
 BBox::intersect(const Point& origin, const Vector& dir,
-                     Point& hitPoint)
+                Point& hitPoint)
 {
   Vector t1 = (cmin_ - origin) / dir;
   Vector t2 = (cmax_ - origin) / dir;

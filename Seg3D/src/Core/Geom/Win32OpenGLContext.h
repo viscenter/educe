@@ -46,45 +46,47 @@ namespace SCIRun {
 
 class SCISHARE Win32OpenGLContext : public OpenGLContext 
 {
-public:
-  Win32OpenGLContext(int visualid=0, 
-                   int x = 0,
-                   int y = 0,
-                   unsigned int width = 640, 
-                   unsigned int height = 480,
-                   bool border = true, bool show = true);
+  public:
+    Win32OpenGLContext(int visualid=0, 
+                     int x = 0,
+                     int y = 0,
+                     unsigned int width = 640, 
+                     unsigned int height = 480,
+                     bool border = true, bool show = true);
 
-  virtual ~Win32OpenGLContext();
+    virtual ~Win32OpenGLContext();
 
-  // this is static so that both TkOpenGLContext and Win32OpenGLContext can use the same
-  // functions to set up the pixel format the GL context, though the RegisterClass
-  // and CreateWindow functions might be set up differently.
-  static HGLRC          create_context(HDC hdc);
+    // this is static so that both TkOpenGLContext and Win32OpenGLContext can use the same
+    // functions to set up the pixel format the GL context, though the RegisterClass
+    // and CreateWindow functions might be set up differently.
+    static HGLRC          create_context(HDC hdc);
 
-private:  
-  void                  create_window(int id, int w, int h, 
-                                      unsigned int width, 
-                                      unsigned int height,
-                                      bool border, bool show);
+  private:  
+    void                  create_window(int id, int w, int h, 
+                                        unsigned int width, 
+                                        unsigned int height,
+                                        bool border, bool show);
 
-  static void		listvisuals();
+    static void		listvisuals();
 
-public:
-  virtual bool		make_current();
-  virtual void		release();
-  virtual int		width();
-  virtual int		height();
-  virtual void		swap();
+  public:
+    virtual bool		make_current();
+    virtual void		release();
+    virtual int     width();
+    virtual int     height();
+    virtual void		swap();
+    virtual bool    has_shaders();
+    
+    HWND                  window_;
+    int                   width_;
+    int                   height_;
 
-  HWND                  window_;
-  int                   width_;
-  int                   height_;
-private:
-  static vector<int>	valid_visuals_;  
-  static HGLRC          first_context_;
-  HGLRC                 context_;
-  HDC                   hDC_;
-  Mutex                 mutex_;
+  private:
+    static vector<int>	valid_visuals_;  
+    static HGLRC          first_context_;
+    HGLRC                 context_;
+    HDC                   hDC_;
+    Mutex                 mutex_;
 };
 
 } // End namespace SCIRun

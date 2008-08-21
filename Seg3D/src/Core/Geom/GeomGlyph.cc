@@ -47,7 +47,7 @@ using namespace std;
 // GeomGlyph
 Persistent* make_GeomGlyph()
 {
-  return scinew GeomGlyph;
+  return new GeomGlyph;
 }
 
 PersistentTypeID GeomGlyph::type_id("GeomGlyph", "GeomObj", make_GeomGlyph);
@@ -67,14 +67,14 @@ GeomGlyph::~GeomGlyph()
 
 GeomObj* GeomGlyph::clone()
 {
-  return scinew GeomGlyph(*this);
+  return new GeomGlyph(*this);
 }
 
 
 // GeomTranspGlyph
 Persistent* make_GeomTranspGlyph()
 {
-  return scinew GeomTranspGlyph;
+  return new GeomTranspGlyph;
 }
 
 PersistentTypeID GeomTranspGlyph::type_id("GeomTranspGlyph", "GeomObj", make_GeomTranspGlyph);
@@ -94,7 +94,7 @@ GeomTranspGlyph::~GeomTranspGlyph()
 
 GeomObj* GeomTranspGlyph::clone()
 {
-  return scinew GeomTranspGlyph(*this);
+  return new GeomTranspGlyph(*this);
 }
 
 

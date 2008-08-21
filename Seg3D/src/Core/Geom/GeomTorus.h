@@ -41,10 +41,12 @@
 #define SCI_Geom_Torus_h 1
 
 #include <Core/Geom/GeomTriangles.h>
-#include <Core/Geom/Material.h>
+
+#include <Core/Datatypes/Material.h>
+#include <Core/Datatypes/Color.h>
+
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>
-#include <Core/Datatypes/Color.h>
 
 #include <Core/Geom/share.h>
 

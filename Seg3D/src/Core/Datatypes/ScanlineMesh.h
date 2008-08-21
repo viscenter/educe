@@ -283,22 +283,22 @@ public:
   void to_index(typename Edge::index_type &index, index_type i) const
   { index = i; }
   void to_index(typename Face::index_type &index, index_type i) const
-  { index = i; }
+  { ASSERTFAIL("This mesh type does not have faces use \"elem\".");  }
   void to_index(typename Cell::index_type &index, index_type i) const
-  { index = i; }
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\".");  }
 
   //! get the child elements of the given index
   void get_nodes(typename Node::array_type &, typename Edge::index_type) const;
   void get_nodes(typename Node::array_type &, typename Face::index_type) const
-  {}
+  { ASSERTFAIL("This mesh type does not have faces use \"elem\".");  }
   void get_nodes(typename Node::array_type &, typename Cell::index_type) const
-  {}
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\".");  }
   void get_edges(typename Edge::array_type &, typename Edge::index_type) const
   {}
   void get_edges(typename Edge::array_type &, typename Face::index_type) const
-  {}
+  { ASSERTFAIL("This mesh type does not have faces use \"elem\".");  }
   void get_edges(typename Edge::array_type &, typename Cell::index_type) const
-  {}
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\".");  }
 
   //Stub, used by ShowField.
   void get_faces(typename Face::array_type &, typename Elem::index_type) const
@@ -330,38 +330,49 @@ public:
     get_point(p1,ra[1]);
     return (p0-p1).length();
   }
-  double get_size(typename Face::index_type) const { return 0.0; };
-  double get_size(typename Cell::index_type) const { return 0.0; };
+  double get_size(typename Face::index_type) const
+  { ASSERTFAIL("This mesh type does not have faces use \"elem\"."); }
+  double get_size(typename Cell::index_type) const
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
   double get_length(typename Edge::index_type idx) const
   { return get_size(idx); }
   double get_area(typename Face::index_type idx) const
   { return get_size(idx); }
   double get_volume(typename Cell::index_type idx) const
-  { return get_size(idx); }
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
 
   int get_valence(typename Node::index_type idx) const
   { return (idx == 0 || idx == ni_ - 1) ? 1 : 2; }
   int get_valence(typename Edge::index_type) const { return 0; }
-  int get_valence(typename Face::index_type) const { return 0; }
-  int get_valence(typename Cell::index_type) const { return 0; }
+  int get_valence(typename Face::index_type) const
+  { ASSERTFAIL("This mesh type does not have faces use \"elem\"."); }
+  int get_valence(typename Cell::index_type) const
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
 
   //! get the center point (in object space) of an element
   void get_center(Point &, typename Node::index_type) const;
   void get_center(Point &, typename Edge::index_type) const;
-  void get_center(Point &, typename Face::index_type) const {}
-  void get_center(Point &, typename Cell::index_type) const {}
+  void get_center(Point &, typename Face::index_type) const
+  { ASSERTFAIL("This mesh type does not have faces use \"elem\"."); }
+  void get_center(Point &, typename Cell::index_type) const
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
 
   bool locate(typename Node::index_type &, const Point &) const;
   bool locate(typename Edge::index_type &, const Point &) const;
-  bool locate(typename Face::index_type &, const Point &) const { return false; }
-  bool locate(typename Cell::index_type &, const Point &) const { return false; }
+  bool locate(typename Face::index_type &, const Point &) const
+  { ASSERTFAIL("This mesh type does not have faces use \"elem\"."); }
+  bool locate(typename Cell::index_type &, const Point &) const
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
+
+  bool locate(typename Elem::index_type&, vector<double>& coords, 
+              const Point &) const;
 
   int get_weights(const Point &p, typename Node::array_type &l, double *w);
   int get_weights(const Point &p, typename Edge::array_type &l, double *w);
   int get_weights(const Point & , typename Face::array_type & , double * )
-  { ASSERTFAIL("ScanlineMesh::get_weights for faces isn't supported"); }
+  { ASSERTFAIL("This mesh type does not have faces use \"elem\"."); }
   int get_weights(const Point & , typename Cell::array_type & , double * )
-  { ASSERTFAIL("ScanlineMesh::get_weights for cells isn't supported"); }
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
 
   void get_random_point(Point &p, typename Elem::index_type i, FieldRNG &rng) const;
 
@@ -404,6 +415,13 @@ public:
   {
     ASSERTFAIL("ScanlineMesh has no faces");
   }
+
+  //! Synchronize functions, as there is nothing to synchronize, these
+  //! functions always succeed
+
+  virtual bool synchronize(mask_type sync) { return (true); }
+  virtual bool unsynchronize(mask_type sync) { return (true); }
+  bool clear_synchronization() { return (true); }
 
   //! Get the local coordinates for a certain point within an element
   //! This function uses a couple of newton iterations to find the local
@@ -593,22 +611,165 @@ public:
   { return edge_type_description(); }
 
   //! This function returns a maker for Pio.
-  static Persistent *maker() { return scinew ScanlineMesh(); }
+  static Persistent *maker() { return new ScanlineMesh(); }
   //! This function returns a handle for the virtual interface.
-  static MeshHandle mesh_maker() { return scinew ScanlineMesh(); }
+  static MeshHandle mesh_maker() { return new ScanlineMesh(); }
   //! This function returns a handle for the virtual interface.
-  static MeshHandle scanline_maker(size_type x, const Point& min, const Point& max) { return scinew ScanlineMesh(x,min,max); }
+  static MeshHandle scanline_maker(size_type x, const Point& min, const Point& max) { return new ScanlineMesh(x,min,max); }
 
   //! This function will find the closest element and the location on that
   //! element that is the closest
-  double find_closest_elem(Point &result, typename Elem::index_type &elem,
-                           const Point &p) const;
+  template <class INDEX>
+  bool
+  find_closest_node(double& pdist, Point &result, 
+                    INDEX &node, const Point &p, double maxdist) const
+  {
+    bool ret = find_closest_node(pdist,result,node,p);
+    if (!ret)  return (false);
+    if (maxdist < 0.0 || pdist < maxdist) return (true);
+    return (false);
+  }
+
+  //! This function will find the closest element and the location on that
+  //! element that is the closest
+  template <class INDEX>
+  bool 
+  find_closest_node(double& pdist, Point &result, 
+                    INDEX &node, const Point &p) const
+  {
+    //! If there are no elements, we cannot find the closest
+    if (ni_ == 0)  return (false);
+    
+    const Point r = transform_.unproject(p);
+
+    double rx = floor(r.x() + 0.5);
+    const double nii = static_cast<double>(ni_-1);
+
+    if (rx < 0.0) rx = 0.0; if (rx > nii) rx = nii;
+
+    result = transform_.project(Point(rx,0.0,0.0)); 
+    index_type irx =static_cast<index_type>(rx);
+    node = INDEX(irx);
+    pdist = (p-result).length();
+    
+    return (true);
+  }
+
+
+  template <class INDEX, class ARRAY>
+  bool 
+  find_closest_elem(double& pdist, 
+                    Point& result,
+                    ARRAY &coords, 
+                    INDEX &elem, 
+                    const Point &p) const
+  {
+    //! If there are no elements, we cannot find the closest
+    if (ni_ == 0) return (false);
+    
+    const Point r = transform_.unproject(p);
+
+    double ii = r.x();
+    const double nii = static_cast<double>(ni_-2);
+     
+    if (ii < 0.0) ii = 0.0; if (ii > nii) ii = nii;
+
+    const double fi = floor(ii);
+
+    elem = INDEX(static_cast<index_type>(fi));
+    result = transform_.project(Point(ii,0,0));
+    pdist = (p-result).length();
+
+    coords.resize(1);
+    coords[0] = ii-fi;
+    
+    return (true);
+  }
+
+  template <class INDEX, class ARRAY>
+  bool 
+  find_closest_elem(double& pdist, Point& result,
+                    ARRAY &coords, INDEX &elem, 
+                    const Point &p, double maxdist) const
+  {
+    bool ret = find_closest_elem(pdist,result,elem,p);
+    if (!ret)  return (false);
+    if (maxdist < 0.0 || pdist < maxdist) return (true);
+    return (false);
+  }
+
+  //! This function will find the closest element and the location on that
+  //! element that is the closest
+  template <class INDEX>
+  bool 
+  find_closest_elem(double& pdist, 
+                    Point &result, 
+                    INDEX &elem, 
+                    const Point &p) const
+  {
+    //! If there are no elements, we cannot find the closest
+    if (ni_ == 0) return (false);
+    
+    const Point r = transform_.unproject(p);
+
+    double ii = r.x();
+    const double nii = static_cast<double>(ni_-2);
+     
+    if (ii < 0.0) ii = 0.0; if (ii > nii) ii = nii;
+
+    elem = INDEX(static_cast<index_type>(floor(ii)));
+    result = transform_.project(Point(ii,0,0));
+    pdist = (p-result).length();
+
+    return (true);
+  }
+
 
   //! This function will return multiple elements if the closest point is
   //! located on a node or edge. All bordering elements are returned in that 
   //! case. 
-  double find_closest_elems(Point &result, vector<typename Elem::index_type> &elem,
-                            const Point &p) const;
+  template <class ARRAY>
+  bool
+  find_closest_elems(double& pdist, Point &result,
+                     ARRAY &elems, const Point &p) const
+  {
+    //! If there are no elements, we cannot find the closest
+    if (ni_ == 0) return (false);
+    
+    const double epsilon_ = 1e-8;
+
+    const Point r = transform_.unproject(p);
+
+    double ii = r.x();
+    const double nii = static_cast<double>(ni_-2);
+     
+    if (ii < 0.0) ii = 0.0; if (ii > nii) ii = nii;
+
+    const double fii = floor(ii);
+    index_type i = static_cast<index_type>(fii);
+    elems.push_back(static_cast<typename ARRAY::value_type>(i));
+
+    if ((fabs(fii-ii) < epsilon_) && ((i-1)>0))
+    {
+      elems.push_back(static_cast<typename ARRAY::value_type>(i-1));  
+    }
+    
+    if ((fabs(fii-(ii+1.0)) < epsilon_) && (i<(ni_-1)))
+    {
+      elems.push_back(static_cast<typename ARRAY::value_type>(i+1));  
+    }
+
+    result = transform_.project(Point(ii,0,0));
+    pdist = (p-result).length();
+    
+    return (true);
+  }
+
+
+                           
+
+
+
 
 protected:
 
@@ -652,9 +813,17 @@ ScanlineMesh<Basis>::ScanlineMesh(size_type ni,
                                   const Point &min, const Point &max)
   : min_i_(0), ni_(ni)
 {
-  transform_.pre_scale(Vector(1.0 / (ni_ - 1.0), 1.0, 1.0));
-  transform_.pre_scale(max - min);
-  transform_.pre_translate(Vector(min));
+  
+  Vector v0 = max - min;
+  Vector v1, v2;
+  v0.find_orthogonal(v1,v2);
+  
+  // The two points define a line, this sets up the transfrom so it projects
+  // to the x-axis
+  
+  transform_.load_basis(min,v0,v1,v2);
+  transform_.post_scale(Vector(1.0 / (ni_ - 1.0), 1.0, 1.0));
+  
   transform_.compute_imat();
   compute_jacobian();
   
@@ -801,45 +970,6 @@ ScanlineMesh<Basis>::get_center(Point &result,
 }
 
 
-// TODO: verify
-template <class Basis>
-bool
-ScanlineMesh<Basis>::locate(typename Edge::index_type &elem, const Point &p) const
-{
-  if (basis_.polynomial_order() > 1) return elem_locate(elem, *this, p);
-  const Point r = transform_.unproject(p);
-  elem = (unsigned int)(r.x());
-
-  if (elem >= (ni_ - 1))
-  {
-    return false;
-  }
-  else
-  {
-    return true;
-  }
-}
-
-
-// TODO: verify
-template <class Basis>
-bool
-ScanlineMesh<Basis>::locate(typename Node::index_type &node, const Point &p) const
-{
-  const Point r = transform_.unproject(p);
-  node = static_cast<index_type>(r.x() + 0.5);
-
-  if (node >= ni_)
-  {
-    return false;
-  }
-  else
-  {
-    return true;
-  }
-}
-
-
 template <class Basis>
 int
 ScanlineMesh<Basis>::get_weights(const Point &p, typename Node::array_type &l,
@@ -930,7 +1060,10 @@ ScanlineMesh<Basis>::io(Piostream& stream)
   stream.end_class();
 
   if (stream.reading())
+  {
+    compute_jacobian();
     vmesh_ = CreateVScanlineMesh(this);
+  }
 }
 
 
@@ -946,7 +1079,7 @@ ScanlineMesh<Basis>::type_name(int n)
   }
   else if (n == 0)
   {
-    static const string nm("ScanLineMesh");
+    static const string nm("ScanlineMesh");
     return nm;
   }
   else
@@ -1008,7 +1141,7 @@ template <class Basis>
 void
 ScanlineMesh<Basis>::begin(typename ScanlineMesh::Face::iterator &itr) const
 {
-  itr = typename Face::iterator(0);
+  ASSERTFAIL("This mesh type does not have faces use \"elem\".");
 }
 
 
@@ -1016,7 +1149,7 @@ template <class Basis>
 void
 ScanlineMesh<Basis>::end(typename ScanlineMesh::Face::iterator &itr) const
 {
-  itr = typename Face::iterator(0);
+  ASSERTFAIL("This mesh type does not have faces use \"elem\".");
 }
 
 
@@ -1024,7 +1157,7 @@ template <class Basis>
 void
 ScanlineMesh<Basis>::size(typename ScanlineMesh::Face::size_type &s) const
 {
-  s = typename Face::size_type(0);
+  ASSERTFAIL("This mesh type does not have faces use \"elem\".");
 }
 
 
@@ -1032,7 +1165,7 @@ template <class Basis>
 void
 ScanlineMesh<Basis>::begin(typename ScanlineMesh::Cell::iterator &itr) const
 {
-  itr = typename Cell::iterator(0);
+  ASSERTFAIL("This mesh type does not have cells use \"elem\".");
 }
 
 
@@ -1040,7 +1173,7 @@ template <class Basis>
 void
 ScanlineMesh<Basis>::end(typename ScanlineMesh::Cell::iterator &itr) const
 {
-  itr = typename Cell::iterator(0);
+  ASSERTFAIL("This mesh type does not have cells use \"elem\".");
 }
 
 
@@ -1048,7 +1181,7 @@ template <class Basis>
 void
 ScanlineMesh<Basis>::size(typename ScanlineMesh::Cell::size_type &s) const
 {
-  s = typename Cell::size_type(0);
+  ASSERTFAIL("This mesh type does not have cells use \"elem\".");
 }
 
 
@@ -1056,9 +1189,11 @@ template <class Basis>
 double
 ScanlineMesh<Basis>::get_epsilon() const
 {
-  Point p(ni_-1,0.0,0.0);
-  Point q = transform_.project(p);
-  return (q.asVector().length()*1e-8);
+  Point p0(static_cast<double>(ni_-1),0.0,0.0);
+  Point p1(0.0,0.0,0.0);
+  Point q0 = transform_.project(p0);
+  Point q1 = transform_.project(p1);
+  return ((q0-q1).length()*1e-8);
 }
 
 template <class Basis>
@@ -1069,9 +1204,9 @@ get_type_description(ScanlineMesh<Basis> *)
   if (!td)
   {
     const TypeDescription *sub = SCIRun::get_type_description((Basis*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("ScanlineMesh", subs,
+    td = new TypeDescription("ScanlineMesh", subs,
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1097,7 +1232,7 @@ ScanlineMesh<Basis>::node_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((ScanlineMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Node",
+    td = new TypeDescription(me->get_name() + "::Node",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1115,7 +1250,7 @@ ScanlineMesh<Basis>::edge_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((ScanlineMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Edge",
+    td = new TypeDescription(me->get_name() + "::Edge",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1133,7 +1268,7 @@ ScanlineMesh<Basis>::face_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((ScanlineMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Face",
+    td = new TypeDescription(me->get_name() + "::Face",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1151,7 +1286,7 @@ ScanlineMesh<Basis>::cell_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((ScanlineMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Cell",
+    td = new TypeDescription(me->get_name() + "::Cell",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1188,49 +1323,96 @@ ScanlineMesh<Basis>::compute_jacobian()
   }
 }
 
-
 template <class Basis>
-double 
-ScanlineMesh<Basis>::find_closest_elem(Point &result, typename Elem::index_type &elem,
-                           const Point &p) const
+bool
+ScanlineMesh<Basis>::locate(typename Node::index_type &node, const Point &p) const
 {
-  result = transform_.unproject(p);
+  //! If there are no nodes, return false, otherwise there will always be 
+  //! a node that is closest
+  if (ni_ == 0) return (false);
   
-  if (result.x() < 0.0) result.x(0.0);
-  if (result.x() > static_cast<double>(ni_-1)) result.x(static_cast<double>(ni_-1));
-  elem = static_cast<index_type>(floor(result.x()));
-  if (elem > ni_-1) elem = ni_-1;
+  const Point r = transform_.unproject(p);
+
+  double rx = floor(r.x() + 0.5);
+  const double nii = static_cast<double>(ni_-1);
+
+  if (rx < 0.0) rx = 0.0; if (rx > nii) rx = nii;
   
-  return((p-result).length());
+  node = static_cast<index_type>(rx);
+
+  return (true);
 }
 
 template <class Basis>
-double 
-ScanlineMesh<Basis>::find_closest_elems(Point &result,
-                            vector<typename Elem::index_type> &elem,
-                            const Point &p) const
+bool
+ScanlineMesh<Basis>::locate(typename Edge::index_type &elem, const Point &p) const
 {
-  result = transform_.unproject(p);
-  
-  if (result.x() < 0.0) result.x(0.0);
-  if (result.x() > static_cast<double>(ni_-1)) result.x(static_cast<double>(ni_-1));
-  
-  index_type i = static_cast<index_type>(floor(result.x()));
-  elem.push_back(i);
-  
-  if ((fabs(static_cast<double>(i)-result.x()) < MIN_ELEMENT_VAL) && ((i-1)>0))
+  if (basis_.polynomial_order() > 1) return elem_locate(elem, *this, p);
+
+  //! If there are no elements, we are definitely not inside an element
+  if (ni_ < 2) return (false);
+
+  const double epsilon_ = 1e-7;
+
+  const Point r = transform_.unproject(p);
+
+  double ii = r.x();
+  const double nii = static_cast<double>(ni_-1);
+   
+  if (ii>=nii && (ii-epsilon_)<nii) ii=nii-epsilon_;
+
+  if (ii<0 && ii>(-epsilon_)) ii=0.0;
+	
+  const index_type i = static_cast<index_type>(floor(ii));
+
+  if (i < (ni_-1) && i >= 0 && ii >= 0.0)
   {
-    elem.push_back(i-1);  
-  }
-  
-  if ((fabs(static_cast<double>(i+1)-result.x()) < MIN_ELEMENT_VAL) && (i<(ni_-1)))
-  {
-    elem.push_back(i+1);  
+    elem = i;
+    return (true);
   }
 
-  return((p-result).length());
+  //! Not inside any elements
+  return (false);
+}
+
+template <class Basis>
+bool
+ScanlineMesh<Basis>::locate(typename Edge::index_type &elem, 
+                            vector<double>& coords,
+                            const Point &p) const
+{
+  if (basis_.polynomial_order() > 1) return elem_locate(elem, *this, p);
+
+  //! If there are no elements, we are definitely not inside an element
+  if (ni_ < 2) return (false);
+
+  coords.resize(1);
+  const double epsilon_ = 1e-8;
+
+  const Point r = transform_.unproject(p);
+
+  double ii = r.x();
+  const double nii = static_cast<double>(ni_-1);
+   
+  if (ii>nii && (ii-epsilon_)<nii) ii=nii-epsilon_;
+
+  if (ii<0 && ii>(-epsilon_)) ii=0.0;
+	
+  const double fi = floor(ii);
+  const index_type i = static_cast<index_type>(fi);
+
+  if (i < (ni_-1) && i >= 0 && ii >= 0.0)
+  {
+    elem = i;
+    return (true);
+  }
+
+  coords[0] = ii - fi;
+
+  //! Not inside any elements
+  return (false);
 }
 
 } // namespace SCIRun
 
-#endif // SCI_project_ScanlineMesh_h
+#endif

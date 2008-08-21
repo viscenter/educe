@@ -140,7 +140,7 @@ ShowTextureVolumeAlgPriv::ShowTextureVolumeAlgPriv() :
 
   // launch the event handler.
   string tid = "EventHandler_ShowTextureVolume";
-  Thread *vt = scinew Thread(new STVEventHandler(this), tid.c_str());
+  Thread *vt = new Thread(new STVEventHandler(this), tid.c_str());
   vt->detach(); // runs until thread exits.
 }
 
@@ -289,7 +289,7 @@ ShowTextureVolumeAlgPriv::execute(size_t texture_id0,
   volren_->set_sampling_rate(get_p_sampling_rate_hi());
   volren_->set_interactive_rate(get_p_sampling_rate_lo());
   volren_->set_adaptive(get_p_adaptive());
-  volren_->set_colormap_size(1 << get_p_cmap_size());
+  volren_->set_colormap2_width(1 << get_p_cmap2_width());
   volren_->set_slice_alpha(get_p_alpha_scale());
   volren_->set_stencil(get_p_use_stencil());
   volren_->invert_opacity(get_p_invert_opacity());

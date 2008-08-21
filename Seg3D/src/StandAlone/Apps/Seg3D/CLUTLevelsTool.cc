@@ -47,43 +47,48 @@ CLUTLevelsTool::CLUTLevelsTool(Painter *painter) :
 
 
 BaseTool::propagation_state_e
-CLUTLevelsTool::pointer_down(int b, int x, int y,
-                             unsigned int m, int t)
+CLUTLevelsTool::pointer_down(int b, int x, int y, unsigned int m, int t)
 {
-  NrrdVolumeHandle &vol = painter_->current_volume_;
-  if (!vol.get_rep() || !painter_->cur_window_) {
+  // Find the topmost visible data layer.
+  volume_ = 0;
+  for (int i = painter_->volumes_.size()-1; i >= 0; i--)
+  {
+    if (!painter_->volumes_[i]->label_ && painter_->volumes_[i]->visible())
+    {
+      volume_ = painter_->volumes_[i];
+      break;
+    }
+  }
+
+  if (!volume_.get_rep() || !painter_->cur_window_) {
     return CONTINUE_E;
   }
 
-  ww_ = vol->clut_max_ - vol->clut_min_;
-  wl_ = vol->clut_min_ + ww_ / 2.0;
+  ww_ = volume_->clut_max_ - volume_->clut_min_;
+  wl_ = volume_->clut_min_ + ww_ / 2.0;
   x_ = x;
   y_ = y;
   
   const double w = painter_->cur_window_->get_region().width();
   const double h = painter_->cur_window_->get_region().height();
-  scale_ = (vol->data_max_ - vol->data_min_) / sqrt(w*w+h*h);
+  scale_ = (volume_->data_max_ - volume_->data_min_) / sqrt(w*w+h*h);
 
   return STOP_E;
 }
 
 
 BaseTool::propagation_state_e
-CLUTLevelsTool::pointer_motion(int b, int x, int y, 
-                               unsigned int m, int t)
+CLUTLevelsTool::pointer_motion(int b, int x, int y, unsigned int m, int t)
 {
-  NrrdVolumeHandle &vol = painter_->current_volume_;
-  if (!vol.get_rep()) {
-    return CONTINUE_E;
-  }
+  if (!volume_.get_rep()) { return CONTINUE_E; }
 
   const float ww = ww_ + scale_ * (y_ - y);  
   const float wl = wl_ + scale_ * (x_ - x);
 
-  vol->clut_min_ = wl - ww / 2.0;
-  vol->clut_max_ = wl + ww / 2.0;
+  volume_->clut_min_ = wl - ww / 2.0;
+  volume_->clut_max_ = wl + ww / 2.0;
 
-  vol->set_slices_dirty();
+  volume_->set_slices_dirty();
   painter_->redraw_all();
 
   return STOP_E;
@@ -91,8 +96,9 @@ CLUTLevelsTool::pointer_motion(int b, int x, int y,
 
 
 BaseTool::propagation_state_e
-CLUTLevelsTool::pointer_up(int, int, int,unsigned int, int)
+CLUTLevelsTool::pointer_up(int b, int x, int y, unsigned int m, int t)
 {
+  volume_ = 0;
   return QUIT_AND_STOP_E;
 }
 

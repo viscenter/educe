@@ -38,54 +38,54 @@
 namespace SCIRun {
 
 class StreamMatrixFromDisk : public Module {
-public:
-  StreamMatrixFromDisk(GuiContext*);
+  public:
+    StreamMatrixFromDisk(GuiContext*);
+    virtual ~StreamMatrixFromDisk() {}
+    virtual void execute();
+    
+  private:
+    GuiString row_or_col_;
+    GuiInt    slider_min_;
+    GuiInt    slider_max_;
+    GuiInt    range_min_;
+    GuiInt    range_max_;
+    GuiString playmode_;
+    GuiInt    current_;
+    GuiString execmode_;
+    GuiInt    delay_;
+    GuiInt    inc_amount_;
+    GuiInt    send_amount_;
+    GuiString guifilename_;
+    GuiInt    autoplay_;
 
-  virtual void execute();
-  
-private:
-  GuiString row_or_col_;
-  GuiInt    slider_min_;
-  GuiInt    slider_max_;
-  GuiInt    range_min_;
-  GuiInt    range_max_;
-  GuiString playmode_;
-  GuiString dependence_;
-  GuiInt    current_;
-  GuiString execmode_;
-  GuiInt    delay_;
-  GuiInt    inc_amount_;
-  GuiInt    send_amount_;
-  GuiString guifilename_;
+    int       inc_;
+    bool      loop_;
+    bool      use_row_;
+    bool      didrun_;
 
-  int       inc_;
-  bool      loop_;
-  bool      use_row_;
-  bool      didrun_;
-
-  SCIRunAlgo::StreamMatrixAlgo datafile_; 
-  
-  void send_selection(int which, int amount);
-  int increment(int which, int lower, int upper);  
+    SCIRunAlgo::StreamMatrixAlgo datafile_; 
+    
+    void send_selection(int which, int amount);
+    int increment(int which, int lower, int upper);  
 };
 
 
 DECLARE_MAKER(StreamMatrixFromDisk)
 StreamMatrixFromDisk::StreamMatrixFromDisk(GuiContext* ctx)
   : Module("StreamMatrixFromDisk", ctx, Source, "DataIO", "SCIRun"),
-    row_or_col_(get_ctx()->subVar("row_or_col")),
-    slider_min_(get_ctx()->subVar("slider_min")),
-    slider_max_(get_ctx()->subVar("slider_max")),
-    range_min_(get_ctx()->subVar("range_min")),
-    range_max_(get_ctx()->subVar("range_max")),
-    playmode_(get_ctx()->subVar("playmode")),
-    dependence_(get_ctx()->subVar("dependence")),
-    current_(get_ctx()->subVar("current")),
-    execmode_(get_ctx()->subVar("execmode")),
-    delay_(get_ctx()->subVar("delay")),
-    inc_amount_(get_ctx()->subVar("inc-amount")),
-    send_amount_(get_ctx()->subVar("send-amount")),
-    guifilename_(get_ctx()->subVar("filename")), 
+    row_or_col_(get_ctx()->subVar("row_or_col"),"column"),
+    slider_min_(get_ctx()->subVar("slider_min"),0),
+    slider_max_(get_ctx()->subVar("slider_max"),100),
+    range_min_(get_ctx()->subVar("range_min"),0),
+    range_max_(get_ctx()->subVar("range_max"),100),
+    playmode_(get_ctx()->subVar("playmode"),"once"),
+    current_(get_ctx()->subVar("current"),0),
+    execmode_(get_ctx()->subVar("execmode"),"init"),
+    delay_(get_ctx()->subVar("delay"),0.0),
+    inc_amount_(get_ctx()->subVar("inc-amount"),1),
+    send_amount_(get_ctx()->subVar("send-amount"),1),
+    guifilename_(get_ctx()->subVar("filename"),""),
+    autoplay_(get_ctx()->subVar("autoplay"),0),
     inc_(1),
     loop_(false),
     use_row_(false),
@@ -112,11 +112,13 @@ StreamMatrixFromDisk::execute()
   filename = guifilename_.get();
   if (filename == "") return;
 
-  FileName = scinew String(filename); 
+  FileName = new String(filename); 
 
   // Get Indices or Weights 
   get_input_handle("Indices",Indices,false);
   get_input_handle("Weights",Weights,false);
+  
+  update_state(Executing);
   
   if (!(datafile_.open(filename)))
   {
@@ -140,6 +142,23 @@ StreamMatrixFromDisk::execute()
   }
   get_gui()->execute(get_id() + " update_range");
   reset_vars();
+
+  if (autoplay_.get())
+  {
+    if (use_row)
+    {
+      range_min_.set(0);
+      range_max_.set(datafile_.get_numrows()-1);  
+    }
+    else
+    {
+      range_min_.set(0);
+      range_max_.set(datafile_.get_numcols()-1);  
+    }    
+    execmode_.set("play");
+    get_ctx()->reset();
+    didrun_ = true;
+  }
 
   bool senddata = true;
 
@@ -246,7 +265,7 @@ StreamMatrixFromDisk::execute()
     }
 
     // Put the input from the GUI in the matrix Indices
-    Indices = scinew DenseMatrix(1, amount);
+    Indices = new DenseMatrix(1, amount);
     double* dataptr = Indices->get_data_pointer();
     for (int p=0; p <amount;p++) dataptr[p] = static_cast<double>(current+p);
 
@@ -311,7 +330,8 @@ int
 StreamMatrixFromDisk::increment(int current, int lower, int upper)
 {
   // Do nothing if no range.
-  if (upper == lower) {
+  if (upper == lower) 
+  {
     if (playmode_.get() == "once")
       execmode_.set( "stop" );
     return upper;
@@ -320,36 +340,44 @@ StreamMatrixFromDisk::increment(int current, int lower, int upper)
 
   current += inc_ * inc_amount;
 
-  if (current > upper) {
-    if (playmode_.get() == "bounce1") {
+  if (current > upper) 
+  {
+    if (playmode_.get() == "bounce1") 
+    {
       inc_ *= -1;
       return increment(upper, lower, upper);
-    } else if (playmode_.get() == "bounce2") {
+    } 
+    else if (playmode_.get() == "bounce2") 
+    {
       inc_ *= -1;
       return upper;
-    } else {
-      if (playmode_.get() == "once")
-	execmode_.set( "stop" );
+    } 
+    else 
+    {
+      if (playmode_.get() == "once") execmode_.set( "stop" );
       return lower;
     }
   }
-  if (current < lower) {
-    if (playmode_.get() == "bounce1") {
+  if (current < lower) 
+  {
+    if (playmode_.get() == "bounce1") 
+    {
       inc_ *= -1;
       return increment(lower, lower, upper);
-    } else if (playmode_.get() == "bounce2") {
+    } 
+    else if (playmode_.get() == "bounce2") 
+    {
       inc_ *= -1;
       return lower;
-    } else {
-      if (playmode_.get() == "once")
-	execmode_.set( "stop" );
+    } 
+    else 
+    {
+      if (playmode_.get() == "once")execmode_.set( "stop" );
       return upper;
     }
   }
   return current;
 }
 
-
 } // End namespace SCIRun
-
 

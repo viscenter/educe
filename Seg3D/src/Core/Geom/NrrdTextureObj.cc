@@ -93,7 +93,7 @@ void
 NrrdTextureObj::pad_to_power_of_2()
 {
   if (!nrrd_handle_.get_rep() || !nrrd_handle_->nrrd_) return;
-  NrrdDataHandle nout_handle = scinew NrrdData();
+  NrrdDataHandle nout_handle = new NrrdData();
   ptrdiff_t minp[3] = { 0, 0, 0 };
   ptrdiff_t maxp[3] = { 0, 
 			Pow2(nrrd_handle_->nrrd_->axis[1].size)-1, 

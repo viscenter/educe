@@ -40,7 +40,7 @@
 
 
 #include <Packages/BioPSE/Dataflow/Modules/Forward/BuildBEMatrix.h>
-
+#include <Core/Containers/StringUtil.h>
 
 namespace BioPSE {
 
@@ -107,7 +107,7 @@ BuildBEMatrix::execute()
 	error("The 'Inside Conductivity' of the Surface port '" + to_string(pi->second) + "' was not set. It assumes to be zero!");
         condVal = 0;
       }
-      else condVal = atof(condStr.c_str());
+      else from_string(condStr,condVal);
 
       if (field->get_property("in/out", condStr))
          if (condStr == "in")
@@ -431,7 +431,7 @@ void BuildBEMatrix::build_Zoi(const vector<TSMesh::handle_type> &meshes,
         }
       else
         {
-          omatrix=scinew DenseMatrix(hGth_->nrows()+GG[i]->nrows(),nsize_hs);
+          omatrix=new DenseMatrix(hGth_->nrows()+GG[i]->nrows(),nsize_hs);
           Concat_rows(*omatrix.get_rep() ,*hGth_.get_rep(), *GG[i].get_rep());
           hGth_ = omatrix;
         }
@@ -449,7 +449,7 @@ void BuildBEMatrix::build_Zoi(const vector<TSMesh::handle_type> &meshes,
         }
       else
         {
-          omatrix=scinew DenseMatrix(nsize_hs,hPht_->ncols()+PP[i]->ncols());
+          omatrix=new DenseMatrix(nsize_hs,hPht_->ncols()+PP[i]->ncols());
 	  Concat_cols(*omatrix.get_rep() ,*hPht_.get_rep(), *PP[i].get_rep());
           hPht_ = omatrix;
         }
@@ -467,7 +467,7 @@ void BuildBEMatrix::build_Zoi(const vector<TSMesh::handle_type> &meshes,
         }
       else
         {
-          omatrix=scinew DenseMatrix(nsize_ms,hPmt_->ncols()+PP[i]->ncols());
+          omatrix=new DenseMatrix(nsize_ms,hPmt_->ncols()+PP[i]->ncols());
 	  Concat_cols(*omatrix.get_rep() ,*hPmt_.get_rep(), *PP[i].get_rep());
           hPmt_ = omatrix;
         }
@@ -485,7 +485,7 @@ void BuildBEMatrix::build_Zoi(const vector<TSMesh::handle_type> &meshes,
       }
      else
       {
-        omatrix=scinew DenseMatrix(hPth_->nrows()+PP[i*no_of_fields+hs]->nrows(),nsize_hs);
+        omatrix=new DenseMatrix(hPth_->nrows()+PP[i*no_of_fields+hs]->nrows(),nsize_hs);
        	Concat_rows(*omatrix.get_rep() ,*hPth_.get_rep(), *PP[i*no_of_fields+hs].get_rep());
         hPth_ = omatrix;
       }
@@ -503,7 +503,7 @@ void BuildBEMatrix::build_Zoi(const vector<TSMesh::handle_type> &meshes,
       }
      else
       {
-        omatrix=scinew DenseMatrix(hPtm_->nrows()+PP[i*no_of_fields+ms]->nrows(),nsize_ms);
+        omatrix=new DenseMatrix(hPtm_->nrows()+PP[i*no_of_fields+ms]->nrows(),nsize_ms);
        	Concat_rows(*omatrix.get_rep() ,*hPtm_.get_rep(), *PP[i*no_of_fields+ms].get_rep());
         hPtm_ = omatrix;
       }
@@ -527,7 +527,7 @@ void BuildBEMatrix::build_Zoi(const vector<TSMesh::handle_type> &meshes,
              }
            else
              {
-               omatrix=scinew DenseMatrix(nsize,hPtt_row_->ncols()+PP[j]->ncols());
+               omatrix=new DenseMatrix(nsize,hPtt_row_->ncols()+PP[j]->ncols());
 	       Concat_cols(*omatrix.get_rep() ,*hPtt_row_.get_rep(), *PP[j].get_rep());
                hPtt_row_ = omatrix;
              }
@@ -540,7 +540,7 @@ void BuildBEMatrix::build_Zoi(const vector<TSMesh::handle_type> &meshes,
         }
      else
         {
-         omatrix=scinew DenseMatrix(hPtt_row_->nrows()+hPtt_->nrows(), hPtt_row_->ncols());
+         omatrix=new DenseMatrix(hPtt_row_->nrows()+hPtt_->nrows(), hPtt_row_->ncols());
 	 Concat_rows(*omatrix.get_rep() ,*hPtt_.get_rep(), *hPtt_row_.get_rep());
          hPtt_ = omatrix;
         }

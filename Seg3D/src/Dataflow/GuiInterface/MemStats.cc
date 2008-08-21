@@ -42,7 +42,7 @@
 
 #include <sci_defs/bits_defs.h>
 #include <Dataflow/GuiInterface/MemStats.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Containers/StringUtil.h>
 #include <Dataflow/GuiInterface/GuiInterface.h>
 #include <stdio.h>
@@ -65,12 +65,12 @@ MemStats::MemStats()
 		       old_bytes_free, old_bytes_fragmented, old_bytes_inuse,
 		       old_bytes_inhunks);
 
-	old_ssize=scinew size_t[nbins];
-	old_lsize=scinew size_t[nbins];
-	old_reqd=scinew size_t[nbins];
-	old_deld=scinew size_t[nbins];
-	old_inlist=scinew size_t[nbins];
-	lines=scinew int[nbins];
+	old_ssize=new size_t[nbins];
+	old_lsize=new size_t[nbins];
+	old_reqd=new size_t[nbins];
+	old_deld=new size_t[nbins];
+	old_inlist=new size_t[nbins];
+	lines=new int[nbins];
 	nnz=0;
 	for(int i=0;i<nbins;i++){
 	    GetBinStats(a, i, old_ssize[i], old_lsize[i],

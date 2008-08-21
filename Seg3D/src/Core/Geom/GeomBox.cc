@@ -43,7 +43,7 @@
 #include <Core/Geom/GeomBox.h>
 #include <Core/Util/NotFinished.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MinMax.h>
 #include <Core/Persistent/PersistentSTL.h>
 #include <iostream>
@@ -53,7 +53,7 @@ namespace SCIRun {
 
 Persistent* make_GeomBox()
 {
-    return scinew GeomBox(Point(0,0,0), Point(1,1,1), 1);
+    return new GeomBox(Point(0,0,0), Point(1,1,1), 1);
 }
 
 PersistentTypeID GeomBox::type_id("GeomBox", "GeomObj", make_GeomBox);
@@ -83,7 +83,7 @@ GeomBox::~GeomBox()
 
 GeomObj* GeomBox::clone()
 {
-    return scinew GeomBox(*this);
+    return new GeomBox(*this);
 }
 
 void GeomBox::get_bounds(BBox& bb)
@@ -109,7 +109,7 @@ void GeomBox::io(Piostream& stream)
 
 Persistent* make_GeomSimpleBox()
 {
-    return scinew GeomSimpleBox(Point(0,0,0), Point(1,1,1));
+    return new GeomSimpleBox(Point(0,0,0), Point(1,1,1));
 }
 
 PersistentTypeID GeomSimpleBox::type_id("GeomSimpleBox", "GeomObj", make_GeomSimpleBox);
@@ -133,7 +133,7 @@ GeomSimpleBox::~GeomSimpleBox()
 
 GeomObj* GeomSimpleBox::clone()
 {
-    return scinew GeomSimpleBox(*this);
+    return new GeomSimpleBox(*this);
 }
 
 void
@@ -159,7 +159,7 @@ GeomSimpleBox::io(Piostream& stream)
 
 Persistent* make_GeomCBox()
 {
-    return scinew GeomCBox(Point(0,0,0), Point(1,1,1));
+    return new GeomCBox(Point(0,0,0), Point(1,1,1));
 }
 
 PersistentTypeID GeomCBox::type_id("GeomCBox", "GeomObj", make_GeomCBox);
@@ -181,7 +181,7 @@ GeomCBox::~GeomCBox()
 
 GeomObj* GeomCBox::clone()
 {
-    return scinew GeomCBox(*this);
+    return new GeomCBox(*this);
 }
 
 #define GEOMCBOX_VERSION 1
@@ -198,7 +198,7 @@ GeomCBox::io(Piostream& stream)
 
 Persistent* make_GeomBoxes()
 {
-  return scinew GeomBoxes;
+  return new GeomBoxes;
 }
 
 
@@ -235,7 +235,7 @@ GeomBoxes::~GeomBoxes()
 GeomObj *
 GeomBoxes::clone()
 {
-  return scinew GeomBoxes(*this);
+  return new GeomBoxes(*this);
 }
 
 

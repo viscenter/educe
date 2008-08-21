@@ -39,7 +39,7 @@
 
 #include <Core/Geom/GeomTimeGroup.h>
 #include <Core/Containers/Array2.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Persistent/PersistentSTL.h>
 
 #include <iostream>
@@ -54,7 +54,7 @@ using std::vector;
 
 static Persistent* make_GeomTimeGroup()
 {
-    return scinew GeomTimeGroup;
+    return new GeomTimeGroup;
 }
 
 PersistentTypeID GeomTimeGroup::type_id("GeomTimeGroup", "GeomObj", make_GeomTimeGroup);
@@ -105,7 +105,7 @@ int GeomTimeGroup::size()
 
 GeomObj* GeomTimeGroup::clone()
 {
-    return scinew GeomTimeGroup(*this);
+    return new GeomTimeGroup(*this);
 }
 
 void GeomTimeGroup::get_bounds(BBox& in_bb)

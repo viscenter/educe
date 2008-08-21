@@ -37,16 +37,16 @@ itcl_class Teem_UnuAtoM_UnuCCfind {
     }
 
     method set_defaults {} {
-	global $this-connectivity
-	set $this-connectivity 1
+        global $this-connectivity
+        set $this-connectivity 1
 
-	global $this-type
-	set $this-type nrrdTypeInt
+        global $this-type
+        set $this-type nrrdTypeInt
 
-	global $this-usetype
-	set $this-usetype 1
+        global $this-usetype
+        set $this-usetype 1
 
-	trace variable $this-type w "$this set_type"
+        trace variable $this-type w "$this set_type"
     }
 
     method ui {} {
@@ -54,46 +54,47 @@ itcl_class Teem_UnuAtoM_UnuCCfind {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	iwidgets::optionmenu $w.f.options.type -labeltext "Type:" \
-	    -labelpos w -command "$this update_type $w.f.options.type"
-	$w.f.options.type insert end nrrdTypeUChar \
-	    nrrdTypeUShort nrrdTypeInt 
-	pack $w.f.options.type -side top -anchor nw -padx 3 -pady 3
-	$w.f.options.type select [set $this-type]
+        sci_optionmenu $w.f.options.type -labeltext "Type:" \
+            -labelpos w -command "$this update_type $w.f.options.type"
+        $w.f.options.type insert end nrrdTypeUChar \
+            nrrdTypeUShort nrrdTypeInt 
+        pack $w.f.options.type -side top -anchor nw -padx 3 -pady 3
+        $w.f.options.type select [set $this-type]
 
-	checkbutton $w.f.options.usetype -text "Use smallest for output type" \
-	    -variable $this-usetype
-	pack $w.f.options.usetype -side top -anchor nw -padx 3 -pady 3 
+        sci_checkbutton $w.f.options.usetype -text "Use smallest for output type" \
+            -variable $this-usetype
+        pack $w.f.options.usetype -side top -anchor nw -padx 3 -pady 3 
 
-        iwidgets::entryfield $w.f.options.connectivity -labeltext "Connectivity:" -textvariable $this-connectivity
+        sci_entryfield $w.f.options.connectivity -labeltext "Connectivity:" -textvariable $this-connectivity
         pack $w.f.options.connectivity -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+
     }
 
     method update_type {menu} {
-	global $this-type
-	set which [$menu get]
-	set $this-type $which
-    }
+        global $this-type
+        set which [$menu get]
+        set $this-type $which
+          }
 
-    method set_type { name1 name2 op } {
-	set w .ui[modname]
-	set menu $w.f.options.type
-	if {[winfo exists $menu]} {
-	    $menu select [set $this-type]
-	}
+          method set_type { name1 name2 op } {
+        set w .ui[modname]
+        set menu $w.f.options.type
+        if {[winfo exists $menu]} {
+            $menu select [set $this-type]
+        }
     }
 }
 

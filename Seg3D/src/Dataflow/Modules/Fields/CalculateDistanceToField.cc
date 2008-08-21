@@ -35,11 +35,12 @@
 
 namespace SCIRun {
 
-class CalculateDistanceToField : public Module {
-public:
-  CalculateDistanceToField(GuiContext*);
-  virtual void execute();
-  
+class CalculateDistanceToField : public Module 
+{
+  public:
+    CalculateDistanceToField(GuiContext*);
+    virtual ~CalculateDistanceToField() {}
+    virtual void execute();
 };
 
 

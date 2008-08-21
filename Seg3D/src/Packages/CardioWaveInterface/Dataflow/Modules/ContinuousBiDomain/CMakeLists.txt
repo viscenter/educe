@@ -53,7 +53,6 @@ TARGET_LINK_LIBRARIES(Packages_CardioWaveInterface_Dataflow_Modules_ContinuousBi
   Core_Geometry
   Core_GeomInterface
   Dataflow_TkExtensions
-  Core_Bundle
   Core_Algorithms_Converter
   Core_Algorithms_Fields
   Core_Algorithms_Math

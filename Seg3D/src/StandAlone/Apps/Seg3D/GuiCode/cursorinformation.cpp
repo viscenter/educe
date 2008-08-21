@@ -106,9 +106,10 @@ CursorInformation::~CursorInformation()
 void CursorInformation::Init()
 {
 ////@begin CursorInformation member initialisation
+    mSpace_ = NULL;
 ////@end CursorInformation member initialisation
 	
-	mValue_ = NULL;
+    mValue_ = NULL;
     mPosX_ = NULL;
     mPosY_ = NULL;
     mPosZ_ = NULL;
@@ -117,19 +118,44 @@ void CursorInformation::Init()
 
 void CursorInformation::SetMousePositionAndValue(wxCommandEvent &event)
 {
-	CursorInformationStruct *CI = (CursorInformationStruct *)event.GetClientData();
+  CursorInformationStruct *CI =
+    (CursorInformationStruct *)event.GetClientData();
 	
-	mPosX_->Clear();
-	mPosY_->Clear();
-    mPosZ_->Clear();
-	*mPosX_ << CI->x;
+  mPosX_->Clear();
+  mPosY_->Clear();
+  mPosZ_->Clear();
+  if (mSpace_->GetSelection() != 0)
+  {
+    if (CI->value_is_valid)
+    {
+      *mPosX_ << CI->xi;
+      *mPosY_ << CI->yi;
+      *mPosZ_ << CI->zi;
+    }
+    else
+    {
+      *mPosX_ << "none";
+      *mPosY_ << "none";
+      *mPosZ_ << "none";
+    }      
+  }
+  else
+  {
+    *mPosX_ << CI->x;
     *mPosY_ << CI->y;
     *mPosZ_ << CI->z;
+  }
+  mValue_->Clear();
+  if (CI->value_is_valid)
+  {
+    *mValue_ << CI->value;
+  }
+  else
+  {
+    *mValue_ << "none";
+  }
 	
-	mValue_->Clear();
-	*mValue_ << CI->value;
-	
-	delete CI;
+  delete CI;
 }
 
 void CursorInformation::SetMousePosition(double x, double y, double z)
@@ -156,6 +182,7 @@ void CursorInformation::CreateControls()
 ////@begin CursorInformation content construction
     if (!wxXmlResource::Get()->LoadPanel(this, GetParent(), _T("ID_CURSORINFORMATION")))
         wxLogError(wxT("Missing wxXmlResource::Get()->Load() in OnInit()?"));
+    mSpace_ = XRCCTRL(*this, "ID_CHOICE3", wxChoice);
     // Set validators
     if (FindWindow(XRCID("ID_TEXTCTRL1")))
         FindWindow(XRCID("ID_TEXTCTRL1"))->SetValidator( wxTextValidator(wxFILTER_NUMERIC) );

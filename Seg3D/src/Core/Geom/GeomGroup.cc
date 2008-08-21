@@ -41,7 +41,7 @@
 
 #include <Core/Geom/GeomGroup.h>
 #include <Core/Containers/Array2.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Persistent/PersistentSTL.h>
 #include <iostream>
 #include <sci_values.h>
@@ -53,7 +53,7 @@ using std::ostream;
 
 static Persistent* make_GeomGroup()
 {
-    return scinew GeomGroup;
+    return new GeomGroup;
 }
 
 PersistentTypeID GeomGroup::type_id("GeomGroup", "GeomObj", make_GeomGroup);
@@ -105,7 +105,7 @@ int GeomGroup::size()
 
 GeomObj* GeomGroup::clone()
 {
-    return scinew GeomGroup(*this);
+    return new GeomGroup(*this);
 }
 
 void GeomGroup::get_bounds(BBox& in_bb)

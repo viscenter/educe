@@ -32,9 +32,8 @@
 #include <Core/XMLUtil/XMLUtil.h>
 #include <Core/Containers/StringUtil.h>
 #include <iostream>
-#ifndef __sgi
 #include <stdio.h>
-#endif
+
 using namespace std;
 
 namespace SCIRun {

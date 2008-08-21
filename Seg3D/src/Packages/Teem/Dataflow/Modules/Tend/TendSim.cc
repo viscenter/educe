@@ -31,7 +31,7 @@
 //    Date   : Mon Sep  8 09:46:49 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <teem/ten.h>
@@ -91,7 +91,7 @@ TendSim::execute()
     return;
   }
 
-  NrrdDataHandle ntmp(scinew NrrdData(nout));
+  NrrdDataHandle ntmp(new NrrdData(nout));
 
   send_output_handle("OutputNrrd", ntmp);
 }

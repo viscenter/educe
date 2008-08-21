@@ -1,16 +1,16 @@
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 
-#include <Core/Bundle/Bundle.h>
+
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/String.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Packages/CardioWaveInterface/Core/Model/ModelAlgo.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h> 
+ 
 
 namespace CardioWaveInterface {
 
@@ -56,7 +56,7 @@ void CBDGenerateSimulation::execute()
   }
   
   std::string filename = gui_filename_.get();
-  FileName = scinew String(filename);
+  FileName = new String(filename);
   bool enable_debug = gui_enable_debug_.get();
   bool build_visualization_bundle = gui_build_visualization_bundle_.get();
   

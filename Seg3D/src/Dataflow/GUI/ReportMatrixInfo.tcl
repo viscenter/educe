@@ -37,62 +37,55 @@ itcl_class SCIRun_Math_ReportMatrixInfo {
 	setGlobal $this-firstwidth 12
     }
 
-    method set_defaults {} {
-	# These won't be saved 
-	setGlobal $this-matrixname "---"
-	setGlobal $this-generation "---"
-	setGlobal $this-typename "---"
-	setGlobal $this-rows "---"
-	setGlobal $this-cols "---"
-	setGlobal $this-elements "---"
-    }
-
     method ui {} {
         set w .ui[modname]
         if {[winfo exists $w]} {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	iwidgets::Labeledframe $w.att -labelpos nw \
-		               -labeltext "Input Matrix Attributes" 
-			       
-	pack $w.att -fill x
-	set att [$w.att childsite]
-	
-	entrypair $att.l1 "Name" $this-matrixname
-	entrypair $att.l2 "Generation" $this-generation
-	labelpair $att.l3 "Type" $this-typename
-	labelpair $att.l7 "# Rows" $this-rows
-	labelpair $att.l8 "# Columns" $this-cols
-	labelpair $att.l9 "# Elements" $this-elements
-	pack $att.l1 $att.l2 $att.l3 \
-	     $att.l7 $att.l8 $att.l9 -side top -expand y -fill x
+        sci_labeledframe $w.att -labelpos nw \
+                         -labeltext "Input Matrix Attributes" 
+                   
+        pack $w.att -fill x
+        set att [$w.att childsite]
+        
+        entrypair $att.l1 "Name" $this-matrixname
+        entrypair $att.l2 "Generation" $this-generation
+        labelpair $att.l3 "Type" $this-typename
+        labelpair $att.l7 "# Rows" $this-rows
+        labelpair $att.l8 "# Columns" $this-cols
+        labelpair $att.l9 "# Elements" $this-elements
+        labelpair $att.l10 "Minimum" $this-min	
+        labelpair $att.l11 "Maximum" $this-max
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        pack $att.l1 $att.l2 $att.l3 \
+             $att.l7 $att.l8 $att.l9 $att.l10 $att.l11 -side top -expand y -fill x
+
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 
     method entrypair { win text1 text2 } {
 
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 -width [set $this-firstwidth] \
-		      -anchor w -just left
-	label $win.colon -text ":" -width 2 -anchor w -just left 
+        sci_frame $win 
+        pack $win -side top -padx 5
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
+                -anchor w -just left
+        sci_label $win.colon -text ":" -width 2 -anchor w -just left 
 
-	entry $win.l2 -textvar $text2 \
-	    -just left -width 40 \
-	    -relief flat -state disabled \
-	    -fore darkred -borderwidth 0 \
-	    -xscrollcommand [list $win.xscroll set]
+        sci_entry $win.l2 -textvar $text2 \
+            -just left -width 40 \
+            -relief flat -state disabled \
+            -fore darkred -borderwidth 0 \
+            -xscrollcommand [list $win.xscroll set]
 
-	scrollbar $win.xscroll -orient horizontal \
-	    -command [list $win.l2 xview]
+        sci_scrollbar $win.xscroll -orient horizontal \
+            -command [list $win.l2 xview]
 
-	pack $win.l1 $win.colon $win.l2 -side left
-	pack $win.xscroll -side left -fill x
+        pack $win.l1 $win.colon $win.l2 -side left
+        pack $win.xscroll -side left -fill x
     } 
 }
 

@@ -125,8 +125,8 @@ CreateDiscreteAnisoSpheres::execute()
 
   // get radii and conductivities
   int numRad = radii_->nrows();
-  conductivity = scinew DenseMatrix(numRad+1, 2);
-  radius = scinew ColumnMatrix(numRad+1);
+  conductivity = new DenseMatrix(numRad+1, 2);
+  radius = new ColumnMatrix(numRad+1);
   for(int i=0; i<numRad; i++) {
     radius->put(i, radii_->get(i,0));
     conductivity->put(i, RAD, cond_->get(i, RAD));
@@ -189,8 +189,8 @@ CreateDiscreteAnisoSpheres::processHexField(FieldHandle field_)
 {
   LockingHandle<HVField > hexField = dynamic_cast<HVField* >(field_.get_rep());
   HVMesh::handle_type mesh_ = hexField->get_typed_mesh();
-  HVMesh *newMesh_   = scinew HVMesh(*mesh_->clone()); 
-  newHexField = scinew HVField(newMesh_); /* cell-wise conductivity
+  HVMesh *newMesh_   = new HVMesh(*mesh_->clone()); 
+  newHexField = new HVField(newMesh_); /* cell-wise conductivity
 					     tensors -> set data 
 					     location to cells */
   newMesh_->synchronize(HVMesh::FACES_E);
@@ -241,8 +241,8 @@ CreateDiscreteAnisoSpheres::processTetField(FieldHandle field_)
 {
   LockingHandle<TVField > tetField = dynamic_cast<TVField* >(field_.get_rep());
   TVMesh::handle_type mesh_ = tetField->get_typed_mesh();
-  TVMesh *newMesh_   = scinew TVMesh(*mesh_->clone());
-  newTetField = scinew TVField(newMesh_);
+  TVMesh *newMesh_   = new TVMesh(*mesh_->clone());
+  newTetField = new TVField(newMesh_);
   // set positions of the nodes and enumerate them
   TVMesh::Node::iterator nii, nie;
   newMesh_->begin(nii);

@@ -49,7 +49,7 @@
 #include <Core/Datatypes/TetVolMesh.h>
 #include <Core/Datatypes/HexVolMesh.h>
 #include <Core/Datatypes/DenseMatrix.h>
-#include <Core/OS/Dir.h> // for MKDIR
+#include <Core/Util/Dir.h> // for MKDIR
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -194,7 +194,7 @@ write_potential_file(ProgressReporter *pr, MatrixHandle mat,
 
 
 static bool
-send_result_file(MatrixOPort *positions_port, MatrixOPort *moments_port,
+send_result_file(Module* module,
                  string filename)
 {
   string extfilename = filename + ".dip";
@@ -227,13 +227,13 @@ send_result_file(MatrixOPort *positions_port, MatrixOPort *moments_port,
   matstream >> tmp >> px >> py >> pz;
 
   // write dipole position to DenseMatrix
-  MatrixHandle dm_pos = scinew DenseMatrix(pos,3);
+  MatrixHandle dm_pos = new DenseMatrix(pos,3);
 
   dm_pos->put(0, 0, px);
   dm_pos->put(0, 1, py);
   dm_pos->put(0, 2, pz);
 
-  positions_port->send_and_dereference(dm_pos);
+  module->send_output_handle("Dipole Positions",dm_pos,true);
 
   // Get dipople momnent
   getline(matstream, tmp);
@@ -243,13 +243,14 @@ send_result_file(MatrixOPort *positions_port, MatrixOPort *moments_port,
   matstream >> tmp >> mx >> my >> mz;
 
   // write dipole vector to DenseMatrix
-  DenseMatrix *dm_vec = scinew DenseMatrix(pos,3);
+  DenseMatrix *dm_vec = new DenseMatrix(pos,3);
 
   getline(matstream, tmp);
   getline(matstream, tmp); // Magnitude
 		
   // Get dipole magnitude & write dipole vector
-  for (int r=0; r<step+1; r++){
+  for (int r=0; r<step+1; r++)
+  {
     matstream >> tmp;
     double mag;
     matstream >> mag;
@@ -265,7 +266,7 @@ send_result_file(MatrixOPort *positions_port, MatrixOPort *moments_port,
   }
 
   MatrixHandle vec_handle(dm_vec);
-  moments_port->send_and_dereference(vec_handle);
+  module->send_output_handle("Dipole Moments",vec_handle,true);
 	
   matstream.close();
  
@@ -504,7 +505,7 @@ InterfaceWithNeuroFEMInverse::execute()
     error("CondMesh must contain a TetVolMesh or HexVolMesh.");
     return;
   }
-  if (condmesh->query_tensor_interface(this) == 0)
+  if (!(condmesh->vfield()->is_tensor()))
   {
     error("CondMesh must be a tensor field.");
     return;
@@ -595,12 +596,10 @@ InterfaceWithNeuroFEMInverse::execute()
     msg_stream_flush();
 
     // Read in the results and send them along.
-    MatrixOPort *dip1_oport = (MatrixOPort *)get_oport("Dipole Positions");
-    MatrixOPort *dip2_oport = (MatrixOPort *)get_oport("Dipole Moments");
-    if (!send_result_file(dip1_oport, dip2_oport, resultfile))
+    if (!send_result_file(this, resultfile))
     {
-	error("Unable to send denseMatrix");
-	throw false;
+      error("Unable to send denseMatrix");
+      throw false;
     }
 
     throw true; // cleanup.

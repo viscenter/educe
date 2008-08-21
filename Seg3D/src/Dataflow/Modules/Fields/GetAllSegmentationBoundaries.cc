@@ -41,9 +41,11 @@ typedef TriSurfMesh<TriLinearLgn<Point> > TSMesh;
 MeshHandle fast_lat_boundaries(Nrrd *nrrd, bool close);
 
 class GetAllSegmentationBoundaries : public Module {
-public:
-  GetAllSegmentationBoundaries(GuiContext*);
-  virtual void execute();
+  public:
+    GetAllSegmentationBoundaries(GuiContext*);
+    virtual ~GetAllSegmentationBoundaries() {}
+  
+    virtual void execute();
 };
 
 
@@ -70,7 +72,7 @@ GetAllSegmentationBoundaries::execute()
     MeshHandle m = fast_lat_boundaries(nrrdh->nrrd_, true);
     TSMesh *tsm = (TSMesh *)(m.get_rep());
     GenericField<TSMesh, NoDataBasis<double>, vector<double> > *tsfield =
-      scinew GenericField<TSMesh, NoDataBasis<double>, vector<double> >(tsm);
+      new GenericField<TSMesh, NoDataBasis<double>, vector<double> >(tsm);
     FieldHandle out(tsfield);
     send_output_handle("Boundaries", out);
   }

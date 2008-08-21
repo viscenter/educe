@@ -51,10 +51,10 @@ itcl_class BioPSE_Forward_InsertVoltageSource {
         set_defaults
     }
     method set_defaults {} {
-	global $this-outside
-	set $this-outside 1
-	global $this-groundfirst
-	set $this-groundfirst 0
+        global $this-outside
+        set $this-outside 1
+        global $this-groundfirst
+        set $this-groundfirst 0
     }
     method ui {} {
         set w .ui[modname]
@@ -63,17 +63,17 @@ itcl_class BioPSE_Forward_InsertVoltageSource {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 30
-        frame $w.f
-	global $this-outside
-	checkbutton $w.f.o -text "Interpolate outside mesh" \
-		-variable $this-outside
-	global $this-groundfirst
-	checkbutton $w.f.g -text "Ground first node of second field" \
-		-variable $this-groundfirst
-	
-	pack $w.f.o $w.f.g -side top -fill x -expand yes -padx 5 -pady 5
-        pack $w.f -side top -fill x -expand yes
+        sci_frame $w.f
+        global $this-outside
+        sci_checkbutton $w.f.o -text "Interpolate outside mesh" \
+          -variable $this-outside
+        global $this-groundfirst
+        sci_checkbutton $w.f.g -text "Ground first node of second field" \
+          -variable $this-groundfirst
+        
+        pack $w.f.o $w.f.g -side top -fill x -expand yes -padx 5 -pady 5
+              pack $w.f -side top -fill x -expand yes
     }
 }

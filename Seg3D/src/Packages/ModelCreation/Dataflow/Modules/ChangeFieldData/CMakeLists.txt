@@ -31,13 +31,9 @@
 SET(Packages_ModelCreation_Dataflow_Modules_ChangeFieldData_SRCS
   ConvertMappingMatrixToFieldData.cc
   MapCurrentDensityOntoField.cc
-  MapFieldDataFromElemToNode.cc
-  MapFieldDataFromNodeToElem.cc
   MapFieldDataGradientOntoField.cc
   MapFieldDataOntoFieldNodes.cc
   ReportFieldDataMeasures.cc
-  SelectByFieldsData.cc
-  SelectByFieldData.cc
   ModalMapping.cc
 )
 
@@ -61,7 +57,6 @@ TARGET_LINK_LIBRARIES(Packages_ModelCreation_Dataflow_Modules_ChangeFieldData
   Dataflow_Modules_Fields
   Core_Algorithms_Converter
   Core_Algorithms_Fields
-  Core_Algorithms_ArrayMath
   ${TK_LIBRARY}
   ${GL_LIBRARY}
   ${M_LIBRARY}

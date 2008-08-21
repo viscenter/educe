@@ -45,11 +45,11 @@ itcl_class SCIRun_ChangeFieldData_ConvertIndicesToFieldData {
             return
         }
         
-        toplevel $w
+        sci_toplevel $w
         
-        frame $w.f
+        sci_frame $w.f
         pack $w.f
-        label $w.f.lab1 -text "Data type output field"
+        sci_label $w.f.lab1 -text "Data type output field"
         grid $w.f.lab1 -row 0 -column 0 -sticky e
         
         myselectionbutton $w.f.sel1 0 1 { "double" "float" "char" "unsigned char" "short" "unsigned short" "unsigned int" "int"} $this-outputtype
@@ -60,9 +60,9 @@ itcl_class SCIRun_ChangeFieldData_ConvertIndicesToFieldData {
 
 
    method myselectionbutton { win x y arglist var} {
-        frame $win 
+        sci_frame $win 
         grid $win  -row $x -column $y -sticky news
-        iwidgets::optionmenu $win.c -foreground darkred -command " $this comboget $win.c $var "
+        sci_optionmenu $win.c -foreground darkred -command " $this comboget $win.c $var "
 
         set i 0
         set found 0

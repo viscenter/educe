@@ -692,13 +692,13 @@ itcl_class SCIRun_Visualization_CreateStandardColorMaps {
 	
 	set type ""
 	
-	toplevel $w 
+	sci_toplevel $w 
 	wm minsize $w 200 50 
 	
-	frame $w.f -relief flat -borderwidth 2
+	sci_frame $w.f -relief flat -borderwidth 2
 	pack $w.f -side top -expand yes -fill x 
 	
-	frame $w.f.f1 -relief sunken -height 40  -borderwidth 2 
+	sci_frame $w.f.f1 -relief sunken -height 40  -borderwidth 2 
 	pack $w.f.f1 -side right -padx 2 -pady 2 -expand yes -fill x
 
 
@@ -710,18 +710,18 @@ itcl_class SCIRun_Visualization_CreateStandardColorMaps {
 	    "node for editing the line or to move an existing node.  You can use the\n" \
 	    "right mouse button to delete a node.  Alpha defaults to 0.5."
 
-	label $w.l0 -text "Click above to adjust alpha."
+	sci_label $w.l0 -text "Click above to adjust alpha."
 	pack $w.l0 -anchor c
 	
-	frame $w.f3 -relief groove -borderwidth 2
+	sci_frame $w.f3 -relief groove -borderwidth 2
 	pack $w.f3 -side top -anchor c -expand yes -fill x -padx 2
-	scale $w.f3.s -orient horizontal -from -1 -to 1 -showvalue true \
+	sci_scale $w.f3.s -orient horizontal -from -1 -to 1 -showvalue true \
 	    -label "Shift" -variable $this-gamma -resolution 0.01 -tickinterval 1
 	pack $w.f3.s -expand yes -fill x -padx 2
 	
 	Tooltip $w.f3.s "Skews the color map to the left or right."
 
-	scale $w.f3.s2 -from 2 -to 256 -state normal \
+	sci_scale $w.f3.s2 -from 2 -to 256 -state normal \
 		-orient horizontal  -variable $this-resolution -label "Resolution"
 	pack $w.f3.s2 -expand yes -fill x -pady 2 -padx 2
 
@@ -729,7 +729,7 @@ itcl_class SCIRun_Visualization_CreateStandardColorMaps {
 	
 	bind $w.f3.s2 <ButtonRelease> "$this update; $this-c needexecute"
 
-	frame $w.f2 -relief groove -borderwidth 2
+	sci_frame $w.f2 -relief groove -borderwidth 2
 	pack $w.f2 -padx 2 -pady 2 -expand yes -fill both
 	
 	make_labeled_radio $w.f2.types "ColorMaps" "$this change" \
@@ -737,16 +737,16 @@ itcl_class SCIRun_Visualization_CreateStandardColorMaps {
 	    
 	pack $w.f2.types -expand yes -fill both
 
-	frame $w.f4 -relief groove -borderwidth 2
+	sci_frame $w.f4 -relief groove -borderwidth 2
 	pack $w.f4 -padx 2 -pady 2 -expand yes -fill x
 
-	checkbutton $w.f4.faux -text "Opacity Modulation (Faux Shading)" -relief flat \
+	sci_checkbutton $w.f4.faux -text "Opacity Modulation (Faux Shading)" -relief flat \
             -variable $this-faux -onvalue 1 -offvalue 0 \
             -anchor w -command "$this-c needexecute"
         pack $w.f4.faux -side top -fill x -padx 4
 	Tooltip $w.f4.faux "Modulates color components based on the given opacity curve."
 
-	checkbutton $w.f4.reverse -text "Reverse the colormap" -relief flat \
+	sci_checkbutton $w.f4.reverse -text "Reverse the colormap" -relief flat \
             -variable $this-reverse -onvalue 1 -offvalue 0 \
             -anchor w -command "$this change"
         pack $w.f4.reverse -side top -fill x -padx 4

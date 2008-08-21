@@ -75,12 +75,26 @@ IMPLEMENT_APP_CONSOLE(Seg3D)
 
 bool
 Seg3D::OnInit()
-{ 
+{
+  // Look for the data directory in the current directory and the install path.
+  const char *datapath = "./data";
+  if (validDir(SYSDATAPATH))
+  {
+    datapath = SYSDATAPATH;
+  }
+#ifndef __APPLE__
+  else if (!validDir(datapath))
+  {
+    cout << "Seg3D Error: Could not locate Seg3D data directory.  Exiting.\n";
+    exit(0);
+  }
+#endif
+
 #ifndef _DEBUG 
   // Turn off splash screen on debug - it's too hard to debug with the
   // splash screen that won't go anywhere in the way.
   wxString splashScreenPath;
-  splashScreenPath = wxT(DATAPATH "/splash-seg3d.png");
+  splashScreenPath = std2wx(datapath + string("/splash-seg3d.png"));
   
 #if defined(__APPLE__)
   wxStandardPathsCF * paths = new wxStandardPathsCF();
@@ -106,7 +120,7 @@ Seg3D::OnInit()
   // will refer to.
   wxXmlResource::Get()->InitAllHandlers();
   wxFileSystem::AddHandler(new wxZipFSHandler);
-  wxString xrcPath = wxT(DATAPATH "/Seg3D.xrc");
+  wxString xrcPath = std2wx(datapath + string("/Seg3D.xrc"));
 
 #if defined(__APPLE__)
   wxStandardPathsCF * paths2 = new wxStandardPathsCF();
@@ -115,14 +129,13 @@ Seg3D::OnInit()
   
   wxXmlResource::Get()->Load(xrcPath);
 
-  // TODO: Position and size came from main.skin, duplicated.
   Seg3DFrame* frame  = 
     new Seg3DFrame("Seg3D", NULL, _T("Seg3D"),
                    wxDefaultPosition, wxSize(900+PANEL_WIDTH, 750));
 
   Painter::global_seg3dframe_pointer_ = frame;
   Skinner::XMLIO::register_maker<Painter>();
-  Skinner::Skinner *skinner = Skinner::load_default_skin(DATAPATH);
+  Skinner::Skinner *skinner = Skinner::load_default_skin(datapath);
   if (!skinner) {
     cerr << "Errors encounted loading default skin.\n";
     return false;
@@ -149,9 +162,8 @@ Seg3D::OnInit()
 int
 Seg3D::OnExit()
 {
-  // TODO:  Probably have to send QuitEvent here.
   delete skinner_window_;
-  EventManager::add_event( scinew QuitEvent() );
+  EventManager::add_event( new QuitEvent() );
   event_manager_thread_->join();
   return wxApp::OnExit();
 }

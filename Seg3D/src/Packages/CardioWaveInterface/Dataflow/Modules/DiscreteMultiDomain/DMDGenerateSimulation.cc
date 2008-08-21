@@ -28,17 +28,17 @@
 
 #include <Dataflow/Network/Module.h>
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/String.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Packages/CardioWaveInterface/Core/Model/ModelAlgo.h>
-#include <Core/OS/FullFileName.h>
+#include <Core/Util/FullFileName.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h> 
+ 
 
 namespace CardioWaveInterface {
 
@@ -116,7 +116,7 @@ void DMDGenerateSimulation::execute()
 		gui_filename_.set(filename);
     get_ctx()->reset();					
 									    
-    FileName = scinew String(filename);
+    FileName = new String(filename);
 
     bool enable_debug = gui_enable_debug_.get();
     bool build_visualization_bundle = gui_build_visualization_bundle_.get();

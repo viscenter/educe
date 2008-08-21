@@ -40,7 +40,7 @@
  */
 
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #undef SCISHARE
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
@@ -53,10 +53,10 @@ namespace SCIRun {
 
 extern "C" {
   SCISHARE IPort* make_ITKDatatypeIPort(Module* module, const string& name) {
-    return scinew SimpleIPort<SCIRun::ITKDatatypeHandle>(module,name);
+    return new SimpleIPort<SCIRun::ITKDatatypeHandle>(module,name);
 }
   SCISHARE OPort* make_ITKDatatypeOPort(Module* module, const string& name) {
-    return scinew SimpleOPort<SCIRun::ITKDatatypeHandle>(module,name);
+    return new SimpleOPort<SCIRun::ITKDatatypeHandle>(module,name);
 }
 }
 

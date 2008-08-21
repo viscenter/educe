@@ -34,14 +34,14 @@
 #define DataManager_h
 
 #include <Core/Thread/CrowdMonitor.h>
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/NrrdData.h>
 #include <Core/Events/ToolManager.h>
 #include <Core/Events/EventManager.h>
 #include <Core/Geom/GeomObj.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 #include <Core/Geom/Path.h>
 #include <Core/Volume/Texture.h>
 #include <Core/Volume/ColorMap2.h>

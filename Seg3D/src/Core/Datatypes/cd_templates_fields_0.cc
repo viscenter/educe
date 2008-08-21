@@ -37,18 +37,6 @@
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Datatypes/MultiLevelField.h>
 
-//#include <Core/Datatypes/MaskedLatVolField.h>
-
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-/*
-cc-1468 CC: REMARK File = ../src/Core/Datatypes/cd_templates_fields_0.cc, Line = 11
-  Inline function "SCIRun::FData3d<SCIRun::Tensor>::end" cannot be explicitly
-          instantiated.
-*/
-#pragma set woff 1468
-#endif
-
 using namespace SCIRun;
 typedef LatVolMesh<HexTrilinearLgn<Point> > LVMesh;
 
@@ -189,60 +177,3 @@ backwards_compat_LVFul("LatVolField<unsigned_long>", "Field",
 		       FData3d<unsigned long, LVMesh> >::maker, 
 		       GenericField<LVMesh, CFDulongBasis, 
 		       FData3d<unsigned long, LVMesh> >::maker);
-
-// const TypeDescription* get_type_description(MultiLevelField<Tensor> *);
-// const TypeDescription* get_type_description(MultiLevelField<Vector> *);
-// const TypeDescription* get_type_description(MultiLevelField<double> *);
-// const TypeDescription* get_type_description(MultiLevelField<float> *);
-// const TypeDescription* get_type_description(MultiLevelField<int> *);
-// const TypeDescription* get_type_description(MultiLevelField<short> *);
-// const TypeDescription* get_type_description(MultiLevelField<char> *);
-// const TypeDescription* get_type_description(MultiLevelField<unsigned int> *);
-// const TypeDescription* get_type_description(MultiLevelField<unsigned short> *);
-// const TypeDescription* get_type_description(MultiLevelField<unsigned char> *);
-
-//NoData
-template class MultiLevelField<LVMesh, NDBasis,  FData3d<double, LVMesh> >;
-
-//Constant
-template class MultiLevelField<LVMesh, CFDTensorBasis,  
-                             FData3d<Tensor, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDVectorBasis,  
-                             FData3d<Vector, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDdoubleBasis,  
-                             FData3d<double, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDfloatBasis,   FData3d<float, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDintBasis,     FData3d<int, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDshortBasis,   FData3d<short, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDcharBasis,    FData3d<char, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDuintBasis,    
-			    FData3d<unsigned int, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDushortBasis,  
-			    FData3d<unsigned short, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDucharBasis,   
-			    FData3d<unsigned char, LVMesh> >;
-template class MultiLevelField<LVMesh, CFDulongBasis,   
-			    FData3d<unsigned long, LVMesh> >;
-
-//Linear
-template class MultiLevelField<LVMesh, FDTensorBasis,  FData3d<Tensor, LVMesh> >;
-template class MultiLevelField<LVMesh, FDVectorBasis,  FData3d<Vector, LVMesh> >;
-template class MultiLevelField<LVMesh, FDdoubleBasis,  FData3d<double, LVMesh> >;
-template class MultiLevelField<LVMesh, FDfloatBasis,   FData3d<float, LVMesh> >;
-template class MultiLevelField<LVMesh, FDintBasis,     FData3d<int, LVMesh> >;
-template class MultiLevelField<LVMesh, FDshortBasis,   FData3d<short, LVMesh> >;
-template class MultiLevelField<LVMesh, FDcharBasis,    FData3d<char, LVMesh> >;
-template class MultiLevelField<LVMesh, FDuintBasis,    
-			    FData3d<unsigned int, LVMesh> >;
-template class MultiLevelField<LVMesh, FDushortBasis,  
-			    FData3d<unsigned short, LVMesh> >;
-template class MultiLevelField<LVMesh, FDucharBasis,   
-			    FData3d<unsigned char, LVMesh> >;
-template class MultiLevelField<LVMesh, FDulongBasis,   
-			    FData3d<unsigned long, LVMesh> >;
-
-
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1468
-#endif

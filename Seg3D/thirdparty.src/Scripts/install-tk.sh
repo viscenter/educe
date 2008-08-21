@@ -103,24 +103,6 @@ cd $DIR/src/tk/unix
 ############
 # Update Makefiles
 
-if test "$BITS" = "64" && test "$OSNAME" = "IRIX64"; then 
-    echo
-    echo "#### FIXING MAKEFILE FOR 64bit SGI BUILD ####"
-    echo
-
-    # This assumes that the Makefile was built on an SGI... on
-    # anything else it won't have a -n32 so this does nothing there.
-    # Note, on 64 bit linux, you probably don't need a flag (it just
-    # defaults to 64 bit mode), so you don't need to add a flag to the
-    # Makefile...
-
-    mv Makefile Makefile.old
-    sed -e "s/-n32/-64/g" Makefile.old > Makefile
-
-    echo
-    echo "#### DONE                                ####"
-    echo
-fi
 
 if test "$OSNAME" = "Darwin"; then
 
@@ -138,12 +120,20 @@ if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then
     echo
 
     mv $DIR/src/tk/unix/Makefile $DIR/src/tk/unix/Makefile.old
-    sed -e 's:gcc -pipe:gcc -pipe -m64:g' $DIR/src/tk/unix/Makefile.old >$DIR/src/tk/unix/Makefile
+    sed -e 's:gcc -pipe:gcc -pipe -m64 -arch ppc64 -arch x86_64 :g' $DIR/src/tk/unix/Makefile.old >$DIR/src/tk/unix/Makefile
     mv $DIR/src/tk/unix/Makefile $DIR/src/tk/unix/Makefile.old
-    sed -e 's:cc -dynamiclib:cc -dynamiclib -m64:g' $DIR/src/tk/unix/Makefile.old >$DIR/src/tk/unix/Makefile
-
+    sed -e 's:cc -dynamiclib:cc -dynamiclib -m64 -arch ppc64 -arch x86_64 :g' $DIR/src/tk/unix/Makefile.old >$DIR/src/tk/unix/Makefile
 fi
+if test "$BITS" = "32" && test "$OSNAME" = "Darwin"; then 
+    echo
+    echo "#### FIXING MAKEFILE FOR 32bit DARWIN BUILD ####"
+    echo
 
+    mv $DIR/src/tk/unix/Makefile $DIR/src/tk/unix/Makefile.old
+    sed -e 's:gcc -pipe:gcc -pipe -arch ppc -arch i386 :g' $DIR/src/tk/unix/Makefile.old >$DIR/src/tk/unix/Makefile
+    mv $DIR/src/tk/unix/Makefile $DIR/src/tk/unix/Makefile.old
+    sed -e 's:cc -dynamiclib:cc -dynamiclib -arch ppc -arch i386 :g' $DIR/src/tk/unix/Makefile.old >$DIR/src/tk/unix/Makefile
+fi
 
 ############
 # Make

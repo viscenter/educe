@@ -72,10 +72,6 @@ protected:
   GuiInt gui_Overlaps_;
 
   vector< double > planes_;
-
-  FieldHandle sl_field_output_handle_;
-  FieldHandle pcc_field_output_handle_;
-  FieldHandle pcs_field_output_handle_;
 };
 
 
@@ -93,10 +89,7 @@ StreamlineAnalyzer::StreamlineAnalyzer(GuiContext* context)
     gui_ScalarField_(context->subVar("scalar-field"), 1),
     gui_ShowIslands_(context->subVar("show-islands"), 0),
     gui_IslandCentroids_(context->subVar("island-centroids"), 1),
-    gui_Overlaps_(context->subVar("overlaps"), 1),
-    sl_field_output_handle_(0),
-    pcc_field_output_handle_(0),
-    pcs_field_output_handle_(0)
+    gui_Overlaps_(context->subVar("overlaps"), 1)
 {
 }
 
@@ -121,7 +114,7 @@ StreamlineAnalyzer::execute()
       return;
     }
 
-    if (!sl_field_input_handle->query_scalar_interface(this).get_rep()) {
+    if (!sl_field_input_handle->vfield()->is_scalar()) {
       error("Only available for Scalar data.");
       return;
     }
@@ -144,7 +137,7 @@ StreamlineAnalyzer::execute()
       return;
     }
 
-    if (!pcc_field_input_handle->query_scalar_interface(this).get_rep()) {
+    if (!pcc_field_input_handle->vfield()->is_scalar()) {
       error("Only available for Scalar data.");
       return;
     }
@@ -167,7 +160,7 @@ StreamlineAnalyzer::execute()
       return;
     }
 
-    if (!pcs_field_input_handle->query_scalar_interface(this).get_rep()) {
+    if (!pcs_field_input_handle->vfield()->is_scalar()) {
       error("Only available for Scalar data.");
       return;
     }
@@ -237,7 +230,7 @@ StreamlineAnalyzer::execute()
   // If no data or a changed recalcute.
   if( inputs_changed_ ||
 
-      !sl_field_output_handle_.get_rep() ||
+      !oport_cached("Output Poincare") ||
 
       gui_Color_.changed( true ) ||
       gui_MaxWindings_.changed( true ) ||
@@ -275,23 +268,27 @@ StreamlineAnalyzer::execute()
 
     vector< pair< unsigned int, unsigned int > > topology;
 
-    algo->execute(sl_field_input_handle,   sl_field_output_handle_,
-		  pcc_field_input_handle, pcc_field_output_handle_,
-		  pcs_field_input_handle, pcs_field_output_handle_,
+    FieldHandle sl_field_output_handle;
+    FieldHandle pcc_field_output_handle;
+    FieldHandle pcs_field_output_handle;
+
+    algo->execute(sl_field_input_handle,   sl_field_output_handle,
+		  pcc_field_input_handle, pcc_field_output_handle,
+		  pcs_field_input_handle, pcs_field_output_handle,
 		  planes_,
 		  gui_Color_.get(),
 		  gui_ShowIslands_.get(), gui_IslandCentroids_.get(),
 		  gui_Overlaps_.get(),
 		  gui_MaxWindings_.get(), gui_Override_.get(), gui_Order_.get(),
 		  topology);
+
+    // Send the data downstream
+    send_output_handle( "Output Poincare",     sl_field_output_handle );
+    send_output_handle( "Output Centroids",    pcc_field_output_handle );
+    send_output_handle( "Output Separatrices", pcs_field_output_handle );
+
+    cerr << "StreamlineAnalyzer done " << endl;
   }
-
-  // Send the data downstream
-  send_output_handle( "Output Poincare",     sl_field_output_handle_,  true );
-  send_output_handle( "Output Centroids",    pcc_field_output_handle_, true );
-  send_output_handle( "Output Separatrices", pcs_field_output_handle_, true );
-
-  cerr << "StreamlineAnalyzer done " << endl;
 }
 
 
@@ -329,7 +326,7 @@ StreamlineAnalyzerAlgo::get_compile_info(const TypeDescription *ftd,
     string( "vector<double> > " );
 
 
-  CompileInfo *rval = scinew CompileInfo( template_class_name + "." +
+  CompileInfo *rval = new CompileInfo( template_class_name + "." +
 					  ftd->get_filename() + "." +
 					  mtd->get_filename() + "." +
 					  btd->get_filename() + "." +

@@ -148,8 +148,8 @@ void itkDiscreteGaussianImageFilter::OnSetProgress( wxCommandEvent &event)
   
   if (progress < 0)
   {
-    wxBeginBusyCursor();
     disabler_ = new wxWindowDisabler();
+    wxBeginBusyCursor();
     progress = 0;
   }
   if (progress > 100)

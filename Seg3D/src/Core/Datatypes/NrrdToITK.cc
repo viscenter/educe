@@ -38,21 +38,48 @@ namespace SCIRun {
 
 
 ITKDatatypeHandle
-nrrd_to_itk_image(NrrdDataHandle &nrrd) {
+nrrd_to_itk_image2(NrrdDataHandle &nrrd)
+{
   Nrrd *n = nrrd->nrrd_;
 
   itk::Object::Pointer data = 0;
   switch (n->type) {
-  case nrrdTypeChar: data = nrrd_to_itk_image<signed char>(n); break;
-  case nrrdTypeUChar: data = nrrd_to_itk_image<unsigned char>(n); break;
-  case nrrdTypeShort: data = nrrd_to_itk_image<signed short>(n); break;
-  case nrrdTypeUShort: data = nrrd_to_itk_image<unsigned short>(n); break;
-  case nrrdTypeInt: data = nrrd_to_itk_image<signed int>(n); break;
-  case nrrdTypeUInt: data = nrrd_to_itk_image<unsigned int>(n); break;
-  case nrrdTypeLLong: data = nrrd_to_itk_image<signed long long>(n); break;
-  case nrrdTypeULLong: data =nrrd_to_itk_image<unsigned long long>(n); break;
-  case nrrdTypeFloat: data = nrrd_to_itk_image<float>(n); break;
-  case nrrdTypeDouble: data = nrrd_to_itk_image<double>(n); break;
+  case nrrdTypeChar: data = nrrd_to_itk_image<signed char, 2>(n); break;
+  case nrrdTypeUChar: data = nrrd_to_itk_image<unsigned char, 2>(n); break;
+  case nrrdTypeShort: data = nrrd_to_itk_image<signed short, 2>(n); break;
+  case nrrdTypeUShort: data = nrrd_to_itk_image<unsigned short, 2>(n); break;
+  case nrrdTypeInt: data = nrrd_to_itk_image<signed int, 2>(n); break;
+  case nrrdTypeUInt: data = nrrd_to_itk_image<unsigned int, 2>(n); break;
+  case nrrdTypeLLong: data = nrrd_to_itk_image<signed long long, 2>(n); break;
+  case nrrdTypeULLong: data =nrrd_to_itk_image<unsigned long long, 2>(n); break;
+  case nrrdTypeFloat: data = nrrd_to_itk_image<float, 2>(n); break;
+  case nrrdTypeDouble: data = nrrd_to_itk_image<double, 2>(n); break;
+  default: throw "nrrd_to_itk_image2, cannot convert type" + to_string(n->type);
+  }
+
+  ITKDatatype *result = new SCIRun::ITKDatatype();
+  result->data_ = data;
+  return result;
+}
+
+
+ITKDatatypeHandle
+nrrd_to_itk_image3(NrrdDataHandle &nrrd)
+{
+  Nrrd *n = nrrd->nrrd_;
+
+  itk::Object::Pointer data = 0;
+  switch (n->type) {
+  case nrrdTypeChar: data = nrrd_to_itk_image<signed char, 3>(n); break;
+  case nrrdTypeUChar: data = nrrd_to_itk_image<unsigned char, 3>(n); break;
+  case nrrdTypeShort: data = nrrd_to_itk_image<signed short, 3>(n); break;
+  case nrrdTypeUShort: data = nrrd_to_itk_image<unsigned short, 3>(n); break;
+  case nrrdTypeInt: data = nrrd_to_itk_image<signed int, 3>(n); break;
+  case nrrdTypeUInt: data = nrrd_to_itk_image<unsigned int, 3>(n); break;
+  case nrrdTypeLLong: data = nrrd_to_itk_image<signed long long, 3>(n); break;
+  case nrrdTypeULLong: data =nrrd_to_itk_image<unsigned long long, 3>(n); break;
+  case nrrdTypeFloat: data = nrrd_to_itk_image<float, 3>(n); break;
+  case nrrdTypeDouble: data = nrrd_to_itk_image<double, 3>(n); break;
   default: throw "nrrd_to_itk_image, cannot convert type" + to_string(n->type);
   }
 
@@ -60,6 +87,25 @@ nrrd_to_itk_image(NrrdDataHandle &nrrd) {
   result->data_ = data;
   return result;
 }
+
+
+ITKDatatypeHandle
+nrrd_to_itk_image(NrrdDataHandle &nrrd)
+{
+  if (nrrd->nrrd_->dim == 4)
+  {
+    return nrrd_to_itk_image3(nrrd);
+  }
+  else if (nrrd->nrrd_->dim == 3)
+  {
+    return nrrd_to_itk_image2(nrrd);
+  }
+  else
+  {
+    throw "nrrd_to_itk_image, unsupported dimension.";
+  }
+}
+
 
 }
 

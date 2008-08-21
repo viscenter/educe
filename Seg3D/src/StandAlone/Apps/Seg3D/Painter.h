@@ -1,48 +1,36 @@
-/*
-   For more information, please see: http://software.sci.utah.edu
-
-   The MIT License
-
-   Copyright (c) 2004 Scientific Computing and Imaging Institute,
-   University of Utah.
-
-   
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the "Software"),
-   to deal in the Software without restriction, including without limitation
-   the rights to use, copy, modify, merge, publish, distribute, sublicense,
-   and/or sell copies of the Software, and to permit persons to whom the
-   Software is furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-*/
-
-
-/*
- *  Painter.h
- *
- *  Written by:
- *   McKay Davis
- *   School of Computing
- *   University of Utah
- *   November, 2005
- *
- *  Copyright (C) 2005 SCI Group
- */
-
+//  
+//  For more information, please see: http://software.sci.utah.edu
+//  
+//  The MIT License
+//  
+//  Copyright (c) 2006 Scientific Computing and Imaging Institute,
+//  University of Utah.
+//  
+//  
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//  
+//  The above copyright notice and this permission notice shall be included
+//  in all copies or substantial portions of the Software.
+//  
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+//  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//  
+//    File   : Painter.h
+//    Author : McKay Davis
+//    Date   : November 2005
 
 #ifndef StandAlone_Apps_Painter_Painter_h
 #define StandAlone_Apps_Painter_Painter_h
-
 
 #include <sci_comp_warn_fixes.h>
 #include <stdlib.h>
@@ -58,11 +46,11 @@
 #include <StandAlone/Apps/Seg3D/SliceWindow.h>
 #include <StandAlone/Apps/Seg3D/LayerButton.h>
 #include <StandAlone/Apps/Seg3D/UIvar.h>
-#include <Core/Datatypes/NrrdToITK.h>
+#include <StandAlone/Apps/Seg3D/Undo.h>
 
 #include <Core/Containers/StringUtil.h>
 #include <Core/Geom/GeomGroup.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/MinMax.h>
 #include <Core/Thread/Runnable.h>
@@ -77,22 +65,16 @@
 #include <Core/Events/ToolManager.h>
 
 #include <sci_defs/insight_defs.h>
-
-#  include <Core/Datatypes/ITKDatatype.h>
-#  include <itkImageToImageFilter.h>
-#  include <itkImageFileReader.h>
-#  include <itkImageSeriesReader.h>
-#  include <itkImportImageFilter.h>
-#  include <itkImageIOBase.h>
-#  include <itkCommand.h>
-#  include <itkThresholdSegmentationLevelSetImageFilter.h>
-#  include <itkBinaryThresholdImageFilter.h>
-#  include <itkDiscreteGaussianImageFilter.h>
+#include <Core/Datatypes/ITKDatatype.h>
+#include <Core/Datatypes/NrrdToITK.h>
+#include <itkImageFileReader.h>
+#include <itkImageSeriesReader.h>
 
 #ifdef _WIN32
 #  undef min
 #  undef max
 #endif 
+
 
 #include <StandAlone/Apps/Seg3D/share.h>
 
@@ -102,6 +84,9 @@ namespace SCIRun {
 using SCIRun::ITKDatatypeHandle;
 typedef itk::Image<float, 3> ITKImageFloat3D;
 typedef itk::Image<label_type, 3> ITKImageLabel3D;
+
+typedef itk::Image<float, 2> ITKImageFloat2D;
+typedef itk::Image<label_type, 2> ITKImageLabel2D;
 
 
 class VolumeFilterBase;
@@ -210,9 +195,14 @@ public:
                                         const itk::EventObject &);
 
   void                  clear_all_volumes();
+  size_t                remove_volume(NrrdVolumeHandle &volume, bool undo);
+  void                  insert_volume(NrrdVolumeHandle &volume, size_t index);
+  void                  push_undo(UndoHandle &undo);
 
   typedef set<VolumeFilterBase *> Filters_t;
   Filters_t filters_;
+
+  double                scene_scale();
 
 private:
   BaseTool::propagation_state_e LoadVolume(const string &filename);
@@ -244,11 +234,14 @@ private:
   CatcherFunction_t     CopyLabel;
   CatcherFunction_t     DeleteLayer;
   CatcherFunction_t     DeleteLayer2;
+  CatcherFunction_t     MoveLayerUp;
+  CatcherFunction_t     MoveLayerDown;
 
   CatcherFunction_t     FinishTool;
   CatcherFunction_t     ClearTools;
   CatcherFunction_t     SetLayer;
-  CatcherFunction_t     ITKThresholdSegmentationLevelSetImageFilterToolSetDataLayer;
+  CatcherFunction_t     SetDataLayer;
+
   CatcherFunction_t     FlipVolume;
   CatcherFunction_t     HistoEqFilter;
 
@@ -257,6 +250,7 @@ private:
 
   CatcherFunction_t     ITKImageFileWrite;
   CatcherFunction_t     ITKGradientMagnitude;
+  CatcherFunction_t     InhomogeneityCorrectionFilter;
   CatcherFunction_t     ITKBinaryDilateErode;
   CatcherFunction_t     ITKCurvatureAnisotropic;
   CatcherFunction_t     ITKBinaryDilateErodeImageFilter;
@@ -264,8 +258,11 @@ private:
   CatcherFunction_t     start_ITKNeighborhoodConnectedImageFilterTool;
   CatcherFunction_t     start_ITKThresholdSegmentationLevelSetImageFilterTool;
 
-  CatcherFunction_t     start_ITKThresholdImageFilterTool;
   CatcherFunction_t     start_ITKDiscreteGaussianImageFilterTool;
+
+  CatcherFunction_t     start_ITKSpeedToPathGradientDescentImageFilterTool;
+  CatcherFunction_t     start_ITKSpeedToPathRegularStepGradientDescentImageFilterTool;
+  CatcherFunction_t     start_ITKSpeedToPathIterateNeighborhoodImageFilterTool;
 
   CatcherFunction_t     ShowVolumeRendering;
 public:
@@ -280,15 +277,14 @@ private:
   CatcherFunction_t     LoadSession;
   CatcherFunction_t     SaveSession;
   CatcherFunction_t     ImportSegmentation;
-  CatcherFunction_t     ExportSegmentation;
+  CatcherFunction_t     ExportSegmentation1;
+  CatcherFunction_t     ExportSegmentation2;
 
-  CatcherFunction_t     ResampleVolume;
+  CatcherFunction_t     Undo;
+
   CatcherFunction_t     MedianFilterVolume;
 
-public:
   CatcherFunction_t     CreateLabelVolume;
-private:
-
 
   CatcherFunction_t     RebuildLayers;
 
@@ -299,6 +295,7 @@ private:
   
   CatcherFunction_t     ResetCLUT;
   CatcherFunction_t     UpdateBrushRadius;
+  CatcherFunction_t     UpdateThresholdTool;
 
   CatcherFunction_t     OpenLabelColorDialog;
   CatcherFunction_t     SetLabelColor;
@@ -309,7 +306,13 @@ private:
   CatcherFunction_t     MaskDataFilter;
   CatcherFunction_t     MaskLabelFilter;
   CatcherFunction_t     CombineMaskAnd;
+  CatcherFunction_t     CombineMaskRemove;
   CatcherFunction_t     CombineMaskOr;
+  CatcherFunction_t     CombineMaskXor;
+
+  CatcherFunction_t     MoveScaleLayerUpdateGUI;
+  CatcherFunction_t     MoveScaleLayer;
+  CatcherFunction_t     MoveScaleAllLayers;
   
   CatcherFunction_t     ShowVisibleItem;
   CatcherFunction_t     RedrawAll;
@@ -317,11 +320,16 @@ private:
   Nrrd*                 do_CMedian_filter(Nrrd *nin, int radius);
 
   virtual CatcherFunction_t         process_event;
+  KeyTool *             global_key_tool_;
 
 public:
   static void ThrowSkinnerSignal(const string &name, bool sync = true);
   static void ThrowSkinnerSignal(ThrowSkinnerSignalEvent *tsse,
                                  bool sync = true);
+
+  // Used to generate a reasonable default filename for saving.
+  static string get_current_layer_name();
+
   static void update_progress(int progress); // 0-100
   static void start_progress();
   static void finish_progress();
@@ -329,6 +337,8 @@ public:
   NrrdDataHandle        MatlabNrrd_reader(const string &filename);
   bool                  MatlabNrrd_writer(NrrdDataHandle nh, const char *);
   NrrdDataHandle        vff_reader(const string &filename);
+
+  void set_pointer_position(const Point &p);
   
   SliceWindow *         cur_window_;
   ToolManager           tm_;
@@ -347,6 +357,7 @@ private:
 public:
   bool check_for_active_data_volume(const char *msg);
   bool check_for_active_label_volume(const char *msg);
+  bool check_for_valid_mask(const char *msg, bool strict = false);
 
   static void set_status_dialog(const string &s1, const string &s2);
   static void set_status(const string &s);
@@ -364,6 +375,18 @@ public:
 
   NrrdVolumeHandle create_new_label(NrrdVolumeHandle &likethis,
                                     const string &name);
+
+  // The session uses GUI vars for status, so update them before we write
+  // the session.
+  void set_session_appearance_vars();
+
+  // Update the appearance from the session vars after reading.
+  void get_session_appearance_vars(Skinner::Variables *vars);
+
+  void toggle_current_volume_visibility();
+
+private:
+  UndoManager *undo_manager_;
 };
 
 
@@ -398,6 +421,22 @@ public:
   bool get_force_erasing() { return force_erasing_; }
 };
 
+
+class UpdateThresholdToolEvent : public BaseEvent
+{
+  double lower_;
+  double upper_;
+
+public:
+  UpdateThresholdToolEvent(double lower, double upper)
+    : BaseEvent(), lower_(lower), upper_(upper) {}
+  virtual BaseEvent *clone()
+  { return new UpdateThresholdToolEvent(lower_, upper_); }
+  virtual ~UpdateThresholdToolEvent() {}
+
+  double get_lower() { return lower_; }
+  double get_upper() { return upper_; }
+};
 
 
 
@@ -486,7 +525,7 @@ Painter::load_image_series(const vector<string> &files)
   if (img->data_)
   {
     ITKDatatypeHandle img_handle = img;
-    nrrd_handle = itk_image_to_nrrd<T>(img_handle);
+    nrrd_handle = itk_image_to_nrrd<T, 3>(img_handle);
   }
   else
   {
@@ -582,7 +621,7 @@ Painter::load_volume(string filename, int &status)
   if (img->data_)
   {
     ITKDatatypeHandle img_handle = img;
-    nrrd_handle = itk_image_to_nrrd<T>(img_handle);
+    nrrd_handle = itk_image_to_nrrd<T, 3>(img_handle);
   }
 
   if (!nrrd_handle.get_rep() || !nrrd_handle->nrrd_) return 0;

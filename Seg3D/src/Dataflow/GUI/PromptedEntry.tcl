@@ -33,7 +33,7 @@ proc prompted_entry {t {prompt ""} {command ""} args} {
     global $t.command
     set $t.prompt $prompt
     set $t.command $command
-    eval {entry $t} $args
+    eval {sci_entry $t} $args
     set $t.real_text [$t get]
     prompted_entry_add_prompt $t
     bindtags $t [concat [bindtags $t] PromptedEntry$t] 
@@ -45,7 +45,7 @@ proc prompted_entry {t {prompt ""} {command ""} args} {
 
     bind PromptedEntry$t <FocusIn> {
         if {[string compare "" [set %W.real_text]] == 0} {
-            %W config -foreground black
+            %W config 
             %W delete 0 [expr "1 + [string len [%W get]]"]
         } else {
         }
@@ -61,7 +61,7 @@ proc prompted_entry_add_prompt {t} {
     global $t.prompt
     if {[string compare "" [set $t.real_text]] == 0} {
         $t insert 1 [set $t.prompt]
-        $t config -foreground darkcyan
+        $t config 
     }
 }
 

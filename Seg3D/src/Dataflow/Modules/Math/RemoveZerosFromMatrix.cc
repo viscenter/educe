@@ -29,21 +29,24 @@
 
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Algorithms/Math/MathAlgo.h>
+#include <Core/Algorithms/Math/SelectMatrix/SelectMatrix.h>
+#include <Core/Algorithms/Math/FindMatrix/FindMatrix.h>
 
 namespace SCIRun {
 
 using namespace SCIRun;
 
 class RemoveZerosFromMatrix : public Module {
-public:
-  RemoveZerosFromMatrix(GuiContext*);
-  
-  virtual void execute();
-  
-private:
-  GuiString  row_or_column_;
-
+  public:
+    RemoveZerosFromMatrix(GuiContext*);
+    
+    virtual void execute();
+    
+  private:
+    GuiString  row_or_column_;
+    
+    SCIRunAlgo::SelectMatrixAlgo select_algo_;
+    SCIRunAlgo::FindMatrixAlgo   find_algo_;
 };
 
 
@@ -53,6 +56,8 @@ RemoveZerosFromMatrix::RemoveZerosFromMatrix(GuiContext* ctx) :
   Module("RemoveZerosFromMatrix", ctx, Source, "Math", "SCIRun"),
   row_or_column_(ctx->subVar("row_or_col"))
 {
+  select_algo_.set_progress_reporter(this);
+  find_algo_.set_progress_reporter(this);
 }
 
 void
@@ -63,20 +68,22 @@ RemoveZerosFromMatrix::execute()
   get_input_handle("Matrix",input,true);
   
   if (inputs_changed_ || !oport_cached("Matrix") || row_or_column_.changed())
-  {
-    SCIRunAlgo::MathAlgo malgo(this);
-    
+  {    
     if (row_or_column_.get() == "row")
     {
       std::vector<Matrix::index_type> nz;
-      malgo.FindNonZeroMatrixRows(input,nz);
-      malgo.SelectMatrixRows(input,output,nz);
+      find_algo_.set_option("method","find_nonzerorows");
+      find_algo_.run(input,nz);
+      select_algo_.set_option("method","select_rows");
+      select_algo_.run(input,output,nz);
     }
     else
     {
       std::vector<Matrix::index_type> nz;
-      malgo.FindNonZeroMatrixColumns(input,nz);
-      malgo.SelectMatrixColumns(input,output,nz);
+      find_algo_.set_option("method","find_nonzerocolumns");
+      find_algo_.run(input,nz);
+      select_algo_.set_option("method","select_columns");
+      select_algo_.run(input,output,nz);
     }
 
     send_output_handle("Matrix",output,true);

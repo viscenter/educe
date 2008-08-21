@@ -42,11 +42,11 @@ itcl_class SCIRun_Math_SortMatrix {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        radiobutton $w.row -text "Sort Matrix Rows" -variable $this-row_or_col \
+        sci_radiobutton $w.row -text "Sort Matrix Rows" -variable $this-row_or_col \
           -value row
-        radiobutton $w.col -text "Sort Matrix Columns" -variable $this-row_or_col \
+        sci_radiobutton $w.col -text "Sort Matrix Columns" -variable $this-row_or_col \
           -value col
 
         pack $w.row $w.col -side top -expand yes -fill both

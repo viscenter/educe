@@ -35,9 +35,9 @@ itcl_class SCIRun_Math_EvaluateLinAlgGeneral {
     }
 
     method update_text {} {
-	set w .ui[modname]
+        set w .ui[modname]
         if {[winfo exists $w]} {
-	    set $this-function [$w.row1 get 1.0 end]
+          set $this-function [$w.row1 get 1.0 end]
         }
     }
 
@@ -46,18 +46,18 @@ itcl_class SCIRun_Math_EvaluateLinAlgGeneral {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	option add *textBackground white	
-	iwidgets::scrolledtext $w.row1 -height 150 -width 500 \
-	    -hscrollmode dynamic
+        option add *textBackground white	
+        sci_scrolledtext $w.row1 -height 150 -width 500 \
+            -hscrollmode dynamic
 
-	$w.row1 insert end [set $this-function]
+        $w.row1 insert end [set $this-function]
 
-	pack $w.row1 -side top -e y -f both -padx 5 -pady 5
+        pack $w.row1 -side top -e y -f both -padx 5 -pady 5
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

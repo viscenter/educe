@@ -553,7 +553,7 @@ InsertElectrodes::execute()
       outer.push_back(outer[0]);
 
       TVMesh* electrodeElements = 0;
-      if (pi == range.first) electrodeElements = scinew TVMesh;
+      if (pi == range.first) electrodeElements = new TVMesh;
 
       string active_side;
       elecFld->get_property("active_side", active_side);
@@ -577,7 +577,7 @@ InsertElectrodes::execute()
 
     if (elecElemsH.get_rep())
     {
-      TVFieldD* elec = scinew TVFieldD(elecElemsH);
+      TVFieldD* elec = new TVFieldD(elecElemsH);
       FieldHandle elecH(elec);
       send_output_handle("ElectrodeElements", elecH);
     }

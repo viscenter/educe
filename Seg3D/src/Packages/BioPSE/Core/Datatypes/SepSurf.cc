@@ -50,7 +50,7 @@ const int SEP_SURF_VERSION = 1;
 Persistent*
 SepSurf::maker()
 {
-  return scinew SepSurf;
+  return new SepSurf;
 }
 
 PersistentTypeID
@@ -103,12 +103,12 @@ SepSurf::get_type_description(int n) const
   if(!td){
     if (n == -1) {
       const TypeDescription *sub = SCIRun::get_type_description((int*)0);
-      TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+      TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
       (*subs)[0] = sub;
-      td = scinew TypeDescription(name, subs, path, namesp);
+      td = new TypeDescription(name, subs, path, namesp);
     }
     else if(n == 0) {
-      td = scinew TypeDescription(name, 0, path, namesp);
+      td = new TypeDescription(name, 0, path, namesp);
     }
     else {
       td = (TypeDescription *) SCIRun::get_type_description((int*)0);
@@ -335,7 +335,7 @@ void SepSurf::io(Piostream& stream) {
 
 SepSurf* SepSurf::clone() const
 {
-  return scinew SepSurf(*this);
+  return new SepSurf(*this);
 }
 
 } // End namespace BioPSE

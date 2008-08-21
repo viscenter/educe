@@ -39,17 +39,35 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 
     constructor {config} {
         set name ReadHDF5File
-	
+	set_defaults
+    }
+
+    method set_defaults {} {
+	global power_app_command
+	set    power_app_command ""
+
+  	global $this-max_dims
+
+	for {set i 0} {$i < [set $this-max_dims]} {incr i 1} {
+
+	    global $this-dims-$i
+	    trace variable $this-$i-dims w "$this update_set_size_callback"
+
+	    global $this-$i-start
+	    global $this-$i-count
+	    global $this-$i-stride
+
+	    trace variable $this-$i-start w "$this update_SliderEntry_callback"
+	    trace variable $this-$i-count w "$this update_SliderEntry_callback"
+	    trace variable $this-$i-stride w "$this update_SliderEntry_callback"	}
+
+	global $this-ndims
+	trace variable $this-dims w "$this update_set_size_callback"
+
 	trace variable $this-current w "update idletasks;\#"
 	
-	global $this-update_type
-	set $this-update_type "On Release"
-
-	global $this-selectable_max
-	set $this-selectable_max 100
-
-#	trace variable $this-update_type    w "$this update_type_callback"
-#	trace variable $this-selectable_max w "$this update_range_callback"
+	trace variable $this-update_type    w "$this update_type_callback"
+	trace variable $this-selectable_max w "$this update_range_callback"
     }
 
     method set_power_app_cmd { cmd } {
@@ -122,7 +140,7 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 
   	global $this-mergeData
   	global $this-assumeSVT
-  	global $this-animate
+  	global $this-time_series
 
   	global $this-filename
   	global $this-datasets
@@ -333,7 +351,7 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 
 	frame $dm.merge.time
 	radiobutton $dm.merge.time.button -variable $this-mergeData -value 2
-	label $dm.merge.time.label -text "Merge time data" -width 20 \
+	label $dm.merge.time.label -text "Merge time series data" -width 20 \
 	    -anchor w -just left
 	
 	pack $dm.merge.time.button $dm.merge.time.label -side left
@@ -350,17 +368,17 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 	pack $dm.svt.button $dm.svt.label  -side left
 
 
-	frame $dm.animate
+	frame $dm.time_series
 
-	checkbutton $dm.animate.button -variable $this-animate \
-	    -command "$this animate"
-	label $dm.animate.label -text "Animate selected data" \
+	checkbutton $dm.time_series.button -variable $this-time_series \
+	    -command "$this time_series"
+	label $dm.time_series.label -text "Assume time series data" \
 	    -width 22 -anchor w -just left
 	
-	pack $dm.animate.button $dm.animate.label -side left
+	pack $dm.time_series.button $dm.time_series.label -side left
 
 
-	pack $dm.merge $dm.svt $dm.animate -side left
+	pack $dm.merge $dm.svt $dm.time_series -side left
 
 
 	pack $w.dm -fill x -expand yes -side top -pady 10
@@ -504,7 +522,7 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 	global $this-ports
 	updateSelection [set $this-ports]
 
-	animate
+	time_series
 
 	global $this-power_app_command
 
@@ -533,6 +551,27 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 
 	pack $win.s -side left
 	pack $win.e -side bottom -padx 5
+    }
+
+    method update_SliderEntry_callback { name1 name2 op } {
+
+	for {set i 0} {$i < [set $this-max_dims]} {incr i 1} {
+
+	    global $this-$i-start
+	    global $this-$i-start2
+
+	    updateSliderEntry $this-$i-start $this-$i-start2 0
+
+	    global $this-$i-count
+	    global $this-$i-count2
+
+	    updateSliderEntry $this-$i-count $this-$i-count2 0
+
+	    global $this-$i-stride
+	    global $this-$i-stride2
+
+	    updateSliderEntry $this-$i-stride $this-$i-stride2 0
+	}
     }
 
     method updateSliderEntry {var1 var2 someUknownVar} {
@@ -567,13 +606,13 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 	global $this-filename
 	global $this-datasets
 	global $this-dumpname
-	global $this-animate
+	global $this-time_series
 
 	set $this-filename ""
 	set $this-datasets ""
 	set $this-dumpname ""
 
-	set $this-animate 0
+	set $this-time_series 0
     }
 
     method build_tree { filename } {
@@ -587,6 +626,19 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 	set w .ui[modname]
 
 	if [ expr [winfo exists $w] ] {
+
+	    global $this-have_groups
+	    global $this-have_externals
+	    global $this-have_hardlinks
+	    global $this-have_attributes
+	    global $this-have_datasets
+
+	    set $this-have_groups     0
+	    set $this-have_externals  0
+	    set $this-have_hardlinks  0
+	    set $this-have_attributes 0
+	    set $this-have_datasets   0
+
 	    set_watch_cursor
 
 	    set sd [$w.sd childsite]
@@ -625,11 +677,6 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 
 	    close $fileId
 
-	    global $this-have_groups
-	    global $this-have_hardlinks
-	    global $this-have_attributes
-	    global $this-have_datasets
-
 	    if { [set $this-have_hardlinks] == 1 } {
 		$treeview entry configure "hardlink" -foreground black
 	    }
@@ -653,21 +700,23 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 
 
     method process_file { tree parent fileId input } {
-
-	global $this-have_groups
-	global $this-have_hardlinks
-	global $this-have_attributes
-	global $this-have_datasets
-
-	set $this-have_groups     0
-	set $this-have_hardlinks  0
-	set $this-have_attributes 0
-	set $this-have_datasets   0
  
+# 	set gname [process_name $input]
+# 	set info(type) @blt::tv::normalOpenFolder
+# 	set info(Node-Type) ""
+# 	set info(Data-Type) ""
+# 	set info(Value) ""
+# 	set node [$tree insert $parent -tag "file" -label $gname \
+# 		      -data [array get info]]
+
+# 	global $this-have_files
+# 	set $this-have_files 1
+
+	set node $parent
 	while {[gets $fileId line] >= 0 && [string first "\}" $line] == -1} {
 
 	    if { [string first "GROUP" $line] != -1 } {
-		process_group $tree $parent $fileId $line
+		process_group $tree $node $fileId $line
 	    } else {
 		$this-c error "File hierarchy mal formed."
 		return
@@ -690,8 +739,12 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 
 	while {[gets $fileId line] >= 0 && [string first "\}" $line] == -1} {
 
-	    if { [string first "GROUP" $line] != -1 } {
+	    if { [string first "HDF5" $line] != -1 } {
+		process_file $tree $node $fileId $line
+	    } elseif { [string first "GROUP" $line] != -1 } {
 		process_group $tree $node $fileId $line
+	    } elseif { [string first "EXTERNAL" $line] != -1 } {
+		process_external $tree $node $fileId $line
 	    } elseif { [string first "ATTRIBUTE" $line] != -1 } {
 		process_attribute $tree $node $fileId $line
 	    } elseif { [string first "DATASET" $line] != -1 } {
@@ -707,21 +760,40 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 	}
     }
 
-    method process_hardlink { tree parent fileId input } {
+    method process_external { tree parent fileId input } {
 
-	set lname [process_name $input]
-	set info(type) ""
-	set info(Node-Type) "Hardlink"
+	set gname [process_name $input]
+	set info(type) @blt::tv::normalOpenFolder
+	set info(Node-Type) ""
 	set info(Data-Type) ""
 	set info(Value) ""
-	$tree insert $parent -tag "hardlink" -label $lname \
-	    -data [array get info]
+	set node [$tree insert $parent -tag "external" -label $gname \
+		      -data [array get info]]
+
+	global $this-have_externals
+	set $this-have_externals 1
 
 	while {[gets $fileId line] >= 0 && [string first "\}" $line] == -1} {
-	}
 
-	global $this-have_hardlinks
-	set $this-have_hardlinks 1
+	    if { [string first "HDF5" $line] != -1 } {
+		process_file $tree $node $fileId $line
+	    } elseif { [string first "GROUP" $line] != -1 } {
+		process_group $tree $node $fileId $line
+	    } elseif { [string first "EXTERNAL" $line] != -1 } {
+		process_external $tree $node $fileId $line
+	    } elseif { [string first "ATTRIBUTE" $line] != -1 } {
+		process_attribute $tree $node $fileId $line
+	    } elseif { [string first "DATASET" $line] != -1 } {
+		process_dataset $tree $node $fileId $line
+	    } elseif { [string first "HARDLINK" $line] != -1 } {
+		process_hardlink $tree $node $fileId $line
+	    } else {
+		set message "Unknown token: "
+		append message $line
+		$this-c error $message
+		return
+	    }
+	}
     }
 
     method process_attribute { tree parent fileId input } {
@@ -836,18 +908,11 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 	return [string range $line [expr $start+1] [expr $end-1]]
     }
 
-    method set_size {ndims dims} {
-	global $this-ndims
-	set $this-ndims $ndims
+    method update_set_size_callback { name1 name2 op } {
+	set_size
+    }
 
-	set i 0
-
-	foreach dim $dims {
-	    global $this-$i-dim
-	    set $this-$i-dim $dim
-
-	    incr i 1
-	}
+    method set_size {} {
 
 	set w .ui[modname]
 
@@ -959,6 +1024,7 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 		if { $ids != "" } {
 
 		    global $this-have_groups
+		    global $this-have_externals
 		    global $this-have_hardlinks
 		    global $this-have_attributes
 
@@ -966,6 +1032,12 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 			set groups [$treeview tag nodes "group"]
 		    } else {
 			set groups ""
+		    }
+
+		    if { [set $this-have_externals] == 1 } {
+			set externals [$treeview tag nodes "external"]
+		    } else {
+			set externals ""
 		    }
 
 		    if { [set $this-have_hardlinks] == 1 } {
@@ -1001,6 +1073,15 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 			# Check to see if the selection is a group
 			foreach group $groups {
 			    if { $group == $id } { 
+				$treeview selection clear $id
+				SelectChildrenDataSet $id
+				break
+			    }
+			}
+
+			# Check to see if the selection is an external
+			foreach external $externals {
+			    if { $external == $id } { 
 				$treeview selection clear $id
 				SelectChildrenDataSet $id
 				break
@@ -1336,18 +1417,18 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 	return $f.tree
     }
 
-    method animate {} {
-	$this-c update_selection;
-
+    method time_series {} {
 	global $this-power_app_command
+
+	$this-c update_selection;
 
 	if { ![in_power_app] } {
 	    set w .ui[modname]
 	    
 	    if [ expr [winfo exists $w] ] {
-		if { [set $this-animate] } {
+		if { [set $this-time_series] } {
 
-		    set a [format "%s-animate" .ui[modname]]
+		    set a [format "%s-time_series" .ui[modname]]
 	    
 		    if {[winfo exists $a]} {
 			set child [lindex [winfo children $a] 0]
@@ -1357,11 +1438,12 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 			return
 		    }
 		    
-		    toplevel $a	
-		    build_animate_ui $a
+		    toplevel $a
+
+ 		    build_time_series_ui $a
 
 		} else {
-		    set a [format "%s-animate" .ui[modname]]
+		    set a [format "%s-time_series" .ui[modname]]
 
 		    if {[winfo exists $a]} {
 			destroy $a
@@ -1381,37 +1463,37 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
     }
 
     method change_tab { which } {
-	global $this-animate_tab
+	global $this-time_series_tab
 	set initialized 1
 
 	# change tab for attached/detached
 
 	if {$initialized != 0} {
 	    if {$which == 0} {
-		[set $this-animate_tab] view "Basic"
+		[set $this-time_series_tab] view "Basic"
 		
 	    } elseif {$which == 1} {
-		[set $this-animate_tab] view "Extended"
+		[set $this-time_series_tab] view "Extended"
 		
 	    } elseif {$which == 2} {
-		[set $this-animate_tab] view "Playmode"
+		[set $this-time_series_tab] view "Playmode"
 	    }
 	}
     }
 
-    method build_animate_ui { w } {
+    method build_time_series_ui { w } {
 
-	global $this-animate_gui_frame
-	set $this-animate_gui_frame $w
+	global $this-time_series_gui_frame
+	set $this-time_series_gui_frame $w
 
 	### Tabs
 	iwidgets::tabnotebook $w.tnb -width 250 \
 	    -height 250 -tabpos n
 	pack $w.tnb -padx 0 -pady 0 -anchor n -fill both -expand 1
 
-	global $this-animate_tab
-	set animate_tab $w.tnb
-	set $this-animate_tab $animate_tab
+	global $this-time_series_tab
+	set time_series_tab $w.tnb
+	set $this-time_series_tab $time_series_tab
 
 	global $this-basic_tab
 	set basic_tab [$w.tnb add -label "Basic" -command "$this change_tab 0"]
@@ -1574,17 +1656,21 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
     }
 
     method update_type_callback { name1 name2 op } {
-	global $this-animate_gui_frame
-	set w [set $this-animate_gui_frame]
 
-        if {[winfo exists $w]} {
+	if { [set $this-time_series] } {
 
-	    global $this-basic_tab
-	    upvar \#0 $this-basic_tab basic_tab
+	    global $this-time_series_gui_frame
+	    set w [set $this-time_series_gui_frame]
 
-	    set opt [$basic_tab.opt childsite]
+	    if {[winfo exists $w]} {
 
-	    $opt.update select [set $this-update_type]
+		global $this-basic_tab
+		upvar \#0 $this-basic_tab basic_tab
+
+		set opt [$basic_tab.opt childsite]
+
+		$opt.update select [set $this-update_type]
+	    }
 	}
     }
 
@@ -1602,26 +1688,31 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
     }
 
     method update_range_callback {name element op} {
-	global $this-animate_gui_frame
-	set w [set $this-animate_gui_frame]
 
-        if {[winfo exists $w]} {
+	if { [set $this-time_series] } {
+
+	    global $this-time_series_gui_frame
+	    set w [set $this-time_series_gui_frame]
+
 
 	    upvar \#0 $this-selectable_min min
 	    upvar \#0 $this-selectable_max max
+	    
+	    if {[winfo exists $w]} {
 
-	    upvar \#0 $this-basic_tab basic_tab
-	    upvar \#0 $this-extended_tab extended_tab
+		upvar \#0 $this-basic_tab basic_tab
+		upvar \#0 $this-extended_tab extended_tab
 
-	    set tmp [$basic_tab.cur childsite]
-            $tmp.cur configure -from $min -to $max
+		set tmp [$basic_tab.cur childsite]
+		$tmp.cur configure -from $min -to $max
 
-	    set tmp [$extended_tab.min childsite]
-            $tmp.min configure -from $min -to $max
-	    set tmp [$extended_tab.max childsite]
-	    $tmp.max configure -from $min -to $max
-	    set tmp [$extended_tab.inc childsite]
-	    $tmp.inc configure -from 1 -to [expr $max-$min]
+		set tmp [$extended_tab.min childsite]
+		$tmp.min configure -from $min -to $max
+		set tmp [$extended_tab.max childsite]
+		$tmp.max configure -from $min -to $max
+		set tmp [$extended_tab.inc childsite]
+		$tmp.inc configure -from 1 -to [expr $max-$min]
+	    }
 
 	    set $this-range_min $min
 	    set $this-range_max $max
@@ -1644,21 +1735,21 @@ itcl_class SCIRun_DataIO_ReadHDF5File {
 
     method updateCurrentEntryOnRelease { } {
 
-	global $this-execmode
-	set $this-execmode init
-
-	global $this-animate_gui_frame
-	set w [set $this-animate_gui_frame]
-
-        if {[winfo exists $w]} {
-
+	global $this-time_series_gui_frame
+	set w [set $this-time_series_gui_frame]
+	
+	if {[winfo exists $w]} {
+	    
+	    global $this-execmode
+	    set $this-execmode init
+	    
 	    global $this-basic_tab
 	    upvar \#0 $this-basic_tab basic_tab
-
+	    
 	    set opt [$basic_tab.opt childsite]
 	    
 	    $opt.update select [set $this-update_type]
-
+	    
 	    if { [$opt.update get] == "On Release" } {
 		eval "$this-c needexecute"
 	    }

@@ -145,7 +145,7 @@ main(int argc, char **argv) {
   typedef ConstantBasis<int>  DatBasis;
   typedef GenericField<TVMesh, DatBasis, vector<int> >  TVField;
 
-  TVField *tvi = scinew TVField(tvm);
+  TVField *tvi = new TVField(tvm);
 
   vector<pair<string, Tensor> > tens;
   tens.resize(1);

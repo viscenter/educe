@@ -9,6 +9,6 @@ using namespace SCIRun;
 
 extern "C" {
 ScalarFieldInterfaceMaker* maker_SFIntrfcMkr_GFldLtVlMhHxTLLgnPtHxTLLgndblFDt3ddblLtVlMhHxTLLgnPt_LtVlMhHxTLLgnPtNd () {
-  return scinew SFInterfaceMaker<GenericField<LatVolMesh<HexTrilinearLgn<Point> > ,HexTrilinearLgn<double> ,FData3d<double,LatVolMesh<HexTrilinearLgn<Point> > > > , LatVolMesh<HexTrilinearLgn<Point> > ::Node>;
+  return new SFInterfaceMaker<GenericField<LatVolMesh<HexTrilinearLgn<Point> > ,HexTrilinearLgn<double> ,FData3d<double,LatVolMesh<HexTrilinearLgn<Point> > > > , LatVolMesh<HexTrilinearLgn<Point> > ::Node>;
 }
 }

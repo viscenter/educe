@@ -41,6 +41,12 @@ AlgoReportStatus::set_progress_reporter(SCIRun::ProgressReporter* pr)
 { 
   pr_ = pr;  
 }
+
+void 
+AlgoReportStatus::set_progress_reporter(AlgoReportStatus* algo)
+{ 
+  pr_ = algo->get_progress_reporter();  
+}
   
 SCIRun::ProgressReporter* 
 AlgoReportStatus::get_progress_reporter() const

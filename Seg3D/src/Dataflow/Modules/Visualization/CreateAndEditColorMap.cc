@@ -31,10 +31,11 @@
 
 #include <Core/Containers/StringUtil.h>
 #include <Core/Datatypes/Color.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
+
 #include <Core/Math/CatmullRomSpline.h>
 #include <Core/Math/MinMax.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/GuiInterface/TkOpenGLContext.h>
@@ -45,10 +46,9 @@
 #include <tcl.h>
 #include <tk.h>
 
-#include <sgi_stl_warnings_off.h>
-#include   <iostream>
-#include   <algorithm>
-#include   <sgi_stl_warnings_on.h>
+
+#include <iostream>
+#include <algorithm>
 #include <stdio.h>
 
 using std::sort;
@@ -71,85 +71,84 @@ struct ColorPoint {
 
 class CreateAndEditColorMap : public Module
 {
-private:
+  private:
 
-  GuiInt		RGBorHSV_; // which mode
-  GuiInt		lineVSspline_; // linear vs. spline interpolate
-  GuiString             rgb_points_pickle_;
-  GuiString             hsv_points_pickle_;
-  GuiString             alphas_pickle_;
-  GuiInt                resolution_;
+    GuiInt		RGBorHSV_; // which mode
+    GuiInt		lineVSspline_; // linear vs. spline interpolate
+    GuiString             rgb_points_pickle_;
+    GuiString             hsv_points_pickle_;
+    GuiString             alphas_pickle_;
+    GuiInt                resolution_;
 
-  vector< Color > rgbs_;   // actual line(s)
-  vector< float > rgbT_;   // actual line(s)
-  vector< float > alphas_;
-  vector< float > alphaT_;
-  bool  hsv_mode_;
+    vector< Color > rgbs_;   // actual line(s)
+    vector< float > rgbT_;   // actual line(s)
+    vector< float > alphas_;
+    vector< float > alphaT_;
+    bool  hsv_mode_;
 
-  int			activeLine; // active RGB,HSV,alpha,-1
-  int			selNode;    // selected node
+    int			activeLine; // active RGB,HSV,alpha,-1
+    int			selNode;    // selected node
 
-  int			bdown;      // wether mouse button is down
+    int			bdown;      // wether mouse button is down
 
-  int			winX[2],winY[2];  // integer size
-  float			winDX, winDY; // scales (so it's square)
+    int			winX[2],winY[2];  // integer size
+    float			winDX, winDY; // scales (so it's square)
 
-  TkOpenGLContext *	ctxs_[2];    // OpenGL Contexts
+    TkOpenGLContext *	ctxs_[2];    // OpenGL Contexts
 
-  ColorMapHandle cmap;
-  int cmap_generation;
-  unsigned int textureid_;
-  double cmap_min_;
-  double cmap_max_;
+    ColorMapHandle cmap;
+    int cmap_generation;
+    unsigned int textureid_;
+    double cmap_min_;
+    double cmap_max_;
 
 
-  void loadTs( double Ax, double Ay, double ax, double ay, vector<double>& t);
+    void loadTs( double Ax, double Ay, double ax, double ay, vector<double>& t);
 
-  void tcl_pickle();
-  void tcl_unpickle();
+    void tcl_pickle();
+    void tcl_unpickle();
 
-public:
-  CreateAndEditColorMap( GuiContext* ctx);
+  public:
+    CreateAndEditColorMap( GuiContext* ctx);
+    virtual ~CreateAndEditColorMap() {}
 
-  void DrawGraphs(int flush=1); // this function just blasts away...
+    void DrawGraphs(int flush=1); // this function just blasts away...
 
-  void DoDown(int x, int y, int button);
-  void DoMotion(int x, int y);
-  void DoRelease(int x, int y, int button);
+    void DoDown(int x, int y, int button);
+    void DoMotion(int x, int y);
+    void DoRelease(int x, int y, int button);
 
-  // Returns the normalized [0,1] location of a pixel on the screen
-  // based on the 'X' coordinate.
-  float GetTime(int x, int)
-    {
-      float v = x/(1.0*winX[0]);
-      if (v > 1.0) v = 1.0;	
-      if (v < 0.0) v = 0.0;
-      return v;
-    }
-  // Returns the normalized [0,1] location of a pixel on the screen
-  // based on the 'Y' coordinate.
-  float GetVal(int, int y)
-    {
-      float v= (winY[0]-y)/(1.0*winY[0]);
-      if (v > 1.0) v = 1.0;	
-      if (v < 0.0) v = 0.0;
-      return v;
-    }
+    // Returns the normalized [0,1] location of a pixel on the screen
+    // based on the 'X' coordinate.
+    float GetTime(int x, int)
+      {
+        float v = x/(1.0*winX[0]);
+        if (v > 1.0) v = 1.0;	
+        if (v < 0.0) v = 0.0;
+        return v;
+      }
+    // Returns the normalized [0,1] location of a pixel on the screen
+    // based on the 'Y' coordinate.
+    float GetVal(int, int y)
+      {
+        float v= (winY[0]-y)/(1.0*winY[0]);
+        if (v > 1.0) v = 1.0;	
+        if (v < 0.0) v = 0.0;
+        return v;
+      }
 
-  void GetClosestPoint(float time, float val, int& cline, int& cpoint);
-  void GetClosestLineSegment(float time, float val, int& cline, int& cpoint);
+    void GetClosestPoint(float time, float val, int& cline, int& cpoint);
+    void GetClosestLineSegment(float time, float val, int& cline, int& cpoint);
 
-  void Resize(int win);
+    void Resize(int win);
 
-  virtual ~CreateAndEditColorMap();
-  virtual void execute();
-  void tcl_command( GuiArgs&, void* );
+    virtual void execute();
+    void tcl_command( GuiArgs&, void* );
 
-  int makeCurrent(int);
+    int makeCurrent(int);
 
-  virtual void presave();
-
-  void toggle_hsv();
+    virtual void presave();
+    void toggle_hsv();
 };
 
 
@@ -172,7 +171,7 @@ CreateAndEditColorMap::CreateAndEditColorMap( GuiContext* ctx)
     cmap_min_(-1.0),
     cmap_max_(1.0)
 {
-  cmap = 0; //scinew ColorMap; // start as nothing.
+  cmap = 0; //new ColorMap; // start as nothing.
 
   rgbT_.push_back(0.0);
   rgbs_.push_back(Color(0,.05,.1));
@@ -204,12 +203,6 @@ CreateAndEditColorMap::CreateAndEditColorMap( GuiContext* ctx)
 
   ctxs_[0] = ctxs_[1] = 0;
 }
-
-
-CreateAndEditColorMap::~CreateAndEditColorMap()
-{
-}
-
 
 void
 CreateAndEditColorMap::loadTs( double Ax, double Ay, double ax, double ay,
@@ -428,7 +421,7 @@ CreateAndEditColorMap::DrawGraphs( int flush)
   get_gui()->unlock();  
 
   // Update the colormap.
-  cmap = scinew ColorMap(rgbs_, rgbT_, alphas_, alphaT_, resolution_.get());
+  cmap = new ColorMap(rgbs_, rgbT_, alphas_, alphaT_, resolution_.get());
   cmap->Scale(cmap_min_, cmap_max_);
 
   // Go to the last window.
@@ -547,43 +540,64 @@ CreateAndEditColorMap::tcl_command( GuiArgs& args, void* userdata)
     string_to_int(args[3], x);
     string_to_int(args[4], y);
 
-    if (args[2] == "motion") {
+    if (args[2] == "motion") 
+    {
       if (bdown == -1) // not buttons down!
-	return;
+        return;
       DoMotion(x, y);
-    } else {
+    } 
+    else 
+    {
       string_to_int(args[5], whichb); // which button it was
-      if (args[2] == "down") {
-	DoDown(x,y,whichb);
-      } else { // must be release
-	DoRelease(x,y,whichb);
+      if (args[2] == "down") 
+      {
+        DoDown(x,y,whichb);
+      } 
+      else 
+      { // must be release
+        DoRelease(x,y,whichb);
       }
     }
-  } else  if (args[1] == "resize") { // resize event!
+  } 
+  else  if (args[1] == "resize") 
+  { // resize event!
     int whichwin;
     string_to_int(args[4], whichwin);
     string_to_int(args[2], winX[whichwin]);
     string_to_int(args[3], winY[whichwin]);
     Resize(whichwin);  // kick of the resize function...
-  } else if (args[1] == "expose") {
+  } 
+  else if (args[1] == "expose") 
+  {
     int whichwin;
     string_to_int(args[2], whichwin);
     Resize(whichwin); // just sets up OGL stuff...
     DrawGraphs(0);
-  }else if(args[1] == "closewindow") {
+  }
+  else if(args[1] == "closewindow") 
+  {
     for (int i = 0; i < 2; ++i)
-      if (ctxs_[i]) {
-	delete ctxs_[i];
-	ctxs_[i] = 0;
+      if (ctxs_[i]) 
+      {
+        delete ctxs_[i];
+        ctxs_[i] = 0;
       }
-  } else if(args[1] == "setgl") {
+  } 
+  else if(args[1] == "setgl") 
+  {
     if (makeCurrent(args.get_int(2)))
       get_gui()->unlock();
-  }else if (args[1] == "unpickle") {
+  }
+  else if (args[1] == "unpickle") 
+  {
      tcl_unpickle();
-  }else if (args[1] == "toggle-hsv") {
+  }
+  else if (args[1] == "toggle-hsv") 
+  {
      toggle_hsv();
-  }else {
+  }
+  else 
+  {
     Module::tcl_command(args, userdata);
   }
 }
@@ -651,13 +665,18 @@ CreateAndEditColorMap::GetClosestPoint(float time, float val,
   d1 += (alphas_[i-1] - val)*(alphas_[i-1] - val);
   d2 += (alphas_[i] - val)*(alphas_[i] - val);
 
-  if (d1 < d2) {
-    if (d1 < minP) {
+  if (d1 < d2) 
+  {
+    if (d1 < minP) 
+    {
       cline = 7;
       cpoint = i-1;
     }
-  } else {
-    if (d2 < minP) {
+  } 
+  else 
+  {
+    if (d2 < minP) 
+    {
       cline = 7;
       cpoint = i;
     }
@@ -720,7 +739,8 @@ CreateAndEditColorMap::GetClosestLineSegment(float time, float val,
   //     { | P - (B + M) |       t0 >= 1 }
 
   Point P(time, val*aspect_ratio, 0.);
-  for(int j = 0; j < 3; j++) {
+  for(int j = 0; j < 3; j++) 
+  {
     Point P1(rgbT_[i-1], rgbs_[i-1][j] * aspect_ratio, 0.0);
     Point P2(rgbT_[i],   rgbs_[i][j] * aspect_ratio, 0.0);
     
@@ -1044,7 +1064,7 @@ CreateAndEditColorMap::makeCurrent(int win)
       height = 64;
     }
     try {
-      ctxs_[win] = scinew TkOpenGLContext(myname, 0, 512, height);
+      ctxs_[win] = new TkOpenGLContext(myname, 0, 512, height);
     } catch (...) {
       ctxs_[win] = 0;
     }
@@ -1085,10 +1105,10 @@ CreateAndEditColorMap::toggle_hsv()
       cout << "CONVERTING TO HSV\n";
       for (unsigned int i = 0; i < rgbs_.size(); i++)
       {
-	HSVColor tmp(rgbs_[i]);
-	rgbs_[i].r(tmp.hue() / 360.0);
-	rgbs_[i].g(tmp.sat());
-	rgbs_[i].b(tmp.val());
+        HSVColor tmp(rgbs_[i]);
+        rgbs_[i].r(tmp.hue() / 360.0);
+        rgbs_[i].g(tmp.sat());
+        rgbs_[i].b(tmp.val());
       }
     }
     else
@@ -1096,8 +1116,8 @@ CreateAndEditColorMap::toggle_hsv()
       cout << "CONVERTING TO RGB\n";
       for (unsigned int i = 0; i < rgbs_.size(); i++)
       {
-	HSVColor tmp(rgbs_[i].r() * 360.0, rgbs_[i].g(), rgbs_[i].b());
-	rgbs_[i] = tmp;
+        HSVColor tmp(rgbs_[i].r() * 360.0, rgbs_[i].g(), rgbs_[i].b());
+        rgbs_[i] = tmp;
       }
     }
     hsv_mode_ = RGBorHSV_.get();

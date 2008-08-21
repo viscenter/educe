@@ -154,7 +154,8 @@ MergeTriSurfsAlgoT<FIELD>::execute(ProgressReporter *reporter,
 
     Point closest;
     vector<typename FIELD::mesh_type::Elem::index_type> elem;
-    tmesh->find_closest_elems(closest, elem, newpoints[i]);
+    double dist;
+    tmesh->find_closest_elems(dist,closest, elem, newpoints[i]);
     for (size_t k = 0; k < elem.size(); k++)
     {
       newelems.clear();

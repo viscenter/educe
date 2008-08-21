@@ -26,11 +26,12 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
-#include <Dataflow/Network/Ports/BundlePort.h>
-#include <Core/Geom/ColorMap.h>
-#include <Dataflow/Network/Ports/ColorMapPort.h>
 #include <Dataflow/Network/Module.h>
+
+#include <Core/Datatypes/Bundle.h>
+
+#include <Dataflow/Network/Ports/BundlePort.h>
+#include <Dataflow/Network/Ports/ColorMapPort.h>
 
 using namespace SCIRun;
 
@@ -101,6 +102,7 @@ void InsertColorMapsIntoBundle::execute()
       guireplace5_.changed() || guireplace6_.changed() ||
       guibundlename_.changed() || !oport_cached("bundle"))
   {
+    update_state(Executing);
   
     std::string colormap1Name = guicolormap1name_.get();
     std::string colormap2Name = guicolormap2name_.get();
@@ -117,7 +119,7 @@ void InsertColorMapsIntoBundle::execute()
     }
     else
     {
-      handle = scinew Bundle();
+      handle = new Bundle();
       if (handle.get_rep() == 0)
       {
         error("Could not allocate new bundle");

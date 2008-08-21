@@ -46,9 +46,8 @@
 
 #include <Dataflow/GuiInterface/GuiContext.h>
 #include <Core/Util/Assert.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
-#include <sgi_stl_warnings_on.h>
 
 namespace SCIRun {
 
@@ -89,19 +88,19 @@ public:
   inline UiSingle<T> & operator()();	// unary function call
 
   inline UiSingle<T> & operator*();	// unary dereference
-  inline UiSingle<T> & operator[](int idx);	// unary dereference
+  // inline UiSingle<T> & operator[](int idx);	// unary dereference
 
   inline const T & operator&();		// unary address of
   inline bool operator!();		// unary logical not
-  inline bool operator~();		// unary bitwise ones compliment
+  // inline bool operator~();		// unary bitwise ones compliment
 
-  inline UiSingle<T> operator-();	// unary negation
-  inline UiSingle<T> operator+();	// unary plus
+  // inline UiSingle<T> operator-();	// unary negation
+  // inline UiSingle<T> operator+();	// unary plus
 
-  inline UiSingle<T> & operator++();	// unary prefix increment
+  // inline UiSingle<T> & operator++();	// unary prefix increment
   inline UiSingle<T> operator++(int); // unary postfix increment
 
-  inline UiSingle<T> & operator--();	// unary prefix decrement
+  // inline UiSingle<T> & operator--();	// unary prefix decrement
   inline UiSingle<T> operator--(int); // unary postfix decrement
   
 
@@ -110,16 +109,15 @@ public:
   inline T operator*(const T & right);  // binary multiplication
   inline T operator/(const T & right);	// binary division
 
-  inline T operator%(const T & right);  // binary modulus
-  inline T operator<<(const T & right); // binary left shift
-  inline T operator>>(const T & right); // binary right shift
-  std::ostream & operator<<(std::ostream &out);
-  std::istream & operator>>(std::istream &is);
+  // inline T operator%(const T & right);  // binary modulus
+  // inline T operator<<(const T & right); // binary left shift
+  // inline T operator>>(const T & right); // binary right shift
+  // std::ostream & operator<<(std::ostream &out);
+  // std::istream & operator>>(std::istream &is);
 
-  inline T operator|(const T & right);	// binary bitwise OR
-  inline T operator&(const T & right);	// binary bitwise AND
-  inline T operator^(const T & right);	// binary bitwise XOR
-  
+  // inline T operator|(const T & right);	// binary bitwise OR
+  // inline T operator&(const T & right);	// binary bitwise AND
+  // inline T operator^(const T & right);	// binary bitwise XOR
 
   inline UiSingle<T> & operator= (const T &right);
   inline UiSingle<T> & operator+=(const T & right);
@@ -127,15 +125,13 @@ public:
   inline UiSingle<T> & operator*=(const T & right);
   inline UiSingle<T> & operator/=(const T & right);
 
-  inline UiSingle<T> & operator%=(const T & right);	// modulus assign
-  inline UiSingle<T> & operator<<=(const T & right);	// left shift assign
-  inline UiSingle<T> & operator>>=(const T & right);	// left shift assign
+  // inline UiSingle<T> & operator%=(const T & right);	// modulus assign
+  // inline UiSingle<T> & operator<<=(const T & right);	// left shift assign
+  // inline UiSingle<T> & operator>>=(const T & right);	// left shift assign
 
-
-  inline UiSingle<T> & operator|=(const T & right);	// bitwise OR assign
-  inline UiSingle<T> & operator&=(const T & right);	// bitwise AND assign
-  inline UiSingle<T> & operator^=(const T & right);	// bitwise XOR assign
-
+  // inline UiSingle<T> & operator|=(const T & right);	// bitwise OR assign
+  // inline UiSingle<T> & operator&=(const T & right);	// bitwise AND assign
+  // inline UiSingle<T> & operator^=(const T & right);	// bitwise XOR assign
 
   inline bool operator< (const T & right) ;	// logical lessthan
   inline bool operator> (const T & right) ;	// logical greaterthan
@@ -146,16 +142,16 @@ public:
   inline bool operator&&(const T & right) ;	// logical and
   inline bool operator||(const T & right) ;	// logical or
 
-  //  inline operator int();
-  //  inline operator double();
-  //inline operator string();
+  // inline operator int();
+  // inline operator double();
+  // inline operator string();
   inline operator T() { get(); return value_; };
 #undef inline
 };
 
 
 #if 0
-
+/*
 template<>
 string UiSingle<string>::operator-(const string&) {
   ASSERT(0);
@@ -192,7 +188,7 @@ inline UiSingle<string> & UiSingle<string>::operator/=(const string & right) {
   ASSERT(0);
   return *this;
 }
-
+*/
 #endif
 
 

@@ -266,7 +266,7 @@ void Test()
 
 
   typedef GenericField<MESH, FBASIS, vector<double> > FIELD;
-  FIELD *field = scinew FIELD(mesh);
+  FIELD *field = new FIELD(mesh);
   field->resize_fdata();
   FBASIS f;
   typename FIELD::fdata_type &d = field->fdata();

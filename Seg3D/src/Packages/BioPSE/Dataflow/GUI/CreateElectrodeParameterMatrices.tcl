@@ -39,46 +39,46 @@ itcl_class BioPSE_Forward_CreateElectrodeParameterMatrices {
 
     method set_defaults {} {
         global $this-modelTCL
-	global $this-numElTCL
-	global $this-lengthElTCL
-	global $this-startNodeIdxTCL
+        global $this-numElTCL
+        global $this-lengthElTCL
+        global $this-startNodeIdxTCL
         set $this-modelTCL 1
-	set $this-numElTCL 32
-	set $this-lengthElTCL 0.027
-	set $this-startNodeIdxTCL 0
+        set $this-numElTCL 32
+        set $this-lengthElTCL 0.027
+        set $this-startNodeIdxTCL 0
     }
 
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
 
     method ui {} {
         global $this-modelTCL
-	global $this-numElTCL
-	global $this-lengthElTCL
-	global $this-startNodeIdxTCL
+        global $this-numElTCL
+        global $this-lengthElTCL
+        global $this-startNodeIdxTCL
 
         set w .ui[modname]
         if {[winfo exists $w]} {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	make_entry $w.model "0=Continuum, 1=Gap: " $this-modelTCL "$this-c needexecute"
-	make_entry $w.numEl "Number of electrodes: " $this-numElTCL "$this-c needexecute"
-	make_entry $w.lengthEl "Electrode length: " $this-lengthElTCL "$this-c needexecute"
-	make_entry $w.startNodeIdx "Boundary node index for start of first electrode: " $this-startNodeIdxTCL "$this-c needexecute"
-	bind $w.model <Return> "$this-c needexecute"
-	bind $w.numEl <Return> "$this-c needexecute"
-	bind $w.lengthEl <Return> "$this-c needexecute"
-	bind $w.startNodeIdx <Return> "$this-c needexecute"
-	pack $w.model $w.numEl $w.lengthEl $w.startNodeIdx -side top -fill x
+        make_entry $w.model "0=Continuum, 1=Gap: " $this-modelTCL "$this-c needexecute"
+        make_entry $w.numEl "Number of electrodes: " $this-numElTCL "$this-c needexecute"
+        make_entry $w.lengthEl "Electrode length: " $this-lengthElTCL "$this-c needexecute"
+        make_entry $w.startNodeIdx "Boundary node index for start of first electrode: " $this-startNodeIdxTCL "$this-c needexecute"
+        bind $w.model <Return> "$this-c needexecute"
+        bind $w.numEl <Return> "$this-c needexecute"
+        bind $w.lengthEl <Return> "$this-c needexecute"
+        bind $w.startNodeIdx <Return> "$this-c needexecute"
+        pack $w.model $w.numEl $w.lengthEl $w.startNodeIdx -side top -fill x
 
     }
 }

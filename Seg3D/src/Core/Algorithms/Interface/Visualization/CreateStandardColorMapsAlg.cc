@@ -29,7 +29,7 @@
 #include <iostream>
 #include <Core/Events/DataManager.h>
 #include <Core/Algorithms/Interface/Visualization/CreateStandardColorMapsAlg.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 
 namespace SCIRun {
 

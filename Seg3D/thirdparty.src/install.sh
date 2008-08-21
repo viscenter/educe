@@ -30,7 +30,7 @@ package_list="zlib png freetype Teem mpeg libxml2 tcl tk itcl blt"
 # installed.  Do not change this number when testing build of only one
 # (or a few) packages.  Otherwise, the script will erroneously report
 # a final success if that one (few) package builds.
-number_of_packages=10
+number_of_packages=`echo $package_list | wc -w`
 
 SH_LIB_EXT="not set, please set me"
 
@@ -705,6 +705,10 @@ add_libxml2_packages()
                                     libxml2/libxml/xmlversion.h libxml2/libxml/xmlwriter.h \
                                     libxml2/libxml/xpath.h libxml2/libxml/xpathInternals.h libxml2/libxml/xpointer.h \
                        LIBS         libxml2.a"
+    if test "$shared_libs" = "DEFAULT"; then
+        LIBXML2_LIST="$LIBXML2_LIST libxml2.$SH_LIB_EXT"
+    fi
+
 }
 
 

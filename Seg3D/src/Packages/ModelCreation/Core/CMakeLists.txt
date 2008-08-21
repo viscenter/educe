@@ -28,5 +28,4 @@
 
 # CMakeLists.txt for Packages/ModelCreation/Core
 
-ADD_SUBDIRECTORY(Datatypes)
 ADD_SUBDIRECTORY(Fields)

@@ -52,22 +52,22 @@ itcl_class SCIRun_Bundle_InsertStringsIntoBundle {
         global $this-string6-name
         global $this-bundlename
 
-        toplevel $w 
+        sci_toplevel $w 
 
         wm minsize $w 100 150
 
         
-        iwidgets::labeledframe $w.frame -labeltext "STRING INPUTS"
+        sci_labeledframe $w.frame -labeltext "STRING INPUTS"
         set childframe [$w.frame childsite]
         pack $w.frame -fill x
-        frame $w.frame2
+        sci_frame $w.frame2
         pack $w.frame2 -fill x
-        label $w.frame2.label -text "Name bundle object :"
-        entry $w.frame2.entry -textvariable $this-bundlename
+        sci_label $w.frame2.label -text "Name bundle object :"
+        sci_entry $w.frame2.entry -textvariable $this-bundlename
         pack $w.frame2.label -side left 
         pack $w.frame2.entry -side left -fill x
 
-        iwidgets::tabnotebook $childframe.pw -height 100 -width 450 -tabpos n
+        sci_tabnotebook $childframe.pw -height 100 -width 450 -tabpos n
         $childframe.pw add -label "String1"
         $childframe.pw add -label "String2" 
         $childframe.pw add -label "String3" 
@@ -85,76 +85,76 @@ itcl_class SCIRun_Bundle_InsertStringsIntoBundle {
         set string5 [$childframe.pw childsite 4]
         set string6 [$childframe.pw childsite 5]
 
-        frame $string1.name
-        frame $string1.options
+        sci_frame $string1.name
+        sci_frame $string1.options
         pack $string1.name $string1.options -side top -fill x -expand yes -padx 5p
 
-        label $string1.name.label -text "Name"
-        entry $string1.name.entry -textvariable $this-string1-name
+        sci_label $string1.name.label -text "Name"
+        sci_entry $string1.name.entry -textvariable $this-string1-name
         pack $string1.name.label -side left 
         pack $string1.name.entry -side left -fill x -expand yes
         
-        checkbutton $string1.options.replace -variable $this-replace1 -text "Replace field, if it already exists"
+        sci_checkbutton $string1.options.replace -variable $this-replace1 -text "Replace field, if it already exists"
         pack $string1.options.replace -side left
         
-        frame $string2.name
-        frame $string2.options
+        sci_frame $string2.name
+        sci_frame $string2.options
         pack $string2.name $string2.options -side top -fill x -expand yes -padx 5p
 
-        label $string2.name.label -text "Name"
-        entry $string2.name.entry -textvariable $this-string2-name
+        sci_label $string2.name.label -text "Name"
+        sci_entry $string2.name.entry -textvariable $this-string2-name
         pack $string2.name.label -side left 
         pack $string2.name.entry -side left -fill x -expand yes
 
-        checkbutton $string2.options.replace -variable $this-replace2 -text "Replace field, if it already exists"
+        sci_checkbutton $string2.options.replace -variable $this-replace2 -text "Replace field, if it already exists"
         pack $string2.options.replace -side left
         
-        frame $string3.name
-        frame $string3.options
+        sci_frame $string3.name
+        sci_frame $string3.options
         pack $string3.name $string3.options -side top -fill x -expand yes -padx 5p
 
-        label $string3.name.label -text "Name"
-        entry $string3.name.entry -textvariable $this-string3-name
+        sci_label $string3.name.label -text "Name"
+        sci_entry $string3.name.entry -textvariable $this-string3-name
         pack $string3.name.label -side left 
         pack $string3.name.entry -side left -fill x -expand yes
 
-        checkbutton $string3.options.replace -variable $this-replace3 -text "Replace field, if it already exists"
+        sci_checkbutton $string3.options.replace -variable $this-replace3 -text "Replace field, if it already exists"
         pack $string3.options.replace -side left
 
-        frame $string4.name
-        frame $string4.options
+        sci_frame $string4.name
+        sci_frame $string4.options
         pack $string4.name $string4.options -side top -fill x -expand yes -padx 5p
 
-        label $string4.name.label -text "Name"
-        entry $string4.name.entry -textvariable $this-string4-name
+        sci_label $string4.name.label -text "Name"
+        sci_entry $string4.name.entry -textvariable $this-string4-name
         pack $string4.name.label -side left 
         pack $string4.name.entry -side left -fill x -expand yes
         
-        checkbutton $string4.options.replace -variable $this-replace4 -text "Replace field, if it already exists"
+        sci_checkbutton $string4.options.replace -variable $this-replace4 -text "Replace field, if it already exists"
         pack $string4.options.replace -side left
         
-        frame $string5.name
-        frame $string5.options
+        sci_frame $string5.name
+        sci_frame $string5.options
         pack $string5.name $string5.options -side top -fill x -expand yes -padx 5p
 
-        label $string5.name.label -text "Name"
-        entry $string5.name.entry -textvariable $this-string5-name
+        sci_label $string5.name.label -text "Name"
+        sci_entry $string5.name.entry -textvariable $this-string5-name
         pack $string5.name.label -side left 
         pack $string5.name.entry -side left -fill x -expand yes
 
-        checkbutton $string5.options.replace -variable $this-replace5 -text "Replace field, if it already exists"
+        sci_checkbutton $string5.options.replace -variable $this-replace5 -text "Replace field, if it already exists"
         pack $string5.options.replace -side left
         
-        frame $string6.name
-        frame $string6.options
+        sci_frame $string6.name
+        sci_frame $string6.options
         pack $string6.name $string6.options -side top -fill x -expand yes -padx 5p
 
-        label $string6.name.label -text "Name"
-        entry $string6.name.entry -textvariable $this-string6-name
+        sci_label $string6.name.label -text "Name"
+        sci_entry $string6.name.entry -textvariable $this-string6-name
         pack $string6.name.label -side left 
         pack $string6.name.entry -side left -fill x -expand yes
 
-        checkbutton $string6.options.replace -variable $this-replace6 -text "Replace field, if it already exists"
+        sci_checkbutton $string6.options.replace -variable $this-replace6 -text "Replace field, if it already exists"
         pack $string6.options.replace -side left
 
         makeSciButtonPanel $w $w $this

@@ -42,16 +42,12 @@ SCIRUN_ADD_LIBRARY(Core_Matlab ${Core_Matlab_SRCS})
 
 TARGET_LINK_LIBRARIES(Core_Matlab
   Core_Datatypes
-  Core_ImportExport
   Core_Containers
   Core_Exceptions
   Core_Thread
-  Core_Persistent
   Core_Geometry
   Core_Util
-  Core_Geom
   Core_Math
-  Core_Bundle
   ${Z_LIBRARY}
   ${TEEM_LIBRARY}
 )

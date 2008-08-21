@@ -44,7 +44,7 @@
 #include <Core/Util/NotFinished.h>
 #include <Core/Geometry/BBox.h>
 #include <Core/Geom/GeomLine.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::ostream;
 
@@ -52,7 +52,7 @@ namespace SCIRun {
 
 Persistent* make_GeomPolyline()
 {
-    return scinew GeomPolyline;
+    return new GeomPolyline;
 }
 
 PersistentTypeID GeomPolyline::type_id("GeomPolyline", "GeomObj", make_GeomPolyline);
@@ -71,7 +71,7 @@ GeomPolyline::~GeomPolyline() {
 
 GeomObj* GeomPolyline::clone()
 {
-    return scinew GeomPolyline(*this);
+    return new GeomPolyline(*this);
 }
 
 #define GEOMPOLYLINE_VERSION 1

@@ -31,11 +31,9 @@
 //    Date   : Wed Dec  5 16:05:07 MST 2001
 
 #include <Core/Algorithms/Geometry/CoregPts.h>
-#include <Core/Datatypes/FieldInterface.h>
 #include <Core/Geometry/BBox.h>
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/MinMax.h>
-#include <Core/Math/Expon.h>
 #include <Core/Math/Trig.h>
 #include <iostream>
 
@@ -391,7 +389,7 @@ CoregPtsSimplexSearch::~CoregPtsSimplexSearch()
 
 CoregPtsSimplexSearch::CoregPtsSimplexSearch(int maxIters, double misfitTol,
 					     int &abort,
-					     ScalarFieldInterfaceHandle dField,
+					     VField* dField,
 					     MusilRNG &mr,
 					     int allowScale, int allowRotate,
 					     int allowTranslate) :
@@ -403,6 +401,7 @@ CoregPtsSimplexSearch::CoregPtsSimplexSearch(int maxIters, double misfitTol,
   NSEEDS_ = 8;
   params_.resize(NSEEDS_+1, NDIM_);
   misfit_.resize(NSEEDS_+1);
+  dField_->vmesh()->synchronize(Mesh::LOCATE_E);
 }
 
 
@@ -414,7 +413,8 @@ CoregPtsSimplexSearch::getMisfit(double &misfit)
   misfit=0;
   double m;
   int npts = origPtsP_.size();
-  for (int i=0; i<npts; i++) {
+  for (int i=0; i<npts; i++) 
+  {
     dField_->interpolate(m, origPtsP_[i]);
     misfit += m;
   }

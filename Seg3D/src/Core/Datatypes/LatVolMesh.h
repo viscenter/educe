@@ -423,7 +423,6 @@ public:
     }
   };
 
-  //typedef LatIndex        under_type;
 
   //! Index and Iterator types required for Mesh Concept.
   struct Node {
@@ -589,7 +588,8 @@ public:
   
   LatVolMesh(size_type x, size_type y, size_type z,
              const Point &min, const Point &max);
-  LatVolMesh(LatVolMesh* /* mh */,  // FIXME: Is this constructor broken?
+  
+  LatVolMesh(LatVolMesh* /* mh */,  
              size_type mx, size_type my, size_type mz,
              size_type x, size_type y, size_type z) :
     min_i_(mx),
@@ -617,6 +617,7 @@ public:
     transform_(copy.transform_),
     basis_(copy.basis_)
   {
+    transform_.compute_imat();
     compute_jacobian();  
 
     //! Create a new virtual interface for this copy
@@ -665,7 +666,12 @@ public:
     basis_.approx_face(fmap[which_face], div_per_unit, coords);
   }
 
+  //! Synchronize functions, as there is nothing to synchronize, these
+  //! functions always succeed
 
+  virtual bool synchronize(mask_type sync) { return (true); }
+  virtual bool unsynchronize(mask_type sync) { return (true); }
+  bool clear_synchronization() { return (true); }
 
   //! Get the local coordinates for a certain point within an element
   //! This function uses a couple of newton iterations to find the local
@@ -690,17 +696,19 @@ public:
     coords[1] = static_cast<typename VECTOR::value_type>(r.y()-static_cast<double>(idx.j_));
     coords[2] = static_cast<typename VECTOR::value_type>(r.z()-static_cast<double>(idx.k_));
     
-    if (static_cast<double>(coords[0]) < 0.0) if (static_cast<double>(coords[0]) > -(MIN_ELEMENT_VAL)) 
+    const double epsilon = 1e-8;
+    
+    if (static_cast<double>(coords[0]) < 0.0) if (static_cast<double>(coords[0]) > -(epsilon)) 
           coords[0] = static_cast<typename VECTOR::value_type>(0.0); else return (false);
-    if (static_cast<double>(coords[0]) > 1.0) if (static_cast<double>(coords[0]) < 1.0+(MIN_ELEMENT_VAL)) 
+    if (static_cast<double>(coords[0]) > 1.0) if (static_cast<double>(coords[0]) < 1.0+(epsilon)) 
           coords[0] = static_cast<typename VECTOR::value_type>(1.0); else return (false);
-    if (static_cast<double>(coords[1]) < 0.0) if (static_cast<double>(coords[1]) > -(MIN_ELEMENT_VAL)) 
+    if (static_cast<double>(coords[1]) < 0.0) if (static_cast<double>(coords[1]) > -(epsilon)) 
           coords[1] = static_cast<typename VECTOR::value_type>(0.0); else return (false);
-    if (static_cast<double>(coords[1]) > 1.0) if (static_cast<double>(coords[1]) < 1.0+(MIN_ELEMENT_VAL)) 
+    if (static_cast<double>(coords[1]) > 1.0) if (static_cast<double>(coords[1]) < 1.0+(epsilon)) 
           coords[1] = static_cast<typename VECTOR::value_type>(1.0); else return (false);
-    if (static_cast<double>(coords[2]) < 0.0) if (static_cast<double>(coords[2]) > -(MIN_ELEMENT_VAL)) 
+    if (static_cast<double>(coords[2]) < 0.0) if (static_cast<double>(coords[2]) > -(epsilon)) 
           coords[2] = static_cast<typename VECTOR::value_type>(0.0); else return (false);
-    if (static_cast<double>(coords[2]) > 1.0) if (static_cast<double>(coords[2]) < 1.0+(MIN_ELEMENT_VAL)) 
+    if (static_cast<double>(coords[2]) > 1.0) if (static_cast<double>(coords[2]) < 1.0+(epsilon)) 
           coords[2] = static_cast<typename VECTOR::value_type>(1.0); else return (false);
     
     return (true);
@@ -935,13 +943,13 @@ public:
   { return false; }
   bool locate(typename Face::index_type &, const Point &) const
   { return false; }
-  bool locate(typename Cell::index_type &, const Point &) const;
+  bool locate(typename Elem::index_type &, const Point &) const;
 
   int get_weights(const Point &p, typename Node::array_type &l, double *w);
   int get_weights(const Point & , typename Edge::array_type & , double * )
-  {ASSERTFAIL("LatVolMesh::get_weights for edges isn't supported"); }
+    { ASSERTFAIL("LatVolMesh::get_weights for edges isn't supported"); }
   int get_weights(const Point & , typename Face::array_type & , double * )
-  {ASSERTFAIL("LatVolMesh::get_weights for faces isn't supported"); }
+    { ASSERTFAIL("LatVolMesh::get_weights for faces isn't supported"); }
   int get_weights(const Point &p, typename Cell::array_type &l, double *w);
 
   void get_point(Point &p, const typename Node::index_type &i) const
@@ -955,6 +963,94 @@ public:
   void get_random_point(Point &,
                         const typename Elem::index_type &,
                         FieldRNG &rng) const;
+
+  //! This function will find the closest element and the location on that
+  //! element that is the closest
+  bool find_closest_node(double& pdist, Point &result, 
+                         typename Node::index_type &elem,
+                         const Point &p) const;
+
+  bool find_closest_node(double& pdist, Point &result, 
+                         typename Node::index_type &elem,
+                         const Point &p, double maxdist) const;
+
+  //! This function will find the closest element and the location on that
+  //! element that is the closest
+  template <class ARRAY>
+  bool find_closest_elem(double& pdist, 
+                         Point &result,
+                         ARRAY& coords, 
+                         typename Elem::index_type &elem,
+                         const Point &p,
+                         double maxdist) const
+  {
+    bool ret = find_closest_elem(pdist,result,coords,elem,p);
+    if(!ret) return (false);
+    if (maxdist < 0.0 || pdist < maxdist) return (true);
+    return (false);
+  }
+
+                           
+  //! This function will find the closest element and the location on that
+  //! element that is the closest
+  template <class ARRAY>
+  bool find_closest_elem(double& pdist, 
+                         Point &result,
+                         ARRAY& coords, 
+                         typename Elem::index_type &elem,
+                         const Point &p) const
+  {
+    if (ni_ == 0 || nj_ == 0 || nk_ == 0) return (false);
+    
+    const Point r = transform_.unproject(p);
+
+    double ii = r.x();
+    double jj = r.y();
+    double kk = r.z();
+    const double nii = static_cast<double>(ni_-2);
+    const double njj = static_cast<double>(nj_-2);
+    const double nkk = static_cast<double>(nk_-2);
+     
+    if (ii < 0.0) ii = 0.0; if (ii > nii) ii = nii;
+    if (jj < 0.0) jj = 0.0; if (jj > njj) jj = njj;
+    if (kk < 0.0) kk = 0.0; if (kk > nkk) kk = nkk;
+
+    const double fi = floor(ii);
+    const double fj = floor(jj);
+    const double fk = floor(kk);
+
+    elem.i_ = static_cast<index_type>(fi);
+    elem.j_ = static_cast<index_type>(fj);
+    elem.k_ = static_cast<index_type>(fk);
+    elem.mesh_ = this;
+    
+    result = transform_.project(Point(ii,jj,kk));
+    pdist = (p-result).length();
+    
+    coords.resize(3);
+    coords[0] = ii-fi;
+    coords[1] = jj-fj;
+    coords[2] = kk-fk;
+    
+    return (true);
+  }
+
+
+  bool find_closest_elem(double& pdist,
+                         Point& result,
+                         typename Elem::index_type &elem,
+                         const Point &p) const
+  {
+    StackVector<double,3> coords;
+    return(find_closest_elem(pdist,result,coords,elem,p));
+  }
+                         
+  //! This function will return multiple elements if the closest point is
+  //! located on a node or edge. All bordering elements are returned in that 
+  //! case. 
+  bool find_closest_elems(double& pdist, Point &result, 
+                          vector<typename Elem::index_type> &elem,
+                          const Point &p) const;
 
   double get_epsilon() const;
 
@@ -972,8 +1068,8 @@ public:
   Transform &set_transform(const Transform &trans)
   { 
     transform_ = trans; 
+    transform_.compute_imat();
     compute_jacobian(); 
-    
     return transform_;  
   }
 
@@ -989,15 +1085,13 @@ public:
   static const TypeDescription* node_type_description();
   static const TypeDescription* elem_type_description()
   { return cell_type_description(); }
-  static const TypeDescription* cell_index_type_description();
-  static const TypeDescription* node_index_type_description();
 
   //! This function returns a maker for Pio.
-  static Persistent *maker() { return scinew LatVolMesh(); }
+  static Persistent *maker() { return new LatVolMesh(); }
   //! This function returns a handle for the virtual interface.
-  static MeshHandle mesh_maker() { return scinew LatVolMesh(); }
+  static MeshHandle mesh_maker() { return new LatVolMesh(); }
   //! This function returns a handle for the virtual interface.
-  static MeshHandle latvol_maker(size_type x, size_type y, size_type z, const Point& min, const Point& max) { return scinew LatVolMesh(x,y,z,min,max); }
+  static MeshHandle latvol_maker(size_type x, size_type y, size_type z, const Point& min, const Point& max) { return new LatVolMesh(x,y,z,min,max); }
 
 protected:
 
@@ -1032,9 +1126,9 @@ const TypeDescription* get_type_description(LatVolMesh<Basis> *)
   if (!td)
   {
     const TypeDescription *sub = SCIRun::get_type_description((Basis*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("LatVolMesh", subs,
+    td = new TypeDescription("LatVolMesh", subs,
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1060,7 +1154,7 @@ LatVolMesh<Basis>::node_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((LatVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Node",
+    td = new TypeDescription(me->get_name() + "::Node",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1078,7 +1172,7 @@ LatVolMesh<Basis>::edge_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((LatVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Edge",
+    td = new TypeDescription(me->get_name() + "::Edge",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1096,7 +1190,7 @@ LatVolMesh<Basis>::face_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((LatVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Face",
+    td = new TypeDescription(me->get_name() + "::Face",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1114,42 +1208,7 @@ LatVolMesh<Basis>::cell_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((LatVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Cell",
-                                string(__FILE__),
-                                "SCIRun",
-                                TypeDescription::MESH_E);
-  }
-  return td;
-}
-
-
-template <class Basis>
-const TypeDescription*
-LatVolMesh<Basis>::node_index_type_description()
-{
-  static TypeDescription* td = 0;
-  if(!td){
-    const TypeDescription *me =
-      SCIRun::get_type_description((LatVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::NodeIndex",
-                                string(__FILE__),
-                                "SCIRun",
-                                TypeDescription::MESH_E);
-  }
-  return td;
-}
-
-
-template <class Basis>
-const TypeDescription*
-LatVolMesh<Basis>::cell_index_type_description()
-{
-  static TypeDescription *td = 0;
-  if (!td)
-  {
-    const TypeDescription *me =
-      SCIRun::get_type_description((LatVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::CellIndex",
+    td = new TypeDescription(me->get_name() + "::Cell",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1170,7 +1229,6 @@ LatVolMesh<Basis>::LatVolMesh(size_type i, size_type j, size_type k,
 {
   transform_.pre_scale(Vector(1.0 / (i-1.0), 1.0 / (j-1.0), 1.0 / (k-1.0)));
   transform_.pre_scale(max - min);
-
   transform_.pre_translate(min.asVector());
   transform_.compute_imat();
   compute_jacobian();  
@@ -1246,6 +1304,7 @@ void
 LatVolMesh<Basis>::transform(const Transform &t)
 {
   transform_.pre_trans(t);
+  transform_.compute_imat();
   compute_jacobian();
 }
 
@@ -2034,40 +2093,47 @@ LatVolMesh<Basis>::get_size(const typename Cell::index_type &idx) const
 
 template <class Basis>
 bool
-LatVolMesh<Basis>::locate(typename Cell::index_type &cell, const Point &p) const
+LatVolMesh<Basis>::locate(typename Cell::index_type &elem, const Point &p) const
 {
+  const double epsilon = 1e-7;
+
+  if (ni_ == 0 || nj_ == 0 || nk_ == 0) return (false);
+
   const Point r = transform_.unproject(p);
 
   double ii = r.x();
   double jj = r.y();
   double kk = r.z();
 
-  if (ii>(ni_-1) && (ii-(MIN_ELEMENT_VAL))<(ni_-1)) ii=ni_-1-(MIN_ELEMENT_VAL);
-  if (jj>(nj_-1) && (jj-(MIN_ELEMENT_VAL))<(nj_-1)) jj=nj_-1-(MIN_ELEMENT_VAL);
-  if (kk>(nk_-1) && (kk-(MIN_ELEMENT_VAL))<(nk_-1)) kk=nk_-1-(MIN_ELEMENT_VAL);
-  if (ii<0 && ii>(-MIN_ELEMENT_VAL)) ii=0;
-  if (jj<0 && jj>(-MIN_ELEMENT_VAL)) jj=0;
-  if (kk<0 && kk>(-MIN_ELEMENT_VAL)) kk=0;
+  const double nii = static_cast<double>(ni_-1);
+  const double njj = static_cast<double>(nj_-1);
+  const double nkk = static_cast<double>(nk_-1);
+   
+  if (ii>=nii && (ii-epsilon)<nii) ii=nii-epsilon;
+  if (jj>=njj && (jj-epsilon)<njj) jj=njj-epsilon;
+  if (kk>=nkk && (kk-epsilon)<nkk) kk=nkk-epsilon;
+
+  if (ii<0 && ii>(-epsilon)) ii=0.0;
+  if (jj<0 && jj>(-epsilon)) jj=0.0;
+  if (kk<0 && kk>(-epsilon)) kk=0.0;
 	
   const index_type i = static_cast<index_type>(floor(ii));
   const index_type j = static_cast<index_type>(floor(jj));
   const index_type k = static_cast<index_type>(floor(kk));
 
-  if (i < (int)(ni_-1) && i >= 0 &&
-      j < (int)(nj_-1) && j >= 0 &&
-      k < (int)(nk_-1) && k >= 0)
+  if (i < (ni_-1) && i >= 0 && 
+      j < (nj_-1) && j >= 0 && 
+      k < (nk_-1) && k >= 0 && 
+      ii >= 0.0 && jj >= 0.0 && kk >= 0.0)
   {
-    cell.i_ = i;
-    cell.j_ = j;
-    cell.k_ = k;
-    cell.mesh_ = this;
-    return true;
+    elem.i_ = i;
+    elem.j_ = j;
+    elem.k_ = k;
+    elem.mesh_ = this;
+    return (true);
   }
-  cell.i_ = (index_type)Max(Min(ii,(double)(ni_-1)), 0.0);
-  cell.j_ = (index_type)Max(Min(jj,(double)(nj_-1)), 0.0);
-  cell.k_ = (index_type)Max(Min(kk,(double)(nk_-1)), 0.0);
-  cell.mesh_ = this;
-  return false;
+
+  return (false);
 }
 
 
@@ -2075,32 +2141,174 @@ template <class Basis>
 bool
 LatVolMesh<Basis>::locate(typename Node::index_type &node, const Point &p) const
 {
+  if (ni_ == 0 || nj_ == 0 || nk_ == 0) return (false);
+  
   const Point r = transform_.unproject(p);
 
-  const double rx = floor(r.x() + 0.5);
-  const double ry = floor(r.y() + 0.5);
-  const double rz = floor(r.z() + 0.5);
+  double rx = floor(r.x() + 0.5);
+  double ry = floor(r.y() + 0.5);
+  double rz = floor(r.z() + 0.5);
+  
+  const double nii = static_cast<double>(ni_-1);
+  const double njj = static_cast<double>(nj_-1);
+  const double nkk = static_cast<double>(nk_-1);
+
+  if (rx < 0.0) rx = 0.0; if (rx > nii) rx = nii;
+  if (ry < 0.0) ry = 0.0; if (ry > njj) ry = njj;
+  if (rz < 0.0) rz = 0.0; if (rz > nkk) rz = nkk;
+  
+  node.i_ = static_cast<index_type>(rx);
+  node.j_ = static_cast<index_type>(ry);
+  node.k_ = static_cast<index_type>(rz);
+  node.mesh_ = this;
+  
+  return (true);
+}
 
 
-  // Clamp in double space to avoid overflow errors.
-  if (rx < 0.0  || ry < 0.0  || rz < 0.0 ||
-      rx >= ni_ || ry >= nj_ || rz >= nk_)
+
+template <class Basis>
+bool
+LatVolMesh<Basis>::find_closest_node(double& pdist,
+                           Point &result, 
+                           typename Node::index_type &node,
+                           const Point &p) const
+{
+  if (ni_ == 0 || nj_ == 0 || nk_ == 0) return (false);
+  
+  const Point r = transform_.unproject(p);
+
+  double rx = floor(r.x() + 0.5);
+  double ry = floor(r.y() + 0.5);
+  double rz = floor(r.z() + 0.5);
+  
+  const double nii = static_cast<double>(ni_-1);
+  const double njj = static_cast<double>(nj_-1);
+  const double nkk = static_cast<double>(nk_-1);
+
+  if (rx < 0.0) rx = 0.0; if (rx > nii) rx = nii;
+  if (ry < 0.0) ry = 0.0; if (ry > njj) ry = njj;
+  if (rz < 0.0) rz = 0.0; if (rz > nkk) rz = nkk;
+
+  result = transform_.project(Point(rx,ry,rz)); 
+  node.i_ = static_cast<index_type>(rx);
+  node.j_ = static_cast<index_type>(ry);
+  node.k_ = static_cast<index_type>(rz);
+  node.mesh_ = this;
+  
+  pdist = (p-result).length();
+  return (true);
+}
+
+
+
+template <class Basis>
+bool
+LatVolMesh<Basis>::find_closest_node(double& pdist,
+                                    Point &result, 
+                                    typename Node::index_type &node,
+                                    const Point &p, double maxdist) const
+{
+  bool ret = find_closest_node(pdist,result,node,p);
+  if (!ret)  return (false);
+  if (maxdist < 0.0 || pdist < maxdist) return (true);
+  return (false);
+}
+
+template <class Basis>
+bool
+LatVolMesh<Basis>::find_closest_elems(double& pdist,
+                            Point &result,
+                            vector<typename Elem::index_type> &elems,
+                            const Point &p) const
+{
+  // For calculations inside the local element
+  const double epsilon = 1e-8;
+  elems.clear();
+  
+  if (ni_ == 0 || nj_ == 0 || nk_ == 0) return (false);
+  
+  const Point r = transform_.unproject(p);
+
+  double ii = r.x();
+  double jj = r.y();
+  double kk = r.z();
+  const double nii = static_cast<double>(ni_-2);
+  const double njj = static_cast<double>(nj_-2);
+  //const double nkk = static_cast<double>(nk_-2);
+   
+  if (ii < 0.0) ii = 0.0; if (ii > nii) ii = nii;
+  if (jj < 0.0) jj = 0.0; if (jj > njj) jj = njj;
+  if (jj < 0.0) jj = 0.0; if (jj > njj) jj = njj;
+  const double fii = floor(ii);
+  const double fjj = floor(jj);
+  const double fkk = floor(kk);
+
+  index_type i = static_cast<index_type>(fii);
+  index_type j = static_cast<index_type>(fjj);
+  index_type k = static_cast<index_type>(fkk);
+  
+  typename Elem::index_type elem;
+  
+  elem.i_ = i;
+  elem.j_ = j;
+  elem.k_ = k;
+  elem.mesh_ = this;
+  elems.push_back(elem);
+
+  if ((fabs(fii-ii) < epsilon) && ((i-1)>0))
   {
-    node.i_ = (index_type)Max(Min(rx,(double)(ni_-1)), 0.0);
-    node.j_ = (index_type)Max(Min(ry,(double)(nj_-1)), 0.0);
-    node.k_ = (index_type)Max(Min(rz,(double)(nk_-1)), 0.0);
-    node.mesh_ = this;
-    return false;
+    elem.i_ = i-1;
+    elem.j_ = j;
+    elem.k_ = k;
+    elems.push_back(elem);  
+  }
+  
+  if ((fabs(fii-(ii+1.0)) < epsilon) && (i<(ni_-1)))
+  {
+    elem.i_ = i+1;
+    elem.j_ = j;
+    elem.k_ = k;
+    elems.push_back(elem);  
   }
 
-  // Nodes over 2 billion might suffer roundoff error.
-  node.i_ = (index_type)rx;
-  node.j_ = (index_type)ry;
-  node.k_ = (index_type)rz;
-  node.mesh_ = this;
+  if ((fabs(fjj-jj) < epsilon) && ((j-1)>0))
+  {
+    elem.i_ = i;
+    elem.j_ = j-1;
+    elem.k_ = k;
+    elems.push_back(elem);  
+  }
+  
+  if ((fabs(fjj-(jj+1.0)) < epsilon) && (j<(nj_-1)))
+  {
+    elem.i_ = i;
+    elem.j_ = j+1;
+    elem.k_ = k;
+    elems.push_back(elem);  
+  }
 
-  return true;
+  if ((fabs(fkk-kk) < epsilon) && ((k-1)>0))
+  {
+    elem.i_ = i;
+    elem.j_ = j;
+    elem.k_ = k-1;
+    elems.push_back(elem);  
+  }
+  
+  if ((fabs(fkk-(kk+1.0)) < epsilon) && (k<(nk_-1)))
+  {
+    elem.i_ = i;
+    elem.j_ = j;
+    elem.k_ = k+1;
+    elems.push_back(elem);  
+  }
+  result = transform_.project(Point(ii,jj,kk));
+
+  pdist = (p-result).length();
+  return (true);
 }
+
 
 
 template <class Basis>
@@ -2192,9 +2400,7 @@ LatVolMesh<Basis>::io(Piostream& stream)
     Point min, max;
     Pio(stream, min);
     Pio(stream, max);
-    transform_.pre_scale(Vector(1.0 / (ni_ - 1.0),
-                                1.0 / (nj_ - 1.0),
-                                1.0 / (nk_ - 1.0)));
+    transform_.pre_scale(Vector(1.0 / (ni_ - 1.0),1.0 / (nj_ - 1.0),1.0 / (nk_ - 1.0)));
     transform_.pre_scale(max - min);
     transform_.pre_translate(Vector(min));
     transform_.compute_imat();
@@ -2208,7 +2414,8 @@ LatVolMesh<Basis>::io(Piostream& stream)
     Pio(stream, transform_);
   }
 
-  if (version >= 4) {
+  if (version >= 4) 
+  {
     basis_.io(stream);
   }
 
@@ -2216,6 +2423,7 @@ LatVolMesh<Basis>::io(Piostream& stream)
 
   if (stream.reading())
   {
+    compute_jacobian();
     vmesh_ = CreateVLatVolMesh(this);
   }
 
@@ -2397,9 +2605,13 @@ template <class Basis>
 double
 LatVolMesh<Basis>::get_epsilon() const
 {
-  Point p(ni_-1,nj_-1,nk_-1);
-  Point q = transform_.project(p);
-  return (q.asVector().length()*1e-8);
+  Point p0(static_cast<double>(ni_-1),
+           static_cast<double>(nj_-1),
+           static_cast<double>(nk_-1));
+  Point p1(0.0,0.0,0.0);
+  Point q0 = transform_.project(p0);
+  Point q1 = transform_.project(p1);
+  return ((q0-q1).length()*1e-8);
 }
 
 } // namespace SCIRun

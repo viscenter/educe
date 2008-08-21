@@ -31,7 +31,7 @@
 //    Date   : Oct 2006
 
 #include <sci_defs/teem_defs.h>
-#include <Core/Algorithms/Visualization/mcube2.h>
+#include <Core/Algorithms/Fields/MarchingCubes/mcube2.h>
 #include <Core/Datatypes/NrrdData.h>
 #include <Core/Geom/GeomTriangles.h>
 
@@ -83,7 +83,7 @@ fast_lat_mc_real_masked(Nrrd *nrrd, T *data, double ival, unsigned int mask)
 
   const size_t ijsize = isize * jsize;
 
-  GeomFastTriangles *triangles = scinew GeomFastTriangles;
+  GeomFastTriangles *triangles = new GeomFastTriangles;
 
   for (unsigned int k = 0; k < ksize-1; k++)
   {
@@ -141,7 +141,7 @@ fast_lat_mc_real(Nrrd *nrrd, T *data, double ival)
 
   const size_t ijsize = isize * jsize;
 
-  GeomFastTriangles *triangles = scinew GeomFastTriangles;
+  GeomFastTriangles *triangles = new GeomFastTriangles;
 
   for (unsigned int k = 0; k < ksize-1; k++)
   {

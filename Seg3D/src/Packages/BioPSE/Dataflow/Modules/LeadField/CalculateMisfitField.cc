@@ -46,7 +46,7 @@
 #include <Core/Datatypes/ColumnMatrix.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Math/Mat.h>
-#include <Core/Math/Expon.h>
+#include <Core/Math/MiscMath.h>
 
 #include <iostream>
 #include <stdio.h>

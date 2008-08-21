@@ -42,7 +42,7 @@
 
 #include <Core/Geom/HistogramTex.h>
 #include <Core/Util/NotFinished.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Geometry/BBox.h>
 
 using std::ostream;
@@ -50,7 +50,7 @@ using std::ostream;
 namespace SCIRun {
 
 Persistent *make_HistogramTex() {
-  return scinew HistogramTex( Point(0,0,0), Point(0,1,0), Point(1,1,0),
+  return new HistogramTex( Point(0,0,0), Point(0,1,0), Point(1,1,0),
 			   Point(1,0,0) );
 }
 
@@ -72,7 +72,7 @@ HistogramTex::~HistogramTex()
 }
 
 GeomObj* HistogramTex::clone() {
-  return scinew HistogramTex( *this );
+  return new HistogramTex( *this );
 }
 
 void HistogramTex::get_bounds( BBox& bb ) {

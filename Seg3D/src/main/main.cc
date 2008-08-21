@@ -39,7 +39,7 @@
  *  Copyright (C) 1999 U of U
  */
 
-#include <main/sci_version.h>
+#include <sci_defs/version_defs.h>
 
 #include <Dataflow/Network/Network.h>
 #include <Dataflow/Network/PackageDB.h>
@@ -62,7 +62,6 @@
 #include <Core/SystemCall/SystemCallManager.h>
 
 #include <TauProfilerForSCIRun.h>
-
 #include <sci_defs/ptolemy_defs.h>
 
 #include <string>
@@ -71,11 +70,25 @@ using std::cout;
 
 #ifdef _WIN32
 #  include <windows.h>
-#endif
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#  pragma set woff 1209
-#  pragma set woff 1424
+void InvalidParameterHandler(const wchar_t* expression, 
+                             const wchar_t* function, 
+                             const wchar_t* file, 
+                             unsigned int line,	
+                             uintptr_t pReserved ) {
+	fprintf(
+		stderr,
+		"Invalid parameter in function %s. File: %s Line: %d Expression: %s\n",
+		function,
+		file,
+		line,
+    expression
+	);
+  
+	// Cause a Debug Breakpoint.
+	DebugBreak();
+}
+
 #endif
 
 using namespace SCIRun;
@@ -121,6 +134,8 @@ parse_args( int argc, char *argv[] )
     if( ( arg == "--version" ) || ( arg == "-version" ) || ( arg == "-v" ) || ( arg == "--v" ) )
     {
       cout << "Version: " << SCIRUN_VERSION << "\n";
+      cout << "SVN Revision: " << SCIRUN_SVN_REVISION << "\n";
+      cout << "SVN URL: " << SCIRUN_SVN_URL << "\n";
       exit( 0 );
     }
     else if ( ( arg == "--help" ) || ( arg == "-help" ) || ( arg == "-h" ) ||  ( arg == "--h" ) )
@@ -243,9 +258,9 @@ parse_args( int argc, char *argv[] )
       std::string key = arg.substr(1);
       std::string value;
       std::string::size_type loc = arg.find("=");
-      if (loc == std::string::npos)
+      if (loc != std::string::npos)
       { 
-        key = arg.substr(1,loc);
+        key = arg.substr(1,loc-1);
         value = arg.substr(loc+1);
       }
       sci_putenv(key,value);
@@ -324,7 +339,7 @@ start_eai() {
   // with the rest of SCIRun. Since the thirdparty software may be running
   // on a different platform it allows for connecting to remote machines
   // and running the service on a different machine 
-  ServiceDBHandle servicedb = scinew ServiceDB;     
+  ServiceDBHandle servicedb = new ServiceDB;     
   // load all services and find all makers
   servicedb->loadpackages();
   // activate all services
@@ -353,17 +368,17 @@ start_eai() {
 
   // A log file is not necessary but handy for debugging purposes
   ServiceLogHandle internallogfile = 
-    scinew ServiceLog(scidir+"scirun_internal_servicemanager.log");
+    new ServiceLog(scidir+"scirun_internal_servicemanager.log");
   
   ServiceManager* internal_service_manager = 
-    scinew ServiceManager(servicedb, internaladdress, internallogfile); 
+    new ServiceManager(servicedb, internaladdress, internallogfile); 
 #else
   ServiceManager* internal_service_manager = 
-    scinew ServiceManager(servicedb, internaladdress); 
+    new ServiceManager(servicedb, internaladdress); 
 #endif
 
   Thread* t_int = 
-    scinew Thread(internal_service_manager, "internal service manager",
+    new Thread(internal_service_manager, "internal service manager",
 		  0, Thread::NotActivated);
   t_int->setStackSize(1024*20);
   t_int->activate(false);
@@ -392,18 +407,18 @@ start_eai() {
 
 #ifdef DEBUG
   ServiceLogHandle externallogfile = 
-    scinew ServiceLog(scidir+"scirun_external_servicemanager.log"); 
+    new ServiceLog(scidir+"scirun_external_servicemanager.log"); 
   
   ServiceManager* external_service_manager = 
-    scinew ServiceManager(servicedb,externaladdress,externallogfile); 
+    new ServiceManager(servicedb,externaladdress,externallogfile); 
 #else
   ServiceManager* external_service_manager = 
-    scinew ServiceManager(servicedb,externaladdress); 
+    new ServiceManager(servicedb,externaladdress); 
 
 #endif
 
   Thread* t_ext = 
-    scinew Thread(external_service_manager,"external service manager",
+    new Thread(external_service_manager,"external service manager",
 		  0, Thread::NotActivated);
   t_ext->setStackSize(1024*20);
   t_ext->activate(false);
@@ -416,6 +431,11 @@ start_eai() {
 int
 main(int argc, char *argv[], char **environment) 
 {
+
+#ifdef _WIN32
+	_set_invalid_parameter_handler(InvalidParameterHandler);
+#endif
+
   // TAU_PROFILE("main", "", TAU_DEFAULT);
   // TAU_PROFILE_SET_NODE(0);
 
@@ -423,6 +443,8 @@ main(int argc, char *argv[], char **environment)
   create_sci_environment(environment, 0);
   sci_putenv("SCIRUN_VERSION", SCIRUN_VERSION);
   sci_putenv("SCIRUN_RCFILE_SUBVERSION", SCIRUN_RCFILE_SUBVERSION);
+  sci_putenv("SCIRUN_SVN_REVISION", SCIRUN_SVN_REVISION);
+  sci_putenv("SCIRUN_SVN_URL", SCIRUN_SVN_URL);
 
   // Parse the command line arguments to find a network to execute
   const int startnetno = parse_args( argc, argv );
@@ -443,13 +465,13 @@ main(int argc, char *argv[], char **environment)
 
 #ifndef _WIN32
   // Now split off a process for running external processes (not on windows)
-  systemcallmanager_ = scinew SystemCallManager();
+  systemcallmanager_ = new SystemCallManager();
   systemcallmanager_->create();
   start_eai();
 #endif
 
   //! create the EventManager thread.
-  Thread *emt = scinew Thread(new EventManager(), "Event Manager Thread");
+  Thread *emt = new Thread(new EventManager(), "Event Manager Thread");
   emt->detach();
 
   Network* net=new Network();
@@ -475,8 +497,8 @@ main(int argc, char *argv[], char **environment)
     const char *timeout = sci_getenv("SCIRUN_REGRESSION_TESTING_TIMEOUT");
     if (timeout && string_to_int(timeout, tmp)) seconds = tmp;
     
-    SCIRunKiller *kill = scinew SCIRunKiller(seconds);
-    Thread *tkill = scinew Thread(kill, "Regression Testing: kill SCIRun after timeout");
+    SCIRunKiller *kill = new SCIRunKiller(seconds);
+    Thread *tkill = new Thread(kill, "Regression Testing: kill SCIRun after timeout");
     tkill->detach();
   }
 
@@ -489,8 +511,8 @@ main(int argc, char *argv[], char **environment)
       int seconds;
       string_to_int(timeout, seconds);
       
-      SCIRunKiller *kill = scinew SCIRunKiller(seconds);
-      Thread *tkill = scinew Thread(kill, "Kill SCIRun after timeout");
+      SCIRunKiller *kill = new SCIRunKiller(seconds);
+      Thread *tkill = new Thread(kill, "Kill SCIRun after timeout");
       tkill->detach();
     }
   }
@@ -501,16 +523,8 @@ main(int argc, char *argv[], char **environment)
   WaitForSingleObject(forever,INFINITE);
 #endif
 
-#if !defined(__sgi)
   Semaphore wait("main wait", 0);
   wait.down();
-#endif
-        
+
   return 0;
 }
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1209
-#pragma reset woff 1424
-#endif
-

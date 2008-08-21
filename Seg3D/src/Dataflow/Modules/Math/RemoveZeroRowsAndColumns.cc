@@ -26,21 +26,29 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Algorithms/Math/MathAlgo.h>
+#include <Core/Algorithms/Math/SelectMatrix/SelectSubMatrix.h>
+#include <Core/Algorithms/Math/FindMatrix/FindMatrix.h>
+#include <Core/Algorithms/Math/MappingMatrix/ConvertMappingOrderIntoMappingMatrix.h>
 
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Malloc/Allocator.h>
+
+
 
 namespace SCIRun {
 
 using namespace SCIRun;
 
 class RemoveZeroRowsAndColumns : public Module {
-public:
-  RemoveZeroRowsAndColumns(GuiContext*);
+  public:
+    RemoveZeroRowsAndColumns(GuiContext*);
 
-  virtual void execute();
+    virtual void execute();
+
+  private:
+    SCIRunAlgo::SelectSubMatrixAlgo select_submatrix_;  
+    SCIRunAlgo::FindMatrixAlgo find_algo_;
+    SCIRunAlgo::ConvertMappingOrderIntoMappingMatrixAlgo convert_algo_;
 };
 
 
@@ -49,6 +57,9 @@ DECLARE_MAKER(RemoveZeroRowsAndColumns)
 RemoveZeroRowsAndColumns::RemoveZeroRowsAndColumns(GuiContext* ctx) :
   Module("RemoveZeroRowsAndColumns", ctx, Source, "Math", "SCIRun")
 {
+  select_submatrix_.set_progress_reporter(this);
+  find_algo_.set_progress_reporter(this);
+  convert_algo_.set_progress_reporter(this);
 }
 
 void
@@ -61,17 +72,18 @@ RemoveZeroRowsAndColumns::execute()
   if (inputs_changed_ || !oport_cached("ReducedMatrix") ||
     !oport_cached("LeftMapping")||!oport_cached("RightMapping"))
   {
-    SCIRunAlgo::MathAlgo malgo(this);
-  
     std::vector<Matrix::index_type> rows;
     std::vector<Matrix::index_type> columns;
-    malgo.FindNonZeroMatrixRows(input,rows);
-    malgo.FindNonZeroMatrixColumns(input,columns);
-    
-    malgo.SelectSubMatrix(input,output,rows,columns);
-    
-    malgo.ConvertMappingOrderIntoTransposeMappingMatrix(rows,leftmapping,input->nrows());
-    malgo.ConvertMappingOrderIntoMappingMatrix(columns,rightmapping,input->ncols());
+
+    find_algo_.set_option("method","nonzero_rows");
+    find_algo_.run(input,rows);
+    find_algo_.set_option("method","nonzero_columns");
+    find_algo_.run(input,columns);
+    select_submatrix_.run(input,output,rows,columns);
+    convert_algo_.set_bool("transpose",true);
+    convert_algo_.run(rows,leftmapping,input->nrows());
+    convert_algo_.set_bool("transpose",false);
+    convert_algo_.run(columns,rightmapping,input->nrows());
     
     send_output_handle("ReducedMatrix",output,true);
     send_output_handle("LeftMapping",leftmapping,true);

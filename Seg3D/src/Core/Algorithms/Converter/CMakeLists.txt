@@ -40,6 +40,7 @@ SET(Core_Algorithms_Converter_SRCS
 SCIRUN_ADD_LIBRARY(Core_Algorithms_Converter ${Core_Algorithms_Converter_SRCS})
 
 TARGET_LINK_LIBRARIES(Core_Algorithms_Converter 
+  Core_Algorithms_Util
   Core_Datatypes 
   Core_Util 
   Core_Containers 
@@ -49,7 +50,6 @@ TARGET_LINK_LIBRARIES(Core_Algorithms_Converter
   Core_Geometry 
   Core_Persistent 
   Core_Basis 
-  Core_Bundle
   ${M_LIBRARY} 
   ${TEEM_LIBRARY}
 )

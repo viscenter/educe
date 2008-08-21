@@ -37,6 +37,8 @@
 
 namespace SCIRunAlgo {
 
+class AlgoReportStatus;
+
 class SCISHARE AlgoReportStatus {
 
   public:
@@ -46,6 +48,7 @@ class SCISHARE AlgoReportStatus {
     //! Functions for setting progress reporter
     //! The progress reporter relays information to other parts of the program.
     void set_progress_reporter(SCIRun::ProgressReporter* pr);
+    void set_progress_reporter(AlgoReportStatus* algo);
     SCIRun::ProgressReporter* get_progress_reporter() const;
     
     //! functions for the algorithm, so it can forward errors if needed

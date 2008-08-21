@@ -42,8 +42,9 @@
 #ifndef SCI_COLORMAPTEX_H
 #define SCI_COLORMAPTEX_H 1
 
+#include <Core/Datatypes/ColorMap.h>
+
 #include <Core/Geom/GeomContainer.h>
-#include <Core/Geom/ColorMap.h>
 #include <Core/Geometry/Point.h>
 
 #include <Core/Geom/share.h>

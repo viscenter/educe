@@ -40,18 +40,18 @@ itcl_class SCIRun_Math_BuildNoiseColumnMatrix {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 20
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
-	global $this-snr
-	scale $w.f.snr -label "Signal-to-Noise Ratio" -from 0.0 -to 100.0 \
-		-resolution 0.01 -showvalue true -variable $this-snr \
-		-orient horizontal
-	pack $w.f.snr -side top -expand 1 -fill x
-	pack $w.f -expand 1 -fill x
+        global $this-snr
+        sci_scale $w.f.snr -label "Signal-to-Noise Ratio" -from 0.0 -to 100.0 \
+          -resolution 0.01 -showvalue true -variable $this-snr \
+          -orient horizontal
+        pack $w.f.snr -side top -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }

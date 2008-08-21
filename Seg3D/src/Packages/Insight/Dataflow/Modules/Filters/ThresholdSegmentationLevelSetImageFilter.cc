@@ -35,7 +35,7 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
 
@@ -238,7 +238,7 @@ ThresholdSegmentationLevelSetImageFilter::run( itk::Object *obj_SeedImage, itk::
   }
 
   // get filter output
-  ITKDatatype* out_OutputImage_ = scinew ITKDatatype; 
+  ITKDatatype* out_OutputImage_ = new ITKDatatype; 
   
   out_OutputImage_->data_ = dynamic_cast<FilterType* >(filter_.GetPointer())->GetOutput();
   
@@ -247,7 +247,7 @@ ThresholdSegmentationLevelSetImageFilter::run( itk::Object *obj_SeedImage, itk::
   outhandle_OutputImage_ = out_OutputImage_; 
   send_output_handle("OutputImage", outhandle_OutputImage_, true);
   
-  ITKDatatype* out_SpeedImage_ = scinew ITKDatatype; 
+  ITKDatatype* out_SpeedImage_ = new ITKDatatype; 
   
   out_SpeedImage_->data_ = const_cast<ImageType*  >(dynamic_cast<FilterType* >(filter_.GetPointer())->GetSpeedImage());
   
@@ -455,7 +455,7 @@ ThresholdSegmentationLevelSetImageFilter::do_it_OutputImage()
   tmp->CopyInformation( dynamic_cast<FilterType*>(filter_.GetPointer())->GetOutput() );
   
   // send segmentation down
-  ITKDatatype* out_OutputImage_ = scinew ITKDatatype; 
+  ITKDatatype* out_OutputImage_ = new ITKDatatype; 
   out_OutputImage_->data_ = tmp;
   outhandle_OutputImage_ = out_OutputImage_; 
   check_for_waiting_input();

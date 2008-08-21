@@ -56,7 +56,6 @@
 #include <Core/Basis/HexTricubicHmt.h>
 #include <Core/Datatypes/HexVolMesh.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
 #include <StandAlone/convert/FileUtils.h>
 #include <Core/Init/init.h>
 #include <iostream>

@@ -31,11 +31,9 @@
 #include <Core/Containers/Array3.h>
 #include <Core/Containers/Array2.h>
 #include <Core/Math/MiscMath.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/Assert.h>
-#include <sgi_stl_warnings_off.h>
 #include <string>
-#include <sgi_stl_warnings_on.h>
 
 namespace SCIRun {
 
@@ -56,7 +54,7 @@ public:
 
     
   FData3d() : Array3<Data>() {}
-  FData3d(int) : Array3<Data>() {} //default arg sgi bug workaround.
+  FData3d(int) : Array3<Data>() {}
   FData3d(const FData3d& data) {Array3<Data>::copy(data); }
   virtual ~FData3d();
   
@@ -83,15 +81,15 @@ public:
   { return Array3<Data>::operator()(idx); }
 
   void resize(const typename Msh::Node::size_type &size) 
-  { Array3<Data>::resize(size.k_, size.j_, size.i_); }
+  { Array3<Data>::resize(size.k_, size.j_, size.i_); Array3<Data>::zero(); }
   void resize(const typename Msh::Edge::size_type &size)
-  { Array3<Data>::resize(1, 1, size); }
+  { Array3<Data>::resize(1, 1, size); Array3<Data>::zero();  }
   void resize(const typename Msh::Face::size_type &size)
-  { Array3<Data>::resize(1, 1, size); }
+  { Array3<Data>::resize(1, 1, size); Array3<Data>::zero();  }
   void resize(const typename Msh::Cell::size_type &size)
-  { Array3<Data>::resize(size.k_, size.j_, size.i_); }
+  { Array3<Data>::resize(size.k_, size.j_, size.i_); Array3<Data>::zero();  }
   void resize(const size_t size)
-  { Array3<Data>::resize(1,1,size); }
+  { Array3<Data>::resize(1,1,size); Array3<Data>::zero();  }
 
   unsigned int size() const { return this->dim1() * this->dim2() * this->dim3(); }
 
@@ -145,10 +143,10 @@ FData3d<Data, Msh>::get_type_description(int n) const
   if (n == -1) {
     static TypeDescription* tdn1 = 0;
     if (tdn1 == 0) {
-      TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(2);
+      TypeDescription::td_vec *subs = new TypeDescription::td_vec(2);
       (*subs)[0] = sub1;
       (*subs)[1] = sub2;
-      tdn1 = scinew TypeDescription(name, subs, path, namesp,
+      tdn1 = new TypeDescription(name, subs, path, namesp,
 				    TypeDescription::CONTAINER_E);
     } 
     return tdn1;
@@ -156,7 +154,7 @@ FData3d<Data, Msh>::get_type_description(int n) const
   else if(n == 0) {
     static TypeDescription* tdn0 = 0;
     if (tdn0 == 0) {
-      tdn0 = scinew TypeDescription(name, 0, path, namesp,
+      tdn0 = new TypeDescription(name, 0, path, namesp,
 				    TypeDescription::CONTAINER_E);
     }
     return tdn0;
@@ -179,10 +177,10 @@ get_type_description(FData3d<Data, Msh>*)
 
   static TypeDescription* tdn1 = 0;
   if (tdn1 == 0) {
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(2);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(2);
     (*subs)[0] = sub1;
     (*subs)[1] = sub2;
-    tdn1 = scinew TypeDescription(name, subs, path, namesp,
+    tdn1 = new TypeDescription(name, subs, path, namesp,
 				  TypeDescription::CONTAINER_E);
   }
   return tdn1;
@@ -203,7 +201,7 @@ public:
   const_iterator end() const { return &((*this)(this->dim1()-1,this->dim2()-1))+1; }
 
   FData2d() : Array2<Data>() {}
-  FData2d(int) : Array2<Data>() {} //default var sgi bug workaround.
+  FData2d(int) : Array2<Data>() {}
   FData2d(const FData2d& data) { Array2<Data>::copy(data); }
   virtual ~FData2d();
   
@@ -230,15 +228,15 @@ public:
   { return Array2<Data>::operator()(static_cast<unsigned int>(idx)); }
 
   void resize(const typename Msh::Node::size_type &size)
-  { Array2<Data>::resize(size.j_, size.i_); }
+  { Array2<Data>::resize(size.j_, size.i_); Array2<Data>::zero(); }
   void resize(const typename Msh::Edge::size_type &size)
-  { Array2<Data>::resize(1, size); }
+  { Array2<Data>::resize(1, size); Array2<Data>::zero(); }
   void resize(const typename Msh::Face::size_type &size)
-  { Array2<Data>::resize(size.j_, size.i_); }
+  { Array2<Data>::resize(size.j_, size.i_); Array2<Data>::zero(); }
   void resize(const typename Msh::Cell::size_type &size)
-  { Array2<Data>::resize(1, size); }
+  { Array2<Data>::resize(1, size); Array2<Data>::zero(); }
   void resize(const size_t size)
-  { Array2<Data>::resize(1,size); }
+  { Array2<Data>::resize(1,size); Array2<Data>::zero(); }
 
   unsigned int size() const { return this->dim1() * this->dim2(); }
 
@@ -288,10 +286,10 @@ get_type_description(FData2d<Data, Msh>*)
 
   static TypeDescription* tdn1 = 0;
   if (tdn1 == 0) {
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(2);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(2);
     (*subs)[0] = sub1;
     (*subs)[1] = sub2;
-    tdn1 = scinew TypeDescription(name, subs, path, namesp,
+    tdn1 = new TypeDescription(name, subs, path, namesp,
 				  TypeDescription::CONTAINER_E);
   }
   return tdn1;
@@ -320,7 +318,7 @@ public:
   const_iterator end() const { return &((*this)(this->dim1()-1))+1; }
 
   FData1d() : Array1<Data>() {}
-  FData1d(int) : Array1<Data>() {} //default var sgi bug workaround.
+  FData1d(int) : Array1<Data>() {}
   FData1d(const FData1d& data) { Array1<Data>::copy(data); }
   virtual ~FData1d();
   
@@ -376,9 +374,9 @@ get_type_description(FData1d<Data>*)
   static TypeDescription* tdn1 = 0;
   if (tdn1 == 0) 
   {
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub1;
-    tdn1 = scinew TypeDescription(name, subs, path, namesp,
+    tdn1 = new TypeDescription(name, subs, path, namesp,
 				  TypeDescription::CONTAINER_E);
   }
   return tdn1;

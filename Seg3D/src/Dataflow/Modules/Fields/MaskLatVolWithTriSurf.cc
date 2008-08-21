@@ -62,7 +62,7 @@ public:
   typedef LatVolMesh<HexTrilinearLgn<Point> > LVMesh;
   typedef TriSurfMesh<TriLinearLgn<Point> >   TSMesh;
   MaskLatVolWithTriSurf(GuiContext* ctx);
-  virtual ~MaskLatVolWithTriSurf();
+  virtual ~MaskLatVolWithTriSurf() {}
   virtual void execute();
 };
 
@@ -74,9 +74,6 @@ MaskLatVolWithTriSurf::MaskLatVolWithTriSurf(GuiContext* ctx)
 {
 }
 
-MaskLatVolWithTriSurf::~MaskLatVolWithTriSurf()
-{
-}
 
 void
 MaskLatVolWithTriSurf::execute()
@@ -101,7 +98,7 @@ MaskLatVolWithTriSurf::execute()
 
   typedef HexTrilinearLgn<char>                                  DatBasis;
   typedef GenericField<LVMesh, DatBasis, FData3d<char, LVMesh> > LVField;
-  LVField *mask = scinew LVField(latvolM);
+  LVField *mask = new LVField(latvolM);
 
   TSMesh::Face::iterator fiter; 
   TSMesh::Face::iterator fiter_end; 

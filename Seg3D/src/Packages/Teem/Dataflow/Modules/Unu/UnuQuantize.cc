@@ -40,7 +40,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -150,7 +150,7 @@ UnuQuantize::execute()
   remark("Quantizing -- min=" + to_string(minf) +
          " max=" + to_string(maxf) + " nbits=" + to_string(nbits));
   NrrdRange *range = nrrdRangeNew(minf, maxf);
-  NrrdData *nrrd = scinew NrrdData;
+  NrrdData *nrrd = new NrrdData;
   if (nrrdQuantize(nrrd->nrrd_, nin, range, nbits))
   {
     char *err = biffGetDone(NRRD);

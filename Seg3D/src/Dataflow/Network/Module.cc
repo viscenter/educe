@@ -55,7 +55,7 @@
 #include <Dataflow/GuiInterface/GuiInterface.h>
 #include <Core/Thread/Thread.h>
 #include <Core/Thread/Time.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Util/soloader.h>
 #include <Core/Util/Environment.h>
@@ -172,6 +172,7 @@ Module::Module(const string& name, GuiContext* ctx,
   module_name_(name),
   package_name_(pack),
   category_name_(cat),
+  version_(version),
   sched_(0),
   pid_(0),
   have_own_dispatch_(0),
@@ -189,7 +190,6 @@ Module::Module(const string& name, GuiContext* ctx,
   network_(0),
   show_stats_(true),
   log_string_(ctx->subVar("log_string", false)),
-  version_(version),
   old_num_dynamic_ports_(0)
 {
   timer_ = Time::currentTicks();
@@ -381,7 +381,7 @@ Module::delete_warn()
   ctx_->inactivate();
   
   set_show_stats(false);
-  MessageBase *msg = scinew MessageBase(MessageTypes::GoAwayWarn);
+  MessageBase *msg = new MessageBase(MessageTypes::GoAwayWarn);
   mailbox_.send(msg);
 }
 
@@ -391,7 +391,7 @@ Module::kill_helper()
   if (helper_thread_)
   {
     // kill the helper thread
-    MessageBase *msg = scinew MessageBase(MessageTypes::GoAway);
+    MessageBase *msg = new MessageBase(MessageTypes::GoAway);
     mailbox_.send(msg);
     helper_thread_->join();
     helper_thread_ = 0;
@@ -423,7 +423,7 @@ void
 Module::update_state(State st)
 {
   state_= st;
-  char* s;
+  const char* s;
 
   switch(st){
   case JustStarted:
@@ -465,7 +465,7 @@ Module::update_msg_state(MsgState st)
   if( !( ((msg_state_ == Error) && (st != Reset))  || 
 	 ((msg_state_ == Warning) && (st == Remark)) ) ) {
     msg_state_=st;
-    char* s="unknown";
+    const char* s = "unknown";
     switch(st){
     case Remark:
       s="Remark";
@@ -750,9 +750,9 @@ Module::set_context(Network* network)
   this->sched_=network->get_scheduler();
   ASSERT(helper_ == 0);
   // Start up the event loop
-  helper_=scinew ModuleHelper(this);
+  helper_=new ModuleHelper(this);
   helper_thread_ = 
-    scinew Thread(helper_, module_name_.c_str(), 0, Thread::NotActivated);
+    new Thread(helper_, module_name_.c_str(), 0, Thread::NotActivated);
   if(stacksize_)
   {
     helper_thread_->setStackSize(stacksize_);
@@ -951,10 +951,27 @@ esc_brackets(const string &str)
 
 
 // Error conditions
+
+void 
+Module::report_start(std::string& tag, bool report_progress)
+{
+  tags_.push_back(tag);
+}
+    
+void
+Module::report_end()
+{
+  tags_.pop_back();
+}
+
+
 void
 Module::error(const string& str)
 {
-  const string newstr = "ERROR: " + str + "\n";
+  std::string tag = "";
+//  if (tags_.size()) tag = *(tags_.back());
+  
+  const string newstr = "ERROR: ("+tag+") " + str + "\n";
   if (sci_getenv_p("SCI_REGRESSION_TESTING"))
   {
     std::cerr << id_ + ":" + newstr;
@@ -963,7 +980,7 @@ Module::error(const string& str)
   
   //! Add one the exit code of SCIRun.
   network_->incr_network_error_code();
-  network_->add_log(std::string("ERROR (") + id_+ "): " + str);
+  network_->add_log(newstr);
   
   msg_stream_flush();
   gui_->execute(id_ + " append_log_msg {" + esc_brackets(newstr) + "} red",ctx_);
@@ -973,14 +990,17 @@ Module::error(const string& str)
 void
 Module::warning(const string& str)
 {
-  const string newstr = "WARNING: " + str + "\n";
+  std::string tag = "";
+//  if (tags_.size()) tag = *(tags_.back());
+  
+  const string newstr = "WARNING: ("+tag+") " + str + "\n";
   if (sci_getenv_p("SCI_REGRESSION_TESTING"))
   {
     cerr << id_ + ":" + newstr;
     cerr.flush();
   }
 
-  network_->add_log(std::string("WARNING (") + id_+ "): " + str);
+  network_->add_log(newstr);
 
   msg_stream_flush();
   gui_->execute(id_ + " append_log_msg {" + esc_brackets(newstr) + "} yellow",ctx_);
@@ -990,14 +1010,17 @@ Module::warning(const string& str)
 void
 Module::remark(const string& str)
 {
-  const string newstr = "REMARK: " + str + "\n";
+  std::string tag = "";
+//  if (tags_.size()) tag = *(tags_.back());
+  
+  const string newstr = "REMARK: ("+tag+") " + str + "\n";
   if (sci_getenv_p("SCI_REGRESSION_TESTING"))
   {
     cerr << id_ + ":" + newstr;
     cerr.flush();
   }
 
-  network_->add_log(std::string("REMARK(") + id_+ "): " + str);
+  network_->add_log(newstr);
 
   msg_stream_flush();
   gui_->execute(id_ + " append_log_msg {" + esc_brackets(newstr) + "} blue",ctx_);
@@ -1008,14 +1031,6 @@ Module::remark(const string& str)
 void
 Module::add_raw_message(const string& str)
 {
-
-//  if (sci_getenv_p("SCI_REGRESSION_TESTING"))
-//  {
-//    cout << str;
-//    cout.flush();
-//  }
-
-
   msg_stream_flush();
   gui_->execute(id_ + " append_log_msg {" + esc_brackets(str) + "} black",ctx_);
 }

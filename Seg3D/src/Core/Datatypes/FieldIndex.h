@@ -42,13 +42,11 @@
 #ifndef Datatypes_FieldIndex_h
 #define Datatypes_FieldIndex_h
 
-#include <Core/Malloc/Allocator.h>
 #include <Core/Persistent/Persistent.h>
 #include <Core/Util/TypeDescription.h>
 #include <Core/Datatypes/TypeName.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
-#include <sgi_stl_warnings_on.h>
 
 namespace SCIRun {
 
@@ -134,9 +132,9 @@ const TypeDescription* get_type_description(NodeIndex<T>*)
 
   if(!td){
     const TypeDescription *sub = SCIRun::get_type_description((T*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("NodeIndex", subs, __FILE__, "SCIRun");
+    td = new TypeDescription("NodeIndex", subs, __FILE__, "SCIRun");
   }
   return td;
 }
@@ -147,9 +145,9 @@ const TypeDescription* get_type_description(EdgeIndex<T>*)
   static TypeDescription* td = 0;
   if(!td){
     const TypeDescription *sub = SCIRun::get_type_description((T*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("EdgeIndex", subs, __FILE__, "SCIRun");
+    td = new TypeDescription("EdgeIndex", subs, __FILE__, "SCIRun");
   }
   return td;
 }
@@ -160,9 +158,9 @@ const TypeDescription* get_type_description(FaceIndex<T>*)
   static TypeDescription* td = 0;
   if(!td){
     const TypeDescription *sub = SCIRun::get_type_description((T*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("FaceIndex", subs, __FILE__, "SCIRun");
+    td = new TypeDescription("FaceIndex", subs, __FILE__, "SCIRun");
   }
   return td;
 }
@@ -173,9 +171,9 @@ const TypeDescription* get_type_description(CellIndex<T>*)
   static TypeDescription* td = 0;
   if(!td){
     const TypeDescription *sub = SCIRun::get_type_description((T*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("CellIndex", subs, __FILE__, "SCIRun");
+    td = new TypeDescription("CellIndex", subs, __FILE__, "SCIRun");
   }
   return td;
 }

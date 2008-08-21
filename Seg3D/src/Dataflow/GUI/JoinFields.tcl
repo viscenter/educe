@@ -40,25 +40,25 @@ itcl_class SCIRun_NewField_JoinFields {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        checkbutton $w.fpc -text "Force PointCloudField as output" \
+        sci_checkbutton $w.fpc -text "Force PointCloudField as output" \
           -variable $this-force-pointcloud
         pack $w.fpc
 
-        checkbutton $w.fnm -text "Merge duplicate nodes" \
+        sci_checkbutton $w.fnm -text "Merge duplicate nodes" \
           -variable $this-force-nodemerge
         pack $w.fnm
 
-        checkbutton $w.fnm2 -text "Only merge nodes with same value" \
+        sci_checkbutton $w.fnm2 -text "Only merge nodes with same value" \
           -variable $this-matchval
         pack $w.fnm2
 
-        checkbutton $w.fmo -text "Merge mesh only, do not assign values" \
+        sci_checkbutton $w.fmo -text "Merge mesh only, do not assign values" \
           -variable $this-meshonly
         pack $w.fmo
 
-        iwidgets::entryfield $w.prec \
+        sci_entryfield $w.prec \
           -labeltext "Tolerance (in distance) for merging nodes" \
           -textvariable $this-tolerance
         pack $w.prec -side top -expand yes -fill x

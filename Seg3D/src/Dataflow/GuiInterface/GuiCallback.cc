@@ -43,7 +43,7 @@
 #include <Dataflow/GuiInterface/GuiCallback.h>
 #include <Core/Containers/StringUtil.h>
 #include <Core/Exceptions/GuiException.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <tcl.h>
 
 using namespace SCIRun;
@@ -176,7 +176,7 @@ string GuiArgs::make_list(const string& item1, const string& item2,
 
 string GuiArgs::make_list(const vector<string>& items)
 {
-    char** argv=scinew char*[items.size()];
+    char** argv=new char*[items.size()];
     for(unsigned int i=0; i<items.size(); i++)
     {
       argv[i]= ccast_unsafe(items[i]);

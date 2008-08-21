@@ -72,7 +72,7 @@ field.</summary>
 	<datatype>SCIRun::Matrix</datatype>
       </port>
       <port>
-        <name>Cell Mapping</name>
+        <name>Elem Mapping</name>
 	<datatype>SCIRun::Matrix</datatype>
       </port>
     </outputs>

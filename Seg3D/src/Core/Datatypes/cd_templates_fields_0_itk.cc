@@ -29,20 +29,9 @@
 #include <Core/Persistent/PersistentSTL.h>
 #include <Core/Datatypes/ITKLatVolField.h>
 
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-/*
-cc-1468 CC: REMARK File = ../src/Core/Datatypes/cd_templates_fields_0.cc, Line = 11
-  Inline function "SCIRun::FData3d<SCIRun::Tensor>::end" cannot be explicitly
-          instantiated.
-*/
-#pragma set woff 1468
-#endif
-
 using namespace SCIRun;
 
 typedef LatVolMesh<HexTrilinearLgn<Point> > LVMesh;
-
 
 const TypeDescription* get_type_description(ITKLatVolField<Tensor> *);
 const TypeDescription* get_type_description(ITKLatVolField<Vector> *);
@@ -195,6 +184,3 @@ namespace SCIRun {
 
 } // end of namespace SCIRun
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1468
-#endif

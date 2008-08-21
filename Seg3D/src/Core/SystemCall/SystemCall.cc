@@ -450,13 +450,13 @@ void SystemCall::execute(std::string command)
     fd_exit_   = systemcallmanager_->getexit(processid_);
 		
     SystemCallHandle myhandle = this;
-    systemcallprivatethread = scinew SystemCallThread(myhandle);
+    systemcallprivatethread = new SystemCallThread(myhandle);
     if (systemcallprivatethread == 0) throw SystemCallError("Could not create systemcall thread private object",0,SCE_THREADERROR);
 	
     // we need to call this before starting the thread
     isrunning_ = true;
 			
-    thread = scinew Thread(systemcallprivatethread,"system_call_private_thread");
+    thread = new Thread(systemcallprivatethread,"system_call_private_thread");
     if (thread == 0) throw SystemCallError("Could not launch thread",0,SCE_THREADERROR);
     thread->detach();
 

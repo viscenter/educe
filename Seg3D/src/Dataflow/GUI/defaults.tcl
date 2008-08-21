@@ -31,13 +31,13 @@ set tcl_prompt1 "puts -nonewline \"scirun> \""
 set tcl_prompt2 "puts -nonewline \"scirun>> \""
 
 global port_spacing
-set port_spacing 18
+set port_spacing 12
 
 global port_width
-set port_width 13
+set port_width 11
 
 global port_height
-set port_height 7 
+set port_height 5 
 
 global port_light_height
 set port_light_height 4
@@ -48,15 +48,44 @@ set Color(Disabled) black
 set Color(Compiling) "\#f0e68c"
 set Color(Trace) red
 set Color(ConnDisabled) gray
-set Color(NetworkEditor) "\#036"
-set Color(NetworkEditorLocked) "\#603"
-set Color(SubnetEditor) purple4 ;#$Color(NetworkEditor)
-#set Color(NetworkEditor) "black"
+set Color(NetworkEditor) "\#161628"
+set Color(NetworkEditorSmall) "\#101028"
+set Color(SubnetEditor) "\#250030"
 set Color(ErrorFrameBG) $Color(NetworkEditor)
 set Color(ErrorFrameFG) white
 set Color(IconFadeStart) $Color(NetworkEditor)
-set Color(Basecolor) gray
-#set Color(Basecolor) darkred
+set Color(Basecolor) "\#cccccc"
+set Color(MenuSelectBackGround) "\#808090"
+set Color(MenuSelectForeGround) white
+set Color(MenuBackGround) "\#bbbbc4"
+set Color(MenuForeGround) black
+set Color(MenuBarBackGround) "\#bbbbc4"
+set Color(MenuBarForeGround) black
+set Color(Trough) "\#aaaaaa"
+set Color(ButtonBackGround) "\#d4d4dd"
+set Color(ButtonForeGround) black
+set Color(MainBackGround) "\#afafb4"
+set Color(MainForeGround) black
+set Color(EditBackGround) "\#ffffff"
+set Color(EditForeGround) black
+set Color(UIBackDrop) "\#d8d8de"
+set Color(UIBackGround) "\#e5e5e9"
+set Color(UIForeGround) black
+
+set Color(LockColor) "\#aa0000"
+
+set Color(SCIText) "\#444444"
+set Color(Module) "\#cccccc"
+set Color(ModuleButton) "\#bbbbbb"
+set Color(ModuleError) LightSalmon2
+set Color(ModuleWarning) yellow
+set Color(ModuleRemark) LightSkyBlue3
+set Color(ModuleProgress) "\#00aa00"
+
+set Color(Waiting) LightGoldenrod3
+set Color(Executing) gray95
+set Color(BorderWidth) 1
+
 
 global Subnet
 set Subnet(Loading) 0

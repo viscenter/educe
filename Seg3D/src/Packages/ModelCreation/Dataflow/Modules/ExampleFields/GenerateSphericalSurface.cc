@@ -34,7 +34,6 @@
 #include <Dataflow/Network/Ports/MatrixPort.h>
 
 #include <Packages/ModelCreation/Core/Fields/ExampleFields.h>
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 
 namespace ModelCreation {
@@ -49,7 +48,6 @@ public:
 private:
   GuiDouble guidiscretization_;
   GuiDouble guiradius_;
-
 };
 
 
@@ -79,15 +77,15 @@ GenerateSphericalSurface::execute()
   }
 
   ExampleFields sphere_algo(this);
-  SCIRunAlgo::FieldsAlgo algo(this);
   FieldHandle ofield;
+  
   if (sphere_algo.SphericalSurface(ofield, disc))
   {
     Transform TF;
     double r;
     mc.MatrixToDouble(radius,r);
     TF.pre_scale(Vector(r,r,r));
-    algo.TransformField(ofield,ofield,TF);
+    ofield->vmesh()->transform(TF);
     send_output_handle("Field", ofield);
   }
 }

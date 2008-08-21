@@ -26,11 +26,12 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
-#include <Dataflow/Network/Ports/BundlePort.h>
 #include <Core/Datatypes/Matrix.h>
-#include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Core/Datatypes/Bundle.h>
+
 #include <Dataflow/Network/Module.h>
+#include <Dataflow/Network/Ports/BundlePort.h>
+#include <Dataflow/Network/Ports/MatrixPort.h>
 
 using namespace SCIRun;
 
@@ -74,7 +75,7 @@ InsertMatricesIntoBundle::InsertMatricesIntoBundle(GuiContext* ctx)
     guireplace4_(get_ctx()->subVar("replace4"),1),
     guireplace5_(get_ctx()->subVar("replace5"),1),
     guireplace6_(get_ctx()->subVar("replace6"),1),
-    guibundlename_(get_ctx()->subVar("bundlename"), "")
+    guibundlename_(get_ctx()->subVar("bundlename",false), "")
 {
 }
 
@@ -101,6 +102,7 @@ void InsertMatricesIntoBundle::execute()
       guireplace5_.changed() || guireplace6_.changed() ||
       guibundlename_.changed() || !oport_cached("bundle"))
   {
+    update_state(Executing);
   
     std::string matrix1name = guimatrix1name_.get();
     std::string matrix2name = guimatrix2name_.get();
@@ -116,7 +118,7 @@ void InsertMatricesIntoBundle::execute()
     }
     else
     {
-      handle = scinew Bundle();
+      handle = new Bundle();
       if (handle.get_rep() == 0)
       {
         error("Could not allocate new bundle");

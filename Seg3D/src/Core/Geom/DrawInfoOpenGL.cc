@@ -44,7 +44,7 @@
 
 #include <Core/Geom/DrawInfoOpenGL.h>
 #include <Core/Geom/GeomDL.h>
-#include <Core/Geom/Material.h>
+#include <Core/Datatypes/Material.h>
 #include <Core/Math/MiscMath.h>
 
 #include <iostream>

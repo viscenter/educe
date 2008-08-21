@@ -46,6 +46,7 @@ SCIRUN_ADD_LIBRARY(Core_Events_OGLView ${Core_Events_OGLView_SRCS})
 
 TARGET_LINK_LIBRARIES( Core_Events_OGLView
   Core_Events
+  Core_Datatypes
   Core_Algorithms_Fields
   Core_Algorithms_Visualization
   ${THREAD_LIBRARY}
@@ -58,7 +59,7 @@ IF(HAVE_MPEG)
 ENDIF(HAVE_MPEG)
 
 IF(WIN32)
-  TARGET_LINK_LIBRARIES( Core_Events_OGLView Core_OS )
+  TARGET_LINK_LIBRARIES( Core_Events_OGLView )
 ENDIF(WIN32)
 
 

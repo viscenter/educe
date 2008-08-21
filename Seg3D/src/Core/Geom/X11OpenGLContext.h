@@ -38,10 +38,6 @@
 
 #include <sci_glx.h>
 
-#ifdef __sgi
-#  include <X11/extensions/SGIStereo.h>
-#endif
-
 #include <Core/Thread/Mutex.h>
 #include <Core/Geom/OpenGLContext.h>
 
@@ -79,9 +75,10 @@ private:
 public:
   virtual bool		make_current();
   virtual void		release();
-  virtual int		width();
-  virtual int		height();
+  virtual int     width();
+  virtual int     height();
   virtual void		swap();
+  virtual bool    has_shaders();
 
 private:
   static vector<int>	valid_visuals_;  

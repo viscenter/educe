@@ -63,10 +63,10 @@ namespace SCIRun {
   inline double pow(double p, double r) { return(::pow(p,r)); }
 }
  
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h>
+
 
 // String class files
 #include <Core/Datatypes/String.h>
@@ -81,13 +81,15 @@ namespace SCIRun {
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/GenericField.h>
 
+// Colormap class file
+#include <Core/Datatypes/ColorMap.h>
+
 // Geometry files
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/Tensor.h>
-#include <Core/Geom/ColorMap.h>
 
 // Bundle class files
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 
 // Classes for Dynamic compilation
 #include <Core/Util/TypeDescription.h>

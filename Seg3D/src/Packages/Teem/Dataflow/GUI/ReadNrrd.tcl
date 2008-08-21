@@ -37,55 +37,55 @@ itcl_class Teem_DataIO_ReadNrrd {
     inherit Module
 
     constructor {config} {
-	set name ReadNrrd
+      set name ReadNrrd
     }
 
     method ui {} {
-	global env
-	global $this-filename
-	
-	set w .ui[modname]
-	
-	if {[winfo exists $w]} {
-	    return
-	}
-	
-	toplevel $w -class TkFDialog
-	
-	# place to put preferred data directory
-	# it's used if $this-filename is empty
-	set initdir [netedit getenv SCIRUN_DATA]
-	
-	#######################################################
-	# to be modified for particular reader
-	
-	# extansion to append if no extension supplied by user
-	set defext ".nrrd"
-	set title "Open nrrd file"
-	
-	# file types to appers in filter box
-	set types {
+      global env
+      global $this-filename
+      
+      set w .ui[modname]
+      
+      if {[winfo exists $w]} {
+          return
+      }
+      
+      sci_toplevel $w -class TkFDialog
+      
+      # place to put preferred data directory
+      # it's used if $this-filename is empty
+      set initdir [netedit getenv SCIRUN_DATA]
+      
+      #######################################################
+      # to be modified for particular reader
+      
+      # extansion to append if no extension supplied by user
+      set defext ".nrrd"
+      set title "Open nrrd file"
+      
+      # file types to appers in filter box
+      set types {
             {{Nrrd Files}         {.nhdr .nrrd .png .txt .vtk}   }
 	    {{NrrdData File}      {.nd}           }
 	    {{VFF File}           {.vff}          }
 	    {{PICT File}          {.pic .pict}    }
 	    {{Vista File}         {.v}    }
 	    {{All Files}          {.*}            }
-	}
+      }
+      
+      ######################################################
 	
-	######################################################
-	
-	makeOpenFilebox \
-	    -parent $w \
-	    -filevar $this-filename \
-	    -setcmd "wm withdraw $w" \
-	    -command "$this-c needexecute; wm withdraw $w" \
-	    -cancel "wm withdraw $w" \
-	    -title $title \
-	    -filetypes $types \
-	    -initialdir $initdir \
-	    -defaultextension $defext
+      makeOpenFilebox \
+          -parent $w \
+          -filevar $this-filename \
+          -setcmd "wm withdraw $w" \
+          -command "$this-c needexecute; wm withdraw $w" \
+          -cancel "wm withdraw $w" \
+          -title $title \
+          -filetypes $types \
+          -initialdir $initdir \
+          -defaultextension $defext
 
-	moveToCursor $w
+      moveToCursor $w
     }
 }

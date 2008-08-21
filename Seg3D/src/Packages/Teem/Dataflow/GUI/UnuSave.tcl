@@ -41,66 +41,67 @@ itcl_class Teem_UnuNtoZ_UnuSave {
     method create_filebox {} {
         set w [format "%s-fb" .ui[modname]]
         if {[winfo exists $w]} {
-	    if { [winfo ismapped $w] == 1} {
-		raise $w
-	    } else {
-		wm deiconify $w
-	    }
-            return
+          if { [winfo ismapped $w] == 1} {
+            raise $w
+          } else {
+            wm deiconify $w
+          }
+          return
         }
-	toplevel $w -class TkFDialog
-	set initdir ""
+        
+        sci_toplevel $w -class TkFDialog
+        set initdir ""
 
-	# place to put preferred data directory
-	# it's used if $this-filename is empty
-	
-	if {[info exists env(SCIRUN_DATA)]} {
-	    set initdir $env(SCIRUN_DATA)
-	} elseif {[info exists env(SCI_DATA)]} {
-	    set initdir $env(SCI_DATA)
-	} elseif {[info exists env(PSE_DATA)]} {
-	    set initdir $env(PSE_DATA)
-	}
+        # place to put preferred data directory
+        # it's used if $this-filename is empty
+        
+        if {[info exists env(SCIRUN_DATA)]} {
+            set initdir $env(SCIRUN_DATA)
+        } elseif {[info exists env(SCI_DATA)]} {
+            set initdir $env(SCI_DATA)
+        } elseif {[info exists env(PSE_DATA)]} {
+            set initdir $env(PSE_DATA)
+        }
 
-	#######################################################
-	# to be modified for particular reader
+        #######################################################
+        # to be modified for particular reader
 
-	# extansion to append if no extension supplied by user
-	set defext ".nrrd"
-	
-	# name to appear initially
-	set defname "MyNrrd"
-	set title "Unu Save"
+        # extansion to append if no extension supplied by user
+        set defext ".nrrd"
+        
+        # name to appear initially
+        set defname "MyNrrd"
+        set title "Unu Save"
 
-	# file types to appers in filter box
-	set types {
-	    {{Nrrd}     {.nrrd}      }
-	    {{pnm}     {.pnm .ppm .pgm}      }
-	    {{Text}     {.txt}      }
-	    {{PNG}     {.png}      }
-	    {{VTK}     {.vtk}      }
-	    {{EPS}     {.eps}      }
-	    {{All Files}       {.*}   }
-	}
-	
-	######################################################
-	
-	makeSaveFilebox \
-		-parent $w \
-		-filevar $this-filename \
-		-command "wm withdraw $w" \
-	        -commandname Save \
-		-cancel "wm withdraw $w" \
-		-title $title \
-		-filetypes $types \
-	        -initialfile $defname \
-		-initialdir $initdir \
-		-defaultextension $defext \
-		-formatvar $this-filetype 
-		#-splitvar $this-split 
+        # file types to appers in filter box
+        set types {
+            {{Nrrd}     {.nrrd}      }
+            {{pnm}     {.pnm .ppm .pgm}      }
+            {{Text}     {.txt}      }
+            {{PNG}     {.png}      }
+            {{VTK}     {.vtk}      }
+            {{EPS}     {.eps}      }
+            {{All Files}       {.*}   }
+        }
+        
+        ######################################################
+        
+        makeSaveFilebox \
+          -parent $w \
+          -filevar $this-filename \
+          -command "wm withdraw $w" \
+                -commandname Save \
+          -cancel "wm withdraw $w" \
+          -title $title \
+          -filetypes $types \
+                -initialfile $defname \
+          -initialdir $initdir \
+          -defaultextension $defext \
+          -formatvar $this-filetype 
+          #-splitvar $this-split 
 
-	moveToCursor $w
-	wm deiconify $w	
+        moveToCursor $w
+        wm deiconify $w	
     }
 
     method ui {} {
@@ -108,38 +109,38 @@ itcl_class Teem_UnuNtoZ_UnuSave {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.format -labeltext "Format:" \
-	    -textvariable $this-format
+        sci_entryfield $w.f.options.format -labeltext "Format:" \
+          -textvariable $this-format
         pack $w.f.options.format -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.encoding -labeltext "Encoding:" \
-	    -textvariable $this-encoding
+        sci_entryfield $w.f.options.encoding -labeltext "Encoding:" \
+          -textvariable $this-encoding
         pack $w.f.options.encoding -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.endian -labeltext "Endian:" \
-	    -textvariable $this-endian
+        sci_entryfield $w.f.options.endian -labeltext "Endian:" \
+          -textvariable $this-endian
         pack $w.f.options.endian -side top -expand yes -fill x
 
-	iwidgets::entryfield $w.f.options.filename -labeltext "Filename:" \
-	    -textvariable $this-filename
+        sci_entryfield $w.f.options.filename -labeltext "Filename:" \
+          -textvariable $this-filename
         pack $w.f.options.filename -side top -expand yes -fill x
 
-	button $w.f.options.filenameb -text "Browse" \
-	    -command "$this create_filebox"  
-	pack $w.f.options.filenameb -side top -expand yes -fill x
+        sci_button $w.f.options.filenameb -text "Browse" \
+            -command "$this create_filebox"  
+        pack $w.f.options.filenameb -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

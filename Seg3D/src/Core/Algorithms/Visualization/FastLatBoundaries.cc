@@ -51,7 +51,7 @@ template <class T>
 MeshHandle
 fast_lat_sb_real(Nrrd *nrrd, T *data, bool boundary)
 {
-  TSMesh *mesh = scinew TSMesh();
+  TSMesh *mesh = new TSMesh();
 
   const size_t isize = nrrd->axis[0].size;
   const size_t jsize = nrrd->axis[1].size;

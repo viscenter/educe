@@ -59,6 +59,12 @@ run(FieldHandle& input, MatrixHandle& output)
     algo_end(); return (false);
   }
   
+  if (!(input->has_virtual_interface()))
+  {
+    error("This algorithm requires a virtual field interface");
+    algo_end(); return (false);  
+  }  
+  
   //! Construct a class with all the type information of this field
   FieldInformation fi(input);
 
@@ -108,7 +114,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, MatrixHandle& output)
   
   if (vfield->basis_order() == 2)
   {
-    vfield->vmesh()->synchronize_edges();
+    vfield->vmesh()->synchronize(Mesh::EDGES_E);
     vfield->get_evalues(dataptr+size,esize);
   }
   
@@ -145,7 +151,7 @@ GetVectorFieldDataV(AlgoBase *algo, FieldHandle& input, MatrixHandle& output)
   
   if (vfield->basis_order() == 2)
   {
-    vfield->vmesh()->synchronize_edges();
+    vfield->vmesh()->synchronize(Mesh::EDGES_E);
 
     for (VMesh::index_type i=0; i<esize; i++)
     {
@@ -192,7 +198,7 @@ GetTensorFieldDataV(AlgoBase *algo, FieldHandle& input, MatrixHandle& output)
   
   if (vfield->basis_order() == 2)
   {
-    vfield->vmesh()->synchronize_edges();
+    vfield->vmesh()->synchronize(Mesh::EDGES_E);
     
     for (VMesh::index_type i=0; i<esize; i++)
     {
@@ -299,7 +305,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }
@@ -313,7 +319,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }
@@ -327,7 +333,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }
@@ -341,7 +347,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }  
@@ -355,7 +361,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }
@@ -369,7 +375,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }
@@ -383,7 +389,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }
@@ -397,7 +403,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }  
@@ -411,7 +417,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }
@@ -425,7 +431,7 @@ GetScalarFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
     
     if (vfield->basis_order() == 2)
     {
-      vfield->vmesh()->synchronize_edges();
+      vfield->vmesh()->synchronize(Mesh::EDGES_E);
       vfield->get_evalues(dataptr+size,esize);
     }
   }
@@ -478,7 +484,7 @@ GetVectorFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
   
   if (vfield->basis_order() == 2)
   {
-    vfield->vmesh()->synchronize_edges();
+    vfield->vmesh()->synchronize(Mesh::EDGES_E);
 
     for (VMesh::index_type i=0; i<esize; i++)
     {
@@ -540,7 +546,7 @@ GetTensorFieldDataV(AlgoBase *algo, FieldHandle& input, NrrdDataHandle& output)
   
   if (vfield->basis_order() == 2)
   {
-    vfield->vmesh()->synchronize_edges();
+    vfield->vmesh()->synchronize(Mesh::EDGES_E);
     
     for (VMesh::index_type i=0; i<esize; i++)
     {

@@ -30,8 +30,7 @@
 
 SET(Core_Geom_SRCS 
   BBoxCache.cc		                
-  CallbackOpenGLContext.cc              
-  ColorMap.cc		                
+  CallbackOpenGLContext.cc      
   ColorMapTex.cc	                
   ColorMappedNrrdTextureObj.cc          
   DirectionalLight.cc	                
@@ -53,10 +52,10 @@ SET(Core_Geom_SRCS
   GeomGlyph.cc
   GeomGrid.cc		                
   GeomGroup.cc		                
-  GeomLine.cc		                
+  GeomLine.cc		  
+  GeomMaterial.cc		    		
   GeomObj.cc                            
   GeomOpenGL.cc		                
-  Path.cc		    	        
   GeomPick.cc		                
   GeomPoint.cc		    		
   GeomPolyline.cc	                
@@ -87,22 +86,20 @@ SET(Core_Geom_SRCS
   IndexedGroup.cc	    		
   Light.cc		    		
   Lighting.cc		    		
-  Material.cc		    		
   NrrdTextureObj.cc
   NrrdBitmaskOutline.cc  		
   OpenGLViewport.cc	    		
-  OpenGLContext.cc	    		
+  OpenGLContext.cc
+  Path.cc		    	          	    		
   PointLight.cc		    		
   SpotLight.cc		    		
   TextRenderer.cc 	    		
   FontManager.cc 	    		
   TextureObj.cc 	    		
-  TexSquare.cc		    		
-  TimeGrid.cc		    		
+  TexSquare.cc	    		
   View.cc		    		
   X11Lock.cc		    		
-  tGrid.cc		    		
-  templates.cc
+  tGrid.cc
   OSXOpenGLContext.cc
 )
 
@@ -141,7 +138,6 @@ ENDIF(X11_FOUND)
 
 
 IF(APPLE)
-  
   IF(NOT APPLE_LEOPARD)
     TARGET_LINK_LIBRARIES( Core_Geom "-framework Carbon -framework AGL")    
   ELSE(NOT APPLE_LEOPARD)

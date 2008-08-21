@@ -36,11 +36,6 @@
 #include <sys/time.h>
 #endif
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209 
-#endif
-
 namespace SCIRun {
 
 class MatlabCall;
@@ -220,8 +215,8 @@ MatlabCall::MatlabCall() :
   wait_in_use_("wait for matlab to finish"),
   wait_test_("wait for matlab engine to pass test")
 {
-  handler_ = scinew MatlabCallHandler(this);
-  error_handler_ = scinew  MatlabCallErrorHandler(this);
+  handler_ = new MatlabCallHandler(this);
+  error_handler_ = new  MatlabCallErrorHandler(this);
   add_stdout_handler(dynamic_cast<SystemCallHandler*>(handler_.get_rep()));
   add_stderr_handler(dynamic_cast<SystemCallHandler*>(error_handler_.get_rep()));
   use_stdout_timeout(true);
@@ -361,7 +356,7 @@ bool MatlabEngine::init_service(IComPacketHandle &packet)
       try
         {
           putmsg("MatlabEngine: initializing matlab call");
-          matlab_handle_ = scinew MatlabCall;
+          matlab_handle_ = new MatlabCall;
           if (matlab_handle_.get_rep() == 0) throw SystemCallError("Could not create Systemcall",0,SystemCallBase::SCE_BADALLOC);
 
           putmsg("MatlabEngine: Start forwarding stdio");
@@ -622,7 +617,7 @@ std::string     MatlabEngine::addcode(std::string &mfile)
 
 void MatlabEngine::send_end_command(bool detected_error)
 {
-  IComPacketHandle packet = scinew IComPacket;
+  IComPacketHandle packet = new IComPacket;
   if (detected_error)
     {
       packet->settag(TAG_MCODE_ERROR);
@@ -637,10 +632,3 @@ void MatlabEngine::send_end_command(bool detected_error)
 }
 
 }
-
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209 
-#endif
-

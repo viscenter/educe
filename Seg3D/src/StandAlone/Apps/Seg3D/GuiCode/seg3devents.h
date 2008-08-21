@@ -19,12 +19,46 @@
  */
 
 #include <wx/wx.h>
+#include <string>
 
 DECLARE_EVENT_TYPE(wxEVT_CURSOR_INFORMATION_CHANGE,-2)
 DECLARE_EVENT_TYPE(wxEVT_BRUSH_RADIUS_CHANGE, -3)
 DECLARE_EVENT_TYPE(wxEVT_CROP_SET_RANGE, -4)
 DECLARE_EVENT_TYPE(wxEVT_CROP_SET_MINMAX, -5)
 DECLARE_EVENT_TYPE(wxEVT_SET_PROGRESS, -6)
+DECLARE_EVENT_TYPE(wxEVT_THRESHOLDTOOL_CHANGE, -7)
+DECLARE_EVENT_TYPE(wxEVT_MOVESCALETOOL_CHANGE, -8)
+DECLARE_EVENT_TYPE(wxEVT_VOLUME_INFO_PANEL, -9)
+DECLARE_EVENT_TYPE(wxEVT_MEASUREMENT_UPDATE, -10)
+
+struct ThresholdToolChangeStruct {
+  double minval;
+  double maxval;
+  double lower;
+  double upper;
+};
+
+struct MoveScaleToolChangeStruct {
+  double spacingx, spacingy, spacingz;
+  double originx, originy, originz;
+};
+
+
+struct VolumeInfoPanelStruct {
+  std::string name;
+  double origin_x, origin_y, origin_z;
+  double spacing_x, spacing_y, spacing_z;
+  size_t size_x, size_y, size_z;
+  double volume;
+  bool   is_label;
+  size_t labelcount;
+  double labelvolume;
+  bool   is_mask;
+  size_t maskcount;
+  double maskvolume;
+  float  datamin;
+  float  datamax;
+};
 
 
 #endif // _SEG3DEVENTS_H_

@@ -42,7 +42,6 @@
 #if !defined(ClipFieldWithSeedAlgo_h)
 #define ClipFieldWithSeedAlgo_h
 
-#include <Core/Algorithms/Fields/share.h>
 #include <Core/Util/TypeDescription.h>
 #include <Core/Util/DynamicLoader.h>
 #include <Core/Geometry/Vector.h>
@@ -129,7 +128,7 @@ execute(ProgressReporter *pr,
   typename SFIELD::mesh_type *sMesh =
     dynamic_cast<typename SFIELD::mesh_type *>(sfield->mesh().get_rep());
   
-  typename OFIELD::mesh_type *oMesh = scinew typename OFIELD::mesh_type();
+  typename OFIELD::mesh_type *oMesh = new typename OFIELD::mesh_type();
   oMesh->copy_properties(iMesh);
   
 #ifdef HAVE_HASH_MAP
@@ -163,8 +162,8 @@ execute(ProgressReporter *pr,
 
   typename IFIELD::mesh_type::Elem::size_type prsizetmp;
   iMesh->size(prsizetmp);
-  const unsigned int prsize = (unsigned int)prsizetmp;
-  unsigned int prcounter = 0;
+  const Field::size_type prsize = (Field::size_type)prsizetmp;
+  Field::size_type prcounter = 0;
 
   typename IFIELD::mesh_type::Elem::iterator ibi, iei;
   iMesh->begin(ibi);
@@ -204,7 +203,7 @@ execute(ProgressReporter *pr,
         typename IFIELD::mesh_type::Node::array_type onodes;
         iMesh->get_nodes(onodes, *ibi);
         inside = true;
-        for (unsigned int i = 0; i < onodes.size(); i++)
+        for (size_t i = 0; i < onodes.size(); i++)
         {
           Point p;
           iMesh->get_center(p, onodes[i]);
@@ -228,9 +227,9 @@ execute(ProgressReporter *pr,
 
         typename IFIELD::mesh_type::Node::array_type nnodes(onodes.size());
 
-        for (unsigned int i = 0; i<onodes.size(); i++)
+        for (size_t i = 0; i<onodes.size(); i++)
         {
-          if (nodemap.find((unsigned int)onodes[i]) == nodemap.end())
+          if (nodemap.find((Field::index_type)onodes[i]) == nodemap.end())
           {
             Point np;
             iMesh->get_center(np, onodes[i]);
@@ -238,12 +237,12 @@ execute(ProgressReporter *pr,
             const typename OFIELD::mesh_type::Node::index_type nodeindex =
               oMesh->add_point(np);
 
-            nodemap[(unsigned int)onodes[i]] = nodeindex;
+            nodemap[(Field::index_type)onodes[i]] = nodeindex;
             nnodes[i] = nodeindex;
           }
           else
           {
-            nnodes[i] = nodemap[(unsigned int)onodes[i]];
+            nnodes[i] = nodemap[(Field::index_type)onodes[i]];
           }
         }
 
@@ -257,7 +256,7 @@ execute(ProgressReporter *pr,
     ++ibi;
   }
 
-  OFIELD *oField = scinew OFIELD(oMesh);
+  OFIELD *oField = new OFIELD(oMesh);
   oField->copy_properties(field_input_handle.get_rep());
 
   if (node_data_valid)
@@ -267,11 +266,11 @@ execute(ProgressReporter *pr,
 
     typename hash_type::iterator hitr = nodemap.begin();
     
-    const int nrows = nodemap.size();
-    const int ncols = iField->fdata().size();
-    int *rr = scinew int[nrows+1];
-    int *cc = scinew int[nrows];
-    double *d = scinew double[nrows];
+    const Matrix::size_type nrows = nodemap.size();
+    const Matrix::size_type ncols = iField->fdata().size();
+    Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+    Matrix::index_type *cc = new Matrix::index_type[nrows];
+    double *d = new double[nrows];
     
     typedef typename IFIELD::mesh_type mesh_type_val;
     
@@ -287,7 +286,7 @@ execute(ProgressReporter *pr,
       ++hitr;
     }
 
-    for (unsigned int i=0; i<nrows; i++)
+    for (Matrix::size_type i=0; i<nrows; i++)
     {
       rr[i] = i;
       d[i] = 1.0;
@@ -295,18 +294,18 @@ execute(ProgressReporter *pr,
     rr[nrows] = nrows;
     
     matrix_output_handle =
-      scinew SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);
+      new SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);
   }
   else if (field_input_handle->order_type_description()->get_name() ==
 	   mesh_type_val::elem_type_description()->get_name())
   {
-    const int nrows = elemmap.size();
-    const int ncols = ifield->fdata().size();
-    int *rr = scinew int[nrows+1];
-    int *cc = scinew int[nrows];
-    double *d = scinew double[nrows];
+    const Matrix::size_type nrows = elemmap.size();
+    const Matrix::size_type ncols = ifield->fdata().size();
+    Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+    Matrix::index_type *cc = new Matrix::index_type[nrows];
+    double *d = new double[nrows];
     
-    for (unsigned int i=0; i<elemmap.size(); i++)
+    for (size_t i=0; i<elemmap.size(); i++)
     {
       typename IFIELD::value_type val;
       
@@ -316,7 +315,7 @@ execute(ProgressReporter *pr,
       cc[i] = elemmap[i];
     }
 
-    for (unsigned int i=0; i<nrows; i++)
+    for (Matrix::index_type i=0; i<nrows; i++)
     {
       rr[i] = i;
       d[i] = 1.0;
@@ -324,7 +323,7 @@ execute(ProgressReporter *pr,
     rr[nrows] = nrows;
     
     matrix_output_handle =
-      scinew SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);
+      new SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);
   }
   else
   {

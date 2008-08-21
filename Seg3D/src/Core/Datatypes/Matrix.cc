@@ -108,8 +108,7 @@ Transform Matrix::toTransform()
 void
 Mult(ColumnMatrix& result, const Matrix& mat, const ColumnMatrix& v)
 {
-  int flops, memrefs;
-  mat.mult(v, result, flops, memrefs);
+  mat.mult(v, result);
 }
 
 DenseMatrix *
@@ -117,7 +116,7 @@ Matrix::direct_inverse()
 {
   if (nrows() != ncols()) return 0;
   DenseMatrix *A=dense();
-  if (is_dense()) A=scinew DenseMatrix(*A);
+  if (is_dense()) A=new DenseMatrix(*A);
   A->invert();
   return A;
 }
@@ -129,7 +128,7 @@ Matrix::iterative_inverse()
   size_type n=nrows();
   SparseRowMatrix* B(SparseRowMatrix::identity(n));
   DenseMatrix *D = B->dense();
-  DenseMatrix *X = scinew DenseMatrix(n,n);
+  DenseMatrix *X = new DenseMatrix(n,n);
   bicg_solve(*D, *X);
   delete D;
   delete B;
@@ -140,22 +139,21 @@ int
 Matrix::cg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs) const
 {
   double err;
-  int niter, flops, memrefs;
-  return cg_solve(rhs, lhs, err, niter, flops, memrefs);
+  int niter;
+  return cg_solve(rhs, lhs, err, niter);
 }
 
 int 
 Matrix::cg_solve(const DenseMatrix& rhs, DenseMatrix& lhs) const
 {
   double err;
-  int niter, flops, memrefs;
-  return cg_solve(rhs, lhs, err, niter, flops, memrefs);
+  int niter;
+  return cg_solve(rhs, lhs, err, niter);
 }
 
 int 
 Matrix::cg_solve(const DenseMatrix& rhs, DenseMatrix& lhs,
 		 double &err, int &niter,
-		 int &flops, int &memrefs,
 		 double max_error, int toomany, int useLhsAsGuess) const
 {
   if (rhs.ncols() != lhs.ncols()) return 0;
@@ -165,7 +163,7 @@ Matrix::cg_solve(const DenseMatrix& rhs, DenseMatrix& lhs,
     index_type j;
     for (j=0; j<rh.nrows(); j++)
       rh[j]=rhs[i][j];
-    if (!cg_solve(rh, lh, err, niter, flops, memrefs, max_error, 
+    if (!cg_solve(rh, lh, err, niter, max_error, 
 		  toomany, useLhsAsGuess)) return 0;
     for (j=0; j<rh.nrows(); j++)
       lhs[i][j]=lh[j];
@@ -175,24 +173,14 @@ Matrix::cg_solve(const DenseMatrix& rhs, DenseMatrix& lhs,
 
 int
 Matrix::cg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
-		 double &err, int &niter, 
-		 int& flops, int& memrefs,
-		 double max_error, int toomany, int useLhsAsGuess) const
+                 double &err, int &niter,
+                 double max_error, int toomany, int useLhsAsGuess) const
 {
   size_type size=nrows();  
   niter=0;
-  flops=0;
-  memrefs=0;
   if (!useLhsAsGuess) lhs.zero();
 
   if(toomany == 0) toomany=100*size;
-
-  if (rhs.vector_norm(flops, memrefs) < 0.0000001) 
-  {
-    lhs=rhs;
-    err=0;
-    return 1;
-  }
         
   ColumnMatrix diag(size), R(size), Z(size), P(size);
 
@@ -201,20 +189,17 @@ Matrix::cg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
     if (Abs(get(i,i)>0.000001)) diag[i]=1./get(i,i);
     else diag[i]=1;
   }
-  flops+=size;
-  memrefs+=2*size*sizeof(double);
+ 
+  mult(lhs, R);    
+  Sub(R, rhs, R);
+  mult(R, Z);
 
-  mult(lhs, R, flops, memrefs);    
-  Sub(R, rhs, R, flops, memrefs);
-  mult(R, Z, flops, memrefs);
-
-  double bnorm=rhs.vector_norm(flops, memrefs);
-  err=R.vector_norm(flops, memrefs)/bnorm;
+  double bnorm=rhs.vector_norm();
+  err=R.vector_norm()/bnorm;
 
   if(err == 0) 
   {
     lhs=rhs;
-    memrefs+=2*size*sizeof(double);
     return 1;
   } else if (err>1000000) return 0;
 
@@ -227,31 +212,31 @@ Matrix::cg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
     niter++;
     
     // Simple Preconditioning...
-    Mult(Z, R, diag, flops, memrefs);
+    Mult(Z, R, diag);
     
     // Calculate coefficient bk and direction vectors p and pp
-    double bknum=Dot(Z, R, flops, memrefs);
+    double bknum=Dot(Z, R);
 
     if(niter==1)
     {
-      Copy(P, Z, flops, memrefs);
+      Copy(P, Z);
     } 
     else 
     {
       double bk=bknum/bkden;
-      ScMult_Add(P, bk, P, Z, flops, memrefs);
+      ScMult_Add(P, bk, P, Z);
     }
 
     // Calculate coefficient ak, new iterate x and new residuals r and rr
-    mult(P, Z, flops, memrefs);
+    mult(P, Z);
     bkden=bknum;
-    double akden=Dot(Z, P, flops, memrefs);
+    double akden=Dot(Z, P);
     
     double ak=bknum/akden;
-    ScMult_Add(lhs, ak, P, lhs, flops, memrefs);
-    ScMult_Add(R, -ak, Z, R, flops, memrefs);
+    ScMult_Add(lhs, ak, P, lhs);
+    ScMult_Add(R, -ak, Z, R);
     
-    err=R.vector_norm(flops, memrefs)/bnorm;
+    err=R.vector_norm()/bnorm;
     if (err>1000000) return 0;
   }
   return 0;
@@ -261,23 +246,22 @@ int
 Matrix::bicg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs) const
 {
   double err;
-  int niter, flops, memrefs;
-  return bicg_solve(rhs, lhs, err, niter, flops, memrefs);
+  int niter;
+  return bicg_solve(rhs, lhs, err, niter);
 }
 
 int 
 Matrix::bicg_solve(const DenseMatrix& rhs, DenseMatrix& lhs) const
 {
   double err;
-  int niter, flops, memrefs;
-  return bicg_solve(rhs, lhs, err, niter, flops, memrefs);
+  int niter;
+  return bicg_solve(rhs, lhs, err, niter);
 }
 
 int 
 Matrix::bicg_solve(const DenseMatrix& rhs, DenseMatrix& lhs,
-		   double &err, int &niter,
-		   int &flops, int &memrefs,
-		   double max_error, int /*toomany*/, int useLhsAsGuess) const
+                   double &err, int &niter,
+                   double max_error, int toomany, int useLhsAsGuess) const
 {
   if (rhs.ncols() != lhs.ncols()) return 0;
   for (index_type i=0; i<rhs.ncols(); i++) 
@@ -286,8 +270,7 @@ Matrix::bicg_solve(const DenseMatrix& rhs, DenseMatrix& lhs,
     index_type j;
     for (j=0; j<rh.nrows(); j++)
       rh[j]=rhs[i][j];
-    if (!bicg_solve(rh, lh, err, niter, flops, memrefs, 
-		    max_error, useLhsAsGuess)) return 0;
+    if (!bicg_solve(rh, lh, err, niter, max_error, useLhsAsGuess)) return 0;
     for (j=0; j<rh.nrows(); j++)
       lhs[i][j]=lh[j];
   }
@@ -297,23 +280,13 @@ Matrix::bicg_solve(const DenseMatrix& rhs, DenseMatrix& lhs,
 int
 Matrix::bicg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
 		   double &err, int &niter, 
-		   int& flops, int& memrefs,
 		   double max_error, int toomany, int useLhsAsGuess) const
 {
   size_type size=nrows();  
   niter=0;
-  flops=0;
-  memrefs=0;
   if (!useLhsAsGuess) lhs.zero();
   
   if(toomany == 0) toomany=100*size;
-
-  if (rhs.vector_norm(flops, memrefs) < 0.0000001) 
-  {
-    lhs=rhs;
-    err=0;
-    return 1;
-  }
 
   ColumnMatrix diag(size), R(size), R1(size), Z(size), Z1(size), 
     P(size), P1(size);
@@ -325,19 +298,16 @@ Matrix::bicg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
     else diag[i]=1;
   }
   
-  flops+=size;
-  memrefs+=2*size*sizeof(double);
 
-  mult(lhs, R, flops, memrefs);
-  Sub(R, rhs, R, flops, memrefs);
+  mult(lhs, R );
+  Sub(R, rhs, R );
 
-  double bnorm=rhs.vector_norm(flops, memrefs);
-  err=R.vector_norm(flops, memrefs)/bnorm;
+  double bnorm=rhs.vector_norm();
+  err=R.vector_norm()/bnorm;
     
   if(err == 0)
   {
     lhs=rhs;
-    memrefs+=2*size*sizeof(double);
     return 1;
   } 
   else 
@@ -346,7 +316,7 @@ Matrix::bicg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
   }
 
   // BiCG
-  Copy(R1, R, flops, memrefs);
+  Copy(R1, R);
 
   double bkden=0;
   while(niter < toomany)
@@ -357,13 +327,13 @@ Matrix::bicg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
     niter++;
 
     // Simple Preconditioning...
-    Mult(Z, R, diag, flops, memrefs);
+    Mult(Z, R, diag);
     // BiCG
-    Mult(Z1, R1, diag, flops, memrefs);
+    Mult(Z1, R1, diag);
     
     // Calculate coefficient bk and direction vectors p and pp
     // BiCG - change R->R1
-    double bknum=Dot(Z, R1, flops, memrefs);
+    double bknum=Dot(Z, R1);
     
     // BiCG
     if ( bknum == 0 ) 
@@ -373,35 +343,35 @@ Matrix::bicg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
     
     if(niter==1)
     {
-      Copy(P, Z, flops, memrefs);
+      Copy(P, Z);
       // BiCG
-      Copy(P1, Z1, flops, memrefs);
+      Copy(P1, Z1);
     } 
     else 
     {
       double bk=bknum/bkden;
-      ScMult_Add(P, bk, P, Z, flops, memrefs);
+      ScMult_Add(P, bk, P, Z);
       // BiCG
-      ScMult_Add(P1, bk, P1, Z1, flops, memrefs);
+      ScMult_Add(P1, bk, P1, Z1);
     }
 
     // Calculate coefficient ak, new iterate x and new residuals r and rr
-    mult(P, Z, flops, memrefs);
+    mult(P, Z);
     bkden=bknum;
 
     // BiCG
-    mult_transpose(P1, Z1, flops, memrefs);
+    mult_transpose(P1, Z1);
 
     // BiCG = change P -> P1
-    double akden=Dot(Z, P1, flops, memrefs);
+    double akden=Dot(Z, P1);
 
     double ak=bknum/akden;
-    ScMult_Add(lhs, ak, P, lhs, flops, memrefs);
-    ScMult_Add(R, -ak, Z, R, flops, memrefs);
+    ScMult_Add(lhs, ak, P, lhs);
+    ScMult_Add(R, -ak, Z, R);
     // BiCG
-    ScMult_Add(R1, -ak, Z1, R1, flops, memrefs);
+    ScMult_Add(R1, -ak, Z1, R1);
     
-    err=R.vector_norm(flops, memrefs)/bnorm;
+    err=R.vector_norm()/bnorm;
 
     if (err>1000000) return 0;
   }

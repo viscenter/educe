@@ -41,7 +41,6 @@
 #include <Dataflow/Network/Module.h>
 #include <Core/Datatypes/Field.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Datatypes/FieldInterface.h>
 #include <Dataflow/Modules/Fields/RemoveHexVolSheet.h>
 #include <Core/Containers/StringUtil.h>
 #include <iostream>
@@ -50,18 +49,18 @@ namespace SCIRun {
 
 class RemoveHexVolSheet : public Module
 {
-private:
+  public:
+    RemoveHexVolSheet(GuiContext* ctx);
+    virtual ~RemoveHexVolSheet() {}
 
-  GuiString  gui_edge_list_;
-  int       last_field_generation_;
+    virtual void execute();
+    
+  private:
 
-  vector< unsigned int > edge_ids_;
+    GuiString  gui_edge_list_;
+    int       last_field_generation_;
 
-public:
-  RemoveHexVolSheet(GuiContext* ctx);
-  virtual ~RemoveHexVolSheet();
-
-  virtual void execute();
+    vector< unsigned int > edge_ids_;
 };
 
 
@@ -72,11 +71,6 @@ RemoveHexVolSheet::RemoveHexVolSheet(GuiContext* ctx)
         : Module("RemoveHexVolSheet", ctx, Filter, "NewField", "SCIRun"),  
           gui_edge_list_(ctx->subVar("edge-list"), "No values present."),
           last_field_generation_(0)
-{
-}
-
-
-RemoveHexVolSheet::~RemoveHexVolSheet()
 {
 }
 
@@ -175,7 +169,7 @@ RemoveHexVolSheetAlgo::get_compile_info(const TypeDescription *fsrc,
   static const string base_class_name("RemoveHexVolSheetAlgo");
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
+    new CompileInfo(template_class_name + "." +
 		       fsrc->get_filename() + ".",
                        base_class_name, 
                        template_class_name, 

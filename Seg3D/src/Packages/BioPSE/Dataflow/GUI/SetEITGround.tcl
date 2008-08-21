@@ -33,33 +33,36 @@ catch {rename BioPSE_Forward_SetEITGround ""}
 itcl_class BioPSE_Forward_SetEITGround {
     inherit Module
     constructor {config} {
-	set name SetEITGround
-	set_defaults
+        set name SetEITGround
+        set_defaults
     }
+
     method set_defaults {} {
-	global $this-methodTCL
-	set $this-methodTCL {"zero mean at electrodes"}
+        global $this-methodTCL
+        set $this-methodTCL {"zero mean at electrodes"}
     }
+
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
+    
     method ui {} {
-	global $this-methodTCL
+        global $this-methodTCL
 
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    raise $w
-	    return;
-	}
-	toplevel $w
-	
-	make_labeled_radio $w.method "Ground method:" "" left 1 $this-methodTCL \
-	    {{"zero mean at electrodes"}}
-	pack $w.method -side top -fill x
+        set w .ui[modname]
+        if {[winfo exists $w]} {
+            raise $w
+            return;
+        }
+        sci_toplevel $w
+        
+        make_labeled_radio $w.method "Ground method:" "" left 1 $this-methodTCL \
+            {{"zero mean at electrodes"}}
+        pack $w.method -side top -fill x
     }
 }

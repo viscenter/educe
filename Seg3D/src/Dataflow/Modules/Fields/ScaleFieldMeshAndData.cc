@@ -28,24 +28,26 @@
 
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/Matrix.h>
+#include <Core/Algorithms/Fields/TransformMesh/ScaleFieldMeshAndData.h>
+
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
-#include <Core/Algorithms/Converter/ConverterAlgo.h>
 #include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
 
 class ScaleFieldMeshAndData : public Module {
-public:
-  ScaleFieldMeshAndData(GuiContext*);
+  public:
+    ScaleFieldMeshAndData(GuiContext*);
+    virtual ~ScaleFieldMeshAndData() {}
+    virtual void execute();
 
-  virtual void execute();
-
-private:
-  GuiDouble guidatascale_;
-  GuiDouble guigeomscale_;   
-  GuiInt    guiusegeomcenter_;  
+  private:
+    GuiDouble guidatascale_;
+    GuiDouble guigeomscale_;   
+    GuiInt    guiusegeomcenter_;  
+    
+    SCIRunAlgo::ScaleFieldMeshAndDataAlgo algo_;
 };
 
 
@@ -56,6 +58,7 @@ ScaleFieldMeshAndData::ScaleFieldMeshAndData(GuiContext* ctx)
     guigeomscale_(ctx->subVar("geomscale")),
     guiusegeomcenter_(ctx->subVar("usegeomcenter"))
 {
+  algo_.set_progress_reporter(this);
 }
 
 
@@ -64,43 +67,35 @@ void ScaleFieldMeshAndData::execute()
   FieldHandle input, output;
   MatrixHandle DataScale,GeomScale;
   
-  if (!(get_input_handle("Field",input,true))) return;
+  get_input_handle("Field",input,true);
   get_input_handle("DataScaleFactor",DataScale,false);
   get_input_handle("GeomScaleFactor",GeomScale,false);
   
   if (inputs_changed_ || guidatascale_.changed() || guigeomscale_.changed() || 
       guiusegeomcenter_.changed() || !oport_cached("Field"))
   {
-    double datascale, geomscale;
-    SCIRunAlgo::ConverterAlgo calgo(this);
-    SCIRunAlgo::FieldsAlgo    falgo(this);
-    
-    if (DataScale.get_rep()) 
+    if (DataScale.get_rep() && DataScale->ncols() > 0 && DataScale->nrows() > 0) 
     {
-      datascale = 1.0;
-      calgo.MatrixToDouble(DataScale,datascale); 
+      double datascale = DataScale->get(0,0);
       guidatascale_.set(datascale);
       get_ctx()->reset();
     }
 
-    if (GeomScale.get_rep()) 
+    if (GeomScale.get_rep() && GeomScale->ncols() > 0 && GeomScale->nrows() > 0) 
     {
-      geomscale = 1.0;
-      calgo.MatrixToDouble(GeomScale,geomscale); 
+      double geomscale = GeomScale->get(0,0);
       guigeomscale_.set(geomscale);
       get_ctx()->reset();
     }
 
-    geomscale = guigeomscale_.get();
-    datascale = guidatascale_.get();
-
-    if(!(falgo.ScaleFieldMeshAndData(input, output, datascale, geomscale,guiusegeomcenter_.get()))) return;
+    algo_.set_scalar("data_scale",guidatascale_.get());
+    algo_.set_scalar("mesh_scale",guigeomscale_.get());
+    algo_.set_bool("scale_from_center",guiusegeomcenter_.get());
+    if(!(algo_.run(input, output))) return;
     
     send_output_handle("Field", output);
   }
 }
 
-
 } // End namespace ModelCreation
-
 

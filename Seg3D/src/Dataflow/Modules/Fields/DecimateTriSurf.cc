@@ -170,10 +170,11 @@ static bool dtripple_compare(const dtripple &a, const dtripple &b)
 
 
 class SCISHARE DecimateTriSurf : public Module {
-public:
-  DecimateTriSurf(GuiContext*);
-
-  virtual void execute();
+  public:
+    DecimateTriSurf(GuiContext*);
+    virtual ~DecimateTriSurf() {}
+    
+    virtual void execute();
 };
 
 
@@ -354,7 +355,7 @@ DecimateTriSurf::execute()
   mesh->remove_orphan_nodes();
 
   GenericField<TSMesh, ConstantBasis<double>, vector<double> > *tsfield =
-    scinew GenericField<TSMesh, ConstantBasis<double>, vector<double> >(mesh);
+    new GenericField<TSMesh, ConstantBasis<double>, vector<double> >(mesh);
   ofield = tsfield;
 
   send_output_handle("Decimated", ofield);

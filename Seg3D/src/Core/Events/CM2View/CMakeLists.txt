@@ -47,7 +47,6 @@ TARGET_LINK_LIBRARIES( Core_Events_CM2View
 
 IF(WIN32)
   TARGET_LINK_LIBRARIES( Core_Events_CM2View 
-                         Core_OS
                          ${GL_LIBRARY} )
 ENDIF(WIN32)
 

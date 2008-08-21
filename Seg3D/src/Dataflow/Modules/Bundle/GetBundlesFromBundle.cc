@@ -26,10 +26,10 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
+
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 
 using namespace SCIRun;
 
@@ -59,7 +59,7 @@ GetBundlesFromBundle::GetBundlesFromBundle(GuiContext* ctx)
     guibundle4name_(get_ctx()->subVar("bundle4-name"), "bundle4"),
     guibundle5name_(get_ctx()->subVar("bundle5-name"), "bundle5"),
     guibundle6name_(get_ctx()->subVar("bundle6-name"), "bundle6"),
-    guibundles_(get_ctx()->subVar("bundle-selection"), "")
+    guibundles_(get_ctx()->subVar("bundle-selection",false), "")
 {
 }
 
@@ -79,6 +79,8 @@ void GetBundlesFromBundle::execute()
       !oport_cached("bundle3") || !oport_cached("bundle4") ||
       !oport_cached("bundle5") || !oport_cached("bundle6"))
   {
+    update_state(Executing);
+  
     BundleHandle fhandle;
     std::string bundle1name = guibundle1name_.get();
     std::string bundle2name = guibundle2name_.get();

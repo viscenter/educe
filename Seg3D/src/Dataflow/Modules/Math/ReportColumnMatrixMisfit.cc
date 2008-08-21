@@ -75,14 +75,14 @@ POSSIBLE REVISIONS:
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Core/Datatypes/ColumnMatrix.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Math/Expon.h>
-#include <Core/Math/MinMax.h>
+
 #include <Core/Math/MiscMath.h>
+#include <Core/Math/MinMax.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Containers/StringUtil.h>
 #include <iostream>
 #include <sstream>
+
 using std::ostringstream;
 
 namespace SCIRun {
@@ -153,7 +153,7 @@ ReportColumnMatrixMisfit::execute()
 
   int ne=ivec2->nrows();
 
-  ColumnMatrix* errorM = scinew ColumnMatrix(1);
+  ColumnMatrix* errorM = new ColumnMatrix(1);
   double *val=errorM->get_data();
   MatrixHandle errorH(errorM);
 

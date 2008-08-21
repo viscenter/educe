@@ -76,7 +76,7 @@ main(int argc, char **argv) {
     exit(0);
   }
   
-  CMesh::handle_type cm(scinew CMesh);
+  CMesh::handle_type cm(new CMesh);
   double x,y;
   if (fscanf(fin, "%lf %lf\n", &x, &y) != 2) {
     printf("Error reading input file.\n");
@@ -110,7 +110,7 @@ main(int argc, char **argv) {
   }
   cm->add_edge(i-1,(ninner+6));
 
-  CField *cf = scinew CField(cm);
+  CField *cf = new CField(cm);
   for (i=0; i<(nnodes+6); i++) {
     if (i<6) {
       cf->fdata()[i]=1;

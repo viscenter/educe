@@ -38,6 +38,7 @@ using namespace SCIRun;
 class ReplicateDataArray : public Module {
   public:
     ReplicateDataArray(GuiContext*);
+    virtual ~ReplicateDataArray() {}
     virtual void execute();
   private:
     GuiInt  guisize_;
@@ -57,7 +58,7 @@ ReplicateDataArray::execute()
 {
   MatrixHandle Input, Size, Output;
 
-  if (!(get_input_handle("DataArray",Input,false))) return;
+  get_input_handle("DataArray",Input,false);
   get_input_handle("Size",Size,false);
 
   // this widget has trouble updating properly
@@ -69,7 +70,8 @@ ReplicateDataArray::execute()
   if (inputs_changed_ || guisize_.changed() ||
       !oport_cached("Array"))  
   {
-  
+    update_state(Executing);
+      
     int n = 0;  
     if(Size.get_rep() == 0)
     {
@@ -106,7 +108,7 @@ ReplicateDataArray::execute()
       return;
     }
     
-    Output = scinew DenseMatrix(rows*n, cols);
+    Output = new DenseMatrix(rows*n, cols);
     Input = Input->dense();
 
     double* outputptr = Output->get_data_pointer();      

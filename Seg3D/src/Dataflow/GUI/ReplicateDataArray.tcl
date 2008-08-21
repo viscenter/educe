@@ -44,9 +44,9 @@ itcl_class SCIRun_DataArrayMath_ReplicateDataArray {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        iwidgets::entryfield $w.size \
+        sci_entryfield $w.size \
           -labeltext "Number of times to replicate template array:" \
           -command "$this update_size" \
           -validate numeric 

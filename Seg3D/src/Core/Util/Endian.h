@@ -61,9 +61,9 @@ typedef unsigned long long uint64_t;
 
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Util/share.h>
 

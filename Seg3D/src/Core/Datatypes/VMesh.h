@@ -243,7 +243,7 @@ public:
   
   
   //! We have been using the num_#type#() in other functions as well to
-  //! determine the number of nodes, edges etc. These are just sshortcuts to
+  //! determine the number of nodes, edges etc. These are just shortcuts to
   //! make porgrams more readable
   inline size_t num_nodes() const
     { Node::index_type s; size(s); return(static_cast<size_t>(s)); }
@@ -336,6 +336,13 @@ public:
   virtual void get_delems(DElem::array_type& delems, Elem::index_type i) const;
   virtual void get_delems(DElem::array_type& delems, DElem::index_type i) const;
 
+  //! Get the topology index from the vertex indices
+  virtual bool get_elem(Elem::index_type& elem, Node::array_type& nodes) const;
+  virtual bool get_delem(DElem::index_type& delem, Node::array_type& nodes) const;
+  virtual bool get_cell(Cell::index_type& cell, Node::array_type& nodes) const;
+  virtual bool get_face(Face::index_type& face, Node::array_type& nodes) const;
+  virtual bool get_edge(Edge::index_type& edge, Node::array_type& nodes) const;
+
   //! Get the center of a certain mesh element
   virtual void get_center(Point &point, Node::index_type i) const;
   virtual void get_center(Point &point, ENode::index_type i) const;
@@ -346,8 +353,14 @@ public:
   virtual void get_center(Point &point, DElem::index_type i) const;
 
   //! Get the centers of a series of nodes
-  virtual void get_centers(points_type &points, Node::array_type& array) const;
-  virtual void get_centers(points_type &points, Elem::array_type& array) const;
+  virtual void get_centers(Point* points, Node::array_type& array) const;
+  virtual void get_centers(Point* points, Elem::array_type& array) const;
+
+  inline void get_centers(points_type &points, Node::array_type& array) const
+    { points.resize(array.size()); get_centers(&(points[0]),array); }
+  inline void get_centers(points_type &points, Elem::array_type& array) const
+    { points.resize(array.size()); get_centers(&(points[0]),array); }
+
 
   //! Get the geometrical sizes of the mesh elements
   inline  double get_size(Node::index_type i) const 
@@ -395,7 +408,6 @@ public:
                                         Elem::index_type elem, 
                                         MultiElemInterpolate& ei,
                                         int basis_order) const;
-  
   virtual void get_gradient_weights(const Point& p, 
                                     ElemGradient& ei, 
                                     int basis_order) const;
@@ -413,7 +425,7 @@ public:
                                     Elem::index_type elem, 
                                     MultiElemGradient& eg,
                                     int basis_order) const;
-                                    
+
   virtual void get_weights(const coords_type& coords, 
                            vector<double>& weights,
                            int basis_order) const;                                 
@@ -433,20 +445,84 @@ public:
   //! Locate where a position is in  the mesh
   //! The node version finds the closest node
   //! The element version find the element that contains the point
-  virtual bool locate(Node::index_type &i, const Point &point) const;
-  virtual bool locate(Elem::index_type &i, const Point &point) const;
+  virtual bool locate(VMesh::Node::index_type &i, const Point &point) const;
+  virtual bool locate(VMesh::Elem::index_type &i, const Point &point) const;
+  virtual bool locate(VMesh::Elem::index_type &i, 
+                      VMesh::coords_type &coords, const Point& point) const;
 
-  virtual void mlocate(vector<Node::index_type> &i, const vector<Point> &point) const;
-  virtual void mlocate(vector<Elem::index_type> &i, const vector<Point> &point) const;
+  virtual void mlocate(vector<Node::index_type> &i, 
+                       const vector<Point> &point) const;
+  virtual void mlocate(vector<Elem::index_type> &i, 
+                       const vector<Point> &point) const;
 
 
   //! Find the closest point on a surface or a curve
-  virtual double find_closest_elem(Point& result,
-                                   VMesh::Elem::index_type &i, 
-                                   const Point &point) const; 
-  virtual double find_closest_elems(Point& result,
-                                    VMesh::Elem::array_type &i, 
-                                    const Point &point) const; 
+  virtual bool find_closest_node(double& dist,
+                                 Point& result,
+                                 VMesh::Node::index_type &i, 
+                                 const Point &point) const; 
+
+  virtual bool find_closest_node(double& dist,
+                                 Point& result,
+                                 VMesh::Node::index_type &i, 
+                                 const Point &point,
+                                 double maxdist) const; 
+
+  inline bool find_closest_node(Point& result,
+                                VMesh::Node::index_type& i,
+                                const Point &point)
+    { double dist; return(find_closest_node(dist,result,i,point));}
+
+  virtual bool find_closest_nodes(vector<VMesh::Node::index_type>& nodes,
+                                  const Point& p, double maxdist) const;
+
+  virtual bool find_closest_elem(double &dist,
+                                 Point &result,
+                                 VMesh::coords_type &coords,
+                                 VMesh::Elem::index_type &i, 
+                                 const Point &point) const; 
+
+  virtual bool find_closest_elem(double &dist,
+                                 Point &result,
+                                 VMesh::coords_type &coords,
+                                 VMesh::Elem::index_type &i, 
+                                 const Point &point,
+                                 double maxdist) const; 
+                                 
+  inline  bool find_closest_elem(double &dist,
+                                 Point &result,
+                                 VMesh::Elem::index_type &i, 
+                                 const Point &point) const
+  { 
+    VMesh::coords_type coords; 
+    return(find_closest_elem(dist,result,coords,i,point));
+  }
+
+  inline  bool find_closest_elem(Point &result,
+                                 VMesh::Elem::index_type &i, 
+                                 const Point &point) const
+  { 
+    double dist;
+    VMesh::coords_type coords; 
+    return(find_closest_elem(dist,result,coords,i,point));
+  }
+
+  inline  bool find_closest_elem(VMesh::coords_type &coords,
+                                 VMesh::Elem::index_type &i, 
+                                 const Point &point) const
+  { 
+    double dist;
+    Point result;
+    return(find_closest_elem(dist,result,coords,i,point));
+  }
+
+
+  // TODO: Need to reformulate this one, closest element can have multiple 
+  // intersection points
+  virtual bool find_closest_elems(double& dist,
+                                  Point& result,
+                                  VMesh::Elem::array_type &i, 
+                                  const Point &point) const; 
 
   //! Find the coordinates of a point in a certain element
   virtual bool get_coords(coords_type& coords, 
@@ -465,31 +541,82 @@ public:
                          const coords_type& coords, Elem::index_type i) const;
   
   virtual void get_normal(Vector &result, coords_type& coords, 
-                                 Elem::index_type eidx, unsigned int f) const;
+                                 Elem::index_type eidx, DElem::index_type fidx) const;
   
+  inline void get_normal(Vector &result, coords_type& coords, 
+                                 Elem::index_type eidx) const
+    { get_normal(result,coords,eidx,0); }
+    
   //! Set and get a node location.
   //! Node set is only available for editable meshes
     
   virtual void get_random_point(Point &p, 
                                 Elem::index_type i,FieldRNG &rng) const;
+                                
   inline  void get_point(Point &point, Node::index_type i) const
     { get_center(point,i); }
   inline  void get_point(Point &point, ENode::index_type i) const
     { get_center(point,i); }
+    
   virtual void set_point(const Point &point, Node::index_type i);
   virtual void set_point(const Point &point, ENode::index_type i);
-    
+  
+  // Only for irregular data
+  virtual Point* get_points_pointer() const;
+  // Only for unstructured data
+  virtual VMesh::index_type* get_elems_pointer() const;
+  
+  inline void copy_nodes(VMesh* imesh, Node::index_type i, 
+                          Node::index_type o,Node::size_type size)
+  {
+    Point* ipoint = imesh->get_points_pointer();
+    Point* opoint = get_points_pointer();
+    for (index_type j=0; j<size; j++,i++,o++ ) opoint[o] = ipoint[i];
+  }
+
+  inline void copy_nodes(VMesh* imesh)
+  {
+    size_type size = imesh->num_nodes();
+    resize_nodes(size);
+    Point* ipoint = imesh->get_points_pointer();
+    Point* opoint = get_points_pointer();
+    for (index_type j=0; j<size; j++) opoint[j] = ipoint[j];
+  }
+  
+  inline void copy_elems(VMesh* imesh, Elem::index_type i, 
+                          Elem::index_type o,Elem::size_type size,
+                          Elem::size_type offset)
+  {
+    VMesh::index_type* ielem = imesh->get_elems_pointer();
+    VMesh::index_type* oelem  = get_elems_pointer();
+    index_type ii = i*num_nodes_per_elem_;
+    index_type oo = o*num_nodes_per_elem_;
+    size_type  ss = size*num_nodes_per_elem_;
+    for (index_type j=0; j <ss; j++,ii++,oo++) oelem[oo] = ielem[ii]+offset;
+  }
+
+  inline void copy_elems(VMesh* imesh)
+  {
+    VMesh::index_type* ielem = imesh->get_elems_pointer();
+    VMesh::index_type* oelem  = get_elems_pointer();
+    //index_type ii = 0;
+    //index_type oo = 0;
+    size_type  ss = num_elems()*num_nodes_per_elem_;
+    for (index_type j=0; j <ss; j++) oelem[j] = ielem[j];
+  }
   
   //! Preallocate memory for better performance
   virtual void node_reserve(size_t size);
   inline  void reserve_nodes(size_t size) 
     { node_reserve(size); }
+  
   virtual void elem_reserve(size_t size);
   inline  void reserve_elems(size_t size) 
     { elem_reserve(size); }
   
   virtual void resize_nodes(size_t size);
   virtual void resize_elems(size_t size);
+  inline  void resize_points(size_t size) { resize_nodes(size); }
 
   //! Add a node to a mesh
   virtual void add_node(const Point &point,Node::index_type &i);
@@ -522,6 +649,13 @@ public:
   //! Alternative calls for add_elem
   inline VMesh::Elem::index_type add_elem(const Node::array_type nodes)
     { Elem::index_type idx; add_elem(nodes,idx); return (idx); }
+  
+  
+  //! Currently only available for tetrahedra, triangles and curves
+  virtual void insert_node_into_elem(Elem::array_type& newelems, 
+                                     Node::index_type& newnode,
+                                     Elem::index_type  elem,
+                                     Point& point);
   
   //! Get the neighbors of a node or an element
   virtual bool get_neighbor(Elem::index_type &neighbor, 
@@ -607,36 +741,23 @@ public:
   
   virtual BBox get_bounding_box() const;
   virtual bool synchronize(unsigned int sync); 
-  virtual bool unsynchronize(unsigned int sync); 
+  virtual bool unsynchronize(unsigned int sync);
+  
+  // Only use this function when this is the only code that uses this mesh
+  virtual bool clear_synchronization();
+  
+  // Transform a full field, this one works on the full field
   virtual void transform(const Transform &t);
+  
+  //! Get the transform from a regular field
   virtual Transform get_transform() const;
+  //! Set the transform of a regular field
+  virtual void set_transform(const Transform &t);
+  
   virtual void get_canonical_transform(Transform &t);
+  //! Get the epsilon for doing numerical computations
+  //! This one is generally 1e-7*length diagonal of the bounding box
   virtual double get_epsilon() const;
-
-  inline  bool synchronize_nodes()    { return (synchronize(Mesh::NODES_E)); }
-  inline  bool unsynchronize_nodes()  { return (unsynchronize(Mesh::NODES_E)); }
-  inline  bool synchronize_enodes()   { return (synchronize(Mesh::ENODES_E)); }
-  inline  bool unsynchronize_enodes() { return (unsynchronize(Mesh::ENODES_E)); }
-  inline  bool synchronize_edges()    { return (synchronize(Mesh::EDGES_E)); }
-  inline  bool unsynchronize_edges()  { return (unsynchronize(Mesh::EDGES_E)); }
-  inline  bool synchronize_faces()    { return (synchronize(Mesh::FACES_E)); }
-  inline  bool unsynchronize_faces()  { return (unsynchronize(Mesh::FACES_E)); }
-  inline  bool synchronize_cells()    { return (synchronize(Mesh::CELLS_E)); }
-  inline  bool unsynchronize_cells()  { return (unsynchronize(Mesh::CELLS_E)); }
-  inline  bool synchronize_elems()    { return (synchronize(Mesh::ELEMS_E)); }
-  inline  bool unsynchronize_elems()  { return (unsynchronize(Mesh::ELEMS_E)); }
-  inline  bool synchronize_delems()   { return (synchronize(Mesh::DELEMS_E)); }
-  inline  bool unsynchronize_delems() { return (unsynchronize(Mesh::DELEMS_E)); }
-  inline  bool synchronize_normals()    { return (synchronize(Mesh::NORMALS_E)); }
-  inline  bool unsynchronize_normals()  { return (unsynchronize(Mesh::NORMALS_E)); }
-  inline  bool synchronize_node_neighbors()    { return (synchronize(Mesh::NODE_NEIGHBORS_E)); }
-  inline  bool unsynchronize_node_neighbors()  { return (unsynchronize(Mesh::NODE_NEIGHBORS_E)); }
-  inline  bool synchronize_elem_neighbors()    { return (synchronize(Mesh::ELEM_NEIGHBORS_E)); }
-  inline  bool unsynchronize_elem_neighbors()  { return (unsynchronize(Mesh::ELEM_NEIGHBORS_E)); }
-  inline  bool synchronize_locate()    { return (synchronize(Mesh::LOCATE_E)); }
-  inline  bool unsynchronize_locate()  { return (unsynchronize(Mesh::LOCATE_E)); }
-  inline  bool synchronize_epsilon()    { return (synchronize(Mesh::EPSILON_E)); }
-  inline  bool unsynchronize_epsilon()  { return (unsynchronize(Mesh::EPSILON_E)); }
 
   //! check the type of mesh
   virtual bool is_pointcloudmesh()     { return (false); }
@@ -808,6 +929,9 @@ public:
   inline void get_element_center(coords_type& coords)
     { coords = unit_center_; }
  
+  inline double get_element_size()
+    { return (element_size_); }
+ 
 public:
   int ref_cnt;
 
@@ -828,6 +952,8 @@ protected:
   unsigned int num_edges_per_face_;  
   unsigned int num_gradients_per_node_;
  
+  double    element_size_;
+  
   coords_array_type       unit_vertices_;
   nodes_array_type        unit_edges_;
   coords_type             unit_center_;

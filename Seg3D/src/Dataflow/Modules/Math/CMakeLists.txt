@@ -29,6 +29,7 @@
 # CMakeLists.txt for Dataflow/Modules/Math
 
 SET(Dataflow_Modules_Math_SRCS
+  AddKnownsToLinearSystem.cc
   RemoveZerosFromMatrix.cc
   SortMatrix.cc
   RemoveZeroRowsAndColumns.cc
@@ -46,6 +47,7 @@ SET(Dataflow_Modules_Math_SRCS
   SolveMinNormLeastSqSystem.cc
   SolveLinearSystem.cc
   GetSubmatrix.cc
+  SetSubmatrix.cc
   ConvertMaskVectorToMappingMatrix.cc
   ConvertMappingMatrixToMaskVector.cc
   CreateMatrix.cc
@@ -55,13 +57,14 @@ SET(Dataflow_Modules_Math_SRCS
   ReorderMatrixByCuthillMcKee.cc
   ReorderMatrixByReverseCuthillMcKee.cc
   ResizeMatrix.cc
+  SelectSubMatrix.cc
 )
 
 SCIRUN_ADD_LIBRARY(Dataflow_Modules_Math ${Dataflow_Modules_Math_SRCS})
 
 TARGET_LINK_LIBRARIES(Dataflow_Modules_Math
+  Core_Algorithms_Util
   Core_Algorithms_Math
-  Core_Algorithms_ArrayMath
   Core_Algorithms_Converter
   Core_Datatypes
   Core_Exceptions
@@ -72,6 +75,7 @@ TARGET_LINK_LIBRARIES(Dataflow_Modules_Math
   Dataflow_GuiInterface
   Dataflow_Widgets
   Core_Math
+  Core_Parser
   Core_Persistent
   Core_Thread
   Dataflow_TkExtensions

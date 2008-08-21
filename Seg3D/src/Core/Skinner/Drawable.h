@@ -112,8 +112,10 @@ public:
                                                Drawable *target,
                                                const string &targetname);
   virtual event_handle_t            throw_signal(const string &);
-protected:
 
+  bool                              visible() { return visible_(); }
+
+protected:
   Drawable *                        parent_;
   Var<bool>                         visible_;
   bool                              visible_cache_;

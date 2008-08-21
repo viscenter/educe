@@ -222,8 +222,8 @@ bool CardioWaveConverter::cwFileTOsciMatrix(std::string filename,MatrixHandle& m
         Matrix::size_type  dummy; iss >> dummy;
         Matrix::size_type  nz;    iss >> nz;
         
-        Matrix::index_type *jcoef = scinew Matrix::index_type[nz*nrows];
-        double *coef = scinew double[nz*nrows];
+        Matrix::index_type *jcoef = new Matrix::index_type[nz*nrows];
+        double *coef = new double[nz*nrows];
            
         if ((jcoef==0)||(coef==0))
         {
@@ -278,10 +278,10 @@ bool CardioWaveConverter::cwFileTOsciMatrix(std::string filename,MatrixHandle& m
         for (Matrix::index_type p=0;p<(nz*nrows);p++) if (coef[p] != 0.0) nnz++;
         
       
-        Matrix::index_type *rr = scinew Matrix::index_type[nrows+1];
-        Matrix::index_type *cc = scinew Matrix::index_type[nnz];
-        double *d  = scinew double[nnz];
-        Matrix::index_type *t  = scinew Matrix::index_type[nrows];
+        Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+        Matrix::index_type *cc = new Matrix::index_type[nnz];
+        double *d  = new double[nnz];
+        Matrix::index_type *t  = new Matrix::index_type[nrows];
         
         if ((rr==0)||(cc==0)||(d==0)||(t==0))
         {
@@ -346,7 +346,7 @@ bool CardioWaveConverter::cwFileTOsciMatrix(std::string filename,MatrixHandle& m
           }
         }
          
-        SparseRowMatrix *srm = scinew SparseRowMatrix(nrows,ncols,rr,cc,nnz,d);
+        SparseRowMatrix *srm = new SparseRowMatrix(nrows,ncols,rr,cc,nnz,d);
   
         if (srm == 0)
         {
@@ -388,7 +388,7 @@ bool CardioWaveConverter::cwFileTOsciMatrix(std::string filename,MatrixHandle& m
         std::istringstream iss(header.substr(4,123));
         Matrix::size_type size; iss >> size;
         
-        ColumnMatrix* colmat = scinew ColumnMatrix(size);
+        ColumnMatrix* colmat = new ColumnMatrix(size);
         if (colmat == 0) 
         { 
           fclose(fid);
@@ -455,7 +455,7 @@ bool CardioWaveConverter::cwFileTOsciMatrix(std::string filename,MatrixHandle& m
         std::istringstream iss(header.substr(4,123));
         Matrix::size_type  size; iss >> size;
         
-        ColumnMatrix* colmat = scinew ColumnMatrix(size);
+        ColumnMatrix* colmat = new ColumnMatrix(size);
         if (colmat == 0) 
         { 
           fclose(fid);
@@ -522,7 +522,7 @@ bool CardioWaveConverter::cwFileTOsciMatrix(std::string filename,MatrixHandle& m
         std::istringstream iss(header.substr(4,123));
         Matrix::size_type  size; iss >> size;
         
-        ColumnMatrix* colmat = scinew ColumnMatrix(size);
+        ColumnMatrix* colmat = new ColumnMatrix(size);
         if (colmat == 0) 
         { 
           fclose(fid);
@@ -745,7 +745,7 @@ bool CardioWaveConverter::sciMatrixTOcwFile(MatrixHandle mh,std::string filename
     // OK we created a header
 
     
-    char *buffer = scinew char[size];
+    char *buffer = new char[size];
     
     for (size_t p=0;p<size;p++) buffer[p] = static_cast<char>(data[p]);
 
@@ -819,7 +819,7 @@ bool CardioWaveConverter::sciMatrixTOcwFile(MatrixHandle mh,std::string filename
     
     // OK we created a header
     
-    Matrix::index_type *buffer = scinew Matrix::index_type[size];
+    Matrix::index_type *buffer = new Matrix::index_type[size];
     
     for (size_t p=0;p<size;p++) buffer[p] = static_cast<Matrix::index_type>(data[p]);
     
@@ -971,8 +971,8 @@ bool CardioWaveConverter::sciMatrixTOcwFile(MatrixHandle mh,std::string filename
     std::string ssize = oss.str();
     header.replace(6,ssize.size(),ssize);
     
-    double *coef = scinew double[nz*nrows];
-    Matrix::index_type *jcoef = scinew Matrix::index_type[nz*nrows];
+    double *coef = new double[nz*nrows];
+    Matrix::index_type *jcoef = new Matrix::index_type[nz*nrows];
     
     Matrix::index_type s;
     for (Matrix::index_type p = 0; p < nrows; p++)

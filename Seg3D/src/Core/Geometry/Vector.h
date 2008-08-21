@@ -46,10 +46,10 @@
 #include <slivr/Vector.h>
 #include <Core/Geometry/share.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <iosfwd>
-#include <sgi_stl_warnings_on.h>
+
 
 namespace SCIRun {
 

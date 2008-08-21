@@ -40,7 +40,7 @@
 #include <Core/Datatypes/TriSurfMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 
@@ -256,7 +256,7 @@ main(int argc, char **argv) {
   SCIRunInit();
   setDefaults();
 
-  TSMesh *tsm = scinew TSMesh();
+  TSMesh *tsm = new TSMesh();
   //exit(5);
   char *in = argv[1];
   char *out = argv[2];
@@ -377,7 +377,7 @@ main(int argc, char **argv) {
       cerr << "supporting float only atm..." << endl;
       return 1;
     }
-    TSFieldC *tsc = scinew TSFieldC(TSMesh::handle_type(tsm));
+    TSFieldC *tsc = new TSFieldC(TSMesh::handle_type(tsm));
     tsc->resize_fdata();
     //cout << "putting data at faces" << endl;
     string table, tname;
@@ -394,7 +394,7 @@ main(int argc, char **argv) {
       return 1;
     }
     if (data == "SCALARS") {
-      TSFieldL *tsl = scinew TSFieldL(TSMesh::handle_type(tsm));
+      TSFieldL *tsl = new TSFieldL(TSMesh::handle_type(tsm));
       tsl->resize_fdata();     
       string table, tname;
       vtk >> table >> tname;
@@ -406,7 +406,7 @@ main(int argc, char **argv) {
 
       
     } else {
-      TSFieldN *tsn = scinew TSFieldN(TSMesh::handle_type(tsm));
+      TSFieldN *tsn = new TSFieldN(TSMesh::handle_type(tsm));
       tsn->resize_fdata();
       ts_handle = tsn;
     }

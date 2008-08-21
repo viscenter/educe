@@ -44,27 +44,27 @@ itcl_class Teem_UnuAtoM_UnuHeq {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.bins -labeltext "Bins:" -textvariable $this-bins
+        sci_entryfield $w.f.options.bins -labeltext "Bins:" -textvariable $this-bins
         pack $w.f.options.bins -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.sbins -labeltext "SBins:" -textvariable $this-sbins
+        sci_entryfield $w.f.options.sbins -labeltext "SBins:" -textvariable $this-sbins
         pack $w.f.options.sbins -side top -expand yes -fill x
 
-       iwidgets::entryfield $w.f.options.amount -labeltext "Amount:" -textvariable $this-amount
+        sci_entryfield $w.f.options.amount -labeltext "Amount:" -textvariable $this-amount
         pack $w.f.options.amount -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

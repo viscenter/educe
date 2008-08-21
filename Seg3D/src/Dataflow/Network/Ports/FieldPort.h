@@ -35,17 +35,22 @@
 //   April 2000
 //  Copyright (C) 2000 SCI Group
 
-#ifndef SCI_project_FieldPort_h
-#define SCI_project_FieldPort_h 1
+
+#ifndef DATAFLOW_NETWORK_PORTS_FIELDPORT_H
+#define DATAFLOW_NETWORK_PORTS_FIELDPORT_H 1
+
+#include <Core/Datatypes/Field.h>
+#include <Core/Containers/LockingHandle.h>
 
 #include <Dataflow/Network/Ports/SimplePort.h>
-#include <Core/Datatypes/Field.h>
 
 namespace SCIRun {
 
 
 typedef SimpleIPort<FieldHandle> FieldIPort;
 typedef SimpleOPort<FieldHandle> FieldOPort;
+typedef LockingHandle<FieldIPort> FieldIPortHandle;
+typedef LockingHandle<FieldOPort> FieldOPortHandle;
 
 } // End namespace SCIRun
 

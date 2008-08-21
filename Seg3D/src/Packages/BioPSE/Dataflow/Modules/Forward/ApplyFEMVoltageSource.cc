@@ -40,39 +40,45 @@
  *  
  */
 
-#include <Packages/BioPSE/Dataflow/Modules/Forward/ApplyFEMVoltageSource.h>
+#include <Core/Datatypes/Matrix.h>
+#include <Core/Datatypes/SparseRowMatrix.h>
+#include <Core/Datatypes/ColumnMatrix.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/Field.h>
 
+#include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Dataflow/Network/Ports/FieldPort.h>
+#include <Dataflow/Network/Module.h>
+
+#include <Core/Containers/StringUtil.h>
+
+#include <vector>
 
 namespace BioPSE {
 
+using namespace SCIRun;
+
 class ApplyFEMVoltageSource : public Module
 {
-  GuiString bcFlag_; // "none", "GroundZero", or "DirSub"
+  private:
+    GuiString bcFlag_; // "none", "GroundZero", or "DirSub"
 
-public:
-  ApplyFEMVoltageSource(GuiContext *context);
-  virtual ~ApplyFEMVoltageSource();
+  public:
+    ApplyFEMVoltageSource(GuiContext *context);
+    virtual ~ApplyFEMVoltageSource() {}
 
-  //! Public methods
-  virtual void execute();
+    //! Public methods
+    virtual void execute();
 };
 
 
 DECLARE_MAKER(ApplyFEMVoltageSource)
 
-
 ApplyFEMVoltageSource::ApplyFEMVoltageSource(GuiContext *context) : 
   Module("ApplyFEMVoltageSource", context, Filter, "Forward", "BioPSE"),
       bcFlag_(context->subVar("bcFlag"))
 {
-  cerr << "ApplyFEMVoltageSource" << endl;
 }
-
-
-ApplyFEMVoltageSource::~ApplyFEMVoltageSource()
-{
-}
-
 
 void
 ApplyFEMVoltageSource::execute()
@@ -81,7 +87,7 @@ ApplyFEMVoltageSource::execute()
   FieldHandle hField;
   if (!get_input_handle("Mesh", hField)) return;
   
-  vector<pair<int, double> > dirBC;
+  std::vector<std::pair<int, double> > dirBC;
   if (bcFlag_.get() == "DirSub") 
     if (!hField->get_property("dirichlet", dirBC))
       warning("The input field doesn't contain Dirichlet boundary conditions.");
@@ -89,11 +95,13 @@ ApplyFEMVoltageSource::execute()
   if (!get_input_handle("Stiffness Matrix", hMatIn)) return;
 
   SparseRowMatrix *matIn;
-  if (!(matIn = dynamic_cast<SparseRowMatrix*>(hMatIn.get_rep()))) {
+  if (!(matIn = dynamic_cast<SparseRowMatrix*>(hMatIn.get_rep()))) 
+  {
     error("Input stiffness matrix wasn't sparse.");
     return;
   }
-  if (matIn->nrows() != matIn->ncols()) {
+  if (matIn->nrows() != matIn->ncols()) 
+  {
     error("Input stiffness matrix wasn't square.");
     return;
   }
@@ -101,7 +109,7 @@ ApplyFEMVoltageSource::execute()
   SparseRowMatrix *mat = matIn->clone();
   
   unsigned int nsize=matIn->ncols();
-  ColumnMatrix* rhs = scinew ColumnMatrix(nsize);
+  ColumnMatrix* rhs = new ColumnMatrix(nsize);
   
   MatrixHandle  hRhsIn;
   ColumnMatrix* rhsIn = NULL;
@@ -115,37 +123,67 @@ ApplyFEMVoltageSource::execute()
     if (rhsIn &&
       ((unsigned int)(rhsIn->nrows()) == nsize))
     {
-      string units;
-      if (rhsIn->get_property("units", units))
-        rhs->set_property("units", units, false);
-      
       for (unsigned int i=0; i < nsize; i++) 
         (*rhs)[i]=(*rhsIn)[i];
     }
     else
     {
-      rhs->set_property("units", string("volts"), false);
       rhs->zero();    
     }
   }
   else
   {
-    rhs->set_property("units", string("volts"), false);
     rhs->zero();
   }
   
-  const TypeDescription *ftd = hField->get_type_description(Field::FIELD_NAME_ONLY_E);
-  const TypeDescription *mtd = hField->get_type_description(Field::MESH_TD_E);
-  const TypeDescription *btd = hField->get_type_description(Field::BASIS_TD_E);
-  const TypeDescription *dtd = hField->get_type_description(Field::FDATA_TD_E);
+  std::string bcFlag = bcFlag_.get();
+    
+  if (bcFlag=="GroundZero") dirBC.push_back(std::pair<int, double>(0,0.0));
+  else if (bcFlag == "DirSub") hField->vfield()->get_property("dirichlet", dirBC);
 
-  CompileInfoHandle ci =
-    ApplyFEMVoltageSourceAlgo::get_compile_info(ftd, mtd, btd, dtd);
-  Handle<ApplyFEMVoltageSourceAlgo> algo;
-  if (!module_dynamic_compile(ci, algo)) 
-    return;
+  //! adjusting matrix for Dirichlet BC
+  Matrix::index_type *idcNz; 
+  double *valNz;
+  Matrix::index_type idcNzsize;
+  Matrix::index_type idcNzstride;
+    
+  vector<double> dbc;
+  Matrix::index_type idx;
+  for(idx = 0; idx<dirBC.size(); ++idx)
+  {
+    Matrix::index_type ni = dirBC[idx].first;
+    double val = dirBC[idx].second;
   
-  algo->execute(hField, rhsIn, matIn, bcFlag_.get(), mat, rhs);
+    // -- getting column indices of non-zero elements for the current row
+    mat->getRowNonzerosNoCopy(ni, idcNzsize, idcNzstride, idcNz, valNz);
+  
+    // -- updating rhs
+    for (Matrix::index_type i=0; i<idcNzsize; ++i)
+    {
+      Matrix::index_type j = idcNz?idcNz[i*idcNzstride]:i;
+      (*rhs)[j] += - val * valNz[i*idcNzstride]; 
+    }
+  }
+ 
+  //! zeroing matrix row and column corresponding to the dirichlet nodes
+  for(idx = 0; idx<dirBC.size(); ++idx)
+  {
+    Matrix::index_type ni = dirBC[idx].first;
+    double val = dirBC[idx].second;
+  
+    mat->getRowNonzerosNoCopy(ni, idcNzsize, idcNzstride, idcNz, valNz);
+    
+    for (Matrix::index_type i=0; i<idcNzsize; ++i)
+    {
+      Matrix::index_type j = idcNz?idcNz[i*idcNzstride]:i;
+      mat->put(ni, j, 0.0);
+      mat->put(j, ni, 0.0); 
+    }
+    
+    //! updating dirichlet node and corresponding entry in rhs
+    mat->put(ni, ni, 1);
+    (*rhs)[ni] = val;
+  }
 
   //! Sending result
   MatrixHandle mat_tmp(mat);
@@ -153,41 +191,6 @@ ApplyFEMVoltageSource::execute()
 
   MatrixHandle rhs_tmp(rhs);
   send_output_handle("RHS", rhs_tmp);
-}
-
-
-CompileInfoHandle
-ApplyFEMVoltageSourceAlgo::get_compile_info(const TypeDescription *ftd,
-			       const TypeDescription *mtd,
-			       const TypeDescription *btd,
-			       const TypeDescription *dtd)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("ApplyFEMVoltageSourceAlgoT");
-  static const string base_class_name("ApplyFEMVoltageSourceAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       ftd->get_filename() + "." +
-		       mtd->get_filename() + "."+
-		       btd->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       ftd->get_name() + "<" + mtd->get_name() + ", " +
-		       btd->get_name() + ", " + dtd->get_name() + "> "  );
-  
-  // Add in the include path to compile this obj
-
-  rval->add_include(include_path);
-  rval->add_namespace("BioPSE");
-
-  ftd->fill_compile_info(rval);
-  mtd->fill_compile_info(rval);
-  btd->fill_compile_info(rval);
-  dtd->fill_compile_info(rval);
-
-  return rval;
 }
 
 } // End namespace BioPSE

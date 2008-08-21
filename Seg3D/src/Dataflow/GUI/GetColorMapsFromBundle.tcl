@@ -77,16 +77,15 @@ itcl_class SCIRun_Bundle_GetColorMapsFromBundle {
         global $this-colormap5-entry
         global $this-colormap6-entry
 
-        toplevel $w 
+        sci_toplevel $w 
 
         wm minsize $w 100 150
 
-        
-        iwidgets::labeledframe $w.frame -labeltext "BUNDLE FIELD OUTPUTS"
+        sci_labeledframe $w.frame -labeltext "BUNDLE FIELD OUTPUTS"
         set childframe [$w.frame childsite]
         pack $w.frame -fill both -expand yes
 
-        iwidgets::tabnotebook $childframe.pw  -width 400 -tabpos n
+        sci_tabnotebook $childframe.pw  -width 400 -tabpos n
         $childframe.pw add -label "ColorMap1"
         $childframe.pw add -label "ColorMap2" 
         $childframe.pw add -label "ColorMap3" 
@@ -104,98 +103,98 @@ itcl_class SCIRun_Bundle_GetColorMapsFromBundle {
         set colormap5 [$childframe.pw childsite 4]
         set colormap6 [$childframe.pw childsite 5]
 
-        frame $colormap1.name
-        frame $colormap1.sel
+        sci_frame $colormap1.name
+        sci_frame $colormap1.sel
         pack $colormap1.name -side top -fill x -expand no -padx 5p
         pack $colormap1.sel -side top -fill both -expand yes -padx 5p
 
-        label $colormap1.name.label -text "Name"
-        entry $colormap1.name.entry -textvariable $this-colormap1-name
+        sci_label $colormap1.name.label -text "Name"
+        sci_entry $colormap1.name.entry -textvariable $this-colormap1-name
         set $this-colormap1-entry $colormap1.name.entry
         pack $colormap1.name.label -side left 
         pack $colormap1.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $colormap1.sel.listbox  -selectioncommand [format "%s ChooseColorMap1" $this]
+        sci_scrolledlistbox $colormap1.sel.listbox  -selectioncommand [format "%s ChooseColorMap1" $this]
         set $this-colormap1-listbox $colormap1.sel.listbox
         $colormap1.sel.listbox component listbox configure -listvariable $this-colormap-selection -selectmode browse
         pack $colormap1.sel.listbox -fill both -expand yes
 
-        frame $colormap2.name
-        frame $colormap2.sel
+        sci_frame $colormap2.name
+        sci_frame $colormap2.sel
         pack $colormap2.name -side top -fill x -expand no -padx 5p
         pack $colormap2.sel -side top -fill both -expand yes -padx 5p
 
-        label $colormap2.name.label -text "Name"
-        entry $colormap2.name.entry -textvariable $this-colormap2-name
+        sci_label $colormap2.name.label -text "Name"
+        sci_entry $colormap2.name.entry -textvariable $this-colormap2-name
         set $this-colormap2-entry $colormap2.name.entry
         pack $colormap2.name.label -side left 
         pack $colormap2.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $colormap2.sel.listbox  -selectioncommand [format "%s ChooseColorMap2" $this]
+        sci_scrolledlistbox $colormap2.sel.listbox  -selectioncommand [format "%s ChooseColorMap2" $this]
         set $this-colormap2-listbox $colormap2.sel.listbox
         $colormap2.sel.listbox component listbox configure -listvariable $this-colormap-selection -selectmode browse
         pack $colormap2.sel.listbox -fill both -expand yes
         
-        frame $colormap3.name
-        frame $colormap3.sel
+        sci_frame $colormap3.name
+        sci_frame $colormap3.sel
         pack $colormap3.name -side top -fill x -expand no -padx 5p
         pack $colormap3.sel -side top -fill both -expand yes -padx 5p
 
-        label $colormap3.name.label -text "Name"
-        entry $colormap3.name.entry -textvariable $this-colormap3-name
+        sci_label $colormap3.name.label -text "Name"
+        sci_entry $colormap3.name.entry -textvariable $this-colormap3-name
         set $this-colormap3-entry $colormap3.name.entry
         pack $colormap3.name.label -side left 
         pack $colormap3.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $colormap3.sel.listbox  -selectioncommand [format "%s ChooseColorMap3" $this]
+        sci_scrolledlistbox $colormap3.sel.listbox  -selectioncommand [format "%s ChooseColorMap3" $this]
         set $this-colormap3-listbox $colormap3.sel.listbox
         $colormap3.sel.listbox component listbox configure -listvariable $this-colormap-selection -selectmode browse
         pack $colormap3.sel.listbox -fill both -expand yes
 
-        frame $colormap4.name
-        frame $colormap4.sel
+        sci_frame $colormap4.name
+        sci_frame $colormap4.sel
         pack $colormap4.name -side top -fill x -expand no -padx 5p
         pack $colormap4.sel -side top -fill both -expand yes -padx 5p
 
-        label $colormap4.name.label -text "Name"
-        entry $colormap4.name.entry -textvariable $this-colormap4-name
+        sci_label $colormap4.name.label -text "Name"
+        sci_entry $colormap4.name.entry -textvariable $this-colormap4-name
         set $this-colormap4-entry $colormap4.name.entry
         pack $colormap4.name.label -side left 
         pack $colormap4.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $colormap4.sel.listbox  -selectioncommand [format "%s ChooseColorMap4" $this]
+        sci_scrolledlistbox $colormap4.sel.listbox  -selectioncommand [format "%s ChooseColorMap4" $this]
         set $this-colormap4-listbox $colormap4.sel.listbox
         $colormap4.sel.listbox component listbox configure -listvariable $this-colormap-selection -selectmode browse
         pack $colormap4.sel.listbox -fill both -expand yes
 
-        frame $colormap5.name
-        frame $colormap5.sel
+        sci_frame $colormap5.name
+        sci_frame $colormap5.sel
         pack $colormap5.name -side top -fill x -expand no -padx 5p
         pack $colormap5.sel -side top -fill both -expand yes -padx 5p
 
-        label $colormap5.name.label -text "Name"
-        entry $colormap5.name.entry -textvariable $this-colormap5-name
+        sci_label $colormap5.name.label -text "Name"
+        sci_entry $colormap5.name.entry -textvariable $this-colormap5-name
         set $this-colormap5-entry $colormap5.name.entry
         pack $colormap5.name.label -side left 
         pack $colormap5.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $colormap5.sel.listbox  -selectioncommand [format "%s ChooseColorMap5" $this]
+        sci_scrolledlistbox $colormap5.sel.listbox  -selectioncommand [format "%s ChooseColorMap5" $this]
         set $this-colormap5-listbox $colormap5.sel.listbox
         $colormap5.sel.listbox component listbox configure -listvariable $this-colormap-selection -selectmode browse
         pack $colormap5.sel.listbox -fill both -expand yes
         
-        frame $colormap6.name
-        frame $colormap6.sel
+        sci_frame $colormap6.name
+        sci_frame $colormap6.sel
         pack $colormap6.name -side top -fill x -expand no -padx 5p
         pack $colormap6.sel -side top -fill both -expand yes -padx 5p
 
-        label $colormap6.name.label -text "Name"
-        entry $colormap6.name.entry -textvariable $this-colormap6-name
+        sci_label $colormap6.name.label -text "Name"
+        sci_entry $colormap6.name.entry -textvariable $this-colormap6-name
         set $this-colormap6-entry $colormap6.name.entry
         pack $colormap6.name.label -side left 
         pack $colormap6.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $colormap6.sel.listbox  -selectioncommand [format "%s ChooseColorMap6" $this]
+        sci_scrolledlistbox $colormap6.sel.listbox  -selectioncommand [format "%s ChooseColorMap6" $this]
         set $this-colormap6-listbox $colormap6.sel.listbox
         $colormap6.sel.listbox component listbox configure -listvariable $this-colormap-selection -selectmode browse
         pack $colormap6.sel.listbox -fill both -expand yes

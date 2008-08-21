@@ -55,7 +55,8 @@ FocusRegion::FocusRegion(Variables *vars) :
   focus_(vars,"focus",false),
   reset_(0),
   x_(-1),
-  y_(-1)
+  y_(-1),
+  vis_cache_(false)
 {
   REGISTER_CATCHER_TARGET(FocusRegion::do_PointerEvent);
   REGISTER_CATCHER_TARGET(FocusRegion::do_KeyEvent);

@@ -56,7 +56,7 @@ public:
   ~ToolManager();
 
   //! return the tool name at the specified priority
-  string query_tool_id(unsigned pri) {
+  string query_tool_id(unsigned int pri) {
     ps_map_t::const_iterator iter = stacks_.find(pri);
     if (iter == stacks_.end()) {
       return "";

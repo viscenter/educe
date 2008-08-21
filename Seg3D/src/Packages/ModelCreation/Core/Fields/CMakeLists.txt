@@ -47,7 +47,6 @@ TARGET_LINK_LIBRARIES(Packages_ModelCreation_Core_Fields
   Core_Algorithms_Converter
   Core_Persistent
   Core_Basis
-  Core_Bundle
   ${TEEM_LIBRARY}
 )
 

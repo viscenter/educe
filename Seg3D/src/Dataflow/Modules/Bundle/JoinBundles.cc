@@ -26,9 +26,10 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
-#include <Dataflow/Network/Ports/BundlePort.h>
+#include <Core/Datatypes/Bundle.h>
+
 #include <Dataflow/Network/Module.h>
+#include <Dataflow/Network/Ports/BundlePort.h>
 
 using namespace SCIRun;
 
@@ -47,22 +48,28 @@ DECLARE_MAKER(JoinBundles)
 
 void JoinBundles::execute()
 {
+  //! vector of inputs
   std::vector<BundleHandle> inputs;
   
+  //! Get the handles from the module
   get_dynamic_input_handles("bundle",inputs,false);
 
+  //! If anything changed we need to reexecute
   if (inputs_changed_ || !oport_cached("bundle"))
   {
+    update_state(Executing);
+    //! Create output object
     BundleHandle output;
-    output = scinew Bundle;
+    output = new Bundle;
   
+    //! In case output object could not be allocated 
     if (output.get_rep() == 0)
     {
       error("Could not allocate new bundle");
       return;
     }
 
-
+    //! Merge in all the different bundles
     for (size_t p=0; p<inputs.size();p++)
     {
       output->merge(inputs[p]);

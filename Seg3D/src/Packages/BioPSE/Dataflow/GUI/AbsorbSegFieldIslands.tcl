@@ -35,8 +35,8 @@ itcl_class BioPSE_Modeling_AbsorbSegFieldIslands {
     }
 
     method set_defaults {} {
-	global $this-min_comp_size
-	set $this-min_comp_size 100
+        global $this-min_comp_size
+        set $this-min_comp_size 100
     }
 
     method ui {} {
@@ -45,20 +45,20 @@ itcl_class BioPSE_Modeling_AbsorbSegFieldIslands {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.s
-	scale $w.s.s -orient horizontal -from 1 -to 1000 \
-	    -showvalue true -variable "$this-min_comp_size"
-	pack $w.s.s -side top -fill x -expand 1
-	
-	frame $w.b
-	button $w.b.e -text "Execute" -command "$this-c needexecute"
-	button $w.b.a -text "Audit" -command "$this-c audit"
-	button $w.b.p -text "Print" -command "$this-c print"
-	button $w.b.k -text "Absorb" -command "$this-c absorb"
-	button $w.b.r -text "Reset" -command "$this-c reset"
-	pack $w.b.e $w.b.a $w.b.p $w.b.p $w.b.k $w.b.r -side left -fill x -expand 1 -padx 3
-	pack $w.s $w.b -side top -fill x -expand 1
+        sci_frame $w.s
+        sci_scale $w.s.s -orient horizontal -from 1 -to 1000 \
+            -showvalue true -variable "$this-min_comp_size"
+        pack $w.s.s -side top -fill x -expand 1
+        
+        sci_frame $w.b
+        sci_button $w.b.e -text "Execute" -command "$this-c needexecute"
+        sci_button $w.b.a -text "Audit" -command "$this-c audit"
+        sci_button $w.b.p -text "Print" -command "$this-c print"
+        sci_button $w.b.k -text "Absorb" -command "$this-c absorb"
+        sci_button $w.b.r -text "Reset" -command "$this-c reset"
+        pack $w.b.e $w.b.a $w.b.p $w.b.p $w.b.k $w.b.r -side left -fill x -expand 1 -padx 3
+        pack $w.s $w.b -side top -fill x -expand 1
     }
 }

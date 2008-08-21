@@ -62,8 +62,8 @@ public:
   virtual void get_center(Point &point, VMesh::Elem::index_type i) const;
   virtual void get_center(Point &point, VMesh::DElem::index_type i) const;
 
-  virtual void get_centers(VMesh::points_type& points, VMesh::Node::array_type& array) const;
-  virtual void get_centers(VMesh::points_type& points, VMesh::Elem::array_type& array) const;
+  virtual void get_centers(Point* points, VMesh::Node::array_type& array) const;
+  virtual void get_centers(Point* points, VMesh::Elem::array_type& array) const;
 
   virtual double get_size(VMesh::Edge::index_type i) const;
   virtual double get_size(VMesh::Face::index_type i) const;
@@ -73,6 +73,9 @@ public:
   
   virtual bool locate(VMesh::Node::index_type &i, const Point &point) const;
   virtual bool locate(VMesh::Elem::index_type &i, const Point &point) const;
+  virtual bool locate(VMesh::Elem::index_type &i,
+                      VMesh::coords_type& coords,
+                      const Point &point) const;
 
   virtual void mlocate(vector<VMesh::Node::index_type> &i, const vector<Point> &point) const;
   virtual void mlocate(vector<VMesh::Elem::index_type> &i, const vector<Point> &point) const;
@@ -93,6 +96,8 @@ public:
                                 FieldRNG &rng) const;
   virtual void set_point(const Point &point, VMesh::Node::index_type i);
   virtual void set_point(const Point &point, VMesh::ENode::index_type i);
+  
+  virtual Point* get_points_pointer() const;
   
   virtual void add_node(const Point &point,VMesh::Node::index_type &i);
   virtual void add_enode(const Point &point,VMesh::ENode::index_type &i);
@@ -148,16 +153,11 @@ public:
   virtual void resize_elems(size_t size);  
 
   //! Get normals, for surface meshes only
-  void get_normal(Vector& norm, VMesh::Node::index_type i) const;
+  virtual void get_normal(Vector& norm, VMesh::Node::index_type i) const;
 
-  //! Find closest element to a given point
-  double find_closest_elem(Point &result, VMesh::Elem::index_type& face,
-                         const Point &p) const;
-
-  //! Find closest elements to a given point
-  double find_closest_elems(Point &result, VMesh::Elem::array_type &array,
-                          const Point &p) const;
-
+  virtual void get_normal(Vector& norm, VMesh::coords_type& coords, 
+                VMesh::Elem::index_type i, VMesh::DElem::index_type j) const;
+  
   //! Get all the information needed for interpolation:
   //! this includes weights and node indices
 
@@ -196,7 +196,38 @@ public:
                                      VMesh::Elem::index_type elem, 
                                      VMesh::MultiElemGradient& eg,
                                      int basis_order) const;
+                                     
+  virtual bool find_closest_node(double& pdist, 
+                                 Point& result, 
+                                 VMesh::Node::index_type &i, 
+                                 const Point &point) const;
 
+  virtual bool find_closest_node(double& pdist, 
+                                 Point& result, 
+                                 VMesh::Node::index_type &i, 
+                                 const Point &point,
+                                 double maxdist) const;
+                                 
+  virtual bool find_closest_nodes(vector<VMesh::Node::index_type> &nodes, 
+                                  const Point &point,
+                                  double maxdist) const;
+                                 
+  virtual bool find_closest_elem(double& pdist, 
+                                 Point& result, 
+                                 VMesh::coords_type& coords,
+                                 VMesh::Elem::index_type &i, 
+                                 const Point &point) const;
+
+  virtual bool find_closest_elem(double& pdist, 
+                                 Point& result, 
+                                 VMesh::coords_type& coords,
+                                 VMesh::Elem::index_type &i, 
+                                 const Point &point,
+                                 double maxdist) const;
+                                 
+  virtual bool find_closest_elems(double& pdist, Point& result, 
+                                  VMesh::Elem::array_type &i, 
+                                  const Point &point) const;
 
 };
 
@@ -205,7 +236,8 @@ public:
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::size(VMesh::Node::size_type& sz) const
+VUnstructuredMesh<MESH>::
+size(VMesh::Node::size_type& sz) const
 {
   typename MESH::Node::size_type s; 
   this->mesh_->size(s);
@@ -214,7 +246,8 @@ VUnstructuredMesh<MESH>::size(VMesh::Node::size_type& sz) const
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::size(VMesh::ENode::size_type& sz) const
+VUnstructuredMesh<MESH>::
+size(VMesh::ENode::size_type& sz) const
 {
   typename MESH::Edge::size_type s; 
   this->mesh_->size(s);
@@ -223,7 +256,8 @@ VUnstructuredMesh<MESH>::size(VMesh::ENode::size_type& sz) const
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::size(VMesh::Edge::size_type& sz) const
+VUnstructuredMesh<MESH>::
+size(VMesh::Edge::size_type& sz) const
 {
   typename MESH::Edge::size_type s; 
   this->mesh_->size(s);
@@ -232,7 +266,8 @@ VUnstructuredMesh<MESH>::size(VMesh::Edge::size_type& sz) const
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::size(VMesh::Face::size_type& sz) const
+VUnstructuredMesh<MESH>::
+size(VMesh::Face::size_type& sz) const
 {
   typename MESH::Face::size_type s; 
   this->mesh_->size(s);
@@ -241,7 +276,8 @@ VUnstructuredMesh<MESH>::size(VMesh::Face::size_type& sz) const
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::size(VMesh::Cell::size_type& sz) const
+VUnstructuredMesh<MESH>::
+size(VMesh::Cell::size_type& sz) const
 {
   typename MESH::Cell::size_type s; 
   this->mesh_->size(s);
@@ -250,7 +286,8 @@ VUnstructuredMesh<MESH>::size(VMesh::Cell::size_type& sz) const
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::size(VMesh::DElem::size_type& sz) const
+VUnstructuredMesh<MESH>::
+size(VMesh::DElem::size_type& sz) const
 {
   typename MESH::DElem::size_type s; 
   this->mesh_->size(s);
@@ -259,7 +296,8 @@ VUnstructuredMesh<MESH>::size(VMesh::DElem::size_type& sz) const
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::size(VMesh::Elem::size_type& sz) const
+VUnstructuredMesh<MESH>::
+size(VMesh::Elem::size_type& sz) const
 {
   typename MESH::Elem::size_type s; 
   this->mesh_->size(s);
@@ -271,22 +309,36 @@ VUnstructuredMesh<MESH>::size(VMesh::Elem::size_type& sz) const
 
 template <class MESH>
 bool 
-VUnstructuredMesh<MESH>::locate(VMesh::Node::index_type &idx, const Point &point) const
+VUnstructuredMesh<MESH>::
+locate(VMesh::Node::index_type &idx, const Point &point) const
 {
   return(this->mesh_->locate_node(idx,point));
 }
 
 template <class MESH>
 bool 
-VUnstructuredMesh<MESH>::locate(VMesh::Elem::index_type &idx, const Point &point) const
+VUnstructuredMesh<MESH>::
+locate(VMesh::Elem::index_type &idx, const Point &point) const
 {
   return(this->mesh_->locate_elem(idx,point));
 }
 
 
 template <class MESH>
+bool 
+VUnstructuredMesh<MESH>::
+locate(VMesh::Elem::index_type& idx, 
+       VMesh::coords_type& coords,
+       const Point& point) const
+{
+  return(this->mesh_->locate_elem(idx,coords,point));
+}
+
+
+template <class MESH>
 void 
-VUnstructuredMesh<MESH>::mlocate(vector<VMesh::Node::index_type> &idx, const vector<Point> &point) const
+VUnstructuredMesh<MESH>::
+mlocate(vector<VMesh::Node::index_type> &idx, const vector<Point> &point) const
 {
   idx.resize(point.size());
   for (size_t i=0; i<point.size(); i++)
@@ -297,7 +349,8 @@ VUnstructuredMesh<MESH>::mlocate(vector<VMesh::Node::index_type> &idx, const vec
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::mlocate(vector<VMesh::Elem::index_type> &idx, const vector<Point> &point) const
+VUnstructuredMesh<MESH>::
+mlocate(vector<VMesh::Elem::index_type> &idx, const vector<Point> &point) const
 {
   idx.resize(point.size());
   for (size_t i=0; i<point.size(); i++)
@@ -308,26 +361,30 @@ VUnstructuredMesh<MESH>::mlocate(vector<VMesh::Elem::index_type> &idx, const vec
 
 template <class MESH>
 bool 
-VUnstructuredMesh<MESH>::get_coords(VMesh::coords_type& coords, 
-                             const Point &point, 
-                             VMesh::Elem::index_type i) const
+VUnstructuredMesh<MESH>::
+get_coords(VMesh::coords_type& coords, 
+           const Point &point, 
+           VMesh::Elem::index_type i) const
 {
   return(this->mesh_->get_coords(coords,point,typename MESH::Elem::index_type(i)));
 }  
   
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::interpolate(Point &p, const VMesh::coords_type& coords, 
-                              VMesh::Elem::index_type i) const
+VUnstructuredMesh<MESH>::
+interpolate(Point &p, 
+            const VMesh::coords_type& coords, 
+            VMesh::Elem::index_type i) const
 {
   this->mesh_->interpolate(p,coords,typename MESH::Elem::index_type(i));
 }
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::minterpolate(vector<Point> &p, 
-                                      const vector<VMesh::coords_type>& coords, 
-                                      VMesh::Elem::index_type idx) const
+VUnstructuredMesh<MESH>::
+minterpolate(vector<Point> &p, 
+             const vector<VMesh::coords_type>& coords, 
+             VMesh::Elem::index_type idx) const
 {
   p.resize(coords.size());
   for (size_t i=0; i<coords.size(); i++)
@@ -336,17 +393,20 @@ VUnstructuredMesh<MESH>::minterpolate(vector<Point> &p,
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::derivate(VMesh::dpoints_type &p, 
-                           const VMesh::coords_type &coords, 
-                           VMesh::Elem::index_type i) const
+VUnstructuredMesh<MESH>::
+derivate(VMesh::dpoints_type &p, 
+         const VMesh::coords_type &coords, 
+         VMesh::Elem::index_type i) const
 {
   this->mesh_->derivate(coords,typename MESH::Elem::index_type(i),p);
 }
 
 template <class MESH>
 bool 
-VUnstructuredMesh<MESH>::get_neighbor(VMesh::Elem::index_type &neighbor, 
-          VMesh::Elem::index_type elem, VMesh::DElem::index_type delem) const
+VUnstructuredMesh<MESH>::
+get_neighbor(VMesh::Elem::index_type &neighbor, 
+             VMesh::Elem::index_type elem, 
+             VMesh::DElem::index_type delem) const
 {
   return(this->mesh_->get_elem_neighbor(neighbor,elem,delem));
 }
@@ -354,24 +414,28 @@ VUnstructuredMesh<MESH>::get_neighbor(VMesh::Elem::index_type &neighbor,
 
 template <class MESH>
 bool 
-VUnstructuredMesh<MESH>::get_neighbors(VMesh::Elem::array_type &array, 
-          VMesh::Elem::index_type elem, VMesh::DElem::index_type delem) const
+VUnstructuredMesh<MESH>::
+get_neighbors(VMesh::Elem::array_type &array, 
+              VMesh::Elem::index_type elem, 
+              VMesh::DElem::index_type delem) const
 {
   return(this->mesh_->get_elem_neighbors(array,elem,delem));
 }
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::get_neighbors(VMesh::Elem::array_type &array, 
-                                 VMesh::Elem::index_type idx) const
+VUnstructuredMesh<MESH>::
+get_neighbors(VMesh::Elem::array_type &array, 
+              VMesh::Elem::index_type idx) const
 {
   this->mesh_->get_elem_neighbors(array,idx);
 }
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::get_neighbors(VMesh::Node::array_type &array, 
-                                VMesh::Node::index_type idx) const
+VUnstructuredMesh<MESH>::
+get_neighbors(VMesh::Node::array_type &array, 
+              VMesh::Node::index_type idx) const
 {
   this->mesh_->get_node_neighbors(array,idx);
 }
@@ -400,7 +464,8 @@ VUnstructuredMesh<MESH>::pwl_approx_face(VMesh::coords_array2_type &coords,
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::get_dimensions(VMesh::dimension_type& dim)
+VUnstructuredMesh<MESH>::
+get_dimensions(VMesh::dimension_type& dim)
 {
   dim.resize(1);
   typename MESH::Node::size_type sz;
@@ -410,8 +475,9 @@ VUnstructuredMesh<MESH>::get_dimensions(VMesh::dimension_type& dim)
 
 template <class MESH>
 double 
-VUnstructuredMesh<MESH>::det_jacobian(const VMesh::coords_type& coords, 
-                               VMesh::Elem::index_type idx) const
+VUnstructuredMesh<MESH>::
+det_jacobian(const VMesh::coords_type& coords, 
+             VMesh::Elem::index_type idx) const
 {
   return(this->mesh_->det_jacobian(coords,typename MESH::Elem::index_type(idx)));
 }
@@ -419,9 +485,10 @@ VUnstructuredMesh<MESH>::det_jacobian(const VMesh::coords_type& coords,
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::jacobian(const VMesh::coords_type& coords, 
-                           VMesh::Elem::index_type idx, 
-                           double* J) const
+VUnstructuredMesh<MESH>::
+jacobian(const VMesh::coords_type& coords, 
+         VMesh::Elem::index_type idx, 
+         double* J) const
 {
   this->mesh_->jacobian(coords,typename MESH::Elem::index_type(idx),J);
 }
@@ -429,10 +496,10 @@ VUnstructuredMesh<MESH>::jacobian(const VMesh::coords_type& coords,
 
 template <class MESH>
 double
-VUnstructuredMesh<MESH>::inverse_jacobian(
-                                   const VMesh::coords_type& coords, 
-                                   VMesh::Elem::index_type idx, 
-                                   double* Ji) const
+VUnstructuredMesh<MESH>::
+inverse_jacobian(const VMesh::coords_type& coords, 
+                 VMesh::Elem::index_type idx, 
+                 double* Ji) const
 {
   return(this->mesh_->inverse_jacobian(coords,typename MESH::Elem::index_type(idx),Ji));
 }
@@ -441,14 +508,16 @@ VUnstructuredMesh<MESH>::inverse_jacobian(
 
 template <class MESH>
 double
-VUnstructuredMesh<MESH>::scaled_jacobian_metric(VMesh::Elem::index_type idx) const
+VUnstructuredMesh<MESH>::
+scaled_jacobian_metric(VMesh::Elem::index_type idx) const
 {
   return(this->mesh_->scaled_jacobian_metric(typename MESH::Elem::index_type(idx)));
 }
                                                             
 template <class MESH>
 double
-VUnstructuredMesh<MESH>::jacobian_metric(VMesh::Elem::index_type idx) const
+VUnstructuredMesh<MESH>::
+jacobian_metric(VMesh::Elem::index_type idx) const
 {
   return(this->mesh_->jacobian_metric(typename MESH::Elem::index_type(idx)));
 }
@@ -456,63 +525,72 @@ VUnstructuredMesh<MESH>::jacobian_metric(VMesh::Elem::index_type idx) const
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::node_reserve(size_t size)
+VUnstructuredMesh<MESH>::
+node_reserve(size_t size)
 {
   this->mesh_->node_reserve(size);
 }
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::elem_reserve(size_t size)
+VUnstructuredMesh<MESH>::
+elem_reserve(size_t size)
 {
   this->mesh_->elem_reserve(size);
 }
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::resize_nodes(size_t size)
+VUnstructuredMesh<MESH>::
+resize_nodes(size_t size)
 {
   this->mesh_->resize_nodes(size);
 }
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::resize_elems(size_t size)
+VUnstructuredMesh<MESH>::
+resize_elems(size_t size)
 {
   this->mesh_->resize_elems(size);
 }
 
 template <class MESH>
 double
-VUnstructuredMesh<MESH>::get_size(VMesh::Edge::index_type i) const
+VUnstructuredMesh<MESH>::
+get_size(VMesh::Edge::index_type i) const
 {
   return (this->mesh_->get_size(typename MESH::Edge::index_type(i)));
 }
 
 template <class MESH>
 double
-VUnstructuredMesh<MESH>::get_size(VMesh::Face::index_type i) const
+VUnstructuredMesh<MESH>::
+get_size(VMesh::Face::index_type i) const
 {
   return (this->mesh_->get_size(typename MESH::Face::index_type(i)));
 }
 
 template <class MESH>
 double
-VUnstructuredMesh<MESH>::get_size(VMesh::Cell::index_type i) const
+VUnstructuredMesh<MESH>::
+get_size(VMesh::Cell::index_type i) const
 {
   return (this->mesh_->get_size(typename MESH::Cell::index_type(i)));
 }
 
 template <class MESH>
 double
-VUnstructuredMesh<MESH>::get_size(VMesh::Elem::index_type i) const
+VUnstructuredMesh<MESH>::
+get_size(VMesh::Elem::index_type i) const
 {
   return (this->mesh_->get_size(typename MESH::Elem::index_type(i)));
 }
 
 template <class MESH>
 double
-VUnstructuredMesh<MESH>::get_size(VMesh::DElem::index_type i) const
+VUnstructuredMesh<MESH>::
+get_size(VMesh::DElem::index_type i) const
 {
   return (0.0);
 }
@@ -520,14 +598,16 @@ VUnstructuredMesh<MESH>::get_size(VMesh::DElem::index_type i) const
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_center(Point &p, VMesh::Node::index_type idx) const
+VUnstructuredMesh<MESH>::
+get_center(Point &p, VMesh::Node::index_type idx) const
 {
   p = this->mesh_->points_[idx]; 
 }
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_center(Point &p, VMesh::ENode::index_type idx) const
+VUnstructuredMesh<MESH>::
+get_center(Point &p, VMesh::ENode::index_type idx) const
 {
   if (this->num_enodes_per_elem_)
   {
@@ -541,45 +621,50 @@ VUnstructuredMesh<MESH>::get_center(Point &p, VMesh::ENode::index_type idx) cons
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_center(Point &p, VMesh::Edge::index_type idx) const
+VUnstructuredMesh<MESH>::
+get_center(Point &p, VMesh::Edge::index_type idx) const
 {
   this->mesh_->get_center(p, typename MESH::Edge::index_type(idx));
 }
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_center(Point &p, VMesh::Face::index_type idx) const
+VUnstructuredMesh<MESH>::
+get_center(Point &p, VMesh::Face::index_type idx) const
 {
   this->mesh_->get_center(p, typename MESH::Face::index_type(idx));
 }
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_center(Point &p, VMesh::Cell::index_type idx) const
+VUnstructuredMesh<MESH>::
+get_center(Point &p, VMesh::Cell::index_type idx) const
 {
   this->mesh_->get_center(p, typename MESH::Cell::index_type(idx));
 }
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_center(Point &p, VMesh::Elem::index_type idx) const
+VUnstructuredMesh<MESH>::
+get_center(Point &p, VMesh::Elem::index_type idx) const
 {
   this->mesh_->get_center(p, typename MESH::Elem::index_type(idx));
 }
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_center(Point &p, VMesh::DElem::index_type idx) const
+VUnstructuredMesh<MESH>::
+get_center(Point &p, VMesh::DElem::index_type idx) const
 {
   this->mesh_->get_center(p, typename MESH::DElem::index_type(idx));
 }
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_centers(VMesh::points_type& points, 
-                                     VMesh::Node::array_type& array) const
+VUnstructuredMesh<MESH>::
+get_centers(Point* points, 
+            VMesh::Node::array_type& array) const
 {
-  points.resize(array.size());
   for (size_t j=0; j <array.size(); j++)
   {
     this->mesh_->get_center(points[j],typename MESH::Node::index_type(array[j]));
@@ -588,10 +673,10 @@ VUnstructuredMesh<MESH>::get_centers(VMesh::points_type& points,
  
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_centers(VMesh::points_type& points, 
-                                     VMesh::Elem::array_type& array) const
+VUnstructuredMesh<MESH>::
+get_centers(Point* points, 
+            VMesh::Elem::array_type& array) const
 {
-  points.resize(array.size());
   for (size_t j=0; j <array.size(); j++)
   {
     this->mesh_->get_center(points[j],typename MESH::Node::index_type(array[j]));
@@ -602,14 +687,16 @@ VUnstructuredMesh<MESH>::get_centers(VMesh::points_type& points,
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::set_point(const Point &point, VMesh::Node::index_type i)
+VUnstructuredMesh<MESH>::
+set_point(const Point &point, VMesh::Node::index_type i)
 {
   this->mesh_->points_[i] = point;
 }
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::set_point(const Point &point, VMesh::ENode::index_type i)
+VUnstructuredMesh<MESH>::
+set_point(const Point &point, VMesh::ENode::index_type i)
 {
   if (this->num_enodes_per_elem_)
   {
@@ -625,17 +712,27 @@ VUnstructuredMesh<MESH>::set_point(const Point &point, VMesh::ENode::index_type 
   }
 }
 
+template <class MESH>
+Point*
+VUnstructuredMesh<MESH>::
+get_points_pointer() const
+{
+  if (this->mesh_->points_.size() == 0) return (0);
+   return (&(this->mesh_->points_[0]));
+}
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::add_node(const Point &point, VMesh::Node::index_type &vi)
+VUnstructuredMesh<MESH>::
+add_node(const Point &point, VMesh::Node::index_type &vi)
 {
   vi = static_cast<VMesh::Node::index_type>(this->mesh_->add_point(point));
 }  
   
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::add_enode(const Point &point, VMesh::ENode::index_type &vi)
+VUnstructuredMesh<MESH>::
+add_enode(const Point &point, VMesh::ENode::index_type &vi)
 {
   vi = static_cast<VMesh::ENode::index_type>(this->basis_->size_node_values());
   this->basis_->add_node_value(point);
@@ -643,8 +740,9 @@ VUnstructuredMesh<MESH>::add_enode(const Point &point, VMesh::ENode::index_type 
   
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::add_elem(const VMesh::Node::array_type &nodes, 
-                           VMesh::Elem::index_type &vi)
+VUnstructuredMesh<MESH>::
+add_elem(const VMesh::Node::array_type &nodes, 
+         VMesh::Elem::index_type &vi)
 {
   vi = static_cast<VMesh::Elem::index_type>(this->mesh_->add_elem(nodes));
 }  
@@ -652,45 +750,37 @@ VUnstructuredMesh<MESH>::add_elem(const VMesh::Node::array_type &nodes,
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::get_random_point(Point &p, VMesh::Elem::index_type i, 
-                                   FieldRNG &rng) const
+VUnstructuredMesh<MESH>::
+get_random_point(Point &p, 
+                 VMesh::Elem::index_type i, 
+                 FieldRNG &rng) const
 {
   this->mesh_->get_random_point(p,typename MESH::Elem::index_type(i),rng);
 }
 
 template <class MESH>
 void 
-VUnstructuredMesh<MESH>::get_normal(Vector& norm, VMesh::Node::index_type i) const
+VUnstructuredMesh<MESH>::
+get_normal(Vector& norm, VMesh::Node::index_type i) const
 {
   this->mesh_->get_normal(norm,typename MESH::Node::index_type(i));
 }
 
-
 template <class MESH>
-double 
-VUnstructuredMesh<MESH>::find_closest_elem(Point &result, 
-                         VMesh::Elem::index_type& face,
-                         const Point &p) const
+void 
+VUnstructuredMesh<MESH>::
+get_normal(Vector& norm, VMesh::coords_type& coords, 
+  VMesh::Elem::index_type i, VMesh::DElem::index_type j) const
 {
-  return(this->mesh_->find_closest_elem(result,face,p));
+  this->mesh_->get_normal(norm,coords,i,j);
 }
-
-
-template <class MESH>
-double 
-VUnstructuredMesh<MESH>::find_closest_elems(Point &result,
-                          VMesh::Elem::array_type &array,
-                          const Point &p) const
-{
-  return(this->mesh_->find_closest_elems(result,array,p));
-}
-
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_interpolate_weights(const Point& point, 
-                                                 VMesh::ElemInterpolate& ei,
-                                                 int basis_order) const
+VUnstructuredMesh<MESH>::
+get_interpolate_weights(const Point& point, 
+                        VMesh::ElemInterpolate& ei,
+                        int basis_order) const
 {
   typename MESH::Elem::index_type elem;
   
@@ -735,10 +825,11 @@ VUnstructuredMesh<MESH>::get_interpolate_weights(const Point& point,
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_interpolate_weights(const VMesh::coords_type& coords, 
-                                                 VMesh::Elem::index_type elem, 
-                                                 VMesh::ElemInterpolate& ei,
-                                                 int basis_order) const
+VUnstructuredMesh<MESH>::
+get_interpolate_weights(const VMesh::coords_type& coords, 
+                        VMesh::Elem::index_type elem, 
+                        VMesh::ElemInterpolate& ei,
+                        int basis_order) const
 {
   ei.basis_order = basis_order;
   ei.elem_index = elem;
@@ -771,9 +862,10 @@ VUnstructuredMesh<MESH>::get_interpolate_weights(const VMesh::coords_type& coord
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_minterpolate_weights(const vector<Point>& point, 
-                                                  VMesh::MultiElemInterpolate& ei,
-                                                  int basis_order) const
+VUnstructuredMesh<MESH>::
+get_minterpolate_weights(const vector<Point>& point, 
+                         VMesh::MultiElemInterpolate& ei,
+                         int basis_order) const
 {
   ei.resize(point.size());
   
@@ -873,10 +965,11 @@ VUnstructuredMesh<MESH>::get_minterpolate_weights(const vector<Point>& point,
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_minterpolate_weights(const vector<VMesh::coords_type>& coords, 
-                                                  VMesh::Elem::index_type elem, 
-                                                  VMesh::MultiElemInterpolate& ei,
-                                                  int basis_order) const
+VUnstructuredMesh<MESH>::
+get_minterpolate_weights(const vector<VMesh::coords_type>& coords, 
+                         VMesh::Elem::index_type elem, 
+                         VMesh::MultiElemInterpolate& ei,
+                         int basis_order) const
 {
   ei.resize(coords.size());
   
@@ -923,10 +1016,11 @@ VUnstructuredMesh<MESH>::get_minterpolate_weights(const vector<VMesh::coords_typ
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_gradient_weights(const VMesh::coords_type& coords, 
-                                    VMesh::Elem::index_type elem, 
-                                    VMesh::ElemGradient& eg,
-                                    int basis_order) const
+VUnstructuredMesh<MESH>::
+get_gradient_weights(const VMesh::coords_type& coords, 
+                     VMesh::Elem::index_type elem, 
+                     VMesh::ElemGradient& eg,
+                     int basis_order) const
 {
   eg.basis_order = basis_order;
   eg.elem_index = elem;
@@ -973,9 +1067,10 @@ VUnstructuredMesh<MESH>::get_gradient_weights(const VMesh::coords_type& coords,
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_gradient_weights(const Point& point, 
-                                    VMesh::ElemGradient& eg,
-                                    int basis_order) const
+VUnstructuredMesh<MESH>::
+get_gradient_weights(const Point& point, 
+                     VMesh::ElemGradient& eg,
+                     int basis_order) const
 {
   typename MESH::Elem::index_type elem;
   StackVector<double,3> coords;
@@ -1031,9 +1126,10 @@ VUnstructuredMesh<MESH>::get_gradient_weights(const Point& point,
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_mgradient_weights(const vector<Point>& point, 
-                                    VMesh::MultiElemGradient& eg,
-                                    int basis_order) const
+VUnstructuredMesh<MESH>::
+get_mgradient_weights(const vector<Point>& point, 
+                      VMesh::MultiElemGradient& eg,
+                      int basis_order) const
 {
   eg.resize(point.size());
   
@@ -1144,10 +1240,11 @@ VUnstructuredMesh<MESH>::get_mgradient_weights(const vector<Point>& point,
 
 template <class MESH>
 void
-VUnstructuredMesh<MESH>::get_mgradient_weights(const vector<VMesh::coords_type>& coords, 
-                                    VMesh::Elem::index_type elem, 
-                                    VMesh::MultiElemGradient& eg,
-                                    int basis_order) const
+VUnstructuredMesh<MESH>::
+get_mgradient_weights(const vector<VMesh::coords_type>& coords, 
+                      VMesh::Elem::index_type elem, 
+                      VMesh::MultiElemGradient& eg,
+                      int basis_order) const
 {
   eg.resize(coords.size());
   for (size_t i=0; i< coords.size(); i++)
@@ -1202,6 +1299,75 @@ VUnstructuredMesh<MESH>::get_mgradient_weights(const vector<VMesh::coords_type>&
   ASSERTFAIL("Gradient of unknown order requested");
 }
 
+
+
+template <class MESH>
+bool 
+VUnstructuredMesh<MESH>::
+find_closest_node(double& pdist, Point& result,
+                  VMesh::Node::index_type &i, 
+                  const Point &point) const
+{
+  return(this->mesh_->find_closest_node(pdist,result,i,point));
+} 
+
+
+template <class MESH>
+bool 
+VUnstructuredMesh<MESH>::
+find_closest_node(double& pdist, Point& result,
+                  VMesh::Node::index_type &i, 
+                  const Point &point,
+                  double maxdist) const
+{
+  return(this->mesh_->find_closest_node(pdist,result,i,point,maxdist));
+} 
+
+template <class MESH>
+bool 
+VUnstructuredMesh<MESH>::
+find_closest_nodes(vector<VMesh::Node::index_type> &nodes, 
+                   const Point &point,
+                   double maxdist) const
+{
+  return(this->mesh_->find_closest_nodes(nodes,point,maxdist));
+}
+
+
+template <class MESH>
+bool
+VUnstructuredMesh<MESH>::
+find_closest_elem(double& pdist, 
+                  Point& result,
+                  VMesh::coords_type& coords,
+                  VMesh::Elem::index_type& i, 
+                  const Point& point) const
+{
+  return(this->mesh_->find_closest_elem(pdist,result,coords,i,point));
+} 
+
+template <class MESH>
+bool
+VUnstructuredMesh<MESH>::
+find_closest_elem(double& pdist, 
+                  Point& result,
+                  VMesh::coords_type& coords,
+                  VMesh::Elem::index_type& i, 
+                  const Point& point,
+                  double maxdist) const
+{
+  return(this->mesh_->find_closest_elem(pdist,result,coords,i,point,maxdist));
+} 
+
+template <class MESH>
+bool 
+VUnstructuredMesh<MESH>::
+find_closest_elems(double& pdist, Point& result,
+                   VMesh::Elem::array_type &i, 
+                   const Point &point) const
+{
+  return(this->mesh_->find_closest_elems(pdist,result,i,point));
+} 
 
 
 }

@@ -44,47 +44,51 @@
 #ifndef SCIRun_Core_Util_ProgressReporter_h
 #define SCIRun_Core_Util_ProgressReporter_h
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <iostream>
-#include <sgi_stl_warnings_on.h>
+
 #include <Core/Util/Timer.h>
 #include <Core/Thread/AtomicCounter.h>
 
 #include <Core/Util/share.h>
+
 namespace SCIRun {
 
 class SCISHARE ProgressReporter 
 {
-public:
-  typedef enum {Starting, Compiling, CompilationDone, Done } ProgressState;
+  public:
+    typedef enum {Starting, Compiling, CompilationDone, Done } ProgressState;
 
-  ProgressReporter();
-  virtual ~ProgressReporter();
+    ProgressReporter();
+    virtual ~ProgressReporter();
 
-  virtual void          error(const std::string& msg);
-  virtual void          warning(const std::string& msg);
-  virtual void          remark(const std::string& msg);
-  virtual void          compile_error(const std::string &filename);
-  virtual void          add_raw_message(const std::string &msg);
+    virtual void          report_start(std::string& tag, bool report_progress);
+    virtual void          report_end();
 
-  // This one isn't as thread safe as the other ProgressReporter functions.
-  // Use add_raw_message or one of the others instead if possible.
-  virtual std::ostream &msg_stream();
-  virtual void          msg_stream_flush();
+    virtual void          error(const std::string& msg);
+    virtual void          warning(const std::string& msg);
+    virtual void          remark(const std::string& msg);
+    virtual void          compile_error(const std::string &filename);
+    virtual void          add_raw_message(const std::string &msg);
 
-  // Compilation progress.  Should probably have different name.
-  virtual void          report_progress( ProgressState );
+    // This one isn't as thread safe as the other ProgressReporter functions.
+    // Use add_raw_message or one of the others instead if possible.
+    virtual std::ostream &msg_stream();
+    virtual void          msg_stream_flush();
 
-  // Execution time progress.
-  // Percent is number between 0.0-1.0
-  virtual void          update_progress(double percent);
-  virtual void          update_progress(int current, int max);
-  virtual void          increment_progress();
+    // Compilation progress.  Should probably have different name.
+    virtual void          report_progress( ProgressState );
 
-protected:
-  AtomicCounter         progress_current_;
-  int                   progress_max_;
+    // Execution time progress.
+    // Percent is number between 0.0-1.0
+    virtual void          update_progress(double percent);
+    virtual void          update_progress(int current, int max);
+    virtual void          increment_progress();
+
+  protected:
+    AtomicCounter         progress_current_;
+    int                   progress_max_;
 };
 
 

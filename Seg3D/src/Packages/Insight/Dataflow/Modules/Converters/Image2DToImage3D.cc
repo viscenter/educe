@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
 
@@ -113,7 +113,7 @@ Image2DToImage3D::run( itk::Object *obj_InputImage)
   // get filter output
   
   
-  ITKDatatype* out_OutputImage_ = scinew ITKDatatype; 
+  ITKDatatype* out_OutputImage_ = new ITKDatatype; 
   
   out_OutputImage_->data_ = caster->GetOutput();
   
@@ -154,7 +154,7 @@ Image2DToImage3D::run2( itk::Object *obj_InputImage)
   // get filter output
   
   
-  ITKDatatype* out_OutputImage_ = scinew ITKDatatype; 
+  ITKDatatype* out_OutputImage_ = new ITKDatatype; 
   
   out_OutputImage_->data_ = caster->GetOutput();
   

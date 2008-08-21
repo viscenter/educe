@@ -39,20 +39,20 @@ itcl_class SCIRun_Render_SynchronizeGeometry {
             return
         }
 
-        toplevel $w
-	wm title $w "Geometry Barrier"
+        sci_toplevel $w
+        wm title $w "Geometry Barrier"
 
-	frame $w.f
-	
-	checkbutton $w.f.enforce -text "Enforce Barrier " \
-	    -variable $this-enforce \
-	    -onvalue 1 -offvalue 0 -padx 5
-	pack $w.f.enforce -side left
-	
-	pack $w.f -side top
+        sci_frame $w.f
+        
+        sci_checkbutton $w.f.enforce -text "Enforce Barrier " \
+            -variable $this-enforce \
+            -onvalue 1 -offvalue 0 -padx 5
+        pack $w.f.enforce -side left
+        
+        pack $w.f -side top
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

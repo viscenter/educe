@@ -82,14 +82,14 @@ main(int argc, char **argv) {
   }
 
   ifstream obxj(argv[1]);
-  char *buff = scinew char[500];
+  char *buff = new char[500];
   int nnodes=0;
   int nelems=0;
 
-  char* element = scinew char[15];
-  char* Xi = scinew char[15];
-  char* Xj = scinew char[15];
-  char* values = scinew char[15];
+  char* element = new char[15];
+  char* Xi = new char[15];
+  char* Xj = new char[15];
+  char* values = new char[15];
   int nodeIdx, elemIdx;
   double lx, ly, lz, gx, gy, gz, val;
   int i, j;
@@ -293,7 +293,7 @@ main(int argc, char **argv) {
   }
 
   TVMesh::handle_type tvmH(tvm);
-  TVField *tv = scinew TVField(tvmH);
+  TVField *tv = new TVField(tvmH);
 
   for (i=0; i<nnodes; i++)
     tv->fdata()[i]=vals[i];

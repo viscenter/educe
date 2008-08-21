@@ -41,11 +41,11 @@
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Core/Exceptions/Exception.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <fstream>
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Algorithms/DataStreaming/share.h>
 

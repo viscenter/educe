@@ -39,42 +39,42 @@ itcl_class SCIRun_Visualization_ShowMeshBoundingBox {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.row1
-	frame $w.row2
-	frame $w.row3
-	frame $w.row4
+        sci_frame $w.row1
+        sci_frame $w.row2
+        sci_frame $w.row3
+        sci_frame $w.row4
 
-	pack $w.row1 $w.row2 $w.row3 $w.row4 -side top \
-		-e y -f both -padx 5 -pady 5
-	
-	label $w.row1.xsize_label -text "X Size   "
-	Tooltip $w.row1.xsize_label "Number of lines in the X direction (Red lines)"
-	entry $w.row1.xsize -textvariable $this-sizex
+        pack $w.row1 $w.row2 $w.row3 $w.row4 -side top \
+          -e y -f both -padx 5 -pady 5
+        
+        sci_label $w.row1.xsize_label -text "X Size   "
+        Tooltip $w.row1.xsize_label "Number of lines in the X direction (Red lines)"
+        sci_entry $w.row1.xsize -textvariable $this-sizex
 
-	label $w.row2.ysize_label -text "Y Size   "
-	Tooltip $w.row2.ysize_label "Number of lines in the Y direction (Green lines)"
-	entry $w.row2.ysize -textvariable $this-sizey
+        sci_label $w.row2.ysize_label -text "Y Size   "
+        Tooltip $w.row2.ysize_label "Number of lines in the Y direction (Green lines)"
+        sci_entry $w.row2.ysize -textvariable $this-sizey
 
-	label $w.row3.zsize_label -text "Z Size   "
-	Tooltip $w.row3.zsize_label "Number of lines in the Z direction (Blue lines)"
-	entry $w.row3.zsize -textvariable $this-sizez
+        sci_label $w.row3.zsize_label -text "Z Size   "
+        Tooltip $w.row3.zsize_label "Number of lines in the Z direction (Blue lines)"
+        sci_entry $w.row3.zsize -textvariable $this-sizez
 
-	bind $w.row1.xsize <KeyPress-Return> "$this-c needexecute"
-	bind $w.row2.ysize <KeyPress-Return> "$this-c needexecute"
-	bind $w.row3.zsize <KeyPress-Return> "$this-c needexecute"
+        bind $w.row1.xsize <KeyPress-Return> "$this-c needexecute"
+        bind $w.row2.ysize <KeyPress-Return> "$this-c needexecute"
+        bind $w.row3.zsize <KeyPress-Return> "$this-c needexecute"
 
-	bind $w.row1.xsize <KeyPress-Tab> "$this-c needexecute"
-	bind $w.row2.ysize <KeyPress-Tab> "$this-c needexecute"
-	bind $w.row3.zsize <KeyPress-Tab> "$this-c needexecute"
+        bind $w.row1.xsize <KeyPress-Tab> "$this-c needexecute"
+        bind $w.row2.ysize <KeyPress-Tab> "$this-c needexecute"
+        bind $w.row3.zsize <KeyPress-Tab> "$this-c needexecute"
 
-	pack $w.row1.xsize_label $w.row1.xsize -side left
-	pack $w.row2.ysize_label $w.row2.ysize -side left
-	pack $w.row3.zsize_label $w.row3.zsize -side left
+        pack $w.row1.xsize_label $w.row1.xsize -side left
+        pack $w.row2.ysize_label $w.row2.ysize -side left
+        pack $w.row3.zsize_label $w.row3.zsize -side left
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

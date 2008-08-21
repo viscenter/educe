@@ -22,7 +22,18 @@ IF(NOT SCIRUN_SLIVR_BUILD)
     SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
   ENDIF(NOT CMAKE_BUILD_TYPE)
   
-  
+  # -- Determine the version of OSX
+  # -- 8 and less are OSX 10.0 - 10.4
+  # -- 9 is 10.5 (LEOPARD)
+  IF (APPLE)
+    EXEC_PROGRAM(uname ARGS -v  OUTPUT_VARIABLE DARWIN_VERSION)
+    STRING(REGEX MATCH "[0-9]+" DARWIN_VERSION ${DARWIN_VERSION})
+    MESSAGE(STATUS "DARWIN_VERSION=${DARWIN_VERSION}")
+    IF (DARWIN_VERSION GREATER 8)
+      SET(APPLE_LEOPARD 1 INTERNAL)
+      ADD_DEFINITIONS(-DAPPLE_LEOPARD)
+    ENDIF (DARWIN_VERSION GREATER 8)
+  ENDIF(APPLE)
   
   # -- OpenGL --
   FIND_PACKAGE(OpenGL)
@@ -30,6 +41,11 @@ IF(NOT SCIRUN_SLIVR_BUILD)
     SET(GL_LIBRARY ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} CACHE INTERNAL "OpenGL Libs")
     SET(GL_INCLUDE ${OPENGL_INCLUDE_DIR})
   ENDIF(OPENGL_LIBRARIES AND OPENGL_INCLUDE_DIR)
+
+  IF (APPLE_LEOPARD)
+    SET (GL_LIBRARY "" CACHE INTERNAL "OpenGL Libs" FORCE)
+    SET (GL_LINK "-dylib_file /System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib /usr/X11R6/lib/libGL.dylib /usr/X11R6/lib/libGLU.dylib  -framework AGL" CACHE INTERNAL "Link options for OpenGL libs" FORCE)
+  ENDIF (APPLE_LEOPARD)
   
   # if we are a debug build then define our debug opengl code.
   if(CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -43,7 +59,7 @@ IF(NOT SCIRUN_SLIVR_BUILD)
   FIND_PATH(GLEW_INCLUDE  GL/glew.h  DEFAULT_PATH)
   
   IF(GLEW_LIBRARY AND GLEW_INCLUDE)
-     SET(HAVE_GLEW TRUE)
+    SET(HAVE_GLEW TRUE)
   ENDIF(GLEW_LIBRARY AND GLEW_INCLUDE)
 
   IF(NOT HAVE_GLEW)
@@ -82,6 +98,7 @@ SET(SLIVR_VOLUME_SRCS
   CM2Widget.cc
   ShaderProgramARB.cc
   SliceRenderer.cc
+  SurfaceRenderer.cc
   Texture.cc
   TextureBrick.cc
   TextureRenderer.cc
@@ -109,6 +126,7 @@ IF(NOT SCIRUN_SLIVR_BUILD)
     ShaderProgramARB.h
     share.h
     SliceRenderer.h
+    SurfaceRenderer.h
     Texture.h
     TextureBrick.h
     TextureRenderer.h
@@ -134,7 +152,14 @@ IF(NOT SCIRUN_SLIVR_BUILD)
   add_library(slivrG ${SLIVR_GEOMETRY_SRCS})
   add_library(slivrV ${SLIVR_VOLUME_SRCS})
 
-  TARGET_LINK_LIBRARIES(slivrV ${GLEW_LIBRARY})
+  TARGET_LINK_LIBRARIES(slivrV slivrG
+    ${GLEW_LIBRARY}
+    ${TEEM_LIBRARIES}
+    )
+
+  IF(APPLE_LEOPARD)
+    SET_TARGET_PROPERTIES(slivrV slivrG PROPERTIES LINK_FLAGS "${GL_LINK}")
+  ENDIF(APPLE_LEOPARD)
   
   INSTALL(FILES ${SLIVR_INSTALL_HEADER_FILES} DESTINATION include/slivr
     PERMISSIONS OWNER_READ GROUP_READ WORLD_READ)
@@ -173,10 +198,10 @@ ELSE(NOT SCIRUN_SLIVR_BUILD)
   
   IF(NOT MINIMAL_CORE)
     SCIRUN_ADD_LIBRARY(slivrV ${SLIVR_VOLUME_SRCS})
-    TARGET_LINK_LIBRARIES(slivrV slivrG 
-                          ${SCI_GLEW_LIBRARY} 
-                          ${GL_LIBRARY} 
-                          ${TEEM_LIBRARY})
+    TARGET_LINK_LIBRARIES(slivrV slivrG
+      ${SCI_GLEW_LIBRARY}
+      ${GL_LIBRARY}
+      ${TEEM_LIBRARIES})
     IF(APPLE_LEOPARD)
       SET_TARGET_PROPERTIES(slivrV slivrG PROPERTIES LINK_FLAGS "${GL_LINK}")
     ENDIF(APPLE_LEOPARD)

@@ -48,17 +48,16 @@ namespace SCIRun {
 template class GenericWriter<ColorMapHandle>;
 
 class WriteColorMap : public GenericWriter<ColorMapHandle> {
-protected:
-  GuiString gui_types_;
-  GuiString gui_exporttype_;
+  protected:
+    GuiString gui_types_;
+    GuiString gui_exporttype_;
 
-  virtual bool call_exporter(const string &filename);
+    virtual bool call_exporter(const string &filename);
 
-public:
-  WriteColorMap(GuiContext* ctx);
-  virtual ~WriteColorMap();
-
-  virtual void execute();
+  public:
+    WriteColorMap(GuiContext* ctx);
+    virtual ~WriteColorMap() {}
+    virtual void execute();
 };
 
 
@@ -95,12 +94,6 @@ WriteColorMap::WriteColorMap(GuiContext* ctx)
   gui_types_.set(exporttypes);
 }
 
-
-WriteColorMap::~WriteColorMap()
-{
-}
-
-
 bool
 WriteColorMap::call_exporter(const string &filename)
 {
@@ -118,8 +111,6 @@ WriteColorMap::call_exporter(const string &filename)
   }
   return false;
 }
-
-
 
 void
 WriteColorMap::execute()

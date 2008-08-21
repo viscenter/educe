@@ -149,10 +149,8 @@ public:
   virtual void get_center(Point &point, VMesh::DElem::index_type i) const;
 
   //! Get the centers of a series of nodes
-  virtual void get_centers(VMesh::points_type &points,
-			   VMesh::Node::array_type& array) const;
-  virtual void get_centers(VMesh::points_type &points,
-			   VMesh::Elem::array_type& array) const;
+  virtual void get_centers(Point* points, VMesh::Node::array_type& array) const;
+  virtual void get_centers(Point* points, VMesh::Elem::array_type& array) const;
 
   virtual double get_size(VMesh::Node::index_type i) const;
   virtual double get_size(VMesh::Edge::index_type i) const;
@@ -163,6 +161,8 @@ public:
                                                     
   virtual bool locate(VMesh::Node::index_type &i, const Point &point) const;
   virtual bool locate(VMesh::Elem::index_type &i, const Point &point) const;
+  virtual bool locate(VMesh::Elem::index_type &i, VMesh::coords_type &coords,
+                      const Point &point) const;
 
   virtual bool get_coords(VMesh::coords_type &coords, 
                           const Point &point, 
@@ -214,11 +214,37 @@ public:
   
   virtual double  scaled_jacobian_metric(const VMesh::Elem::index_type) const;
   virtual double  jacobian_metric(const VMesh::Elem::index_type) const;
-  
+ 
+  virtual bool find_closest_node(double& pdist, Point &result,
+                                 VMesh::Node::index_type& elem, 
+                                 const Point &p) const;
+
+  virtual bool find_closest_node(double& pdist, Point &result,
+                                 VMesh::Node::index_type& elem, 
+                                 const Point &p, double maxdist) const;
+                                 
+  virtual bool find_closest_elem(double& pdist, 
+                                 Point &result,
+                                 VMesh::coords_type& coords,
+                                 VMesh::Elem::index_type& elem, 
+                                 const Point &p) const;
+
+  virtual bool find_closest_elem(double& pdist, 
+                                 Point &result,
+                                 VMesh::coords_type& coords,
+                                 VMesh::Elem::index_type& elem, 
+                                 const Point &p,
+                                 double maxdist) const;
+                                 
+  virtual bool find_closest_elems(double& pdist, Point &result, 
+                                  VMesh::Elem::array_type& elems, 
+                                  const Point &p) const;  
+    
   virtual void get_dimensions(VMesh::dimension_type& dim);
   virtual void get_elem_dimensions(VMesh::dimension_type& dim);  
 
   virtual Transform get_transform() const;
+  virtual void set_transform(const Transform& t);
 
   //! Get all the information needed for interpolation:
   //! this includes weights and node indices
@@ -323,10 +349,21 @@ protected:
       const VMesh::index_type k = jk / (this->nj_ - 1);
       const VMesh::index_type nij_ = this->ni_*this->nj_; 
       const VMesh::index_type a = i+j*this->ni_+k*nij_;
-      array[0] = typename ARRAY::value_type(a);
-      array[1] = typename ARRAY::value_type(a+1);
-      array[2] = typename ARRAY::value_type(a+this->ni_+1);
-      array[3] = typename ARRAY::value_type(a+this->ni_);
+      
+      if (k < (this->nk_-1))
+      {
+        array[0] = typename ARRAY::value_type(a);
+        array[1] = typename ARRAY::value_type(a+1);
+        array[2] = typename ARRAY::value_type(a+this->ni_+1);
+        array[3] = typename ARRAY::value_type(a+this->ni_);
+      }
+      else
+      {
+        array[0] = typename ARRAY::value_type(a);
+        array[3] = typename ARRAY::value_type(a+1);
+        array[2] = typename ARRAY::value_type(a+this->ni_+1);
+        array[1] = typename ARRAY::value_type(a+this->ni_);      
+      }
     }
     else
     {
@@ -340,10 +377,20 @@ protected:
         
         const VMesh::index_type nij_ = this->ni_*this->nj_; 
         const VMesh::index_type a = i+j*this->ni_+k*nij_;
-        array[0] = typename ARRAY::value_type(a);
-        array[1] = typename ARRAY::value_type(a+this->ni_);
-        array[2] = typename ARRAY::value_type(a+this->ni_+nij_);
-        array[3] = typename ARRAY::value_type(a+nij_);    
+        if (i < (this->ni_-1))
+        {
+          array[0] = typename ARRAY::value_type(a);
+          array[1] = typename ARRAY::value_type(a+this->ni_);
+          array[2] = typename ARRAY::value_type(a+this->ni_+nij_);
+          array[3] = typename ARRAY::value_type(a+nij_);    
+        }
+        else
+        {
+          array[0] = typename ARRAY::value_type(a);
+          array[3] = typename ARRAY::value_type(a+this->ni_);
+          array[2] = typename ARRAY::value_type(a+this->ni_+nij_);
+          array[1] = typename ARRAY::value_type(a+nij_);        
+        }
       }
       else
       {
@@ -355,10 +402,21 @@ protected:
 
         const VMesh::index_type nij_ = this->ni_*this->nj_; 
         const VMesh::index_type a = i+j*this->ni_+k*nij_;
-        array[0] = typename ARRAY::value_type(a);
-        array[1] = typename ARRAY::value_type(a+nij_);
-        array[2] = typename ARRAY::value_type(a+nij_+1);
-        array[3] = typename ARRAY::value_type(a+1); 
+
+        if (j < (this->nj_-1))
+        {
+          array[0] = typename ARRAY::value_type(a);
+          array[1] = typename ARRAY::value_type(a+nij_);
+          array[2] = typename ARRAY::value_type(a+nij_+1);
+          array[3] = typename ARRAY::value_type(a+1); 
+        }
+        else
+        {
+          array[0] = typename ARRAY::value_type(a);
+          array[3] = typename ARRAY::value_type(a+nij_);
+          array[2] = typename ARRAY::value_type(a+nij_+1);
+          array[1] = typename ARRAY::value_type(a+1);         
+        }
       }
     }
   }
@@ -792,7 +850,7 @@ protected:
   }
 
   template <class INDEX>
-  bool elem_locate(INDEX idx,Point p) const
+  bool elem_locate(INDEX &idx,Point p) const
   {
     const Point r = this->mesh_->transform_.unproject(p);
 
@@ -801,9 +859,13 @@ protected:
     double jj = r.y();
     double kk = r.z();
 
-    if (ii>(this->ni_-1) && (ii-epsilon)<(this->ni_-1)) ii=this->ni_-1-epsilon;
-    if (jj>(this->nj_-1) && (jj-epsilon)<(this->nj_-1)) jj=this->nj_-1-epsilon;
-    if (kk>(this->nk_-1) && (kk-epsilon)<(this->nk_-1)) kk=this->nk_-1-epsilon;
+    const double nii = static_cast<double>(this->ni_-1);
+    const double njj = static_cast<double>(this->nj_-1);
+    const double nkk = static_cast<double>(this->nk_-1);
+     
+    if (ii>nii && (ii-epsilon)<nii) ii=nii-epsilon;
+    if (jj>njj && (jj-epsilon)<njj) jj=njj-epsilon;
+    if (kk>nkk && (kk-epsilon)<nkk) kk=nkk-epsilon;
     if (ii<0 && ii>-epsilon) ii=0;
     if (jj<0 && jj>-epsilon) jj=0;
     if (kk<0 && kk>-epsilon) kk=0;
@@ -812,20 +874,20 @@ protected:
     const index_type j = static_cast<index_type>(floor(jj));
     const index_type k = static_cast<index_type>(floor(kk));
 
-    if (i < (int)(this->ni_-1) && i >= 0 &&
-        j < (int)(this->nj_-1) && j >= 0 &&
-        k < (int)(this->nk_-1) && k >= 0)
+    if (i < (this->ni_-1) && i >= 0 &&
+        j < (this->nj_-1) && j >= 0 &&
+        k < (this->nk_-1) && k >= 0)
     {
       idx = i+(this->ni_-1)*j+(this->ni_-1)*(this->nj_-1)*k;
-      return true;
+      return (true);
     }
 
-    return false;  
+    return (false);  
   }
 
 
   template <class INDEX>
-  bool elem_locate(INDEX idx,VMesh::coords_type coords, Point p) const
+  bool elem_locate(INDEX &idx, VMesh::coords_type& coords, Point p) const
   {
     const Point r = this->mesh_->transform_.unproject(p);
 
@@ -834,10 +896,14 @@ protected:
     double ii = r.x();
     double jj = r.y();
     double kk = r.z();
-
-    if (ii>(this->ni_-1) && (ii-epsilon)<(this->ni_-1)) ii=this->ni_-1-epsilon;
-    if (jj>(this->nj_-1) && (jj-epsilon)<(this->nj_-1)) jj=this->nj_-1-epsilon;
-    if (kk>(this->nk_-1) && (kk-epsilon)<(this->nk_-1)) kk=this->nk_-1-epsilon;
+    
+    const double nii = static_cast<double>(this->ni_-1);
+    const double njj = static_cast<double>(this->nj_-1);
+    const double nkk = static_cast<double>(this->nk_-1);
+    
+    if (ii>nii && (ii-epsilon)<nii) ii=nii-epsilon;
+    if (jj>njj && (jj-epsilon)<njj) jj=njj-epsilon;
+    if (kk>nkk && (kk-epsilon)<nkk) kk=nkk-epsilon;
     if (ii<0 && ii>-epsilon) ii=0;
     if (jj<0 && jj>-epsilon) jj=0;
     if (kk<0 && kk>-epsilon) kk=0;
@@ -863,36 +929,32 @@ protected:
   }
 
   template <class INDEX>
-  bool node_locate(INDEX idx,Point p) const
+  bool node_locate(INDEX &idx,Point p) const
   {
+    if (this->ni_ == 0 || this->nj_ == 0 || this->nk_ == 0) return (false);
+  
     const Point r = this->mesh_->transform_.unproject(p);
 
-    const double rx = floor(r.x() + 0.5);
-    const double ry = floor(r.y() + 0.5);
-    const double rz = floor(r.z() + 0.5);
+    double rx = floor(r.x() + 0.5);
+    double ry = floor(r.y() + 0.5);
+    double rz = floor(r.z() + 0.5);
 
+    const double nii = static_cast<double>(this->ni_-1);
+    const double njj = static_cast<double>(this->nj_-1);
+    const double nkk = static_cast<double>(this->nk_-1);
 
-    // Clamp in double space to avoid overflow errors.
-    if (rx < 0.0  || ry < 0.0  || rz < 0.0 ||
-        rx >= this->ni_ || ry >= this->nj_ || rz >= this->nk_)
-    {
-      index_type i = (index_type)Max(Min(rx,(double)(this->ni_-1)), 0.0);
-      index_type j = (index_type)Max(Min(ry,(double)(this->nj_-1)), 0.0);
-      index_type k = (index_type)Max(Min(rz,(double)(this->nk_-1)), 0.0);
-      idx = i+this->ni_*j+this->ni_*this->nj_*k;
-      return false;
-    }
-
-    // Nodes over 2 billion might suffer roundoff error.
-    index_type i = (index_type)rx;
-    index_type j = (index_type)ry;
-    index_type k = (index_type)rz;
+    if (rx < 0.0) rx = 0.0; if (rx > nii) rx = nii;
+    if (ry < 0.0) ry = 0.0; if (ry > njj) ry = njj;
+    if (rz < 0.0) rz = 0.0; if (rz > nkk) rz = nkk;
+    
+    index_type i = static_cast<index_type>(rx);
+    index_type j = static_cast<index_type>(ry);
+    index_type k = static_cast<index_type>(rz);
     idx = i+this->ni_*j+this->ni_*this->nj_*k;
 
-    return true;
+    return (true);
   }
   
-
   template <class INDEX>
   inline void to_index(typename MESH::Node::index_type &index, INDEX idx) const
   {
@@ -950,7 +1012,7 @@ protected:
 //! Create virtual interface 
 VMesh* CreateVLatVolMesh(LatVolMesh<HexTrilinearLgn<Point> >* mesh)
 {
-  return scinew VLatVolMesh<LatVolMesh<HexTrilinearLgn<Point> > >(mesh);
+  return new VLatVolMesh<LatVolMesh<HexTrilinearLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -1410,10 +1472,9 @@ VLatVolMesh<MESH>::get_center(Point &p, VMesh::DElem::index_type idx) const
 
 template <class MESH>
 void
-VLatVolMesh<MESH>::get_centers(VMesh::points_type& points, 
+VLatVolMesh<MESH>::get_centers(Point* points, 
                                      VMesh::Node::array_type& array) const
 {
-  points.resize(array.size());
   for (size_t p=0; p <array.size(); p++)
   {
     const VMesh::index_type idx = array[p];
@@ -1429,10 +1490,9 @@ VLatVolMesh<MESH>::get_centers(VMesh::points_type& points,
  
 template <class MESH>
 void
-VLatVolMesh<MESH>::get_centers(VMesh::points_type& points, 
+VLatVolMesh<MESH>::get_centers(Point* points, 
 			       VMesh::Elem::array_type& array) const
 {
-  points.resize(array.size());
   for (size_t p=0; p <array.size(); p++)
   {
     const VMesh::index_type xidx = array[p];
@@ -1461,6 +1521,14 @@ bool
 VLatVolMesh<MESH>::locate(VMesh::Elem::index_type &i, const Point &point) const
 {
   return(elem_locate(i,point));
+}
+
+template <class MESH>
+bool 
+VLatVolMesh<MESH>::locate(VMesh::Elem::index_type &i, 
+                          VMesh::coords_type &coords, const Point &point) const
+{
+  return(this->elem_locate(i,coords,point));
 }
 
 template <class MESH>
@@ -1808,8 +1876,188 @@ VLatVolMesh<MESH>::jacobian_metric(const VMesh::Elem::index_type idx) const
   return(this->mesh_->det_jacobian_);
 }
 
+template <class MESH>
+bool
+VLatVolMesh<MESH>::find_closest_node(double& pdist,
+                                     Point &result, 
+                                     VMesh::Node::index_type &node,
+                                     const Point &p, 
+                                     double maxdist) const
+{
+  bool ret = find_closest_node(pdist,result,node,p);
+  if (!ret)  return (false);
+  if (maxdist < 0.0 || pdist < maxdist) return (true);
+  return (false);
+}
+
+template <class MESH>
+bool 
+VLatVolMesh<MESH>::find_closest_node(double& pdist,
+                                     Point& result, 
+                                     VMesh::Node::index_type& node,
+                                     const Point& p) const
+{
+  if (this->ni_ == 0 || this->nj_ == 0 || this->nk_ == 0) return (false);
+  
+  const Point r = this->mesh_->transform_.unproject(p);
+
+  double rx = floor(r.x() + 0.5);
+  double ry = floor(r.y() + 0.5);
+  double rz = floor(r.z() + 0.5);
+  
+  const double nii = static_cast<double>(this->ni_-1);
+  const double njj = static_cast<double>(this->nj_-1);
+  const double nkk = static_cast<double>(this->nk_-1);
+
+  if (rx < 0.0) rx = 0.0; if (rx > nii) rx = nii;
+  if (ry < 0.0) ry = 0.0; if (ry > njj) ry = njj;
+  if (rz < 0.0) rz = 0.0; if (rz > nkk) rz = nkk;
+
+  result = this->mesh_->transform_.project(Point(rx,ry,rz)); 
+  index_type i = static_cast<index_type>(rx);
+  index_type j = static_cast<index_type>(ry);
+  index_type k = static_cast<index_type>(rz);
+  
+  node = i + j*(this->ni_)+k*(this->ni_*this->nk_);  
+  pdist = (p-result).length();
+  return (true);
+}
+
+template <class MESH>
+bool 
+VLatVolMesh<MESH>::find_closest_elem(double& pdist, 
+                                     Point &result,
+                                     VMesh::coords_type& coords, 
+                                     VMesh::Elem::index_type &elem,
+                                     const Point &p,
+                                     double maxdist) const
+{
+  bool ret = find_closest_elem(pdist,result,coords,elem,p);
+  if(!ret) return (false);
+  if (maxdist < 0.0 || pdist < maxdist) return (true);
+  return (false);
+}
 
 
+template <class MESH>
+bool
+VLatVolMesh<MESH>::find_closest_elem(double& pdist, 
+                                     Point &result, 
+                                     VMesh::coords_type& coords,
+                                     VMesh::Elem::index_type& elem,
+                                     const Point &p) const
+{
+  if (this->ni_ == 0 || this->nj_ == 0 || this->nk_ == 0) return (false);
+  
+  const Point r = this->mesh_->transform_.unproject(p);
+
+  double ii = r.x();
+  double jj = r.y();
+  double kk = r.z();
+  const double nii = static_cast<double>(this->ni_-2);
+  const double njj = static_cast<double>(this->nj_-2);
+  const double nkk = static_cast<double>(this->nk_-2);
+   
+  if (ii < 0.0) ii = 0.0; if (ii > nii) ii = nii;
+  if (jj < 0.0) jj = 0.0; if (jj > njj) jj = njj;
+  if (kk < 0.0) kk = 0.0; if (kk > nkk) kk = nkk;
+
+  const double fi = floor(ii);
+  const double fj = floor(jj);
+  const double fk = floor(kk);
+
+  index_type i = static_cast<index_type>(fi);
+  index_type j = static_cast<index_type>(fj);
+  index_type k = static_cast<index_type>(fk);
+  
+  elem = i+ j*(this->ni_-1) + k*(this->ni_-1)*(this->nj_-1);
+  result = this->mesh_->transform_.project(Point(ii,jj,kk));
+  pdist = (p-result).length();
+  
+  coords.resize(3);
+  coords[0] = ii-fi;
+  coords[1] = jj-fj;
+  coords[2] = kk-fk;
+  
+  return (true);
+}
+
+template <class MESH>
+bool 
+VLatVolMesh<MESH>::find_closest_elems(double& pdist, Point &result,
+                                     VMesh::Elem::array_type &elems,
+                                     const Point &p) const
+{
+  // For calculations inside the local element
+  const double epsilon = 1e-8;
+  elems.clear();
+  
+  if (this->ni_ == 0 || this->nj_ == 0 || this->nk_ == 0) return (false);
+  
+  const Point r = this->mesh_->transform_.unproject(p);
+
+  double ii = r.x();
+  double jj = r.y();
+  double kk = r.z();
+  const double nii = static_cast<double>(this->ni_-2);
+  const double njj = static_cast<double>(this->nj_-2);
+  //const double nkk = static_cast<double>(this->nk_-2);
+   
+  if (ii < 0.0) ii = 0.0; if (ii > nii) ii = nii;
+  if (jj < 0.0) jj = 0.0; if (jj > njj) jj = njj;
+  if (jj < 0.0) jj = 0.0; if (jj > njj) jj = njj;
+  const double fii = floor(ii);
+  const double fjj = floor(jj);
+  const double fkk = floor(kk);
+
+  index_type i = static_cast<index_type>(fii);
+  index_type j = static_cast<index_type>(fjj);
+  index_type k = static_cast<index_type>(fkk);
+  
+  index_type elem = i + j*(this->ni_-1)+ k*(this->ni_-1)*(this->nj_-1);
+  elems.push_back(elem);
+
+  if ((fabs(fii-ii) < epsilon) && ((i-1)>0))
+  {
+    elem = i-1 + j*(this->ni_-1)+ k*(this->ni_-1)*(this->nj_-1);
+    elems.push_back(elem);  
+  }
+  
+  if ((fabs(fii-(ii+1.0)) < epsilon) && (i<(this->ni_-1)))
+  {
+    elem = i+1 + j*(this->ni_-1)+ k*(this->ni_-1)*(this->nj_-1);
+    elems.push_back(elem);  
+  }
+
+  if ((fabs(fjj-jj) < epsilon) && ((j-1)>0))
+  {
+    elem = i + (j-1)*(this->ni_-1)+ k*(this->ni_-1)*(this->nj_-1);
+    elems.push_back(elem);  
+  }
+  
+  if ((fabs(fjj-(jj+1.0)) < epsilon) && (j<(this->nj_-1)))
+  {
+    elem = i + (j-1)*(this->ni_-1)+ k*(this->ni_-1)*(this->nj_-1);
+    elems.push_back(elem);  
+  }
+
+  if ((fabs(fkk-kk) < epsilon) && ((k-1)>0))
+  {
+    elem = i + j*(this->ni_-1)+ (k-1)*(this->ni_-1)*(this->nj_-1);
+    elems.push_back(elem);  
+  }
+  
+  if ((fabs(fkk-(kk+1.0)) < epsilon) && (k<(this->nk_-1)))
+  {
+    elem = i + j*(this->ni_-1)+ (k+1)*(this->ni_-1)*(this->nj_-1);
+    elems.push_back(elem);  
+  }
+  
+  result = this->mesh_->transform_.project(Point(ii,jj,kk));
+  pdist = (p-result).length();
+  
+  return (true);
+}
 
 template <class MESH>
 void
@@ -1853,6 +2101,14 @@ VLatVolMesh<MESH>::get_transform() const
 {
   return (this->mesh_->get_transform());
 }
+
+template <class MESH>
+void
+VLatVolMesh<MESH>::set_transform(const Transform& t)
+{
+  this->mesh_->set_transform(t);
+}
+
 
 
 template <class MESH>
@@ -1904,9 +2160,9 @@ VLatVolMesh<MESH>::get_interpolate_weights(const Point& point,
 template <class MESH>
 void
 VLatVolMesh<MESH>::get_interpolate_weights(const VMesh::coords_type& coords, 
-                                       VMesh::Elem::index_type elem, 
-                                       VMesh::ElemInterpolate& ei,
-                                       int basis_order) const
+					   VMesh::Elem::index_type elem, 
+					   VMesh::ElemInterpolate& ei,
+					   int basis_order) const
 {
   ei.basis_order = basis_order;
   ei.elem_index = elem;
@@ -2486,8 +2742,8 @@ public:
   virtual void get_center(Point &point, VMesh::DElem::index_type i) const;
 
   //! Get the centers of a series of nodes
-  virtual void get_centers(VMesh::points_type &points, VMesh::Node::array_type& array) const;
-  virtual void get_centers(VMesh::points_type &points, VMesh::Elem::array_type& array) const;
+  virtual void get_centers(Point* points, VMesh::Node::array_type& array) const;
+  virtual void get_centers(Point* points, VMesh::Elem::array_type& array) const;
 
   virtual double get_size(VMesh::Node::index_type i) const;
   virtual double get_size(VMesh::Edge::index_type i) const;
@@ -2498,6 +2754,34 @@ public:
                                                     
   virtual bool locate(VMesh::Node::index_type &i, const Point &point) const;
   virtual bool locate(VMesh::Elem::index_type &i, const Point &point) const;
+  
+  virtual bool find_closest_node(double& pdist, 
+                                 Point& result,
+                                 VMesh::Node::index_type& elem, 
+                                 const Point& p) const;
+
+  virtual bool find_closest_node(double& pdist, 
+                                 Point& result,
+                                 VMesh::Node::index_type& elem, 
+                                 const Point& p,
+                                 double maxdist) const;
+                                 
+  virtual bool find_closest_elem(double& pdist, 
+                                 Point &result,
+                                 VMesh::coords_type& coords,
+                                 VMesh::Elem::index_type& elem, 
+                                 const Point &p) const;
+
+  virtual bool find_closest_elem(double& pdist, 
+                                 Point &result,
+                                 VMesh::coords_type& coords,
+                                 VMesh::Elem::index_type& elem, 
+                                 const Point &p,
+                                 double maxdist) const;
+                                 
+  virtual bool find_closest_elems(double& pdist, Point &result, 
+                                  VMesh::Elem::array_type& elems, 
+                                  const Point &p) const;    
 
   virtual bool get_coords(VMesh::coords_type &coords, const Point &point, 
                                                     VMesh::Elem::index_type i) const;
@@ -2514,6 +2798,9 @@ public:
 			VMesh::Elem::index_type i) const;
 
   virtual void set_point(const Point &p, VMesh::Node::index_type i);
+
+  virtual Point* get_points_pointer() const;
+  
   virtual void get_random_point(Point &p,
 				VMesh::Elem::index_type i,
 				FieldRNG &rng) const;
@@ -2634,7 +2921,7 @@ protected:
 //! Create virtual interface 
 VMesh* CreateVStructHexVolMesh(StructHexVolMesh<HexTrilinearLgn<Point> >* mesh)
 {
-  return scinew VStructHexVolMesh<StructHexVolMesh<HexTrilinearLgn<Point> > >(mesh);
+  return new VStructHexVolMesh<StructHexVolMesh<HexTrilinearLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -2718,10 +3005,9 @@ VStructHexVolMesh<MESH>::get_center(Point &p, VMesh::DElem::index_type idx) cons
 
 template <class MESH>
 void
-VStructHexVolMesh<MESH>::get_centers(VMesh::points_type& points, 
+VStructHexVolMesh<MESH>::get_centers(Point* points, 
                                      VMesh::Node::array_type& array) const
 {
-  points.resize(array.size());
   for (size_t j=0; j <array.size(); j++)
   {
     points[j] = points_[array[j]];
@@ -2730,11 +3016,9 @@ VStructHexVolMesh<MESH>::get_centers(VMesh::points_type& points,
  
 template <class MESH>
 void
-VStructHexVolMesh<MESH>::get_centers(VMesh::points_type& points, 
+VStructHexVolMesh<MESH>::get_centers(Point* points, 
                                      VMesh::Elem::array_type& array) const
 {
-  points.resize(array.size());
-
   Point p;
   StackVector<VMesh::index_type,4> nodes;
   for (size_t j=0; j <array.size(); j++)
@@ -2840,9 +3124,10 @@ bool
 VStructHexVolMesh<MESH>::locate(VMesh::Node::index_type &vi, const Point &point) const
 {
   // NEED TO MAKE THIS MORE EFFICIENT
-  typename LatVolMesh<typename MESH::basis_type>::Node::index_type i;
+  typename LatVolMesh<typename MESH::basis_type>::Node::index_type i(this->mesh_,0,0,0);
+  to_index(i,vi);
   bool ret = this->mesh_->locate(i,point);
-  vi = static_cast<VMesh::Node::index_type>(i);
+  vi = VMesh::Node::index_type(i);
   return (ret);
 }
 
@@ -2851,11 +3136,96 @@ bool
 VStructHexVolMesh<MESH>::locate(VMesh::Elem::index_type &vi, const Point &point) const
 {
   // NEED TO MAKE THIS MORE EFFICIENT
-  typename LatVolMesh<typename MESH::basis_type>::Elem::index_type i;
+  typename LatVolMesh<typename MESH::basis_type>::Elem::index_type i(this->mesh_,0,0,0);
+  to_index(i,vi);
   bool ret = this->mesh_->locate(i,point);
-  vi = static_cast<VMesh::Elem::index_type>(i);
+  vi = VMesh::Elem::index_type(i);
   return (ret);
 }
+
+
+template <class MESH>
+bool 
+VStructHexVolMesh<MESH>::
+find_closest_node(double& pdist, Point& result,
+                  VMesh::Node::index_type &idx, 
+                  const Point &point) const
+{
+  // NEED TO MAKE THIS MORE EFFICIENT
+  typename LatVolMesh<typename MESH::basis_type>::Node::index_type i(this->mesh_,0,0,0);
+  to_index(i,idx);
+  bool ret = this->mesh_->find_closest_node(pdist,result,i,point,-1.0);
+  idx = VMesh::Node::index_type(i);
+  return (ret);
+} 
+
+template <class MESH>
+bool 
+VStructHexVolMesh<MESH>::
+find_closest_node(double& pdist, Point& result,
+                  VMesh::Node::index_type &idx, 
+                  const Point &point,
+                  double maxdist) const
+{
+  // NEED TO MAKE THIS MORE EFFICIENT
+  typename LatVolMesh<typename MESH::basis_type>::Node::index_type i;
+  to_index(i,idx);
+  bool ret = this->mesh_->find_closest_node(pdist,result,i,point,maxdist);
+  idx = static_cast<VMesh::Node::index_type>(i);
+  return (ret);
+} 
+
+
+template <class MESH>
+bool 
+VStructHexVolMesh<MESH>::
+find_closest_elem(double& pdist, 
+                  Point& result,
+                  VMesh::coords_type& coords,
+                  VMesh::Elem::index_type &idx, 
+                  const Point &point) const
+{
+  // NEED TO MAKE THIS MORE EFFICIENT
+  typename LatVolMesh<typename MESH::basis_type>::Elem::index_type i(this->mesh_,0,0,0);
+  to_index(i,idx);
+  bool ret = this->mesh_->find_closest_elem(pdist,result,coords,i,point,-1.0);
+  idx = VMesh::Elem::index_type(i);
+  return (ret);
+} 
+
+
+template <class MESH>
+bool 
+VStructHexVolMesh<MESH>::
+find_closest_elem(double& pdist, 
+                  Point& result,
+                  VMesh::coords_type& coords,
+                  VMesh::Elem::index_type &idx, 
+                  const Point &point,
+                  double maxdist) const
+{
+  // NEED TO MAKE THIS MORE EFFICIENT
+  typename LatVolMesh<typename MESH::basis_type>::Elem::index_type i;
+  to_index(i,idx);
+  bool ret = this->mesh_->find_closest_elem(pdist,result,coords,i,point,maxdist);
+  idx = static_cast<VMesh::Elem::index_type>(i);
+  return (ret);
+} 
+
+template <class MESH>
+bool 
+VStructHexVolMesh<MESH>::
+find_closest_elems(double& pdist, Point& result,
+                   VMesh::Elem::array_type &idx, 
+                   const Point &point) const
+{
+  // NEED TO MAKE THIS MORE EFFICIENT
+  typename LatVolMesh<typename MESH::basis_type>::Elem::array_type i;
+  bool ret = this->mesh_->find_closest_elems(pdist,result,i,point);
+  convert_vector(idx,i);
+  return (ret);
+} 
+
 
 
 template <class MESH>
@@ -2916,6 +3286,14 @@ void
 VStructHexVolMesh<MESH>::set_point(const Point &point, VMesh::Node::index_type idx)
 {
   points_[idx] = point;
+}
+
+template <class MESH>
+Point*
+VStructHexVolMesh<MESH>::get_points_pointer() const
+{
+  if (points_.size() == 0) return (0);
+  return (&(points_[0]));
 }
 
 

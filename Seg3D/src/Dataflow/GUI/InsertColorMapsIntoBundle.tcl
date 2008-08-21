@@ -52,22 +52,21 @@ itcl_class SCIRun_Bundle_InsertColorMapsIntoBundle {
         global $this-colormap6-name
         global $this-bundlename
 
-        toplevel $w 
+        sci_toplevel $w 
 
         wm minsize $w 100 150
 
-        
-        iwidgets::labeledframe $w.frame -labeltext "COLORMAP INPUTS"
+        sci_labeledframe $w.frame -labeltext "COLORMAP INPUTS"
         set childframe [$w.frame childsite]
         pack $w.frame -fill x
-        frame $w.frame2
+        sci_frame $w.frame2
         pack $w.frame2 -fill x
-        label $w.frame2.label -text "Name bundle object :"
-        entry $w.frame2.entry -textvariable $this-bundlename
+        sci_label $w.frame2.label -text "Name bundle object :"
+        sci_entry $w.frame2.entry -textvariable $this-bundlename
         pack $w.frame2.label -side left 
         pack $w.frame2.entry -side left -fill x
 
-        iwidgets::tabnotebook $childframe.pw -height 100 -width 450 -tabpos n
+        sci_tabnotebook $childframe.pw -height 100 -width 450 -tabpos n
         $childframe.pw add -label "ColorMap1"
         $childframe.pw add -label "ColorMap2" 
         $childframe.pw add -label "ColorMap3" 
@@ -85,76 +84,76 @@ itcl_class SCIRun_Bundle_InsertColorMapsIntoBundle {
         set colormap5 [$childframe.pw childsite 4]
         set colormap6 [$childframe.pw childsite 5]
 
-        frame $colormap1.name
-        frame $colormap1.options
+        sci_frame $colormap1.name
+        sci_frame $colormap1.options
         pack $colormap1.name $colormap1.options -side top -fill x -expand yes -padx 5p
 
-        label $colormap1.name.label -text "Name"
-        entry $colormap1.name.entry -textvariable $this-colormap1-name
+        sci_label $colormap1.name.label -text "Name"
+        sci_entry $colormap1.name.entry -textvariable $this-colormap1-name
         pack $colormap1.name.label -side left 
         pack $colormap1.name.entry -side left -fill x -expand yes
         
-        checkbutton $colormap1.options.replace -variable $this-replace1 -text "Replace field, if it already exists"
+        sci_checkbutton $colormap1.options.replace -variable $this-replace1 -text "Replace field, if it already exists"
         pack $colormap1.options.replace -side left
 
-        frame $colormap2.name
-        frame $colormap2.options
+        sci_frame $colormap2.name
+        sci_frame $colormap2.options
         pack $colormap2.name $colormap2.options -side top -fill x -expand yes -padx 5p
 
-        label $colormap2.name.label -text "Name"
-        entry $colormap2.name.entry -textvariable $this-colormap2-name
+        sci_label $colormap2.name.label -text "Name"
+        sci_entry $colormap2.name.entry -textvariable $this-colormap2-name
         pack $colormap2.name.label -side left 
         pack $colormap2.name.entry -side left -fill x -expand yes
         
-        checkbutton $colormap2.options.replace -variable $this-replace2 -text "Replace field, if it already exists"
+        sci_checkbutton $colormap2.options.replace -variable $this-replace2 -text "Replace field, if it already exists"
         pack $colormap2.options.replace -side left
 
-        frame $colormap3.name
-        frame $colormap3.options
+        sci_frame $colormap3.name
+        sci_frame $colormap3.options
         pack $colormap3.name $colormap3.options -side top -fill x -expand yes -padx 5p
 
-        label $colormap3.name.label -text "Name"
-        entry $colormap3.name.entry -textvariable $this-colormap3-name
+        sci_label $colormap3.name.label -text "Name"
+        sci_entry $colormap3.name.entry -textvariable $this-colormap3-name
         pack $colormap3.name.label -side left 
         pack $colormap3.name.entry -side left -fill x -expand yes
 
-        checkbutton $colormap3.options.replace -variable $this-replace3 -text "Replace field, if it already exists"
+        sci_checkbutton $colormap3.options.replace -variable $this-replace3 -text "Replace field, if it already exists"
         pack $colormap3.options.replace -side left
 
-        frame $colormap4.name
-        frame $colormap4.options
+        sci_frame $colormap4.name
+        sci_frame $colormap4.options
         pack $colormap4.name $colormap4.options -side top -fill x -expand yes -padx 5p
 
-        label $colormap4.name.label -text "Name"
-        entry $colormap4.name.entry -textvariable $this-colormap4-name
+        sci_label $colormap4.name.label -text "Name"
+        sci_entry $colormap4.name.entry -textvariable $this-colormap4-name
         pack $colormap4.name.label -side left 
         pack $colormap4.name.entry -side left -fill x -expand yes
         
-        checkbutton $colormap4.options.replace -variable $this-replace4 -text "Replace field, if it already exists"
+        sci_checkbutton $colormap4.options.replace -variable $this-replace4 -text "Replace field, if it already exists"
         pack $colormap4.options.replace -side left
 
-        frame $colormap5.name
-        frame $colormap5.options
+        sci_frame $colormap5.name
+        sci_frame $colormap5.options
         pack $colormap5.name $colormap5.options -side top -fill x -expand yes -padx 5p
 
-        label $colormap5.name.label -text "Name"
-        entry $colormap5.name.entry -textvariable $this-colormap5-name
+        sci_label $colormap5.name.label -text "Name"
+        sci_entry $colormap5.name.entry -textvariable $this-colormap5-name
         pack $colormap5.name.label -side left 
         pack $colormap5.name.entry -side left -fill x -expand yes
         
-        checkbutton $colormap5.options.replace -variable $this-replace5 -text "Replace field, if it already exists"
+        sci_checkbutton $colormap5.options.replace -variable $this-replace5 -text "Replace field, if it already exists"
         pack $colormap5.options.replace -side left
 
-        frame $colormap6.name
-        frame $colormap6.options
+        sci_frame $colormap6.name
+        sci_frame $colormap6.options
         pack $colormap6.name $colormap6.options -side top -fill x -expand yes -padx 5p
 
-        label $colormap6.name.label -text "Name"
-        entry $colormap6.name.entry -textvariable $this-colormap6-name
+        sci_label $colormap6.name.label -text "Name"
+        sci_entry $colormap6.name.entry -textvariable $this-colormap6-name
         pack $colormap6.name.label -side left 
         pack $colormap6.name.entry -side left -fill x -expand yes
 
-        checkbutton $colormap6.options.replace -variable $this-replace6 -text "Replace field, if it already exists"
+        sci_checkbutton $colormap6.options.replace -variable $this-replace6 -text "Replace field, if it already exists"
         pack $colormap6.options.replace -side left
 
         makeSciButtonPanel $w $w $this

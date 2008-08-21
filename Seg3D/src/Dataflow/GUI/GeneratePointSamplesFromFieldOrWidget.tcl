@@ -39,128 +39,128 @@ itcl_class SCIRun_NewField_GeneratePointSamplesFromFieldOrWidget {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	iwidgets::tabnotebook $w.tabs -raiseselect true \
-	    -width 350 -height 220 -tabpos n -backdrop gray
-	pack $w.tabs -side top -expand 1 -fill both
+      sci_tabnotebook $w.tabs -raiseselect true \
+        -width 350 -height 220 -tabpos n -backdrop gray
+      pack $w.tabs -side top -expand 1 -fill both
 
-	set wtab [$w.tabs add -label "Widget" \
-		  -command "set $this-whichtab Widget"]
-	set rtab [$w.tabs add -label "Random" \
-		  -command "set $this-whichtab Random"]
-	if {"[set $this-whichtab]"=="Widget"} {
-	    $w.tabs view 0
-	} else {
-	    $w.tabs view 1
-	}
+      set wtab [$w.tabs add -label "Widget" \
+          -command "set $this-whichtab Widget"]
+      set rtab [$w.tabs add -label "Random" \
+          -command "set $this-whichtab Random"]
+      if {"[set $this-whichtab]"=="Widget"} {
+          $w.tabs view 0
+      } else {
+          $w.tabs view 1
+      }
 
-	iwidgets::Labeledframe $wtab.type -labelpos nw \
-		               -labeltext "Widget type"
-	set type [$wtab.type childsite]
-	radiobutton $type.rake -var $this-wtype -value rake -text "Rake" \
-	    -command "$this-c needexecute" 
-	radiobutton $type.ring -var $this-wtype -value ring -text "Ring" \
-	    -command "$this-c needexecute"
-	radiobutton $type.frame -var $this-wtype -value frame -text "Frame" \
-	    -command "$this-c needexecute"
-	pack $type.rake $type.ring $type.frame -side left -padx 5 -pady 5 \
-	    -fill both -expand yes
+      sci_labeledframe $wtab.type -labelpos nw \
+                       -labeltext "Widget type"
+      set type [$wtab.type childsite]
+      sci_radiobutton $type.rake -var $this-wtype -value rake -text "Rake" \
+          -command "$this-c needexecute" 
+      sci_radiobutton $type.ring -var $this-wtype -value ring -text "Ring" \
+          -command "$this-c needexecute"
+      sci_radiobutton $type.frame -var $this-wtype -value frame -text "Frame" \
+          -command "$this-c needexecute"
+      pack $type.rake $type.ring $type.frame -side left -padx 5 -pady 5 \
+          -fill both -expand yes
 
-	iwidgets::spinner $wtab.f1 -labeltext "Number of samples: " \
-	    -width 5 -fixed 5 \
-	    -validate "$this set-quantity %P $this-maxseeds]" \
-	    -decrement "$this spin-quantity -1 $wtab.f1 $this-maxseeds" \
-	    -increment "$this spin-quantity  1 $wtab.f1 $this-maxseeds" 
+      sci_spinner $wtab.f1 -labeltext "Number of samples: " \
+          -width 5 -fixed 5 \
+          -validate "$this set-quantity %P $this-maxseeds]" \
+          -decrement "$this spin-quantity -1 $wtab.f1 $this-maxseeds" \
+          -increment "$this spin-quantity  1 $wtab.f1 $this-maxseeds" 
 
-	$wtab.f1 insert 1 [set $this-maxseeds]
+      $wtab.f1 insert 1 [set $this-maxseeds]
 
-	checkbutton $wtab.auto -text "Execute automatically" \
-		-variable $this-autoexecute
+      sci_checkbutton $wtab.auto -text "Execute automatically" \
+        -variable $this-autoexecute
 
-	button $wtab.reset -text "Reset Widget" \
-	    -command "set $this-force-rake-reset 1; $this-c needexecute"
+      sci_button $wtab.reset -text "Reset Widget" \
+          -command "set $this-force-rake-reset 1; $this-c needexecute"
 
-	pack $wtab.type -side top -fill x -pady 5 -anchor w
-	pack $wtab.f1 $wtab.auto -side top -pady 5
+      pack $wtab.type -side top -fill x -pady 5 -anchor w
+      pack $wtab.f1 $wtab.auto -side top -pady 5
 
-	pack $wtab.reset -side top -pady 5
+      pack $wtab.reset -side top -pady 5
 
 
-	iwidgets::spinner $rtab.f2 -labeltext "Number of samples: " \
-	    -width 5 -fixed 5 \
-	    -validate "$this set-quantity %P $this-numseeds]" \
-	    -decrement "$this spin-quantity -1 $rtab.f2 $this-numseeds" \
-	    -increment "$this spin-quantity  1 $rtab.f2 $this-numseeds" 
+      sci_spinner $rtab.f2 -labeltext "Number of samples: " \
+          -width 5 -fixed 5 \
+          -validate "$this set-quantity %P $this-numseeds]" \
+          -decrement "$this spin-quantity -1 $rtab.f2 $this-numseeds" \
+          -increment "$this spin-quantity  1 $rtab.f2 $this-numseeds" 
 
-	$rtab.f2 insert 1 [set $this-numseeds]
+      $rtab.f2 insert 1 [set $this-numseeds]
 
-	pack $rtab.f2 -side top -pady 5
+      pack $rtab.f2 -side top -pady 5
 
-	iwidgets::Labeledframe $rtab.dist -labelpos nw \
-		               -labeltext "Distribution"
-	pack $rtab.dist -fill x -e y
-	set dist [$rtab.dist childsite]
-	frame $dist.imp 
-	frame $dist.uni 
-	pack $dist.uni $dist.imp -side left -f both -e y
+      sci_labeledframe $rtab.dist -labelpos nw \
+                       -labeltext "Distribution"
+      pack $rtab.dist -fill x -e y
+      set dist [$rtab.dist childsite]
+      sci_frame $dist.imp 
+      sci_frame $dist.uni 
+      pack $dist.uni $dist.imp -side left -f both -e y
 
-	label $dist.imp.label -text "Importance Weighted"
-	radiobutton $dist.imp.uni -var $this-dist -value impuni \
-		    -text "Uniform" 
-	radiobutton $dist.imp.scat -var $this-dist -value impscat \
-		    -text "Scattered"
-	label $dist.uni.label -text "Not Weighted"
-	radiobutton $dist.uni.uni -var $this-dist -value uniuni \
-	            -text "Uniform" 
-	radiobutton $dist.uni.scat -var $this-dist -value uniscat \
-	            -text "Scattered" 
-	pack $dist.imp.label $dist.imp.uni $dist.imp.scat \
-	     $dist.uni.label $dist.uni.uni $dist.uni.scat \
-	     -side top -padx 5 -pady 2 -anchor w
+      sci_label $dist.imp.label -text "Importance Weighted"
+      sci_radiobutton $dist.imp.uni -var $this-dist -value impuni \
+            -text "Uniform" 
+      sci_radiobutton $dist.imp.scat -var $this-dist -value impscat \
+            -text "Scattered"
+      sci_label $dist.uni.label -text "Not Weighted"
+      sci_radiobutton $dist.uni.uni -var $this-dist -value uniuni \
+                  -text "Uniform" 
+      sci_radiobutton $dist.uni.scat -var $this-dist -value uniscat \
+                  -text "Scattered" 
+      pack $dist.imp.label $dist.imp.uni $dist.imp.scat \
+           $dist.uni.label $dist.uni.uni $dist.uni.scat \
+           -side top -padx 5 -pady 2 -anchor w
 
-	checkbutton $rtab.rnginc -text "Increment RNG seed on execute" \
-	    -var $this-rnginc
-	pack $rtab.rnginc -side top -anchor w -padx 8
+      sci_checkbutton $rtab.rnginc -text "Increment RNG seed on execute" \
+          -var $this-rnginc
+      pack $rtab.rnginc -side top -anchor w -padx 8
 
-	frame $rtab.f1 
-	pack $rtab.f1 -side top  -anchor w
-	label $rtab.f1.rngseed_l -text "Seed value for RNG" -width 23 -anchor w
-	entry $rtab.f1.rngseed -text $this-rngseed -width 10
-	pack $rtab.f1.rngseed_l $rtab.f1.rngseed -side left -anchor w -padx 8
+      sci_frame $rtab.f1 
+      pack $rtab.f1 -side top  -anchor w
+      sci_label $rtab.f1.rngseed_l -text "Seed value for RNG" -width 23 -anchor w
+      sci_entry $rtab.f1.rngseed -text $this-rngseed -width 10
+      pack $rtab.f1.rngseed_l $rtab.f1.rngseed -side left -anchor w -padx 8
 
-        frame $rtab.f3
-        pack $rtab.f3 -side top -anchor w
-        checkbutton $rtab.f3.clamp -text "Clamp to nodes" -var $this-clamp
-        pack $rtab.f3.clamp -anchor w -padx 8
+      sci_frame $rtab.f3
+      pack $rtab.f3 -side top -anchor w
+      sci_checkbutton $rtab.f3.clamp -text "Clamp to nodes" -var $this-clamp
+      pack $rtab.f3.clamp -anchor w -padx 8
 
 #	$w.tabs configure -scrollcommand "$this-c needexecute"
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
     }
 
 
     method set-quantity {new quantity} {
-	if {! [regexp "\\A\\d*\\.*\\d+\\Z" $quantity]} {
-	    return 0
-	} elseif {$quantity < 1.0} {
-	    return 0
-	} 
-	set $quantity $new
-	$this-c needexecute
-	return 1
+      if {! [regexp "\\A\\d*\\.*\\d+\\Z" $quantity]} {
+          return 0
+      } elseif {$quantity < 1.0} {
+          return 0
+      } 
+      set $quantity $new
+      $this-c needexecute
+      return 1
     }
 
     method spin-quantity {step spinner quantity} {
-	set newquantity [expr [set $quantity] + $step]
+      set newquantity [expr [set $quantity] + $step]
 
-	if {$newquantity < 1.0} {
-	    set newquantity 1
-	}   
-	set $quantity $newquantity
-	$spinner delete 0 end
-	$spinner insert 0 [set $quantity]
-	
+      if {$newquantity < 1.0} {
+          set newquantity 1
+      }   
+      set $quantity $newquantity
+      $spinner delete 0 end
+      $spinner insert 0 [set $quantity]
+    
     }
 }

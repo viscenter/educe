@@ -32,6 +32,7 @@
 SET(Algo_SRCS
   ConvertMatrixToField
   ConvertMatrixToString
+  ConvertNrrdToField
 )
 
 SET(cat_dir Converters)

@@ -94,7 +94,7 @@ TextureBrick::get_type_description(tb_td_info_e tdi) const
     {
       static TypeDescription* tdn1 = 0;
       if (tdn1 == 0) {
-	tdn1 = scinew TypeDescription(name, 0, path, namesp);
+	tdn1 = new TypeDescription(name, 0, path, namesp);
       } 
       td = tdn1;
     }
@@ -104,7 +104,7 @@ TextureBrick::get_type_description(tb_td_info_e tdi) const
     {
       static TypeDescription* tdn0 = 0;
       if (tdn0 == 0) {
-	tdn0 = scinew TypeDescription(name, 0, path, namesp);
+	tdn0 = new TypeDescription(name, 0, path, namesp);
       }
       td = tdn0;
     }

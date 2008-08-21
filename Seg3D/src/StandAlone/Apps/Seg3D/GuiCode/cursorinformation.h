@@ -44,7 +44,12 @@
 ////@end control identifiers
 
 struct CursorInformationStruct {
-	double x,y,z,value;
+  double x, y, z;
+
+  int xi, yi, zi;
+
+  double value;
+  bool value_is_valid;
 };
 
 
@@ -96,14 +101,13 @@ public:
     static bool ShowToolTips();
 
 ////@begin CursorInformation member variables
+    wxChoice* mSpace_;
 ////@end CursorInformation member variables
 	
-	
-	wxTextCtrl* mValue_;
+    wxTextCtrl* mValue_;
     wxTextCtrl* mPosX_;
     wxTextCtrl* mPosY_;
     wxTextCtrl* mPosZ_;
-	
 };
 
 #endif

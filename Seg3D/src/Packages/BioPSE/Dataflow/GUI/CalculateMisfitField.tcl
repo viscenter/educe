@@ -57,11 +57,11 @@ itcl_class BioPSE_LeadField_CalculateMisfitField {
         set $this-pvalue 1
     }
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-	global $v
-        entry $w.e -textvariable $v
+        global $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
@@ -71,20 +71,20 @@ itcl_class BioPSE_LeadField_CalculateMisfitField {
             raise $w
             return;
         }
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 300 80
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
         
         global $this-metric
-        frame $w.top -relief groove -borderwidth 2
+        sci_frame $w.top -relief groove -borderwidth 2
         make_labeled_radio $w.top.metric "Error Metric" "" top 1 \
                 $this-metric \
                 {{"Correlation Coefficient" CC } \
                 {"Inverse Correlation Coefficient" invCC} \
                 {"p Norm" RMS} \
                 {"Relative RMS" relRMS}}
-	make_entry $w.top.e "p value:" $this-pvalue "$this-c needexecute"
+        make_entry $w.top.e "p value:" $this-pvalue "$this-c needexecute"
         pack $w.top.metric $w.top.e -side top
         pack $w.top -side top -fill x
     }   

@@ -45,8 +45,10 @@
 
 #include <string>
 #include <vector>
+
 #include <Core/Datatypes/NrrdData.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
+
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/BBox.h>
@@ -64,58 +66,60 @@ public:
   int ref_cnt;
 
   ColorMappedNrrdTextureObj(NrrdDataHandle &nrrd_handle,
-                            ColorMapHandle &);
+                            ColorMapHandle &cmap, unsigned int label = 0);
   ~ColorMappedNrrdTextureObj();
 
-  void                  set_label(unsigned int);
   void                  set_colormap(ColorMapHandle &cmap);
   void                  set_clut_minmax(float min, float max);
   void                  set_dirty() { dirty_ = true; }
   void                  set_coords(const Point &, 
                                    const Vector &,
                                    const Vector &);  
-  void			draw_quad();
+  void			draw_quad(bool noalpha = false);
   void                  get_bounds(BBox&);
   void                  apply_colormap(int, int, int, int, int border=0);
+  void                  set_label_color(const Color &c) { label_color_ = c; }
   void                  set_opacity(float op) { opacity_ = op; } 
+  void                  set_threshold(double lower, double upper);
+
+  const Point &         get_min() { return min_; }
+
 private:
   friend class GeomColorMappedNrrdTextureObj;
   bool			bind(int x, int y);
 
   template <class T> 
-  void			apply_colormap_to_raw_data(float *dst,
-                                                   T *src,
-                                                   int row_width,
-                                                   int region_start,
-                                                   int region_width,
-                                                   int region_height,
-                                                   const float *rgba,
-                                                   int ncolors,
-                                                   float scale, float bias);
+  void			apply_colormap_to_data(unsigned char *dst,
+                                               T *src,
+                                               int row_width,
+                                               int region_start,
+                                               int region_width,
+                                               int region_height,
+                                               const unsigned char *rgba,
+                                               int ncolors,
+                                               float scale, float bias);
   template <class T> 
-  void			apply_colormap_to_label_data(float *dst,
-                                                     T *src,
-                                                     int row_width,
-                                                     int region_start,
-                                                     int region_width,
-                                                     int region_height,
-                                                     const float *rgba,
-                                                     unsigned char *,
-                                                     unsigned char);
-
+  void			apply_label_to_data(unsigned char *dst,
+                                            T *src,
+                                            int row_width,
+                                            int region_start,
+                                            int region_width,
+                                            int region_height,
+                                            unsigned int mask);
 
   template <class T> 
-  void			apply_colormap_to_label_bit(float *dst,
-                                                    T *src,
-                                                    int row_width,
-                                                    int region_start,
-                                                    int region_width,
-                                                    int region_height,
-                                                    const float *rgba,
-                                                    unsigned char bit);
+  void			apply_threshold_to_data(unsigned char *dst,
+                                                T *src,
+                                                int row_width,
+                                                int region_start,
+                                                int region_width,
+                                                int region_height);
 
   typedef vector<pair<unsigned int, unsigned int> > divisions_t;
+
   ColorMapHandle        colormap_;
+  unsigned char *       colormap_rgba_;
+  Color                 label_color_;
   NrrdDataHandle	nrrd_handle_;
   bool  		dirty_;
   vector<bool>		texture_id_dirty_;
@@ -124,17 +128,19 @@ private:
   divisions_t           ydiv_;
   float                 clut_min_;
   float                 clut_max_;
-  float *               data_;
+  unsigned char *       data_;
   unsigned int          label_;
   float                 opacity_;
   Point                 min_;
   Vector                xdir_;
   Vector                ydir_;
+  double                lower_threshold_;
+  double                upper_threshold_;
+  bool                  thresholding_;
 };
 
 
-  typedef LockingHandle<ColorMappedNrrdTextureObj> ColorMappedNrrdTextureObjHandle;
-
+typedef LockingHandle<ColorMappedNrrdTextureObj> ColorMappedNrrdTextureObjHandle;
 
 
 }

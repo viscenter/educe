@@ -41,53 +41,52 @@ itcl_class Teem_Tend_TendSatin {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	checkbutton $w.f.options.torus \
-	    -text "Generate Torus Dataset" \
-	    -variable $this-torus
-	pack $w.f.options.torus -side top -anchor nw -padx 3 -pady 3
+        sci_checkbutton $w.f.options.torus \
+            -text "Generate Torus Dataset" \
+            -variable $this-torus
+        pack $w.f.options.torus -side top -anchor nw -padx 3 -pady 3
 
-	iwidgets::entryfield $w.f.options.anisotropy \
-	    -labeltext "Anisotropy Parameter:" \
-	    -textvariable $this-anisotropy
+        sci_entryfield $w.f.options.anisotropy \
+            -labeltext "Anisotropy Parameter:" \
+            -textvariable $this-anisotropy
         pack $w.f.options.anisotropy -side top -expand yes -fill x
-	
 
-        iwidgets::entryfield $w.f.options.maxca1 \
-	    -labeltext "Max Anisotropy:" \
-	    -textvariable $this-maxca1
+        sci_entryfield $w.f.options.maxca1 \
+          -labeltext "Max Anisotropy:" \
+          -textvariable $this-maxca1
         pack $w.f.options.maxca1 -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.minca1 \
-	    -labeltext "Min Anisotropy:" \
-	    -textvariable $this-minca1
+        sci_entryfield $w.f.options.minca1 \
+          -labeltext "Min Anisotropy:" \
+          -textvariable $this-minca1
         pack $w.f.options.minca1 -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.boundary \
-	    -labeltext "Boundary:" \
-	    -textvariable $this-boundary
+        sci_entryfield $w.f.options.boundary \
+          -labeltext "Boundary:" \
+          -textvariable $this-boundary
         pack $w.f.options.boundary -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.thickness \
-	    -labeltext "Thickness:" \
-	    -textvariable $this-thickness
+        sci_entryfield $w.f.options.thickness \
+          -labeltext "Thickness:" \
+          -textvariable $this-thickness
         pack $w.f.options.thickness -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.size \
-	    -labeltext "Size:" \
-	    -textvariable $this-size
+        sci_entryfield $w.f.options.size \
+          -labeltext "Size:" \
+          -textvariable $this-size
         pack $w.f.options.size -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w.f $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

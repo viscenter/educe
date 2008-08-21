@@ -50,7 +50,7 @@
 
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 
@@ -139,7 +139,7 @@ main(int argc, char **argv) {
   if (header) matstream >> nr >> nc;
 
   cerr << "nrows="<<nr<<" ncols="<<nc<<"\n";
-  DenseMatrix *dm = scinew DenseMatrix(nr,nc);
+  DenseMatrix *dm = new DenseMatrix(nr,nc);
 
   int r, c;
   for (r=0; r<nr; r++)

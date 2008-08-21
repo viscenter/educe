@@ -41,7 +41,7 @@
  */
 
 #include <Core/Geom/GeomBillboard.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::cerr;
 using std::ostream;
@@ -50,7 +50,7 @@ namespace SCIRun {
 
 Persistent* make_GeomBillboard()
 {
-    return scinew GeomBillboard(0, Point(0,0,0));
+    return new GeomBillboard(0, Point(0,0,0));
 }
 
 PersistentTypeID GeomBillboard::type_id("GeomBillboard", "GeomObj",

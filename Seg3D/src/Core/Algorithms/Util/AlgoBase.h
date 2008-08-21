@@ -30,6 +30,7 @@
 #define CORE_ALGORITHMS_UTIL_ALGOBASE_H 1
 
 #include <Core/Algorithms/Util/AlgoCallBack.h>
+#include <Core/Algorithms/Util/AlgoPrivateData.h>
 #include <Core/Algorithms/Util/AlgoParamList.h>
 #include <Core/Algorithms/Util/AlgoReportStatus.h>
 #include <Core/Util/ProgressReporter.h>
@@ -40,6 +41,7 @@ namespace SCIRunAlgo {
 //! Base class is a merger of serveral sub classes
 class AlgoBase : public AlgoReportStatus, 
                  public AlgoParamList, 
+                 public AlgoPrivateData,
                  public AlgoCallBackList {};
 
 } //namespace SCIRun

@@ -32,26 +32,29 @@
 
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
+#include <Core/Algorithms/Fields/MergeFields/AppendFields.h>
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCIRun {
 
 class CollectFields : public Module {
-public:
-  CollectFields(GuiContext*);
-  virtual void execute();
-  virtual void tcl_command(GuiArgs& args, void* userdata);
+  public:
+    CollectFields(GuiContext*);
+    ~CollectFields() {}
+    virtual void execute();
+    virtual void tcl_command(GuiArgs& args, void* userdata);
 
-private:
-  std::list<FieldHandle> buffer_;
-  int buffer_length_;
-  GuiInt buffersizegui_;
-  Mutex bufferlock_;
-  int buffersize_;
+  private:
+    std::list<FieldHandle> buffer_;
+    int buffer_length_;
+    GuiInt buffersizegui_;
+    Mutex bufferlock_;
+    int buffersize_;
+    
+    SCIRunAlgo::AppendFieldsAlgo algo_;
 };
 
 
@@ -63,6 +66,7 @@ CollectFields::CollectFields(GuiContext* ctx)
     bufferlock_("Lock for internal buffer of module"),
     buffersize_(0)
 {
+  algo_.set_progress_reporter(this);
 }
 
 
@@ -74,7 +78,7 @@ CollectFields::execute()
   MatrixHandle BufferSize;
   
   // Get the new input data:  
-  if (!(get_input_handle("Field",Input,true))) return;
+  get_input_handle("Field",Input,true);
   get_input_handle("BufferSize",BufferSize,false);
   
   // Only reexecute if the input changed. SCIRun uses simple scheduling
@@ -104,13 +108,11 @@ CollectFields::execute()
     bufferlock_.unlock();
     
     // Innerworks of module:
-    SCIRunAlgo::FieldsAlgo algo(this);
-    
     // The lock here protects us from the user wiping out the buffer
     // through the GUI while executing. This could cause a segmentation
     // fault and hence it needs to be protected b y a lock.
     bufferlock_.lock();
-    algo.GatherFields(buffer_,Output);
+    algo_.run(buffer_,Output);
     bufferlock_.unlock();
 
     // send new output if there is any:      

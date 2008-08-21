@@ -74,91 +74,91 @@ itcl_class SCIRun_Visualization_GenerateStreamLinesWithPlacementHeuristic {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.a
-	frame $w.a.labs
-	frame $w.a.ents
-	label $w.a.labs.numsl -text "Number of Streamlines" -just left
-	entry $w.a.ents.numsl -textvariable $this-numsl
-	label $w.a.labs.numpts -text "Number of Trials" -just left
-	entry $w.a.ents.numpts -textvariable $this-numpts
+        sci_frame $w.a
+        sci_frame $w.a.labs
+        sci_frame $w.a.ents
+        sci_label $w.a.labs.numsl -text "Number of Streamlines" -just left
+        sci_entry $w.a.ents.numsl -textvariable $this-numsl
+        sci_label $w.a.labs.numpts -text "Number of Trials" -just left
+        sci_entry $w.a.ents.numpts -textvariable $this-numpts
 
-	pack $w.a.labs.numsl $w.a.labs.numpts -side top -anchor w
-	pack $w.a.ents.numsl $w.a.ents.numpts -side top -anchor e
-	pack $w.a.labs $w.a.ents -side left -expand yes -fill x
+        pack $w.a.labs.numsl $w.a.labs.numpts -side top -anchor w
+        pack $w.a.ents.numsl $w.a.ents.numpts -side top -anchor e
+        pack $w.a.labs $w.a.ents -side left -expand yes -fill x
 
-	frame $w.s
-	frame $w.s.labs
-	frame $w.s.ents
-	label $w.s.labs.stepsize -text "Stepsize" -just left
-	entry $w.s.ents.stepsize -textvariable $this-stepsize
-	label $w.s.labs.stepout -text "Step Output" -just left
-	entry $w.s.ents.stepout -textvariable $this-stepout
-	label $w.s.labs.maxsteps -text "Maximum Steps" -just left
-	entry $w.s.ents.maxsteps -textvariable $this-maxsteps
-	label $w.s.labs.minmag -text "Minimal Magnitude" -just left
-	entry $w.s.ents.minmag -textvariable $this-minmag
+        sci_frame $w.s
+        sci_frame $w.s.labs
+        sci_frame $w.s.ents
+        sci_label $w.s.labs.stepsize -text "Stepsize" -just left
+        sci_entry $w.s.ents.stepsize -textvariable $this-stepsize
+        sci_label $w.s.labs.stepout -text "Step Output" -just left
+        sci_entry $w.s.ents.stepout -textvariable $this-stepout
+        sci_label $w.s.labs.maxsteps -text "Maximum Steps" -just left
+        sci_entry $w.s.ents.maxsteps -textvariable $this-maxsteps
+        sci_label $w.s.labs.minmag -text "Minimal Magnitude" -just left
+        sci_entry $w.s.ents.minmag -textvariable $this-minmag
 
-	pack $w.s.labs.stepsize $w.s.labs.stepout $w.s.labs.maxsteps $w.s.labs.minmag \
-	    -side top -anchor w
-	pack $w.s.ents.stepsize $w.s.ents.stepout $w.s.ents.maxsteps $w.s.ents.minmag \
-	    -side top -anchor e
-	pack $w.s.labs $w.s.ents -side left -expand yes -fill x
+        pack $w.s.labs.stepsize $w.s.labs.stepout $w.s.labs.maxsteps $w.s.labs.minmag \
+            -side top -anchor w
+        pack $w.s.ents.stepsize $w.s.ents.stepout $w.s.ents.maxsteps $w.s.ents.minmag \
+            -side top -anchor e
+        pack $w.s.labs $w.s.ents -side left -expand yes -fill x
 
-	frame $w.direction -relief groove -borderwidth 2
-	label $w.direction.label -text "Direction"
-	radiobutton $w.direction.neg -text "Negative" \
-	    -variable $this-direction -value 0
-	radiobutton $w.direction.both -text "Both" \
-	    -variable $this-direction -value 1
-	radiobutton $w.direction.pos -text "Positive" \
-	    -variable $this-direction -value 2
+        sci_frame $w.direction -relief groove -borderwidth 2
+        sci_label $w.direction.label -text "Direction"
+        sci_radiobutton $w.direction.neg -text "Negative" \
+            -variable $this-direction -value 0
+        sci_radiobutton $w.direction.both -text "Both" \
+            -variable $this-direction -value 1
+        sci_radiobutton $w.direction.pos -text "Positive" \
+            -variable $this-direction -value 2
 
-	pack $w.direction.label -side top -fill both
-	pack $w.direction.neg $w.direction.both $w.direction.pos \
-	    -side left -fill both
+        pack $w.direction.label -side top -fill both
+        pack $w.direction.neg $w.direction.both $w.direction.pos \
+            -side left -fill both
 
-	frame $w.meth -relief groove -borderwidth 2
-	label $w.meth.label -text "Streamline Integration Method"
-	radiobutton $w.meth.euler -text "Euler" \
-	    -variable $this-method -value 0
-	radiobutton $w.meth.rk2 -text "Runge-Kutta 2nd Order" \
-	    -variable $this-method -value 1
-	radiobutton $w.meth.rk4 -text "Runge-Kutta 4th Order" \
-	    -variable $this-method -value 2
-	
-	pack $w.meth.label -side top -fill both
-	pack $w.meth.euler $w.meth.rk2 $w.meth.rk4 \
-	    -side top -anchor w
+        sci_frame $w.meth -relief groove -borderwidth 2
+        sci_label $w.meth.label -text "Streamline Integration Method"
+        sci_radiobutton $w.meth.euler -text "Euler" \
+            -variable $this-method -value 0
+        sci_radiobutton $w.meth.rk2 -text "Runge-Kutta 2nd Order" \
+            -variable $this-method -value 1
+        sci_radiobutton $w.meth.rk4 -text "Runge-Kutta 4th Order" \
+            -variable $this-method -value 2
+        
+        pack $w.meth.label -side top -fill both
+        pack $w.meth.euler $w.meth.rk2 $w.meth.rk4 \
+            -side top -anchor w
 
 
-	frame $w.e -relief groove -borderwidth 2
-	label $w.e.label -text "Render Function Parameters"
-	frame $w.e.labs 
-	frame $w.e.ents
-	label $w.e.labs.minper -text "Minimal Radius \[%\]" -just left
-	entry $w.e.ents.minper -textvariable $this-minper
-	label $w.e.labs.maxper -text "Maximal Radius \[%\]" -just left
-	entry $w.e.ents.maxper -textvariable $this-maxper
-	label $w.e.labs.ming -text "Minimal Magnitude" -just left
-	entry $w.e.ents.ming -textvariable $this-ming
-	label $w.e.labs.maxg -text "Maximal Magnitude" -just left
-	entry $w.e.ents.maxg -textvariable $this-maxg
-	label $w.e.labs.numsamples -text "Number of Samples" -just left
-	entry $w.e.ents.numsamples -textvariable $this-numsamples
+        sci_frame $w.e -relief groove -borderwidth 2
+        sci_label $w.e.label -text "Render Function Parameters"
+        sci_frame $w.e.labs 
+        sci_frame $w.e.ents
+        sci_label $w.e.labs.minper -text "Minimal Radius \[%\]" -just left
+        sci_entry $w.e.ents.minper -textvariable $this-minper
+        sci_label $w.e.labs.maxper -text "Maximal Radius \[%\]" -just left
+        sci_entry $w.e.ents.maxper -textvariable $this-maxper
+        sci_label $w.e.labs.ming -text "Minimal Magnitude" -just left
+        sci_entry $w.e.ents.ming -textvariable $this-ming
+        sci_label $w.e.labs.maxg -text "Maximal Magnitude" -just left
+        sci_entry $w.e.ents.maxg -textvariable $this-maxg
+        sci_label $w.e.labs.numsamples -text "Number of Samples" -just left
+        sci_entry $w.e.ents.numsamples -textvariable $this-numsamples
 
-	pack $w.e.label -side top -fill both
-	pack $w.e.labs.minper $w.e.labs.maxper $w.e.labs.ming $w.e.labs.maxg \
-	    $w.e.labs.numsamples -side top -anchor w
-	pack $w.e.ents.minper $w.e.ents.maxper $w.e.ents.ming $w.e.ents.maxg \
-	    $w.e.ents.numsamples -side top -anchor e
-	pack $w.e.labs $w.e.ents -side left -expand yes -fill x
+        pack $w.e.label -side top -fill both
+        pack $w.e.labs.minper $w.e.labs.maxper $w.e.labs.ming $w.e.labs.maxg \
+            $w.e.labs.numsamples -side top -anchor w
+        pack $w.e.ents.minper $w.e.ents.maxper $w.e.ents.ming $w.e.ents.maxg \
+            $w.e.ents.numsamples -side top -anchor e
+        pack $w.e.labs $w.e.ents -side left -expand yes -fill x
 
-	pack $w.a $w.s $w.direction $w.meth $w.e -side top -expand yes -fill x  \
-		-padx 5 -pady 5
+        pack $w.a $w.s $w.direction $w.meth $w.e -side top -expand yes -fill x  \
+          -padx 5 -pady 5
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }

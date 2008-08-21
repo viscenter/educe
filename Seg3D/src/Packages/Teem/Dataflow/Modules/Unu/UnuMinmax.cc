@@ -40,7 +40,6 @@
 
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Malloc/Allocator.h>
 #include <Core/Containers/StringUtil.h>
 
 #include <Dataflow/Network/Ports/NrrdPort.h>
@@ -51,35 +50,21 @@ namespace SCITeem {
 using namespace SCIRun;
 
 class UnuMinmax : public Module {
-public:
-  UnuMinmax(GuiContext*);
+	public:
+	  UnuMinmax(GuiContext*);
+	  virtual void execute();
 
-  virtual ~UnuMinmax();
-
-  virtual void execute();
-
-private:
-  NrrdOPort*         onrrd_;
-
-  NrrdDataHandle     onrrd_handle_;  //! the cached output nrrd handle.
-  vector<int>        in_generation_; //! all input generation nums.
-                                    //! target type for output nrrd.
-  GuiInt             nrrds_;
-  vector<GuiDouble*> mins_;
-  vector<GuiDouble*> maxs_;
+	private:
+	  GuiInt             nrrds_;
+	  vector<GuiDouble*> mins_;
+	  vector<GuiDouble*> maxs_;
 };
 
 
 DECLARE_MAKER(UnuMinmax)
 UnuMinmax::UnuMinmax(GuiContext* ctx)
   : Module("UnuMinmax", ctx, Source, "UnuAtoM", "Teem"),
-    onrrd_(0), onrrd_handle_(0), in_generation_(0),
     nrrds_(get_ctx()->subVar("nrrds"), 0)
-{
-}
-
-
-UnuMinmax::~UnuMinmax()
 {
 }
 
@@ -87,86 +72,53 @@ UnuMinmax::~UnuMinmax()
 void
 UnuMinmax::execute()
 {
-  port_range_type range = get_iports("Nrrds");
-  if (range.first == range.second) { return; }
-
-  unsigned int i = 0;
   vector<NrrdDataHandle> nrrds;
-  bool do_join = false;
-  port_map_type::iterator pi = range.first;
-  int num_nrrds = 0;
-  while (pi != range.second)
+  
+  get_dynamic_input_handles("Nrrds",nrrds,true);
+  if (nrrds.size() < 2) return;
+  
+  if (inputs_changed_ )
   {
-    NrrdIPort *inrrd = (NrrdIPort *)get_iport(pi->second);
-    NrrdDataHandle nrrd;
-    
-    if (inrrd->get(nrrd) && nrrd.get_rep()) {
-      // check to see if we need to do the join or can output the cached onrrd.
-      if (in_generation_.size() <= i) {
-	// this is a new input, never been joined.
-	do_join = true;
-	in_generation_.push_back(nrrd->generation);
-      } else if (in_generation_[i] != nrrd->generation) {
-	// different input than last execution
-	do_join = true;
-	in_generation_[i] = nrrd->generation;
-      }
+	nrrds_.set(nrrds.size());
+	vector<double> mins, maxs;
 
-      nrrds.push_back(nrrd);
-      num_nrrds++;
-    }
-    ++pi; ++i;
-  }
+	int i = 0;
+	vector<NrrdDataHandle>::iterator iter = nrrds.begin();
+	while(iter != nrrds.end()) 
+	{
+	  NrrdDataHandle nh = *iter;
+	  ++iter;
 
-  if (num_nrrds != nrrds_.get()) {
-    do_join = true;
-  }
-
-  nrrds_.set(num_nrrds);
-
-  vector<Nrrd*> arr(nrrds.size());
-
-  if (do_join) {
-    vector<double> mins, maxs;
-
-    int i = 0;
-    vector<NrrdDataHandle>::iterator iter = nrrds.begin();
-    while(iter != nrrds.end()) {
-      NrrdDataHandle nh = *iter;
-      ++iter;
-
-      NrrdData* cur_nrrd = nh.get_rep();
-      NrrdRange *range = nrrdRangeNewSet(cur_nrrd->nrrd_,
+	  NrrdData* cur_nrrd = nh.get_rep();
+	  NrrdRange *range = nrrdRangeNewSet(cur_nrrd->nrrd_,
 					 nrrdBlind8BitRangeFalse);
-      mins.push_back(range->min);
-      maxs.push_back(range->max);
-      ++i;
-    }
-    
+	  mins.push_back(range->min);
+	  maxs.push_back(range->max);
+	  ++i;
+	}
 
-    // build list string
-    for (int i=0; i<(int)mins.size(); i++) {
-      ostringstream min_str, max_str;
-      min_str << "min" << i;
-      if ((int)mins_.size() <= i)
-	mins_.push_back(new GuiDouble(get_ctx()->subVar(min_str.str())));
-      max_str << "max" << i;
-      if ((int)maxs_.size() <= i)
-	maxs_.push_back(new GuiDouble(get_ctx()->subVar(max_str.str())));
-    }
-    get_gui()->execute(get_id() + " init_axes");
+	// build list string
+	for (int i=0; i<(int)mins.size(); i++) 
+	{
+	  ostringstream min_str, max_str;
+	  min_str << "min" << i;
+	  if ((int)mins_.size() <= i)
+			mins_.push_back(new GuiDouble(get_ctx()->subVar(min_str.str())));
+	  max_str << "max" << i;
+	  if ((int)maxs_.size() <= i)
+		maxs_.push_back(new GuiDouble(get_ctx()->subVar(max_str.str())));
+	}
+	get_gui()->execute(get_id() + " init_axes");
 
-    for (int i=0; i<(int)mins.size(); i++) {
-      mins_[i]->set(mins[i]);
-      mins_[i]->reset();
-      maxs_[i]->set(maxs[i]);
-      maxs_[i]->reset();
-    }
-    get_gui()->execute(get_id() + " make_min_max");
-
+	for (int i=0; i<(int)mins.size(); i++) 
+	{
+	  mins_[i]->set(mins[i]);
+	  mins_[i]->reset();
+	  maxs_[i]->set(maxs[i]);
+	  maxs_[i]->reset();
+	}
+	get_gui()->execute(get_id() + " make_min_max");
   }
 }
 
 } // End namespace Teem
-
-

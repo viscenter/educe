@@ -42,7 +42,7 @@ char component_skeleton[] = \
 " */\n"
 "\n"
 "#include <Dataflow/Network/Module.h>\n"
-"#include <Core/Malloc/Allocator.h>\n"
+"\n"
 "\n"
 "namespace %s {\n" /* package name */
 "\n"

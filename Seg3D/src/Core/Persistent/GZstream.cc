@@ -44,16 +44,17 @@
  */
 
 #include <Core/Persistent/GZstream.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Containers/StringUtil.h>
 
 #include <teem/air.h>
 #include <teem/nrrd.h>
+#include <zlib.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include   <fstream>
 #include   <iostream>
-#include <sgi_stl_warnings_on.h>
+
 
 using namespace std;
 
@@ -817,9 +818,9 @@ auto_gzistream(const string& filename, ProgressReporter *pr)
     }
 
     if (file_endian == machine_endian) 
-      return scinew GZPiostream(filename, Piostream::Read, version, pr);
+      return new GZPiostream(filename, Piostream::Read, version, pr);
     else 
-      return scinew GZSwapPiostream(filename, Piostream::Read, version,pr);
+      return new GZSwapPiostream(filename, Piostream::Read, version,pr);
   }
   else
   {

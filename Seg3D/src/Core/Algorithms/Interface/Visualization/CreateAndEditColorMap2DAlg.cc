@@ -142,7 +142,7 @@ CreateAndEditColorMap2DPriv::CreateAndEditColorMap2DPriv() :
   histo_(0),
   wid_mutex_("CreateAndEditColorMap2D widget mutex")
 {
-  widgets_.push_back(scinew RectangleCM2Widget());
+  widgets_.push_back(new RectangleCM2Widget());
   events_ = EventManager::register_event_messages("EM:" + 
                                                   get_p_cm2view_targ());
 
@@ -155,7 +155,7 @@ CreateAndEditColorMap2DPriv::CreateAndEditColorMap2DPriv() :
 
   // launch the event handler.
   string tid = "EventHandler_" + get_p_cm2view_targ();
-  Thread *vt = scinew Thread(new EventHandler(this), tid.c_str());
+  Thread *vt = new Thread(new EventHandler(this), tid.c_str());
   vt->detach(); // runs until thread exits.
 }
 

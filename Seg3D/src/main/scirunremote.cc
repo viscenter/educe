@@ -26,7 +26,7 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <main/sci_version.h>
+#include <sci_defs/version_defs.h>
 #include <Dataflow/Network/Network.h>
 #include <Dataflow/Network/NetworkEditor.h>
 #include <Dataflow/Network/PackageDB.h>
@@ -46,20 +46,12 @@
 
 #include <sys/stat.h>
 #include <fcntl.h>
-
-#include <sgi_stl_warnings_off.h>
 #include <string>
 #include <iostream>
-#include <sgi_stl_warnings_on.h>
 using std::cout;
 
 #ifdef _WIN32
 #  include <windows.h>
-#endif
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209 
 #endif
 
 
@@ -135,7 +127,7 @@ main(int argc, char *argv[], char **environment) {
   // The environment has been setup
   // Now split of a process for running external processes
   
-  systemcallmanager_ = scinew SystemCallManager();
+  systemcallmanager_ = new SystemCallManager();
   systemcallmanager_->create();
 
   SCIRunInit();
@@ -151,7 +143,7 @@ main(int argc, char *argv[], char **environment) {
   // and running the service on a different machine 
  
 
-  ServiceDBHandle servicedb = scinew ServiceDB;	
+  ServiceDBHandle servicedb = new ServiceDB;	
 
   servicedb->loadpackages();	// load all services and find all makers
   servicedb->activateall();		// activate all services
@@ -164,11 +156,11 @@ main(int argc, char *argv[], char **environment) {
   // of SCIRun over the internet, the second manager will not be launched
   
   // A log file is not necessary but handy for debugging purposes
-  //ServiceLogHandle internallogfile = scinew ServiceLog("scirun_internal_servicemanager.log");
+  //ServiceLogHandle internallogfile = new ServiceLog("scirun_internal_servicemanager.log");
   
   //IComAddress internaladdress("internal","servicemanager");
-  //ServiceManager* internal_service_manager = scinew ServiceManager(servicedb,internaladdress,internallogfile); 
-  //Thread* t_int = scinew Thread(internal_service_manager,"internal service manager",0,Thread::NotActivated);
+  //ServiceManager* internal_service_manager = new ServiceManager(servicedb,internaladdress,internallogfile); 
+  //Thread* t_int = new Thread(internal_service_manager,"internal service manager",0,Thread::NotActivated);
   //t_int->setStackSize(1024*20);
   //t_int->activate(false);
   //t_int->detach();
@@ -197,11 +189,11 @@ main(int argc, char *argv[], char **environment) {
 	// a secure version which will run over ssl. 
 	
     // A log file is not necessary but handy for debugging purposes
-    ServiceLogHandle externallogfile = scinew ServiceLog("scirun_external_servicemanager.log"); 
+    ServiceLogHandle externallogfile = new ServiceLog("scirun_external_servicemanager.log"); 
 	
 	IComAddress externaladdress("scirun","",serviceport_str,ipstr);
-	ServiceManager* external_service_manager = scinew ServiceManager(servicedb,externaladdress,externallogfile); 
-	Thread* t_ext = scinew Thread(external_service_manager,"external service manager",0,Thread::NotActivated);
+	ServiceManager* external_service_manager = new ServiceManager(servicedb,externaladdress,externallogfile); 
+	Thread* t_ext = new Thread(external_service_manager,"external service manager",0,Thread::NotActivated);
 	t_ext->setStackSize(1024*20);
     t_ext->setDaemon(true);
 	t_ext->activate(false);
@@ -242,16 +234,9 @@ main(int argc, char *argv[], char **environment) {
   WaitForSingleObject(forever,INFINITE);
 #endif
 
-#if !defined(__sgi)
   Semaphore wait("main wait", 0);
   wait.down();
-#endif
 	
   return 0;
 }
 
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209 
-#endif

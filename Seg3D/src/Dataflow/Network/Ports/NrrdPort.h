@@ -39,16 +39,21 @@
  *  Copyright (C) 2001 SCI Group
  */
 
-#ifndef SCI_Teem_NrrdPort_h
-#define SCI_Teem_NrrdPort_h 1
+#ifndef DATAFLOW_NETWORK_PORTS_NRRDPORT_H
+#define DATAFLOW_NETWORK_PORTS_NRRDPORT_H 1
+
+#include <Core/Datatypes/NrrdData.h>
+#include <Core/Containers/LockingHandle.h>
 
 #include <Dataflow/Network/Ports/SimplePort.h>
-#include <Core/Datatypes/NrrdData.h>
 
 namespace SCIRun {
 
-typedef SCIRun::SimpleIPort<NrrdDataHandle> NrrdIPort;
-typedef SCIRun::SimpleOPort<NrrdDataHandle> NrrdOPort;
+typedef SimpleIPort<NrrdDataHandle> NrrdIPort;
+typedef SimpleOPort<NrrdDataHandle> NrrdOPort;
+typedef LockingHandle<NrrdIPort> NrrdIPortHandle;
+typedef LockingHandle<NrrdOPort> NrrdOPortHandle;
+
 
 } // End namespace SCIRun
 

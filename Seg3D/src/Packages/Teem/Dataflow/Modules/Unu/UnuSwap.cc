@@ -31,7 +31,7 @@
 //    Date   : April 2004
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -87,7 +87,7 @@ UnuSwap::execute()
     free(err);
   }
 
-  NrrdDataHandle out(scinew NrrdData(nout));
+  NrrdDataHandle out(new NrrdData(nout));
 
   // Copy the properties.
   out->copy_properties(nrrd_handle.get_rep());

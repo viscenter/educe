@@ -220,7 +220,7 @@ unsigned int FieldlineLib::hull( vector< Point > &points,
     ordering.push_back( i );
   }
 
-  // Add one more points as a terminal.
+  // Add one more point as a terminal.
   hullPts.push_back( points[0] );
   ordering.push_back( 0 );
 
@@ -268,8 +268,7 @@ unsigned int FieldlineLib::hull( vector< Point > &points,
   } while( m != winding );
 
 
-  // With a single skip all of the points are on a single convex
-  // hull.
+  // With a single skip all of the points are on a single convex hull.
   if( skips.size() == 1 && skips[0].second == winding ) {
 
     convex = true;
@@ -422,8 +421,8 @@ IntersectCheck( vector< Point >& points, unsigned int nbins ) {
       Point l1_p0 = points[k];
       Point l1_p1 = points[l];
 
-      //      cerr << nbins
-      // 	   << "   " << i << "  " << j << "  " << k << "  " << l << endl;
+//       cerr << nbins
+// 	   << "   " << i << "  " << j << "  " << k << "  " << l << endl;
 
       if( j != k && intersect( l0_p0, l0_p1, l1_p0, l1_p1 ) == 1)
 	return false;
@@ -431,6 +430,243 @@ IntersectCheck( vector< Point >& points, unsigned int nbins ) {
   }
 
   return true;
+}
+
+
+double FieldlineLib::
+twistStats( vector< Point >& twist_points,
+	    unsigned int &winding ) {
+
+  double average_sd = 0;
+  
+  for( unsigned int i=0; i<winding; ++i ) {
+    
+    double sum = 0;
+    unsigned int cc = 0;
+    
+    for( unsigned int j=i; j<twist_points.size(); j+=winding ) {
+      sum += twist_points[j].z();
+      ++cc;
+    }
+    
+    double average = sum / (double) cc;
+    
+    double sumofsquares = 0;
+    
+    for( unsigned int j=i; j<twist_points.size(); j+=winding ) {
+      sumofsquares += ((twist_points[j].z()-average)*
+		       (twist_points[j].z()-average));
+    }
+    
+    average_sd += sqrt( sumofsquares/cc );
+  }
+  
+  return average_sd /= (double) winding;
+}
+
+
+bool FieldlineLib::
+islandChecks( vector< Point >& points,
+	      unsigned int &winding,
+	      unsigned int &island,
+	      float &avenode ) {
+
+  // Get the centroid for all of the points.
+  Vector globalCentroid(0,0,0);
+
+  for( unsigned int i=0; i<points.size(); i++ )
+    globalCentroid += (Vector) points[i];
+
+  globalCentroid /= (double) points.size();
+
+  // Get the direction of the points for the first group. Assume that
+  // the direction is the same for all of the other groups.
+  bool baseCCW = (ccw( (Vector) points[0      ] - globalCentroid, 
+		       (Vector) points[winding] - globalCentroid ) == 1);
+  
+  // Check for islands. Islands will exists if there is a change
+  // in direction of the connected points relative to a base point. If
+  // the hull is convex the base point may the centroid is the of all
+  // of the points or based upon a point that is perpendicular to the
+  // principal axis of the group of points.
+  island = 0;
+
+  unsigned int completeIslands = 0;
+
+  int nodes[winding];
+  avenode = 0;
+
+  for( unsigned int i=0; i<winding; i++ ) {
+
+    Vector baseCentroid;
+
+    // If the hull is convex the global centroid can be used because
+    // all of the islands will surround it in a radial manner.
+    if( 0 /*convex*/ ) {
+      baseCentroid = globalCentroid;
+
+      // Otherwise use an offset from the local centroid of each group.
+    } else {
+
+      // Get the local centroid for the group.
+      Vector localCentroid(0,0,0);
+
+      unsigned int npts = 0;
+
+      for( unsigned int j=i; j<points.size(); j+=winding, npts++ )
+	localCentroid += (Vector) points[j];
+
+      localCentroid /= (float) npts;
+
+      // Get the principal axes of the points.
+      float Ixx = 0.0;
+      float Ixz = 0.0;
+      float Izz = 0.0;
+
+      double maxDist = 0;
+
+      // Get the moments of intertial for each point. It assumed that
+      // everything is in the Y plane as such there the moments of
+      // intertial along the Y axis are zero.
+      for( unsigned int j=i; j<points.size(); j+=winding ) {
+
+	Vector vec = (Vector) points[j] - localCentroid;
+
+	if( maxDist < vec.length() )
+	  maxDist = vec.length();
+
+	Ixx += vec.z()*vec.z();
+	Ixz -= vec.x()*vec.z();
+	Izz += vec.x()*vec.x();
+      }
+
+      // Short cut to the principal axes because the Y moments of
+      // intertial are zero.
+      float alpha = atan( 2.0 * Ixz / (Ixx - Izz) ) / 2.0;
+
+      //       cerr << "PRINCIPAL AXES " << alpha * 180.0 / M_PI << "    "
+      // 	   << Ixx + Ixz * sin(alpha       )/cos(alpha       ) << "    "
+      // 	   << Izz + Ixz * cos(alpha+M_PI/2)/sin(alpha+M_PI/2) << endl;
+
+      // Use the principal axes to get an offset from the local
+      // centroid which gives a point outside the island.
+      baseCentroid = localCentroid;
+
+      if( Ixx + Ixz * sin(alpha       )/cos(alpha       ) >
+	  Izz + Ixz * cos(alpha+M_PI/2)/sin(alpha+M_PI/2) )
+	baseCentroid += Vector(  cos(alpha), 0, sin(alpha) ) * maxDist;
+      else
+	baseCentroid += Vector( -sin(alpha), 0, cos(alpha) ) * maxDist;
+    }
+
+    unsigned int turns = 0;
+    unsigned int firstTurn = 0;
+    unsigned int   midTurn = 0;
+    unsigned int  lastTurn = 0;
+
+    // Get the direction based on the first two points.
+    Vector v0 = (Vector) points[i        ] - baseCentroid;
+    Vector v1 = (Vector) points[i+winding] - baseCentroid;
+
+    bool lastCCW = (ccw( v0, v1 ) == 1);
+    v0 = v1;
+
+    // Get the direction based on the remaining points.
+    for( unsigned int j=i+2*winding; j<points.size(); j+=winding ) {
+      v1 = (Vector) points[j] - baseCentroid;
+
+      bool localCCW = (ccw( v0, v1 ) == 1);
+
+      // A switch in direction indicates that an island is present.
+      if( localCCW != lastCCW ) {
+
+	lastCCW = localCCW;
+
+	if( turns++ == 0 )
+	  island++;
+
+	if( turns == 1 )     firstTurn = j - winding;
+	else if( turns == 2 )  midTurn = j - winding;
+	else if( turns == 3 ) lastTurn = j - winding;
+
+	if( turns == 3 )
+	  break;
+
+      } else {
+	v0 = v1;
+      }
+    }
+
+    // Determine the approximate number of points in the group.
+    nodes[i] = 0;
+    unsigned int overlap = 0;
+
+    if( turns < 2 ) {
+      nodes[i] = points.size() / winding;
+    } else {
+
+      if( turns == 2 ) {
+	nodes[i] = points.size() / winding;
+      } else if( turns == 3 ) {
+	nodes[i] = (lastTurn - firstTurn) / winding + 1;
+      }
+
+      // Check to see if the island overlaps itself.
+      for( unsigned int j=midTurn, k=j+winding;
+	   j<points.size() && k<points.size();
+	   j+=winding, k+=winding ) {
+
+	// See if the test point is between the first secton.
+	v0 = (Vector) points[i        ] - (Vector) points[j];
+	v1 = (Vector) points[i+winding] - (Vector) points[j];
+	
+	if( Dot( v0, v1 ) < 0.0 ) {
+	  overlap = j;
+	  nodes[i] = j / winding;
+	  turns = 3;
+	  break;
+	}
+
+	// See if the first point is between the test section.
+	v0 = (Vector) points[i] - (Vector) points[j];
+	v1 = (Vector) points[i] - (Vector) points[k];
+	
+	if( Dot( v0, v1 ) < 0.0 ) {
+	  overlap = j;
+	  nodes[i] = j / winding;
+	  turns = 3;
+	  break;
+	}
+      }
+    }
+
+    if( turns == 3 )
+      completeIslands++;
+
+    avenode += nodes[i];
+
+    if( turns )
+      cerr << "Island " << i << " has "
+	   << turns << " turns with "
+	   << nodes[i]
+	   << " nodes, the first overlap node is " << overlap
+	   << " firstTurn " << firstTurn
+	   <<   " midTurn " << midTurn
+	   <<  " lastTurn " << lastTurn << endl;
+  }
+
+  avenode /= (float) winding;
+
+
+  for( unsigned int i=0; i<winding; i++ ) {
+    if( nodes[i] < avenode - 1 || avenode + 1 < nodes[i] )
+    {
+      cerr << "Appears to be islands but not self consistant." << endl;
+      return false;
+    }  
+  }
+
+  return (bool) island;
 }
 
 
@@ -510,11 +746,9 @@ basicChecks( vector< Point >& points,
 	   << endl;
       return false;
     }
-  }
-
 
   // If a winding of two then then the ordering is immaterial.
-  else if( winding == 2 ) {
+  } else if( winding == 2 ) {
     skip   = 1;
     convex = true;
 
@@ -592,307 +826,109 @@ basicChecks( vector< Point >& points,
   }
 
 
-  // Get the direction of the points for the first group. Assume that
-  // the direction is the same for all of the other groups.
-  bool baseCCW = (ccw( (Vector) points[0      ] - globalCentroid, 
-		       (Vector) points[winding] - globalCentroid ) == 1);
-  
-
-  // Do a check for islands. Islands will exists if there is a change
-  // in direction of the connected points relative to a base point. IF
-  // the hull is convex the base point may the centroid is the of all
-  // of the points or based upon a point that is perpendicular to the
-  // principal axis of the group of points.
-  unsigned int completeIslands = 0;
-
-  unsigned int firstTurnMin = 0;
-  unsigned int   midTurnMin = 0;
-  unsigned int  lastTurnMin = 0;
-
-  unsigned int firstTurnMax = points.size();
-  unsigned int   midTurnMax = points.size();
-  unsigned int  lastTurnMax = points.size();
-
-  unsigned int  nodesMin = 0;
-  unsigned int  nodesMax = points.size() / winding;
-
-
-  for( unsigned int i=0; i<winding; i++ ) {
-
-    Vector baseCentroid;
-
-    // If the hull is convex the global centroid can be used because
-    // all of the islands will surround it in a radial manner.
-    if( convex ) {
-      baseCentroid = globalCentroid;
-
-      // Otherwise use an offset from the local centroid of each group.
-    } else {
-
-      // Get the local centroid for the group.
-      Vector localCentroid(0,0,0);
-
-      unsigned int npts = 0;
-
-      for( unsigned int j=i; j<points.size(); j+=winding, npts++ )
-	localCentroid += (Vector) points[j];
-
-      localCentroid /= (float) npts;
-
-      // Get the principal axes of the points.
-      float Ixx = 0.0;
-      float Ixz = 0.0;
-      float Izz = 0.0;
-
-      double maxDist = 0;
-
-      // Get the moments of intertial for each point. It assumed that
-      // everything is in the Y plane as such there the moments of
-      // intertial along the Y axis are zero.
-      for( unsigned int j=i; j<points.size(); j+=winding ) {
-
-	Vector vec = (Vector) points[j] - localCentroid;
-
-	if( maxDist < vec.length() )
-	  maxDist = vec.length();
-
-	Ixx += vec.z()*vec.z();
-	Ixz -= vec.x()*vec.z();
-	Izz += vec.x()*vec.x();
-      }
-
-      // Short cut to the principal axes because the Y moments of
-      // intertial are zero.
-      float alpha = atan( 2.0 * Ixz / (Ixx - Izz) ) / 2.0;
-
-      //       cerr << "PRINCIPAL AXES " << alpha * 180.0 / M_PI << "    "
-      // 	   << Ixx + Ixz * sin(alpha       )/cos(alpha       ) << "    "
-      // 	   << Izz + Ixz * cos(alpha+M_PI/2)/sin(alpha+M_PI/2) << endl;
-
-      // Use the principal axes to get an offset from the local
-      // centroid which gives a point outside the island.
-      baseCentroid = localCentroid;
-
-      if( Ixx + Ixz * sin(alpha       )/cos(alpha       ) >
-	  Izz + Ixz * cos(alpha+M_PI/2)/sin(alpha+M_PI/2) )
-	baseCentroid += Vector(  cos(alpha), 0, sin(alpha) ) * maxDist;
-      else
-	baseCentroid += Vector( -sin(alpha), 0, cos(alpha) ) * maxDist;
-    }
-
-
-    unsigned int turns = 0;
-    unsigned int firstTurn = 0;
-    unsigned int   midTurn = 0;
-    unsigned int  lastTurn = 0;
-
-    // Get the direction based on the first two points.
-    v0 = (Vector) points[i        ] - baseCentroid;
-    v1 = (Vector) points[i+winding] - baseCentroid;
-
-    bool lastCCW = (ccw( v0, v1 ) == 1);
-    v0 = v1;
-
-    // The islands should all go in the same direction but not always.
-    if( i && island && lastCCW != baseCCW ) {
-
-      cerr << "Warning island " << i << " is in the opposite direction."
-	   << endl;
-    }
-
-    baseCCW = lastCCW;
-
-    // Get the direction based on the remaining points.
-    for( unsigned int j=i+2*winding; j<points.size(); j+=winding ) {
-      v1 = (Vector) points[j] - baseCentroid;
-
-      bool localCCW = (ccw( v0, v1 ) == 1);
-
-      // A switch in direction indicates that an island is present.
-      if( localCCW != lastCCW ) {
-
-	lastCCW = localCCW;
-
-	if( turns++ == 0 )
-	  island++;
-
-	if( turns == 1 )     firstTurn = j - winding;
-	else if( turns == 2 )  midTurn = j - winding;
-	else if( turns == 3 ) lastTurn = j - winding;
-
-	if( turns == 3 )
-	  break;
-
-      } else {
-	v0 = v1;
-      }
-    }
-
-
-    // Determine the approximate number of points in the group.
-    unsigned int nodes;
-    unsigned int overlap = 0;
-
-    if( turns < 2 ) {
-      nodes = points.size() / winding;
-    } else {
-
-      // Set the maximum number of points to check for the
-      // overlap. This is because although at times the inflection
-      // points can be found but not overlaps.
-      unsigned int maxNodeCheck;
-
-      if( turns == 2 ) {
-	maxNodeCheck = midTurn + (midTurn - firstTurn) + 3 * winding;
-	nodes = points.size() / winding;
-      } else if( turns == 3 ) {
-	maxNodeCheck = lastTurn + 3 * winding;
-	nodes = (lastTurn - firstTurn) / winding + 1;
-      }
-
-      if( maxNodeCheck > points.size() )
-	maxNodeCheck = points.size();
-
-      // Check to see if the island overlaps itself.
-      for( unsigned int j=midTurn, k=j+winding;
-	   j<maxNodeCheck && k<maxNodeCheck;
-	   j+=winding, k+=winding ) {
-	
-	v0 = (Vector) points[i] - (Vector) points[j];
-	v1 = (Vector) points[i] - (Vector) points[k];
-	
-	if( Dot( v0, v1 ) < 0.0 ) {
-	  overlap = j;
-	  nodes = j / winding;
-	  turns = 3;
-	  break;
-	}
-      }
-    }
-
-    if( turns == 3 )
-      completeIslands++;
-
-    avenode += nodes;
-
-    if( nodesMin > nodes ) nodesMin = nodes;
-    if( nodesMax < nodes ) nodesMax = nodes;
-
-    if( firstTurnMin > nodes ) firstTurnMin = firstTurn;
-    if( firstTurnMax < nodes ) firstTurnMax = firstTurn;
-
-    if( midTurnMin > nodes ) midTurnMin = midTurn;
-    if( midTurnMax < nodes ) midTurnMax = midTurn;
-
-    if( lastTurnMin > nodes ) lastTurnMin = lastTurn;
-    if( lastTurnMax < nodes ) lastTurnMax = lastTurn;
-
-
-    if( turns )
-      cerr << "Island " << i << " has "
-	   << turns << " turns with "
-	   << nodes << " nodes   " 
-	   << overlap << " overlap   " 
-	   << " firstTurn " << firstTurn
-	   <<   " midTurn " << midTurn
-	   <<  " lastTurn " << lastTurn << endl;
-  }
-
   // Island sanity check make sure no island overlaps another island.
-  if( island ) {
+  if( islandChecks( points, winding, island, avenode ) ) {
 
     type = 0;
 
-    // If islands are consistant then get the average.
+//     // If islands are consistant then get the average.
     avenode /= (float) winding;
 
-    if( island == winding &&
-	completeIslands == winding &&
-	nodesMin+1 >= (unsigned int) avenode && 
-	nodesMax-1 <= (unsigned int) avenode &&
-	firstTurnMax - firstTurnMin == winding-1 &&
-	midTurnMax -   midTurnMin == winding-1 &&
-	lastTurnMax -  lastTurnMin == winding-1 ) {
-      confidence = 1.0;      
-    }
 
-    // The max nodes to check is set in case there are lots of points.
-    unsigned int maxNodeCheck = 2 * (unsigned int) avenode * winding;
+    // The islands should all go in the same direction but not always.
+//     if( lastCCW != baseCCW ) {
 
-    if( maxNodeCheck > points.size() )
-      maxNodeCheck = points.size();
+//       cerr << "Warning island " << i << " is in the opposite direction."
+// 	   << endl;
+//     }
 
-    if( !convex && island < winding &&
-	(firstTurnMax - firstTurnMin)/winding > 3 ) {
+//     if( island == winding &&
+// 	completeIslands == winding &&
+// 	nodesMin+1 >= (unsigned int) avenode && 
+// 	nodesMax-1 <= (unsigned int) avenode &&
+// 	firstTurnMax - firstTurnMin == winding-1 &&
+// 	midTurnMax   - midTurnMin   == winding-1 &&
+// 	lastTurnMax  - lastTurnMin  == winding-1 ) {
+//       confidence = 1.0;      
+//     }
 
-      cerr << "PROBABLY NOT ISLANDS" << endl;
-    }
+//     // The max nodes to check is set in case there are lots of points.
+//     unsigned int maxNodeCheck = 2 * (unsigned int) avenode * winding;
+
+//     if( maxNodeCheck > points.size() )
+//       maxNodeCheck = points.size();
+
+//     if( !convex && island != winding &&
+// 	(firstTurnMax - firstTurnMin)/winding > 3 ) {
+
+//       cerr << "PROBABLY NOT ISLANDS" << endl;
+//     }
 
 
-    for( unsigned int i=0; i<winding && island; i++ ) {
+//     for( unsigned int i=0; i<winding && island; i++ ) {
 
-      for( unsigned int g=0; g<2 && island; g++ ) {
+//       for( unsigned int g=0; g<2 && island; g++ ) {
 
-	unsigned int offset;
+// 	unsigned int offset;
 
-	if( g == 0 )  // previous
-	  offset = (i - skip + winding) % winding;
-	else         // next
-	  offset = (i + skip)           % winding;
+// 	if( g == 0 )  // previous
+// 	  offset = (i - skip + winding) % winding;
+// 	else         // next
+// 	  offset = (i + skip)           % winding;
 
-	// Check for a point in the previous/next group being between
-	// the first two points in the current group.
-   	if( island ) {
-	  for( unsigned int j=i+winding, k=offset;
-	       j<maxNodeCheck && k<maxNodeCheck;
-	       k+=winding ) {
+// 	// Check for a point in the previous/next group being between
+// 	// the first two points in the current group.
+//    	if( island ) {
+// 	  for( unsigned int j=i+winding, k=offset;
+// 	       j<maxNodeCheck && k<maxNodeCheck;
+// 	       k+=winding ) {
 	    
-	    v0 = (Vector) points[i] - (Vector) points[k];
-	    v1 = (Vector) points[j] - (Vector) points[k];
+// 	    v0 = (Vector) points[i] - (Vector) points[k];
+// 	    v1 = (Vector) points[j] - (Vector) points[k];
 	    
-	    if( Dot( v0, v1 ) < 0.0) {
-	      island = 0;
-	      type = 2;
+// 	    if( Dot( v0, v1 ) < 0.0) {
+// 	      island = 0;
+// 	      type = 2;
 	      
-	      v0.safe_normalize();
-	      v1.safe_normalize();
+// 	      v0.safe_normalize();
+// 	      v1.safe_normalize();
 	      
-	      cerr << "FAILED ISLAND SANITY CHECK #1  "
-		   << i << "  " << j << "  " << k << "  "
-		   << Dot( v0, v1 ) << endl;
+// 	      cerr << "FAILED ISLAND SANITY CHECK #1  "
+// 		   << i << "  " << j << "  " << k << "  "
+// 		   << Dot( v0, v1 ) << endl;
 	      
-	      return false;
-	    }
-	  }
-	}
+// 	      return false;
+// 	    }
+// 	  }
+// 	}
 
-	// Check for the first point in the current group being between
-	// two points in the previous/next group.
-   	if( island ) {
-	  for( unsigned int j=offset, k=j+winding;
-	       j<maxNodeCheck && k<maxNodeCheck;
-	       j+=winding, k+=winding ) {
+// 	// Check for the first point in the current group being between
+// 	// two points in the previous/next group.
+//    	if( island ) {
+// 	  for( unsigned int j=offset, k=j+winding;
+// 	       j<maxNodeCheck && k<maxNodeCheck;
+// 	       j+=winding, k+=winding ) {
 
-	    v0 = (Vector) points[i] - (Vector) points[j];
-	    v1 = (Vector) points[i] - (Vector) points[k];
+// 	    v0 = (Vector) points[i] - (Vector) points[j];
+// 	    v1 = (Vector) points[i] - (Vector) points[k];
 
-	    if( Dot( v0, v1 ) < 0.0) {
-	      island = 0;
-	      type = 2;
+// 	    if( Dot( v0, v1 ) < 0.0) {
+// 	      island = 0;
+// 	      type = 2;
 
-	      v0.safe_normalize();
-	      v1.safe_normalize();
+// 	      v0.safe_normalize();
+// 	      v1.safe_normalize();
 
-	      cerr << "FAILED ISLAND SANITY CHECK #2  "
-		   << i << "  " << j << "  " << k << "  "
-		   << Dot( v0, v1 ) << endl;
+// 	      cerr << "FAILED ISLAND SANITY CHECK #2  "
+// 		   << i << "  " << j << "  " << k << "  "
+// 		   << Dot( v0, v1 ) << endl;
 
-	      return false;
-	    }
-	  }
-	}
-      }
-    }
+// 	      return false;
+// 	    }
+// 	  }
+// 	}
+//       }
+//     }
 
   } else {
 
@@ -910,8 +946,8 @@ basicChecks( vector< Point >& points,
       for( unsigned int i=1, j=i+winding; i<winding; i++, j++ ) {
 
 	// Get the direction based on the first two points.
-	baseCCW = (ccw( (Vector) points[i] - globalCentroid, 
-			(Vector) points[j] - globalCentroid ) == 1);
+	bool baseCCW = (ccw( (Vector) points[i] - globalCentroid, 
+			     (Vector) points[j] - globalCentroid ) == 1);
 
 	if( baseCCW != groupCCW ) {
 	  cerr << "CONVEX HULL BUT GROUPS GO IN DIFFERENT DIRECTIONS" << endl;
@@ -923,10 +959,11 @@ basicChecks( vector< Point >& points,
 
     // Make sure the skip direction is the same as the group
     // direction.
-    baseCCW = (ccw( (Vector) points[0   ] - globalCentroid, 
-		    (Vector) points[skip] - globalCentroid ) == 1);
+    bool baseCCW = (ccw( (Vector) points[0   ] - globalCentroid, 
+			 (Vector) points[skip] - globalCentroid ) == 1);
     
     if( groupCCW != baseCCW ) {
+      cerr << "FLIPPING THE SKIP DIRECTION" << endl;
       skip = winding - skip;
     }
 
@@ -1617,12 +1654,26 @@ islandProperties( vector< Point > &points,
 
     nodes = stopIndex - startIndex + 1;
 
-    // See if the first point overlaps another section.
-    for( unsigned int  j=middleIndex+1; j<points.size(); j++ ) {
-      if( Dot( (Vector) points[j  ] - (Vector) points[0],
-	       (Vector) points[j-1] - (Vector) points[0] )
+    for( unsigned int j=middleIndex, k=middleIndex+1;
+	 j<points.size() && k<points.size();
+	 ++j, ++k ) {
+
+      // See if the test point is between the first section.
+      if( Dot( (Vector) points[0] - (Vector) points[j],
+	       (Vector) points[1] - (Vector) points[j] )
 	  < 0.0 ) {
-	stopIndex = startIndex + (j-1) + 1; // Add one for the zeroth 
+	stopIndex = startIndex + j;
+	nodes = j;
+	turns = 3;
+	cerr << "islandProperties - A point overlaps the first section at " << j-1 << endl;
+	break;
+      }
+
+      // See if the first point is between the test section.
+      if( Dot( (Vector) points[j] - (Vector) points[0],
+	       (Vector) points[k] - (Vector) points[0] )
+	  < 0.0 ) {
+	stopIndex = startIndex + j;
 	nodes = j;
 	turns = 3;
 	cerr <<  "islandProperties - First point overlaps another section after " << j-1 << endl;
@@ -1630,19 +1681,6 @@ islandProperties( vector< Point > &points,
       }
     }
       
-    // See if a point overlaps the first section.
-    for( unsigned int j=middleIndex; j<points.size(); j++ ) {
-      if( Dot( (Vector) points[0] - (Vector) points[j],
-	       (Vector) points[1] - (Vector) points[j] )
-	  < 0.0 ) {
-	stopIndex = startIndex + (j-1) + 1; // Add one for the zeroth 
-	nodes = j;
-	turns = 3;
-	cerr << "islandProperties - A point overlaps the first section at " << j-1 << endl;
-	break;
-      }
-    }
-
     // No overlap found
     if( turns == 2 ) {
       stopIndex = startIndex + points.size() - 1;

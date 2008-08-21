@@ -44,7 +44,7 @@
 #include <Dataflow/Widgets/CrosshairWidget.h>
 #include <Core/Geom/GeomCylinder.h>
 #include <Core/Geom/GeomSphere.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Containers/StringUtil.h>
 #include <Dataflow/Network/Module.h>
 
@@ -75,23 +75,23 @@ CrosshairWidget::CrosshairWidget( Module* module, CrowdMonitor* lock, double wid
   : BaseWidget(module, lock, "CrosshairWidget", NumVars, NumCons, NumGeoms, NumPcks, NumMatls, NumMdes, NumSwtchs, widget_scale),
     axis1(1, 0, 0), axis2(0, 1, 0), axis3(0, 0, 1)
 {
-  variables[CenterVar] = scinew PointVariable("Crosshair", solve, Scheme1, Point(0, 0, 0));
+  variables[CenterVar] = new PointVariable("Crosshair", solve, Scheme1, Point(0, 0, 0));
 
-  geometries[GeomCenter] = scinew GeomSphere;
-  materials[PointMatl] = scinew GeomMaterial(geometries[GeomCenter], DefaultPointMaterial);
-  picks_[PickAxes] = scinew GeomPick(materials[PointMatl], module, this, PickAxes);
+  geometries[GeomCenter] = new GeomSphere;
+  materials[PointMatl] = new GeomMaterial(geometries[GeomCenter], DefaultPointMaterial);
+  picks_[PickAxes] = new GeomPick(materials[PointMatl], module, this, PickAxes);
   picks(PickAxes)->set_highlight(DefaultHighlightMaterial);
   CreateModeSwitch(0, picks_[PickAxes]);
 
-  GeomGroup* axes = scinew GeomGroup;
-  geometries[GeomAxis1] = scinew GeomCappedCylinder;
+  GeomGroup* axes = new GeomGroup;
+  geometries[GeomAxis1] = new GeomCappedCylinder;
   axes->add(geometries[GeomAxis1]);
-  geometries[GeomAxis2] = scinew GeomCappedCylinder;
+  geometries[GeomAxis2] = new GeomCappedCylinder;
   axes->add(geometries[GeomAxis2]);
-  geometries[GeomAxis3] = scinew GeomCappedCylinder;
+  geometries[GeomAxis3] = new GeomCappedCylinder;
   axes->add(geometries[GeomAxis3]);
-  materials[AxesMatl] = scinew GeomMaterial(axes, DefaultEdgeMaterial);
-  picks_[Pick] = scinew GeomPick(materials[AxesMatl], module, this, Pick);
+  materials[AxesMatl] = new GeomMaterial(axes, DefaultEdgeMaterial);
+  picks_[Pick] = new GeomPick(materials[AxesMatl], module, this, Pick);
   picks(Pick)->set_highlight(DefaultHighlightMaterial);
   CreateModeSwitch(1, picks_[Pick]);
 

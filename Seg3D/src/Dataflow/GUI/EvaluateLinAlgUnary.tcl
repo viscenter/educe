@@ -35,11 +35,11 @@ itcl_class SCIRun_Math_EvaluateLinAlgUnary {
     }
 
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
         global $v
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
@@ -50,28 +50,28 @@ itcl_class SCIRun_Math_EvaluateLinAlgUnary {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 170 20
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
         global $this-op
         make_labeled_radio $w.f.r "Unary Operations:" "" \
                 top 1 $this-op \
-		{{"Round" Round}\
-		{"Ceil" Ceil}\
-		{"Floor" Floor}\
-		{"Normalize" Normalize}\
-		{"Transpose" Transpose}\
-		{"Invert" Invert}\
-		{"Sort" Sort}\
- 		{"Subtract Mean" Subtract_Mean}\
-		{"Function" Function}}
-	global $this-function
-	make_entry $w.f.f "    specify function:" $this-function "$this-c needexecute"	
-	pack $w.f.r $w.f.f -side top -expand 1 -fill x
-	pack $w.f -expand 1 -fill x
-	
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+          {{"Round" Round}\
+          {"Ceil" Ceil}\
+          {"Floor" Floor}\
+          {"Normalize" Normalize}\
+          {"Transpose" Transpose}\
+          {"Invert" Invert}\
+          {"Sort" Sort}\
+          {"Subtract Mean" Subtract_Mean}\
+          {"Function" Function}}
+        global $this-function
+        make_entry $w.f.f "    specify function:" $this-function "$this-c needexecute"	
+        pack $w.f.r $w.f.f -side top -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
      }
 }

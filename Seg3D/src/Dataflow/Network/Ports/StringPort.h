@@ -40,17 +40,21 @@
  *  Copyright (C) 2005 SCI Group
  */
 
-#ifndef SCI_project_StringPort_h
-#define SCI_project_StringPort_h 1
+#ifndef DATAFLOW_NETWORK_PORTS_STRINGPORT_H
+#define DATAFLOW_NETWORK_PORTS_STRINGPORT_H 1
+
+#include <Core/Datatypes/String.h>
+#include <Core/Containers/LockingHandle.h>
 
 #include <Dataflow/Network/Ports/SimplePort.h>
-#include <Core/Datatypes/String.h>
 
 namespace SCIRun {
 
-
 typedef SimpleIPort<StringHandle> StringIPort;
 typedef SimpleOPort<StringHandle> StringOPort;
+typedef LockingHandle<StringIPort> StringIPortHandle;
+typedef LockingHandle<StringOPort> StringOPortHandle;
+
 
 } // End namespace SCIRun
 

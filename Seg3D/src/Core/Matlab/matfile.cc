@@ -56,6 +56,8 @@
 #include "matfile.h"
 #include "matfiledata.h"
 
+#include <zlib.h>
+
  
 namespace MatlabIO {
 

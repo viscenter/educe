@@ -56,12 +56,13 @@ void ConvertMatrixToString::execute()
   StringHandle Str;
 
   // Get the new input data:  
-  if(!(get_input_handle("Matrix",Mat,true))) return;
+  get_input_handle("Matrix",Mat,true);
   
   // Only reexecute if the input changed. SCIRun uses simple scheduling
   // that executes every module downstream even if no data has changed:  
   if (inputs_changed_ || !oport_cached("String"))
   {
+    update_state(Executing);  
     SCIRunAlgo::ConverterAlgo algo(this);
     if (!(algo.MatrixToString(Mat,Str))) return;
 

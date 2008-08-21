@@ -42,6 +42,7 @@ class GetFieldBoundary : public Module {
   public:
     //! constructor and execute function
     GetFieldBoundary(GuiContext*);
+    virtual ~GetFieldBoundary() {}
     virtual void execute();
 
   private:
@@ -66,14 +67,14 @@ GetFieldBoundary::execute()
   FieldHandle field;
   
   // Get data from ports
-  if (!(get_input_handle("Field",field,true))) return;
+  get_input_handle("Field",field,true);
   
   // If parameters changed, do algorithm
   if (inputs_changed_ || 
       !oport_cached("BoundaryField") || 
-      
       !oport_cached("Mapping"))
   {
+    update_state(Executing);
     // Output dataflow objects:
     FieldHandle ofield;
     MatrixHandle mapping;

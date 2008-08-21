@@ -34,7 +34,7 @@
 
 #include <Core/Events/BaseEvent.h>
 #include <Core/Events/BaseTool.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/Environment.h>
 #include <Core/Skinner/Variables.h>
 #include <string>

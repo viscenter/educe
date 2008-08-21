@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
 #include "itkImageFileReader.h"
@@ -101,7 +101,7 @@ ColorImageReaderFloat2D::execute()
   // get reader output
   if(!handle_.get_rep() || (fn != prevFile))
   {
-    ITKDatatype *im = scinew ITKDatatype;
+    ITKDatatype *im = new ITKDatatype;
     im->data_ = reader->GetOutput();  
     handle_ = im; 
     prevFile = fn;

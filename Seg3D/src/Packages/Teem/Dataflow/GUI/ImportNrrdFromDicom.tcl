@@ -34,47 +34,47 @@ itcl_class Teem_DataIO_ImportNrrdFromDicom {
         set name ImportNrrdFromDicom
 
         # In C++ file
-	setGlobal $this-dir [pwd]
+        setGlobal $this-dir [pwd]
 
         # Local TCL variables.
         setGlobal $this-dir-tmp ""
-	setGlobal $this-max-entries 0
-	setGlobal $this-entry-dir ""
-	setGlobal $this-entry-suid ""
-	setGlobal $this-entry-files ""
+        setGlobal $this-max-entries 0
+        setGlobal $this-entry-dir ""
+        setGlobal $this-entry-suid ""
+        setGlobal $this-entry-files ""
         setGlobal $this-num-series 0
         setGlobal $this-num-files 0
     }
 
     method ui {} {
-	global $this-have-gdcm
-	if {![set $this-have-gdcm]} {
-	    set parent .
-	    if { [winfo exists .standalone] } {
-		set parent .standalone
-	    }
-	    tk_messageBox -title "Error: Need GDCM" -message "Error: This module relies upon functionality from the GDCM Library to read DICOM data; however, you do not have the Insight package enabled, neither have you configured with GDCM.  You can enable the Insight package by installing ITK, re-running configure, and re-compiling.  Or you can build the GDCM library and use the --with-gdcm=path_to_gdcm configure option. Please see the SCIRun installation guide for more information." -type ok -icon info -parent $parent
-	    return
-	}
+        global $this-have-gdcm
+        if {![set $this-have-gdcm]} {
+            set parent .
+            if { [winfo exists .standalone] } {
+          set parent .standalone
+            }
+            tk_messageBox -title "Error: Need GDCM" -message "Error: This module relies upon functionality from the GDCM Library to read DICOM data; however, you do not have the Insight package enabled, neither have you configured with GDCM.  You can enable the Insight package by installing ITK, re-running configure, and re-compiling.  Or you can build the GDCM library and use the --with-gdcm=path_to_gdcm configure option. Please see the SCIRun installation guide for more information." -type ok -icon info -parent $parent
+            return
+        }
 
         set w .ui[modname]
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w  
+        sci_toplevel $w  
 
-	frame $w.row10
-	frame $w.row11
-	frame $w.row8
-        frame $w.row4
-	frame $w.row3 
-	frame $w.row9
-	frame $w.which -relief groove -borderwidth 2
-       	iwidgets::labeledframe $w.sd -labeltext "Selected Data"
-	set sd [$w.sd childsite]
-        iwidgets::labeledframe $w.listing -labeltext \
-        "Series ID  /  File(s) in Series"
-	set listing [$w.listing childsite]
+        sci_frame $w.row10
+        sci_frame $w.row11
+        sci_frame $w.row8
+        sci_frame $w.row4
+        sci_frame $w.row3 
+        sci_frame $w.row9
+        sci_frame $w.which -relief groove -borderwidth 2
+       	sci_labeledframe $w.sd -labeltext "Selected Data"
+        set sd [$w.sd childsite]
+        sci_labeledframe $w.listing -labeltext \
+          "Series ID  /  File(s) in Series"
+        set listing [$w.listing childsite]
 
         pack $w.row10 $w.row11 $w.row8 $w.which $w.listing \
         $w.row4 $w.row3 $w.sd $w.row9 -side top -e y -f both -padx 5 -pady 5
@@ -82,20 +82,20 @@ itcl_class Teem_DataIO_ImportNrrdFromDicom {
         # Directory selection mechanisms
 
         # Directory "Browse" button
-	button $w.row10.browse_button -text " Browse " \
-	    -command "$this choose_dir; $this update_series_uids"
+        sci_button $w.row10.browse_button -text " Browse " \
+          -command "$this choose_dir; $this update_series_uids"
 
         # Directory text box
-	label $w.row10.dir_label -text "Directory  " 
-	entry $w.row10.dir -textvariable $this-dir -width 80
+        sci_label $w.row10.dir_label -text "Directory  " 
+        sci_entry $w.row10.dir -textvariable $this-dir -width 80
 
-	pack $w.row10.dir_label $w.row10.dir -side left
-	pack $w.row10.browse_button -side right
+        pack $w.row10.dir_label $w.row10.dir -side left
+        pack $w.row10.browse_button -side right
 
         # Directory "Load" button
-	button $w.row11.load_button -text " Load " -command "$this update_series_uids"
+        sci_button $w.row11.load_button -text " Load " -command "$this update_series_uids"
 
-	pack $w.row11.load_button -side right
+        pack $w.row11.load_button -side right
 
         # Listboxes for series selection
         set seriesuid [scrolled_listbox $listing.seriesuid -height 10 -selectmode single ]
@@ -105,7 +105,7 @@ itcl_class Teem_DataIO_ImportNrrdFromDicom {
         pack $listing.seriesuid $listing.files -side left -fill x -expand yes
 
         # Populate seriesuid listbox
-	update_series_uids
+        update_series_uids
 
         # Selecting in Series UID listbox causes text to appear in Files 
         # listbox
@@ -114,43 +114,43 @@ itcl_class Teem_DataIO_ImportNrrdFromDicom {
         # Text below Series UID and Files listboxes.  This text says how many
         # series' are in the Series ID listbox and how many files are in the
         # Files listbox
-        label $w.row4.num_series_label -text "Number of series' in selected directory :  " 
-        label $w.row4.num_series -textvariable $this-num-series
+        sci_label $w.row4.num_series_label -text "Number of series' in selected directory :  " 
+        sci_label $w.row4.num_series -textvariable $this-num-series
 
-        label $w.row4.num_files_label -text "       Number of files in selected series :  " 
-        label $w.row4.num_files -textvariable $this-num-files
+        sci_label $w.row4.num_files_label -text "       Number of files in selected series :  " 
+        sci_label $w.row4.num_files -textvariable $this-num-files
  
         pack $w.row4.num_series_label $w.row4.num_series $w.row4.num_files_label $w.row4.num_files -side left
 
         # Add button
-        button $w.row3.add -text "Add Data" -command "$this add_data"
+        sci_button $w.row3.add -text "Add Data" -command "$this add_data"
 
         pack $w.row3.add -side top -expand true -fill both
 
         # Listbox for select series'
 
-	set selected [scrolled_listbox $sd.selected -width 100 -height 10 -selectmode single]
+        set selected [scrolled_listbox $sd.selected -width 100 -height 10 -selectmode single]
 
-	button $sd.delete -text "Remove Data" \
-	    -command "$this delete_data"
+        sci_button $sd.delete -text "Remove Data" \
+            -command "$this delete_data"
 
-	pack $sd.selected $sd.delete -side top -fill x -expand yes
-        pack $sd.selected -side top -fill x -expand yes
+        pack $sd.selected $sd.delete -side top -fill x -expand yes
+              pack $sd.selected -side top -fill x -expand yes
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	$this sync_filenames
+        $this sync_filenames
     }
 
 
     method choose_dir { } {	
         set w .ui[modname]
 
-	if { [ expr [winfo exists $w] ] }  {
+        if { [ expr [winfo exists $w] ] }  {
 
             # Place to put preferred data directory
-	    # It's used if $this-file is empty or invalid
+            # It's used if $this-file is empty or invalid
             if { [string equal [set $this-dir] ""] || 
                  ![file exists [set $this-dir]] } {
 	        set initdir [netedit getenv SCIRUN_DATA]
@@ -460,16 +460,16 @@ itcl_class Teem_DataIO_ImportNrrdFromDicom {
     }
 
     method scrolled_listbox { f args } {
-	frame $f
+	sci_frame $f
 	listbox $f.list \
 		-xscrollcommand [list $this scroll_set $f.xscroll \
 			[list grid $f.xscroll -row 1 -column 0 -sticky we]] \
 		-yscrollcommand [list $this scroll_set $f.yscroll \
 			[list grid $f.yscroll -row 0 -column 1 -sticky ns]]
 	eval {$f.list configure} $args
-	scrollbar $f.xscroll -orient horizontal \
+	sci_scrollbar $f.xscroll -orient horizontal \
 		-command [list $f.list xview]
-	scrollbar $f.yscroll -orient vertical \
+	sci_scrollbar $f.yscroll -orient vertical \
 		-command [list $f.list yview]
 	grid $f.list -sticky news
 	grid $f.xscroll -sticky news

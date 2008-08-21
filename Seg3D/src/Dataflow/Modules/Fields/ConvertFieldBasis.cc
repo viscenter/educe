@@ -79,11 +79,14 @@ ConvertFieldBasis::execute()
 {
   //! Get the input field handle from the port.
   FieldHandle input_field_handle;
-  if( !get_input_handle( "Input",  input_field_handle, true ) ) return;
+  get_input_handle( "Input",  input_field_handle, true );
+
+  bool need_mapping = oport_connected("Mapping");
 
   // Only do work if needed:
   if (inputs_changed_ || outputbasis_.changed() || 
-      !oport_cached("Output"))
+      !oport_cached("Output") ||
+      (need_mapping & !oport_cached("Mapping")))
   {
     //! Relay some information to user
     string name = input_field_handle->get_name();
@@ -107,8 +110,14 @@ ConvertFieldBasis::execute()
     FieldHandle output_field_handle;
     MatrixHandle mapping_matrix_handle;
 
-    if (!(algo_.run(input_field_handle,output_field_handle,mapping_matrix_handle))) return;
-    
+    if (need_mapping)
+    {
+      if (!(algo_.run(input_field_handle,output_field_handle,mapping_matrix_handle))) return;
+    }
+    else
+    {
+      if (!(algo_.run(input_field_handle,output_field_handle))) return;    
+    }
     //! send data downstream:
     send_output_handle("Output", output_field_handle);    
     send_output_handle("Mapping", mapping_matrix_handle);    

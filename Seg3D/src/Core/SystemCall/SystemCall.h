@@ -40,14 +40,14 @@
 #ifndef CORE_SYSTEMCALL_SYSTEMCALL_H
 #define CORE_SYSTEMCALL_SYSTEMCALL_H 1
 
-#include <sgi_stl_warnings_off.h>
+
 #include <list>
 #include <string>
 #include <vector>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -81,7 +81,7 @@ typedef LockingHandle<SystemCall> SystemCallHandle;
 typedef LockingHandle<SystemCallHandler> SystemCallHandlerHandle;
 
 // Hence to make a call to the system use:
-// SystemCallHandle handle = scinew SystemCall;
+// SystemCallHandle handle = new SystemCall;
 
 //////////////////////////////////////////////////////////////////////
 // SystemCallHandler, this is a template for handling the stdout and
@@ -118,7 +118,7 @@ inline void SystemCallHandler::start(std::list<std::string> &/*buffer*/)
 
 inline SystemCallHandler* SystemCallHandler::clone()
 {
-  return(scinew SystemCallHandler());
+  return(new SystemCallHandler());
 }
 
 inline bool SystemCallHandler::execute(std::string /*line*/)

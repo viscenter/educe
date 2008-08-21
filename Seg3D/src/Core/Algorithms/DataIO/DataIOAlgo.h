@@ -32,22 +32,22 @@
 
 #include <Core/Algorithms/Util/AlgoLibrary.h>
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/NrrdData.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Core/Geom/Path.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 #include <Core/Volume/ColorMap2.h>
 #include <Core/ImportExport/Field/FieldIEPlugin.h>
 #include <Core/ImportExport/Matrix/MatrixIEPlugin.h>
 
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <sstream>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Algorithms/DataIO/share.h>
 

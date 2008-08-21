@@ -72,53 +72,53 @@ itcl_class SCIRun_DataIO_WriteField {
 
 
     method ui {} {
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    # Refresh UI
-	    biopseFDialog_RefreshCmd $w
-	    return
-	}
-	
-	toplevel $w -class TkFDialog
-	# place to put preferred data directory
-	# it's used if $this-filename is empty
-	set initdir [netedit getenv SCIRUN_DATA]
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          # Refresh UI
+          biopseFDialog_RefreshCmd $w
+          return
+      }
+      
+      sci_toplevel $w -class TkFDialog
+      # place to put preferred data directory
+      # it's used if $this-filename is empty
+      set initdir [netedit getenv SCIRUN_DATA]
 
-	#######################################################
-	# to be modified for particular reader
+      #######################################################
+      # to be modified for particular reader
 
-	# extansion to append if no extension supplied by user
-	set defext ".fld"
-	
-	# name to appear initially
-	set defname "MyField"
-	set title "Save field file"
+      # extansion to append if no extension supplied by user
+      set defext ".fld"
+      
+      # name to appear initially
+      set defname "MyField"
+      set title "Save field file"
 
-	# Unwrap $this-types into a list.
-	set tmp1 [set $this-types]
-	set tmp2 [eval "set tmp3 $tmp1"]
-	
-	######################################################
-	
-	makeSaveFilebox \
-		-parent $w \
-		-filevar $this-filename \
-   	        -setcmd "wm withdraw $w" \
-		-command "$this-c needexecute; wm withdraw $w" \
-		-cancel "wm withdraw $w" \
-		-title $title \
-		-filetypes $tmp2 \
-		-initialfile $defname \
-		-initialdir $initdir \
-		-defaultextension $defext \
-	  -confirmvar $this-confirm \
-	  -confirmoncevar $this-confirm-once \
-		-incrementvar $this-increment \
-		-currentvar $this-current \
-	  -formatvar $this-filetype \
-	  -formats {None} \
-	  -selectedfiletype $this-exporttype
+      # Unwrap $this-types into a list.
+      set tmp1 [set $this-types]
+      set tmp2 [eval "set tmp3 $tmp1"]
+      
+      ######################################################
+      
+      makeSaveFilebox \
+        -parent $w \
+        -filevar $this-filename \
+        -setcmd "wm withdraw $w" \
+        -command "$this-c needexecute" \
+        -cancel "wm withdraw $w" \
+        -title $title \
+        -filetypes $tmp2 \
+        -initialfile $defname \
+        -initialdir $initdir \
+        -defaultextension $defext \
+        -confirmvar $this-confirm \
+        -confirmoncevar $this-confirm-once \
+        -incrementvar $this-increment \
+        -currentvar $this-current \
+        -formatvar $this-filetype \
+        -formats {None} \
+        -selectedfiletype $this-exporttype
 
-	moveToCursor $w	
+      moveToCursor $w	
     }
 }

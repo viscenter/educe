@@ -25,9 +25,9 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 //  
-//    File   : ITKConfidenceConnectedImageFilterTool.h
-//    Author : McKay Davis
-//    Date   : Sat Oct 14 15:51:56 2006
+//    File   : PolylineTool.h
+//    Author : Michael Callahan
+//    Date   : March 2008
 
 #ifndef SEG3D_PolylineTool_h
 #define SEG3D_PolylineTool_h
@@ -46,7 +46,7 @@ class NrrdVolume;
 class PolylineTool : public virtual BaseTool, public PointerTool
 {
 public:
-  PolylineTool(Painter *painter);
+  PolylineTool(const string &name, Painter *painter);
 
   propagation_state_e   pointer_down(int, int, int, unsigned int, int);
   propagation_state_e   pointer_up(int, int, int, unsigned int, int);
@@ -54,25 +54,27 @@ public:
 
   propagation_state_e   process_event(event_handle_t);
 
-  propagation_state_e   run_filter();
+  virtual propagation_state_e   run_filter(bool erase);
 
 protected:
   typedef vector<Point> seeds_t;
 
-  virtual void          draw_gl(SliceWindow &window);
+  virtual void  draw_gl(SliceWindow &window);
+  virtual void	seed_change_callback(int index);
+  virtual int   compute_nearest_segment_index(const Point &curpos, int axis);
 
-
-  void                  compute_bbox(const vector<vector<int> > &seeds,
+  void                  compute_bbox(const vector<vector<float> > &seeds,
                                      float &x0, float &y0,
                                      float &x1, float &y1);
 
-  bool                  check_on_boundary(const vector<vector<int> > &seeds,
+  bool                  check_on_boundary(const vector<vector<float> > &seeds,
                                           float x, float y);
-  bool                  check_crossings(const vector<vector<int> > &seeds,
+  bool                  check_crossings(const vector<vector<float> > &seeds,
                                         float x, float y);
   void                  rasterize(NrrdDataHandle dnrrd, unsigned int dlabel,
                                   NrrdDataHandle mnrrd, unsigned int mlabel,
-                                  const vector<vector<int> > &seeds);
+                                  const vector<vector<float> > &seeds,
+                                  bool erase);
 
   Painter *             painter_;
 
@@ -84,6 +86,8 @@ protected:
 
 private:
   int                   last_seed_index_;
+  seeds_t               drag_seeds_;
+  Point                 drag_point_;
 };
   
   

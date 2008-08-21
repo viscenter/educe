@@ -40,7 +40,7 @@
 
 
 #include <Core/Datatypes/String.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <string>
 
@@ -49,7 +49,7 @@ namespace SCIRun {
 static Persistent*
 maker()
 {
-  return scinew String;
+  return new String;
 }
 
 PersistentTypeID String::type_id("String", "PropertyManager", maker);
@@ -82,7 +82,7 @@ String::~String()
 String*
 String::clone()
 {
-  return scinew String(*this);
+  return new String(*this);
 }
 
 #define STRING_VERSION 1

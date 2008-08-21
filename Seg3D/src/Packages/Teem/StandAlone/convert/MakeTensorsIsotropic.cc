@@ -82,7 +82,7 @@ main(int argc, char **argv) {
     exit(0);
   }
 
-  vector<pair<string, Tensor> > *conds = scinew vector<pair<string, Tensor> >;
+  vector<pair<string, Tensor> > *conds = new vector<pair<string, Tensor> >;
   if (!handle->get_property("conductivity_table", *conds)) {
     cerr << "Error - didn't have a conductivity_table in the PropertyManager.\n";
     return 0;

@@ -41,12 +41,13 @@ namespace SCIRun {
 class MapFieldDataFromNodeToElem : public Module {
   public:
     MapFieldDataFromNodeToElem(GuiContext*);
+    virtual ~MapFieldDataFromNodeToElem() {}
+    
     virtual void execute();
 
   private:
     SCIRunAlgo::MapFieldDataFromNodeToElemAlgo algo_;
 
-  private:
     GuiString method_;
 };
 

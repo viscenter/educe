@@ -29,16 +29,20 @@
 //    Author : Milan Ikits
 //    Date   : Mon Jul  5 18:45:35 2004
 
-#ifndef ColorMap2Port_h
-#define ColorMap2Port_h
+#ifndef DATAFLOW_NETWORK_PORTS_COLORMAP2PORT_H
+#define DATAFLOW_NETWORK_PORTS_COLORMAP2PORT_H 1
+
+#include <Core/Volume/ColorMap2.h>
+#include <Core/Containers/LockingHandle.h>
 
 #include <Dataflow/Network/Ports/SimplePort.h>
-#include <Core/Volume/ColorMap2.h>
 
 namespace SCIRun {
 
-typedef SimpleIPort<ColorMap2Handle> ColorMap2IPort;
-typedef SimpleOPort<ColorMap2Handle> ColorMap2OPort;
+typedef SimpleIPort<ColorMap2Handle>  ColorMap2IPort;
+typedef SimpleOPort<ColorMap2Handle>  ColorMap2OPort;
+typedef LockingHandle<ColorMap2IPort> ColorMap2IPortHandle;
+typedef LockingHandle<ColorMap2OPort> ColorMap2OPortHandle;
 
 } // End namespace SCIRun
 

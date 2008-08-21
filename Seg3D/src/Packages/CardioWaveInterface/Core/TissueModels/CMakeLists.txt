@@ -47,7 +47,6 @@ TARGET_LINK_LIBRARIES(Packages_CardioWaveInterface_Core_TissueModels
   Core_Datatypes
   Core_Geometry
   Core_GeomInterface
-  Core_Bundle
   Core_Algorithms_Fields
   Core_Algorithms_Converter
   Core_Algorithms_DataIO

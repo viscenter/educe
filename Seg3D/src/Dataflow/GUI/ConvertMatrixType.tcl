@@ -40,44 +40,44 @@ itcl_class SCIRun_Math_ConvertMatrixType {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 20
 
-	frame $w.i -relief ridge -borderwidth 2
-	pack $w.i -side top -padx 2 -pady 2 -side top
+        sci_frame $w.i -relief ridge -borderwidth 2
+        pack $w.i -side top -padx 2 -pady 2 -side top
 
-	frame $w.i.size
-        pack $w.i.size -side top
-	global $this-nrow $this-ncol
-	label $w.i.size.label -text "Input Matrix Size:   nrows ="
-	label $w.i.size.row -textvariable $this-nrow
-	label $w.i.size.x -text "  ncols ="
-	label $w.i.size.col -textvariable $this-ncol
-	pack $w.i.size.label $w.i.size.row $w.i.size.x $w.i.size.col -side left
+        sci_frame $w.i.size
+              pack $w.i.size -side top
+        global $this-nrow $this-ncol
+        sci_label $w.i.size.label -text "Input Matrix Size:   nrows ="
+        sci_label $w.i.size.row -textvariable $this-nrow
+        sci_label $w.i.size.x -text "  ncols ="
+        sci_label $w.i.size.col -textvariable $this-ncol
+        pack $w.i.size.label $w.i.size.row $w.i.size.x $w.i.size.col -side left
 
-        frame $w.i.type 
-	pack $w.i.type -side top
-        global $this-oldtype
-	label $w.i.type.l -text "Input Matrix Type: " 
-	label $w.i.type.v -textvariable $this-oldtype
-	global $this-space
-	label $w.i.type.s -textvariable $this-space
-	pack $w.i.type.l $w.i.type.v $w.i.type.s -side left
-	
-	frame $w.otype -relief ridge -borderwidth 2
-        pack $w.otype -side top -expand yes -padx 2 -pady 2 -fill x
-        global $this-newtype
-        make_labeled_radio $w.otype.r \
-		"Output Matrix Type" "" \
-                top 1 $this-newtype \
-		{{"Same (pass-through)" Same} \
-		{ColumnMatrix ColumnMatrix} \
-		{DenseMatrix DenseMatrix} \
-		{SparseRowMatrix SparseRowMatrix} \
-                {DenseColMajMatrix DenseColMajMatrix}}
-	pack $w.otype.r -side top -expand 1 -fill x
+              frame $w.i.type 
+        pack $w.i.type -side top
+              global $this-oldtype
+        sci_label $w.i.type.l -text "Input Matrix Type: " 
+        sci_label $w.i.type.v -textvariable $this-oldtype
+        global $this-space
+        sci_label $w.i.type.s -textvariable $this-space
+        pack $w.i.type.l $w.i.type.v $w.i.type.s -side left
+        
+        sci_frame $w.otype -relief ridge -borderwidth 2
+              pack $w.otype -side top -expand yes -padx 2 -pady 2 -fill x
+              global $this-newtype
+              make_labeled_radio $w.otype.r \
+              "Output Matrix Type" "" \
+              top 1 $this-newtype \
+              {{"Same (pass-through)" Same} \
+              {ColumnMatrix ColumnMatrix} \
+              {DenseMatrix DenseMatrix} \
+              {SparseRowMatrix SparseRowMatrix} \
+              {DenseColMajMatrix DenseColMajMatrix}}
+        pack $w.otype.r -side top -expand 1 -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }

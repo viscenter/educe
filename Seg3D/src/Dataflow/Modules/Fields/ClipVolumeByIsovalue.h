@@ -46,7 +46,7 @@
 #include <Core/Datatypes/HexVolMesh.h>
 #include <Core/Datatypes/TriSurfMesh.h>
 
-#include <Core/Algorithms/Visualization/MarchingCubes.h>
+#include <Core/Algorithms/Fields/MarchingCubes/MarchingCubes.h>
 
 #include <sci_hash_map.h>
 #include <algorithm>
@@ -90,8 +90,8 @@ private:
 
   struct edgepair_t
   {
-    unsigned int first;
-    unsigned int second;
+    Field::index_type first;
+    Field::index_type second;
     double dfirst;
   };
 
@@ -143,7 +143,7 @@ private:
 
   struct facetriple_t
   {
-    unsigned int first, second, third;
+    Field::index_type first, second, third;
     double dsecond, dthird;
   };
 
@@ -192,7 +192,7 @@ private:
 
 #ifdef HAVE_HASH_MAP
 #  if defined(__ECC) || defined(_MSC_VER)
-  typedef hash_map<unsigned int,
+  typedef hash_map<Field::index_type,
 		   typename FIELD::mesh_type::Node::index_type> node_hash_type;
 
   typedef hash_map<edgepair_t,
@@ -203,7 +203,7 @@ private:
 		   typename FIELD::mesh_type::Node::index_type,
 		   facetriplehash> face_hash_type;
 #  else
-  typedef hash_map<unsigned int,
+  typedef hash_map<Field::index_type,
 		   typename FIELD::mesh_type::Node::index_type,
 		   hash<unsigned int>,
 		   equal_to<unsigned int> > node_hash_type;
@@ -219,7 +219,7 @@ private:
 		   facetripleequal> face_hash_type;
 #  endif
 #else
-  typedef map<unsigned int,
+  typedef map<Field::index_type,
 	      typename FIELD::mesh_type::Node::index_type,
 	      less<unsigned int> > node_hash_type;
 
@@ -233,12 +233,12 @@ private:
 #endif
 
   typename FIELD::mesh_type::Node::index_type
-  edge_lookup(unsigned int u0, unsigned int u1, double d0,
+  edge_lookup(Field::index_type u0, Field::index_type u1, double d0,
 	      const Point &p, edge_hash_type &edgemap,
 	      typename FIELD::mesh_type *clipped) const;
 
   typename FIELD::mesh_type::Node::index_type
-  face_lookup(unsigned int u0, unsigned int u1, unsigned int u2,
+  face_lookup(Field::index_type u0, Field::index_type u1, Field::index_type u2,
 	      double d1, double d2,
 	      const Point &p, face_hash_type &facemap,
 	      typename FIELD::mesh_type *clipped) const;
@@ -248,7 +248,7 @@ private:
 
 template <class FIELD>
 typename FIELD::mesh_type::Node::index_type
-ClipVolumeByIsovalueAlgoTet<FIELD>::edge_lookup(unsigned int u0, unsigned int u1,
+ClipVolumeByIsovalueAlgoTet<FIELD>::edge_lookup(Field::index_type u0, Field::index_type u1,
 				   double d0,
 				   const Point &p, edge_hash_type &edgemap,
 				   typename FIELD::mesh_type *clipped) const
@@ -274,8 +274,8 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::edge_lookup(unsigned int u0, unsigned int u1
 
 template <class FIELD>
 typename FIELD::mesh_type::Node::index_type
-ClipVolumeByIsovalueAlgoTet<FIELD>::face_lookup(unsigned int u0, unsigned int u1,
-				   unsigned int u2, double d1,
+ClipVolumeByIsovalueAlgoTet<FIELD>::face_lookup(Field::index_type u0, Field::index_type u1,
+				   Field::index_type u2, double d1,
 				   double d2, const Point &p,
 				   face_hash_type &facemap,
 				   typename FIELD::mesh_type *clipped) const
@@ -336,12 +336,12 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::face_lookup(unsigned int u0, unsigned int u1
 template <class FIELD>
 FieldHandle
 ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHandle fieldh,
-			       double isoval, bool lte, MatrixHandle &interp)
+					    double isoval, bool lte, MatrixHandle &interp)
 {
   FIELD *field = dynamic_cast<FIELD*>(fieldh.get_rep());
   typename FIELD::mesh_type *mesh =
       dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
-  typename FIELD::mesh_type *clipped = scinew typename FIELD::mesh_type();
+  typename FIELD::mesh_type *clipped = new typename FIELD::mesh_type();
   clipped->copy_properties(mesh);
   
   node_hash_type nodemap;
@@ -359,8 +359,8 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
     mesh->get_nodes(onodes, *bi);
     
       // Get the values and compute an inside/outside mask.
-    unsigned int inside = 0;
-    for (unsigned int i = 0; i < onodes.size(); i++)
+    Field::index_type inside = 0;
+    for (Field::index_type i = 0; i < onodes.size(); i++)
     {
       mesh->get_center(p[i], onodes[i]);
       field->value(v[i], onodes[i]);
@@ -383,18 +383,18 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
         // Add this element to the new mesh.
       typename FIELD::mesh_type::Node::array_type nnodes(onodes.size());
       
-      for (unsigned int i = 0; i<onodes.size(); i++)
+      for (Field::index_type i = 0; i<onodes.size(); i++)
       {
-        if (nodemap.find((unsigned int)onodes[i]) == nodemap.end())
+        if (nodemap.find((Field::index_type)onodes[i]) == nodemap.end())
         {
           const typename FIELD::mesh_type::Node::index_type nodeindex =
               clipped->add_point(p[i]);
-          nodemap[(unsigned int)onodes[i]] = nodeindex;
+          nodemap[(Field::index_type)onodes[i]] = nodeindex;
           nnodes[i] = nodeindex;
         }
         else
         {
-          nnodes[i] = nodemap[(unsigned int)onodes[i]];
+          nnodes[i] = nodemap[(Field::index_type)onodes[i]];
         }
       }
       
@@ -406,16 +406,16 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
       const int *perm = tet_permute_table[inside];
       typename FIELD::mesh_type::Node::array_type nnodes(4);
       
-      if (nodemap.find((unsigned int)onodes[perm[0]]) == nodemap.end())
+      if (nodemap.find((Field::index_type)onodes[perm[0]]) == nodemap.end())
       {
         const typename FIELD::mesh_type::Node::index_type nodeindex =
             clipped->add_point(p[perm[0]]);
-        nodemap[(unsigned int)onodes[perm[0]]] = nodeindex;
+        nodemap[(Field::index_type)onodes[perm[0]]] = nodeindex;
         nnodes[0] = nodeindex;
       }
       else
       {
-        nnodes[0] = nodemap[(unsigned int)onodes[perm[0]]];
+        nnodes[0] = nodemap[(Field::index_type)onodes[perm[0]]];
       }
       
       const double imv = isoval - v[perm[0]];
@@ -427,16 +427,16 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
       const Point l3 = Interpolate(p[perm[0]], p[perm[3]], dl3);
       
       
-      nnodes[1] = edge_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[1]],
+      nnodes[1] = edge_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[1]],
                               dl1, l1, edgemap, clipped);
       
-      nnodes[2] = edge_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[2]],
+      nnodes[2] = edge_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[2]],
                               dl2, l2, edgemap, clipped);
       
-      nnodes[3] = edge_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[3]],
+      nnodes[3] = edge_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[3]],
                               dl3, l3, edgemap, clipped);
       
       clipped->add_elem(nnodes);
@@ -449,18 +449,18 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
       typename FIELD::mesh_type::Node::array_type nnodes(4);
       
       typename FIELD::mesh_type::Node::index_type inodes[9];
-      for (unsigned int i = 1; i < 4; i++)
+      for (Field::index_type i = 1; i < 4; i++)
       {
-        if (nodemap.find((unsigned int)onodes[perm[i]]) == nodemap.end())
+        if (nodemap.find((Field::index_type)onodes[perm[i]]) == nodemap.end())
         {
           const typename FIELD::mesh_type::Node::index_type nodeindex =
               clipped->add_point(p[perm[i]]);
-          nodemap[(unsigned int)onodes[perm[i]]] = nodeindex;
+          nodemap[(Field::index_type)onodes[perm[i]]] = nodeindex;
           inodes[i-1] = nodeindex;
         }
         else
         {
-          inodes[i-1] = nodemap[(unsigned int)onodes[perm[i]]];
+          inodes[i-1] = nodemap[(Field::index_type)onodes[perm[i]]];
         }
       }
       
@@ -473,35 +473,35 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
       const Point l3 = Interpolate(p[perm[0]], p[perm[3]], dl3);
       
       
-      inodes[3] = edge_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[1]],
+      inodes[3] = edge_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[1]],
                               dl1, l1, edgemap, clipped);
       
-      inodes[4] = edge_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[2]],
+      inodes[4] = edge_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[2]],
                               dl2, l2, edgemap, clipped);
       
-      inodes[5] = edge_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[3]],
+      inodes[5] = edge_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[3]],
                               dl3, l3, edgemap, clipped);
       
       const Point c1 = Interpolate(l1, l2, 0.5);
       const Point c2 = Interpolate(l2, l3, 0.5);
       const Point c3 = Interpolate(l3, l1, 0.5);
       
-      inodes[6] = face_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[1]],
-                              (unsigned int)onodes[perm[2]],
+      inodes[6] = face_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[1]],
+                              (Field::index_type)onodes[perm[2]],
                               dl1*0.5, dl2*0.5,
                               c1, facemap, clipped);
-      inodes[7] = face_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[2]],
-                              (unsigned int)onodes[perm[3]],
+      inodes[7] = face_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[2]],
+                              (Field::index_type)onodes[perm[3]],
                               dl2*0.5, dl3*0.5,
                               c2, facemap, clipped);
-      inodes[8] = face_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[3]],
-                              (unsigned int)onodes[perm[1]],
+      inodes[8] = face_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[3]],
+                              (Field::index_type)onodes[perm[1]],
                               dl3*0.5, dl1*0.5,
                               c3, facemap, clipped);
       
@@ -556,18 +556,18 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
       typename FIELD::mesh_type::Node::array_type nnodes(4);
       
       typename FIELD::mesh_type::Node::index_type inodes[8];
-      for (unsigned int i = 2; i < 4; i++)
+      for (Field::index_type i = 2; i < 4; i++)
       {
-        if (nodemap.find((unsigned int)onodes[perm[i]]) == nodemap.end())
+        if (nodemap.find((Field::index_type)onodes[perm[i]]) == nodemap.end())
         {
           const typename FIELD::mesh_type::Node::index_type nodeindex =
               clipped->add_point(p[perm[i]]);
-          nodemap[(unsigned int)onodes[perm[i]]] = nodeindex;
+          nodemap[(Field::index_type)onodes[perm[i]]] = nodeindex;
           inodes[i-2] = nodeindex;
         }
         else
         {
-          inodes[i-2] = nodemap[(unsigned int)onodes[perm[i]]];
+          inodes[i-2] = nodemap[(Field::index_type)onodes[perm[i]]];
         }
       }
       const double imv0 = isoval - v[perm[0]];
@@ -584,31 +584,31 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
       const Point l13 = Interpolate(p[perm[1]], p[perm[3]], dl13);
       
       
-      inodes[2] = edge_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[2]],
+      inodes[2] = edge_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[2]],
                               dl02, l02, edgemap, clipped);
-      inodes[3] = edge_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[3]],
+      inodes[3] = edge_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[3]],
                               dl03, l03, edgemap, clipped);
-      inodes[4] = edge_lookup((unsigned int)onodes[perm[1]],
-                              (unsigned int)onodes[perm[2]],
+      inodes[4] = edge_lookup((Field::index_type)onodes[perm[1]],
+                              (Field::index_type)onodes[perm[2]],
                               dl12, l12, edgemap, clipped);
-      inodes[5] = edge_lookup((unsigned int)onodes[perm[1]],
-                              (unsigned int)onodes[perm[3]],
+      inodes[5] = edge_lookup((Field::index_type)onodes[perm[1]],
+                              (Field::index_type)onodes[perm[3]],
                               dl13, l13, edgemap, clipped);
       
       const Point c1 = Interpolate(l02, l03, 0.5);
       const Point c2 = Interpolate(l12, l13, 0.5);
       
-      inodes[6] = face_lookup((unsigned int)onodes[perm[0]],
-                              (unsigned int)onodes[perm[2]],
-                              (unsigned int)onodes[perm[3]],
+      inodes[6] = face_lookup((Field::index_type)onodes[perm[0]],
+                              (Field::index_type)onodes[perm[2]],
+                              (Field::index_type)onodes[perm[3]],
                               dl02*0.5,
                               dl03*0.5,
                               c1, facemap, clipped);
-      inodes[7] = face_lookup((unsigned int)onodes[perm[1]],
-                              (unsigned int)onodes[perm[2]],
-                              (unsigned int)onodes[perm[3]],
+      inodes[7] = face_lookup((Field::index_type)onodes[perm[1]],
+                              (Field::index_type)onodes[perm[2]],
+                              (Field::index_type)onodes[perm[3]],
                               dl12*0.5,
                               dl13*0.5,
                               c2, facemap, clipped);
@@ -647,7 +647,7 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
     ++bi;
   }
   
-  FIELD *ofield = scinew FIELD(clipped);
+  FIELD *ofield = new FIELD(clipped);
   ofield->copy_properties(fieldh.get_rep());
   
     // Add the data values from the old field to the new field.
@@ -687,19 +687,19 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
     // Create the interpolant matrix.
   typename FIELD::mesh_type::Node::size_type nodesize;
   clipped->size(nodesize);
-  const int nrows = (int)nodesize;
+  const Matrix::size_type nrows = (Matrix::size_type)nodesize;
   mesh->size(nodesize);
-  const int ncols = (int)nodesize;
-  int *rr = scinew int[nrows+1];
-  int *cctmp = scinew int[nrows*3];
-  double *dtmp = scinew double[nrows*3];
+  const Matrix::size_type ncols = (Matrix::size_type)nodesize;
+  Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+  Matrix::index_type *cctmp = new Matrix::index_type[nrows*3];
+  double *dtmp = new double[nrows*3];
   
-  for (int i = 0; i < nrows * 3; i++)
+  for (Matrix::index_type i = 0; i < nrows * 3; i++)
   {
     cctmp[i] = -1;
   }
   
-  int nnz = 0;
+  Matrix::size_type nnz = 0;
   
     // Add the data values from the old field to the new field.
   nmitr = nodemap.begin();
@@ -741,11 +741,11 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
     ++fmitr;
   }
   
-  int *cc = scinew int[nnz];
-  double *d = scinew double[nnz];
+  Matrix::index_type *cc = new Matrix::index_type[nnz];
+  double *d = new double[nnz];
   
-  int j;
-  int counter = 0;
+  Matrix::index_type j;
+  Matrix::index_type counter = 0;
   rr[0] = 0;
   for (j = 0; j < nrows*3; j++)
   {
@@ -760,7 +760,7 @@ ClipVolumeByIsovalueAlgoTet<FIELD>::execute(ProgressReporter *reporter, FieldHan
   }
   delete [] cctmp;
   delete [] dtmp;
-  interp = scinew SparseRowMatrix(nrows, ncols, rr, cc, nnz, d);
+  interp = new SparseRowMatrix(nrows, ncols, rr, cc, nnz, d);
   
   return ofield;
 }
@@ -778,8 +778,8 @@ private:
   
   struct edgepair_t
   {
-    unsigned int first;
-    unsigned int second;
+    Field::index_type first;
+    Field::index_type second;
     double dfirst;
   };
   
@@ -830,14 +830,14 @@ private:
   
   
 #  if defined(__ECC) || defined(_MSC_VER)
-  typedef hash_map<unsigned int,
+  typedef hash_map<Field::index_type,
                    typename FIELD::mesh_type::Node::index_type> node_hash_type;
   
   typedef hash_map<edgepair_t,
                    typename FIELD::mesh_type::Node::index_type,
                    edgepairhash> edge_hash_type;
 #  else
-  typedef hash_map<unsigned int,
+  typedef hash_map<Field::index_type,
 		   typename FIELD::mesh_type::Node::index_type,
 		   hash<unsigned int>,
 		   equal_to<unsigned int> > node_hash_type;
@@ -847,7 +847,7 @@ private:
 		   edgepairhash, edgepairequal> edge_hash_type;
 #  endif
 #else
-  typedef map<unsigned int,
+  typedef map<Field::index_type,
 	      typename FIELD::mesh_type::Node::index_type,
 	      less<unsigned int> > node_hash_type;
 
@@ -857,7 +857,7 @@ private:
 #endif
 
   typename FIELD::mesh_type::Node::index_type
-  edge_lookup(unsigned int u0, unsigned int u1, double d0,
+  edge_lookup(Field::index_type u0, Field::index_type u1, double d0,
 	      const Point &p, edge_hash_type &edgemap,
 	      typename FIELD::mesh_type *clipped) const;
 };
@@ -866,7 +866,7 @@ private:
 
 template <class FIELD>
 typename FIELD::mesh_type::Node::index_type
-ClipVolumeByIsovalueAlgoTri<FIELD>::edge_lookup(unsigned int u0, unsigned int u1,
+ClipVolumeByIsovalueAlgoTri<FIELD>::edge_lookup(Field::index_type u0, Field::index_type u1,
 				   double d0, const Point &p,
 				   edge_hash_type &edgemap,
 				   typename FIELD::mesh_type *clipped) const
@@ -898,7 +898,7 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
   FIELD *field = dynamic_cast<FIELD*>(fieldh.get_rep());
   typename FIELD::mesh_type *mesh =
     dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
-  typename FIELD::mesh_type *clipped = scinew typename FIELD::mesh_type();
+  typename FIELD::mesh_type *clipped = new typename FIELD::mesh_type();
   clipped->copy_properties(mesh);
 
   node_hash_type nodemap;
@@ -915,8 +915,8 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
     mesh->get_nodes(onodes, *bi);
 
     // Get the values and compute an inside/outside mask.
-    unsigned int inside = 0;
-    for (unsigned int i = 0; i < onodes.size(); i++)
+    Field::index_type inside = 0;
+    for (Field::index_type i = 0; i < onodes.size(); i++)
     {
       mesh->get_center(p[i], onodes[i]);
       field->value(v[i], onodes[i]);
@@ -939,18 +939,18 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
       // Add this element to the new mesh.
       typename FIELD::mesh_type::Node::array_type nnodes(onodes.size());
 
-      for (unsigned int i = 0; i<onodes.size(); i++)
+      for (Field::index_type i = 0; i<onodes.size(); i++)
       {
-	if (nodemap.find((unsigned int)onodes[i]) == nodemap.end())
+	if (nodemap.find((Field::index_type)onodes[i]) == nodemap.end())
 	{
 	  const typename FIELD::mesh_type::Node::index_type nodeindex =
 	    clipped->add_point(p[i]);
-	  nodemap[(unsigned int)onodes[i]] = nodeindex;
+	  nodemap[(Field::index_type)onodes[i]] = nodeindex;
 	  nnodes[i] = nodeindex;
 	}
 	else
 	{
-	  nnodes[i] = nodemap[(unsigned int)onodes[i]];
+	  nnodes[i] = nodemap[(Field::index_type)onodes[i]];
 	}
       }
 
@@ -961,16 +961,16 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
       // Add the corner containing the inside point to the mesh.
       const int *perm = tri_permute_table[inside];
       typename FIELD::mesh_type::Node::array_type nnodes(onodes.size());
-      if (nodemap.find((unsigned int)onodes[perm[0]]) == nodemap.end())
+      if (nodemap.find((Field::index_type)onodes[perm[0]]) == nodemap.end())
       {
 	const typename FIELD::mesh_type::Node::index_type nodeindex =
 	  clipped->add_point(p[perm[0]]);
-	nodemap[(unsigned int)onodes[perm[0]]] = nodeindex;
+	nodemap[(Field::index_type)onodes[perm[0]]] = nodeindex;
 	nnodes[0] = nodeindex;
       }
       else
       {
-	nnodes[0] = nodemap[(unsigned int)onodes[perm[0]]];
+	nnodes[0] = nodemap[(Field::index_type)onodes[perm[0]]];
       }
 
       const double imv = isoval - v[perm[0]];
@@ -981,12 +981,12 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
       const Point l2 = Interpolate(p[perm[0]], p[perm[2]], dl2);
 
 
-      nnodes[1] = edge_lookup((unsigned int)onodes[perm[0]],
-			      (unsigned int)onodes[perm[1]],
+      nnodes[1] = edge_lookup((Field::index_type)onodes[perm[0]],
+			      (Field::index_type)onodes[perm[1]],
 			      dl1, l1, edgemap, clipped);
 
-      nnodes[2] = edge_lookup((unsigned int)onodes[perm[0]],
-			      (unsigned int)onodes[perm[2]],
+      nnodes[2] = edge_lookup((Field::index_type)onodes[perm[0]],
+			      (Field::index_type)onodes[perm[2]],
 			      dl2, l2, edgemap, clipped);
 
       clipped->add_elem(nnodes);
@@ -998,28 +998,28 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
       // triangles.
       const int *perm = tri_permute_table[inside];
       typename FIELD::mesh_type::Node::array_type inodes(4);
-      if (nodemap.find((unsigned int)onodes[perm[1]]) == nodemap.end())
+      if (nodemap.find((Field::index_type)onodes[perm[1]]) == nodemap.end())
       {
 	const typename FIELD::mesh_type::Node::index_type nodeindex =
 	  clipped->add_point(p[perm[1]]);
-	nodemap[(unsigned int)onodes[perm[1]]] = nodeindex;
+	nodemap[(Field::index_type)onodes[perm[1]]] = nodeindex;
 	inodes[0] = nodeindex;
       }
       else
       {
-	inodes[0] = nodemap[(unsigned int)onodes[perm[1]]];
+	inodes[0] = nodemap[(Field::index_type)onodes[perm[1]]];
       }
 
-      if (nodemap.find((unsigned int)onodes[perm[2]]) == nodemap.end())
+      if (nodemap.find((Field::index_type)onodes[perm[2]]) == nodemap.end())
       {
 	const typename FIELD::mesh_type::Node::index_type nodeindex =
 	  clipped->add_point(p[perm[2]]);
-	nodemap[(unsigned int)onodes[perm[2]]] = nodeindex;
+	nodemap[(Field::index_type)onodes[perm[2]]] = nodeindex;
 	inodes[1] = nodeindex;
       }
       else
       {
-	inodes[1] = nodemap[(unsigned int)onodes[perm[2]]];
+	inodes[1] = nodemap[(Field::index_type)onodes[perm[2]]];
       }
 
       const double imv = isoval - v[perm[0]];
@@ -1028,12 +1028,12 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
       const double dl2 = imv / (v[perm[2]] - v[perm[0]]);
       const Point l2 = Interpolate(p[perm[0]], p[perm[2]], dl2);
 
-      inodes[2] = edge_lookup((unsigned int)onodes[perm[0]],
-			      (unsigned int)onodes[perm[1]],
+      inodes[2] = edge_lookup((Field::index_type)onodes[perm[0]],
+			      (Field::index_type)onodes[perm[1]],
 			      dl1, l1, edgemap, clipped);
 
-      inodes[3] = edge_lookup((unsigned int)onodes[perm[0]],
-			      (unsigned int)onodes[perm[2]],
+      inodes[3] = edge_lookup((Field::index_type)onodes[perm[0]],
+			      (Field::index_type)onodes[perm[2]],
 			      dl2, l2, edgemap, clipped);
 
       typename FIELD::mesh_type::Node::array_type nnodes(onodes.size());
@@ -1051,7 +1051,7 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
     ++bi;
   }
 
-  FIELD *ofield = scinew FIELD(clipped);
+  FIELD *ofield = new FIELD(clipped);
   ofield->copy_properties(fieldh.get_rep());
 
   // Add the data values from the old field to the new field.
@@ -1079,19 +1079,19 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
   // Create the interpolant matrix.
   typename FIELD::mesh_type::Node::size_type nodesize;
   clipped->size(nodesize);
-  const int nrows = (int)nodesize;
+  const Matrix::size_type nrows = (Matrix::size_type)nodesize;
   mesh->size(nodesize);
-  const int ncols = (int)nodesize;
-  int *rr = scinew int[nrows+1];
-  int *cctmp = scinew int[nrows*2];
-  double *dtmp = scinew double[nrows*2];
+  const Matrix::size_type ncols = (Matrix::size_type)nodesize;
+  Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+  Matrix::index_type *cctmp = new Matrix::index_type[nrows*2];
+  double *dtmp = new double[nrows*2];
 
-  for (int i = 0; i < nrows * 2; i++)
+  for (Matrix::index_type i = 0; i < nrows * 2; i++)
   {
     cctmp[i] = -1;
   }
 
-  int nnz = 0;
+  Matrix::size_type nnz = 0;
 
   // Add the data values from the old field to the new field.
   nmitr = nodemap.begin();
@@ -1116,11 +1116,11 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
     ++emitr;
   }
 
-  int *cc = scinew int[nnz];
-  double *d = scinew double[nnz];
+  Matrix::index_type *cc = new Matrix::index_type[nnz];
+  double *d = new double[nnz];
   
-  int j;
-  int counter = 0;
+  Matrix::index_type j;
+  Matrix::index_type counter = 0;
   rr[0] = 0;
   for (j = 0; j < nrows*2; j++)
   {
@@ -1135,7 +1135,7 @@ ClipVolumeByIsovalueAlgoTri<FIELD>::execute(ProgressReporter *reporter, FieldHan
   }
   delete [] cctmp;
   delete [] dtmp;
-  interp = scinew SparseRowMatrix(nrows, ncols, rr, cc, nnz, d);
+  interp = new SparseRowMatrix(nrows, ncols, rr, cc, nnz, d);
 
   return ofield;
 }
@@ -1146,8 +1146,8 @@ class ClipVolumeByIsovalueAlgoHex : public ClipVolumeByIsovalueAlgo
 {
 public:
 
-  static bool ud_pair_less(const std::pair<unsigned int, double> &a,
-                           const std::pair<unsigned int, double> &b)
+  static bool ud_pair_less(const std::pair<Field::index_type, double> &a,
+                           const std::pair<Field::index_type, double> &b)
   {
       return a.first < b.first;
   };
@@ -1176,7 +1176,7 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
   // algorithm)
   //
   // 3- Find the boundary of the 'inside' hexahedron (minus the
-  // elements which were on the old boundary
+  // elements that are on the old boundary
   //
   // 4- Insert a new sheet of hexes between the 'inside' hexahedron
   // and the isosurface (defined by the isoval)
@@ -1184,34 +1184,25 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
   // 5- Update the interpolation matrix and field values on the new
   // mesh.
 
-  // Create a surface to use when projecting the new elements.
-  const TypeDescription *td = fieldh->get_type_description();
-  LockingHandle<MarchingCubesAlg> mc_alg;
-  if( !mc_alg.get_rep() )
-  {
-    CompileInfoHandle ci = MarchingCubesAlg::get_compile_info(td);
-    if( !DynamicCompilation::compile( ci, mc_alg, reporter )) 
-    {
-      reporter->error( "Marching Cubes can not work with this field.");
-      return fieldh;
-    }
-  }
+  FieldHandle tri_field_h;
   
-  int np = 1;
-  mc_alg->set_np( np );
-  mc_alg->set_field( fieldh.get_rep() );    
-  mc_alg->search( isoval,true, false, false );
+  SCIRunAlgo::MarchingCubesAlgo algo;
+  algo.set_progress_reporter(reporter);
+  algo.set_bool("build_field",true);
   
-  FieldHandle tri_field_h = mc_alg->get_field(0);
+  std::vector<double> isovals(1);
+  isovals[0] = isoval;
+  
+  algo.run(fieldh,isovals,tri_field_h);
+  
   TriSurfMesh<TriLinearLgn<Point> > *tri_mesh = 
     dynamic_cast<TriSurfMesh<TriLinearLgn<Point> >*>(tri_field_h->mesh().get_rep());
-  mc_alg->release();
   
   // Create a place to put the new mesh.
   FIELD *field = dynamic_cast<FIELD*>(fieldh.get_rep());
   typename FIELD::mesh_type *mesh =
     dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
-  typename FIELD::mesh_type *clipped = scinew typename FIELD::mesh_type();
+  typename FIELD::mesh_type *clipped = new typename FIELD::mesh_type();
   clipped->copy_properties(mesh);
   
   // Get a list of the original boundary elements (code from FieldBoundary).
@@ -1257,15 +1248,15 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
   
 #ifdef HAVE_HASH_MAP
 #  if defined(__ECC) || defined(_MSC_VER)
-  typedef hash_map<unsigned int, typename FIELD::mesh_type::Node::index_type> hash_type;
+  typedef hash_map<Field::index_type, typename FIELD::mesh_type::Node::index_type> hash_type;
 #  else
-  typedef hash_map<unsigned int,
+  typedef hash_map<Field::index_type,
     typename FIELD::mesh_type::Node::index_type,
     hash<unsigned int>,
     equal_to<unsigned int> > hash_type;
 #  endif
 #else
-  typedef map<unsigned int,
+  typedef map<Field::index_type,
     typename FIELD::mesh_type::Node::index_type,
     less<unsigned int> > hash_type;
 #endif
@@ -1285,7 +1276,7 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
     typename FIELD::mesh_type::Node::array_type onodes;
     mesh->get_nodes(onodes, *bi);
     inside = true;
-    for (unsigned int i = 0; i < onodes.size(); i++)
+    for (Field::index_type i = 0; i < onodes.size(); i++)
     {
       typename FIELD::value_type v(0);
       if (field->basis_order() == 1) { field->value(v, onodes[i]); }
@@ -1316,21 +1307,21 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
       // Add this element to the new mesh.
       typename FIELD::mesh_type::Node::array_type nnodes(onodes.size());
       
-      for (unsigned int i = 0; i<onodes.size(); i++)
+      for (Field::index_type i = 0; i<onodes.size(); i++)
       {
-        if (nodemap.find((unsigned int)onodes[i]) == nodemap.end())
+        if (nodemap.find((Field::index_type)onodes[i]) == nodemap.end())
         {
           Point np;
           mesh->get_center(np, onodes[i]);
           const typename FIELD::mesh_type::Node::index_type nodeindex =
             clipped->add_point(np);
           clipped_to_original_nodemap[nodeindex] = onodes[i];
-          nodemap[(unsigned int)onodes[i]] = nodeindex;
+          nodemap[(Field::index_type)onodes[i]] = nodeindex;
           nnodes[i] = nodeindex;
         }
         else
         {
-          nnodes[i] = nodemap[(unsigned int)onodes[i]];
+          nnodes[i] = nodemap[(Field::index_type)onodes[i]];
         }
       }
       
@@ -1380,7 +1371,7 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
         // Faces with no neighbors are on the boundary.  Make sure
         // that this face isn't on the original boundary.
         bool is_old_boundary = false;
-        unsigned int i;
+        Field::index_type i;
         typename FIELD::mesh_type::Face::index_type old_face;
 
         typename FIELD::mesh_type::Node::array_type face_nodes;
@@ -1431,7 +1422,7 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
   // connectivity later.
   tri_mesh->synchronize( Mesh::LOCATE_E );
   map<typename FIELD::mesh_type::Node::index_type, typename FIELD::mesh_type::Node::index_type> new_map;
-  unsigned int i; 
+  Field::index_type i; 
 
   for( i = 0; i < node_list.size(); i++ )
   {
@@ -1441,7 +1432,8 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
     
     Point new_result;
     typename FIELD::mesh_type::Face::index_type face_id;
-    tri_mesh->find_closest_elem( new_result, face_id, n_p );
+    double dist;
+    tri_mesh->find_closest_elem(dist, new_result, face_id, n_p );
     Vector dist_vect = n_p - new_result;
     
     // Since finding the closest face can be slow, update the progress
@@ -1485,19 +1477,19 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
   }
   
   // Force all the synch data to be rebuilt on next synch call.
-  clipped->unsynchronize();
+  clipped->clear_synchronization();
   
-  FIELD *ofield = scinew FIELD( clipped );
+  FIELD *ofield = new FIELD( clipped );
   ofield->copy_properties( fieldh.get_rep() );
   
   // Create the interpolation matrix for downstream use.
   typename hash_type::iterator hitr = nodemap.begin();
   
-  const int nrows = nodemap.size() + node_list.size();
-  const int ncols = field->fdata().size();
-  int *rr = scinew int[nrows+1];
-  int *cc = scinew int[nrows+7*node_list.size()];
-  double *d = scinew double[nrows+7*node_list.size()];
+  const Matrix::size_type nrows = nodemap.size() + node_list.size();
+  const Matrix::size_type ncols = field->fdata().size();
+  Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+  Matrix::index_type *cc = new Matrix::index_type[nrows+7*node_list.size()];
+  double *d = new double[nrows+7*node_list.size()];
   
   // Nodes in the original mesh will have the same field values as
   // before since we didn't move any of them.
@@ -1520,11 +1512,11 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
   }
   
   // Figure out the correspondence for the new nodes with the original mesh.
-  int counter = i;
-  int rrvalue = i;
+  Matrix::index_type counter = i;
+  Matrix::index_type rrvalue = i;
   
   mesh->synchronize(Mesh::LOCATE_E);
-  for( unsigned int j = 0; j < node_list.size(); j++ )
+  for( Field::index_type j = 0; j < node_list.size(); j++ )
   {
     rr[counter+j] = rrvalue;
     
@@ -1542,7 +1534,7 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
       typename FIELD::mesh_type::Node::array_type nodes;
       mesh->get_weights(p, nodes, w);
 
-      vector<pair<unsigned int, double> > snodes(8);
+      vector<pair<Field::index_type, double> > snodes(8);
       for (int k = 0; k < 8; k++)
       {
         snodes[k].first = nodes[k];
@@ -1588,7 +1580,7 @@ ClipVolumeByIsovalueAlgoHex<FIELD>::execute( ProgressReporter *reporter,
   rr[nrows] = rrvalue; // An extra entry goes on the end of rr.
   
   // Create the interp matrix.
-  interp = scinew SparseRowMatrix( nrows, ncols, rr, cc, nrows+7*node_list.size(), d );
+  interp = new SparseRowMatrix( nrows, ncols, rr, cc, nrows+7*node_list.size(), d );
   
   return ofield;
 }

@@ -55,16 +55,10 @@
 #include <Core/ICom/IComSocket.h>
 #include <Core/Thread/CleanupManager.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <iostream>
 #include <fstream>
-#include <sgi_stl_warnings_on.h> 
  
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209 
-#endif 
-
 #ifdef _WIN32
 #define USE_MATLAB_ENGINE_LIBRARY
 #endif
@@ -240,18 +234,6 @@ class InterfaceWithMatlab : public Module, public ServiceBase
     std::string	matlab_code_list_;
     
     // Ports for input and output
-    MatrixIPort*	matrix_iport_[NUM_MATRIX_PORTS];
-    MatrixOPort*	matrix_oport_[NUM_MATRIX_PORTS];
-    
-    FieldIPort*		field_iport_[NUM_FIELD_PORTS];
-    FieldOPort*		field_oport_[NUM_FIELD_PORTS];
-    
-    NrrdIPort*		nrrd_iport_[NUM_NRRD_PORTS];
-    NrrdOPort*		nrrd_oport_[NUM_NRRD_PORTS];
-
-    StringIPort*		string_iport_[NUM_STRING_PORTS];
-    StringOPort*		string_oport_[NUM_STRING_PORTS];
-
     std::string		input_matrix_matfile_[NUM_MATRIX_PORTS];
     std::string		input_field_matfile_[NUM_FIELD_PORTS];
     std::string		input_nrrd_matfile_[NUM_NRRD_PORTS];
@@ -473,18 +455,6 @@ InterfaceWithMatlab::InterfaceWithMatlab(GuiContext *context) :
 #endif
 	// find the input and output ports
 	
-	int portnum = 0;
-	for (int p = 0; p<NUM_MATRIX_PORTS; p++)  matrix_iport_[p] = static_cast<MatrixIPort *>(get_iport(portnum++));
-	for (int p = 0; p<NUM_FIELD_PORTS; p++)  field_iport_[p] = static_cast<FieldIPort *>(get_iport(portnum++));
-	for (int p = 0; p<NUM_NRRD_PORTS; p++)  nrrd_iport_[p] = static_cast<NrrdIPort *>(get_iport(portnum++));
-	for (int p = 0; p<NUM_STRING_PORTS; p++)  string_iport_[p] = static_cast<StringIPort *>(get_iport(portnum++));
-
-	portnum = 0;
-	for (int p = 0; p<NUM_MATRIX_PORTS; p++)  matrix_oport_[p] = static_cast<MatrixOPort *>(get_oport(portnum++));
-	for (int p = 0; p<NUM_FIELD_PORTS; p++)  field_oport_[p] = static_cast<FieldOPort *>(get_oport(portnum++));
-	for (int p = 0; p<NUM_NRRD_PORTS; p++)  nrrd_oport_[p] = static_cast<NrrdOPort *>(get_oport(portnum++));
-	for (int p = 0; p<NUM_STRING_PORTS; p++)  string_oport_[p] = static_cast<StringOPort *>(get_oport(portnum++));
-
 	input_matrix_name_list_.resize(NUM_MATRIX_PORTS);
 	input_matrix_name_list_old_.resize(NUM_MATRIX_PORTS);
   input_field_name_list_.resize(NUM_FIELD_PORTS);
@@ -643,7 +613,7 @@ void InterfaceWithMatlab::execute()
 		error("InterfaceWithMatlab: Could not open matlab engine");
 		return;
 	}
-
+  
 	if (!(save_input_matrices()))
 	{
 		error("InterfaceWithMatlab: Could not create the input matrices");
@@ -679,7 +649,7 @@ bool InterfaceWithMatlab::send_matlab_job()
   std::string mfilename = mfile_.substr(0,mfile_.size()-2); // strip the .m
   std::string remotefile = file_transfer_->remote_file(mfilename);
 #ifndef USE_MATLAB_ENGINE_LIBRARY
-	IComPacketHandle packet = scinew IComPacket;
+	IComPacketHandle packet = new IComPacket;
 	
 	if (packet.get_rep() == 0)
 	{
@@ -742,7 +712,7 @@ bool InterfaceWithMatlab::send_matlab_job()
 bool InterfaceWithMatlab::send_input(std::string str)
 {
 #ifndef USE_MATLAB_ENGINE_LIBRARY
-	IComPacketHandle packet = scinew IComPacket;
+	IComPacketHandle packet = new IComPacket;
 	
   if (matlab_engine_.get_rep() == 0) return(true);
     
@@ -800,15 +770,14 @@ bool InterfaceWithMatlab::open_matlab_engine()
 			address.setaddress("scirun",inetaddress,inetport);
 		}
 		
-		int sessionnum = 0;
-		std::istringstream iss(session);
-		iss >> sessionnum;
+    int sessionnum;
+    from_string(session,sessionnum);    
 
 		// Inform the impatient user we are still working for him
 		update_status("Please wait while launching matlab, this may take a few minutes ....\n");
 
 #ifndef USE_MATLAB_ENGINE_LIBRARY
-		matlab_engine_ = scinew ServiceClient();
+		matlab_engine_ = new ServiceClient();
 		if(!(matlab_engine_->open(address,"matlabengine",sessionnum,passwd)))
 		{
 			error(std::string("InterfaceWithMatlab: Could not open matlab engine (error=") + matlab_engine_->geterror() + std::string(")"));
@@ -819,6 +788,7 @@ bool InterfaceWithMatlab::open_matlab_engine()
 			matlab_engine_ = 0;
 			return(false);
     }
+
 #else
     if (engOpen == 0) {
       // load functions from dll
@@ -852,7 +822,8 @@ bool InterfaceWithMatlab::open_matlab_engine()
     engOutputBuffer(engine_, output_buffer_, 51200);
     //engSetVisible(engine_, false);
 #endif
-    file_transfer_ = scinew FileTransferClient();
+
+    file_transfer_ = new FileTransferClient();
     if(!(file_transfer_->open(address,"matlabenginefiletransfer",sessionnum,passwd)))
 		{
       string err;
@@ -878,6 +849,7 @@ bool InterfaceWithMatlab::open_matlab_engine()
     std::string remoteid;
     file_transfer_->get_local_homedirid(localid);
     file_transfer_->get_remote_homedirid(remoteid);
+
     if (localid != remoteid)
     {
       need_file_transfer_ = true;
@@ -925,6 +897,7 @@ bool InterfaceWithMatlab::open_matlab_engine()
 
 			return(false);	
 		}
+
 		
 		if (packet->gettag() == TAG_MERROR)
 		{
@@ -943,7 +916,7 @@ bool InterfaceWithMatlab::open_matlab_engine()
 			return(false);					
 		}
 
-		thread_info_ = scinew InterfaceWithMatlabEngineThreadInfo();
+		thread_info_ = new InterfaceWithMatlabEngineThreadInfo();
 		if (thread_info_.get_rep() == 0)
 		{
 			matlab_engine_->close();
@@ -965,7 +938,7 @@ bool InterfaceWithMatlab::open_matlab_engine()
 		// same underlying socket. Hence only the error handling part will be duplicated
 
 		ServiceClientHandle matlab_engine_copy = matlab_engine_->clone();
-		InterfaceWithMatlabEngineThread* enginethread = scinew InterfaceWithMatlabEngineThread(matlab_engine_copy,thread_info_);
+		InterfaceWithMatlabEngineThread* enginethread = new InterfaceWithMatlabEngineThread(matlab_engine_copy,thread_info_);
 		if (enginethread == 0)
 		{
 			matlab_engine_->close();
@@ -977,8 +950,8 @@ bool InterfaceWithMatlab::open_matlab_engine()
 			error(std::string("InterfaceWithMatlab: Could not create thread object"));
 			return(false);
 		}
-		
-		Thread* thread = scinew Thread(enginethread,"InterfaceWithMatlab module thread");
+
+		Thread* thread = new Thread(enginethread,"InterfaceWithMatlab module thread");
 		if (thread == 0)
 		{
 			delete enginethread;
@@ -995,7 +968,7 @@ bool InterfaceWithMatlab::open_matlab_engine()
 	
 		int sessionn = packet->getparam1();
 		matlab_engine_->setsession(sessionn);
-            	
+
     std::string sharehomedir = "yes";
     if (need_file_transfer_) sharehomedir = "no";
                
@@ -1052,13 +1025,14 @@ bool InterfaceWithMatlab::close_matlab_engine()
 
 bool InterfaceWithMatlab::load_output_matrices()
 {
+  int port = 0;
 	try
 	{
 		for (int p = 0; p < NUM_MATRIX_PORTS; p++)
 		{
+      if (!oport_connected(port)) { port++; continue; }
+      
 			// Test whether the matrix port exists
-			if (matrix_oport_[p] == 0) continue;
-			if (matrix_oport_[p]->nconnections() == 0) continue;
 			if (output_matrix_name_list_[p] == "") continue;
 			if (output_matrix_matfile_[p] == "") continue;
 		
@@ -1088,15 +1062,15 @@ bool InterfaceWithMatlab::load_output_matrices()
       std::string info;
       matlabconverter translate(dynamic_cast<SCIRun::ProgressReporter *>(this));
 			if (translate.sciMatrixCompatible(ma,info)) translate.mlArrayTOsciMatrix(ma,handle);
-			matrix_oport_[p]->send(handle);
+			send_output_handle(port,handle,true); port++;
 		}
 
 
 		for (int p = 0; p < NUM_FIELD_PORTS; p++)
 		{
+      if (!oport_connected(port)) { port++; continue; }
+
 			// Test whether the field port exists
-			if (field_oport_[p] == 0) continue;
-			if (field_oport_[p]->nconnections() == 0) continue;
 			if (output_field_name_list_[p] == "") continue;
 			if (output_field_matfile_[p] == "") continue;
 		
@@ -1126,15 +1100,15 @@ bool InterfaceWithMatlab::load_output_matrices()
       std::string info;
       matlabconverter translate(dynamic_cast<SCIRun::ProgressReporter *>(this));
 			if (translate.sciFieldCompatible(ma,info)) translate.mlArrayTOsciField(ma,handle);
-			field_oport_[p]->send(handle);
+			send_output_handle(port,handle,true); port++;
 		}
 
 
 		for (int p = 0; p < NUM_NRRD_PORTS; p++)
 		{
+      if (!oport_connected(port)) { port++; continue; }
+
 			// Test whether the nrrd port exists
-			if (nrrd_oport_[p] == 0) continue;
-			if (nrrd_oport_[p]->nconnections() == 0) continue;
 			if (output_nrrd_name_list_[p] == "") continue;
 			if (output_nrrd_matfile_[p] == "") continue;
 		
@@ -1163,15 +1137,15 @@ bool InterfaceWithMatlab::load_output_matrices()
       std::string info;
       matlabconverter translate(dynamic_cast<SCIRun::ProgressReporter *>(this));      
 			if (translate.sciNrrdDataCompatible(ma,info)) translate.mlArrayTOsciNrrdData(ma,handle);
-			nrrd_oport_[p]->send(handle);
+			send_output_handle(port,handle,true); port++;
 		}
 
 
 		for (int p = 0; p < NUM_STRING_PORTS; p++)
 		{
+      if (!oport_connected(port)) { port++; continue; }
+
 			// Test whether the nrrd port exists
-			if (string_oport_[p] == 0) continue;
-			if (string_oport_[p]->nconnections() == 0) continue;
 			if (output_string_name_list_[p] == "") continue;
 			if (output_string_matfile_[p] == "") continue;
 		
@@ -1200,7 +1174,7 @@ bool InterfaceWithMatlab::load_output_matrices()
       std::string info;
       matlabconverter translate(dynamic_cast<SCIRun::ProgressReporter *>(this));
 			if (translate.sciStringCompatible(ma,info)) translate.mlArrayTOsciString(ma,handle);
-			string_oport_[p]->send(handle);
+			send_output_handle(port,handle,true); port++;
 		}
 	}
 	catch(...)
@@ -1220,12 +1194,13 @@ bool InterfaceWithMatlab::generate_matlab_code()
     std::string filename = file_transfer_->local_file(mfile_);
 		m_file.open(filename.c_str(),std::ios::app);
 
+    int port = 0;
 		m_file << matlab_code_list_ << "\n";
     for (int p = 0; p < NUM_MATRIX_PORTS; p++)
 		{
 			// Test whether the matrix port exists
-			if (matrix_oport_[p] == 0) continue;
-			if (matrix_oport_[p]->nconnections() == 0) continue;
+      if (!oport_connected(port)) { port++; continue; }
+      port++;
 			if (output_matrix_name_list_[p] == "") continue;
 
 			ostringstream oss;
@@ -1239,8 +1214,8 @@ bool InterfaceWithMatlab::generate_matlab_code()
 		for (int p = 0; p < NUM_FIELD_PORTS; p++)
 		{
 			// Test whether the matrix port exists
-			if (field_oport_[p] == 0) continue;
-			if (field_oport_[p]->nconnections() == 0) continue;
+      if (!oport_connected(port)) { port++; continue; }
+      port++;
 			if (output_field_name_list_[p] == "") continue;
 		
 			ostringstream oss;
@@ -1254,8 +1229,8 @@ bool InterfaceWithMatlab::generate_matlab_code()
 		for (int p = 0; p < NUM_NRRD_PORTS; p++)
 		{
 			// Test whether the matrix port exists
-			if (nrrd_oport_[p] == 0) continue;
-			if (nrrd_oport_[p]->nconnections() == 0) continue;
+      if (!oport_connected(port)) { port++; continue; }
+      port++;
 			if (output_nrrd_name_list_[p] == "") continue;
 		
 			ostringstream oss;
@@ -1270,8 +1245,8 @@ bool InterfaceWithMatlab::generate_matlab_code()
 		for (int p = 0; p < NUM_STRING_PORTS; p++)
 		{
 			// Test whether the matrix port exists
-			if (string_oport_[p] == 0) continue;
-			if (string_oport_[p]->nconnections() == 0) continue;
+      if (!oport_connected(port)) { port++; continue; }
+      port++;
 			if (output_string_name_list_[p] == "") continue;
 		
 			ostringstream oss;
@@ -1300,6 +1275,7 @@ bool InterfaceWithMatlab::save_input_matrices()
 {
 	try
 	{
+    int port = 0;
 
 		std::ofstream m_file; 
 		std::string loadcmd;
@@ -1311,13 +1287,10 @@ bool InterfaceWithMatlab::save_input_matrices()
 
 		for (int p = 0; p < NUM_MATRIX_PORTS; p++)
 		{
-    
-			// Test whether the matrix port exists
-			if (matrix_iport_[p] == 0)  { continue; }
-			if (matrix_iport_[p]->nconnections() == 0) { continue; }
-
-			MatrixHandle	handle = 0;
-			matrix_iport_[p]->get(handle);
+			MatrixHandle	handle;
+      if(!(get_input_handle(port,handle,false))) { port++; continue; }
+      port++;
+      
 			// if there is no data
 			if (handle.get_rep() == 0)  
 			{
@@ -1327,7 +1300,10 @@ bool InterfaceWithMatlab::save_input_matrices()
 			}
 			// if the data as the same before
 			// do nothing
-			if ((input_matrix_name_list_[p]==input_matrix_name_list_old_[p])&&(input_matrix_type_list_[p]==input_matrix_type_list_old_[p])&&(input_matrix_array_list_[p]==input_matrix_array_list_old_[p])&&(handle->generation == input_matrix_generation_old_[p]))
+			if ((input_matrix_name_list_[p]==input_matrix_name_list_old_[p])&&
+          (input_matrix_type_list_[p]==input_matrix_type_list_old_[p])&&
+          (input_matrix_array_list_[p]==input_matrix_array_list_old_[p])&&
+          (handle->generation == input_matrix_generation_old_[p]))
 			{
 				// this one was not created again
 				// hence we do not need to translate it again
@@ -1350,7 +1326,8 @@ bool InterfaceWithMatlab::save_input_matrices()
 
       matlabconverter translate(dynamic_cast<SCIRun::ProgressReporter *>(this));
 			translate.converttostructmatrix();
-			if (input_matrix_array_list_[p] == "numeric array") translate.converttonumericmatrix();
+			if (input_matrix_array_list_[p] == "numeric array") 
+        translate.converttonumericmatrix();
 			translate.setdatatype(convertdataformat(input_matrix_type_list_[p]));
 			translate.sciMatrixTOmlArray(handle,ma);
 
@@ -1360,10 +1337,11 @@ bool InterfaceWithMatlab::save_input_matrices()
 			loadcmd = "load " + file_transfer_->remote_file(input_matrix_matfile_[p]) + ";\n";
 			m_file << loadcmd;
             
-            
       if (need_file_transfer_) 
       {
-        if(!(file_transfer_->put_file(file_transfer_->local_file(input_matrix_matfile_[p]),file_transfer_->remote_file(input_matrix_matfile_[p]))))
+        if(!(file_transfer_->put_file(
+             file_transfer_->local_file(input_matrix_matfile_[p]),
+             file_transfer_->remote_file(input_matrix_matfile_[p]))))
         {
             error("InterfaceWithMatlab: Could not transfer file");
             std::string err = "Error :" + file_transfer_->geterror();
@@ -1381,12 +1359,10 @@ bool InterfaceWithMatlab::save_input_matrices()
 
 		for (int p = 0; p < NUM_FIELD_PORTS; p++)
 		{
-			// Test whether the matrix port exists
-			if (field_iport_[p] == 0) continue;
-			if (field_iport_[p]->nconnections() == 0) continue;
-			
-			FieldHandle	handle = 0;
-			field_iport_[p]->get(handle);
+			FieldHandle	handle;
+      if(!(get_input_handle(port,handle,false))) { port++; continue; }
+      port++;
+
 			// if there is no data
 			if (handle.get_rep() == 0) 
 			{
@@ -1396,7 +1372,9 @@ bool InterfaceWithMatlab::save_input_matrices()
 			}
 			// if the data as the same before
 			// do nothing
-			if ((input_field_name_list_[p]==input_field_name_list_old_[p])&&(input_field_array_list_[p]==input_field_array_list_old_[p])&&(handle->generation == input_field_generation_old_[p]))
+			if ((input_field_name_list_[p]==input_field_name_list_old_[p])&&
+          (input_field_array_list_[p]==input_field_array_list_old_[p])&&
+          (handle->generation == input_field_generation_old_[p]))
 			{
 				// this one was not created again
 				// hence we do not need to translate it again
@@ -1435,7 +1413,9 @@ bool InterfaceWithMatlab::save_input_matrices()
             
       if (need_file_transfer_) 
       {
-        if(!(file_transfer_->put_file(file_transfer_->local_file(input_field_matfile_[p]),file_transfer_->remote_file(input_field_matfile_[p]))))
+        if(!(file_transfer_->put_file(
+             file_transfer_->local_file(input_field_matfile_[p]),
+             file_transfer_->remote_file(input_field_matfile_[p]))))
         {
           error("InterfaceWithMatlab: Could not transfer file");
           std::string err = "Error :" + file_transfer_->geterror();
@@ -1450,12 +1430,10 @@ bool InterfaceWithMatlab::save_input_matrices()
 
 		for (int p = 0; p < NUM_NRRD_PORTS; p++)
 		{
-			// Test whether the matrix port exists
-			if (nrrd_iport_[p] == 0) continue;
-			if (nrrd_iport_[p]->nconnections() == 0) continue;
+			NrrdDataHandle	handle;
+      if(!(get_input_handle(port,handle,false))) { port++; continue; }
+      port++;
 
-			NrrdDataHandle	handle = 0;
-			nrrd_iport_[p]->get(handle);
 			// if there is no data
 			if (handle.get_rep() == 0) 
 			{
@@ -1465,7 +1443,10 @@ bool InterfaceWithMatlab::save_input_matrices()
 			}
 			// if the data as the same before
 			// do nothing
-			if ((input_nrrd_name_list_[p]==input_nrrd_name_list_old_[p])&&(input_nrrd_type_list_[p]==input_nrrd_type_list_old_[p])&&(input_nrrd_array_list_[p]==input_nrrd_array_list_old_[p])&&(handle->generation == input_nrrd_generation_old_[p]))
+			if ((input_nrrd_name_list_[p]==input_nrrd_name_list_old_[p])&&
+          (input_nrrd_type_list_[p]==input_nrrd_type_list_old_[p])&&
+          (input_nrrd_array_list_[p]==input_nrrd_array_list_old_[p])&&
+          (handle->generation == input_nrrd_generation_old_[p]))
 			{
 				// this one was not created again
 				// hence we do not need to translate it again
@@ -1500,7 +1481,9 @@ bool InterfaceWithMatlab::save_input_matrices()
             
       if (need_file_transfer_) 
       {
-        if(!(file_transfer_->put_file(file_transfer_->local_file(input_nrrd_matfile_[p]),file_transfer_->remote_file(input_nrrd_matfile_[p]))))
+        if(!(file_transfer_->put_file(
+             file_transfer_->local_file(input_nrrd_matfile_[p]),
+             file_transfer_->remote_file(input_nrrd_matfile_[p]))))
         {
             error("InterfaceWithMatlab: Could not transfer file");
             std::string err = "Error :" + file_transfer_->geterror();
@@ -1516,13 +1499,11 @@ bool InterfaceWithMatlab::save_input_matrices()
 
 		for (int p = 0; p < NUM_STRING_PORTS; p++)
 		{
-			// Test whether the matrix port exists
-			if (string_iport_[p] == 0) continue;
-			if (string_iport_[p]->nconnections() == 0) continue;
+			StringHandle	handle;
+      if(!(get_input_handle(port,handle,false))) { port++; continue; }
+      port++;
 
-			StringHandle	handle = 0;
-			string_iport_[p]->get(handle);
-			// if there is no data
+      // if there is no data
 			if (handle.get_rep() == 0) 
 			{
 				// we do not need the old file any more so delete it
@@ -1531,7 +1512,8 @@ bool InterfaceWithMatlab::save_input_matrices()
 			}
 			// if the data as the same before
 			// do nothing
-			if ((input_string_name_list_[p]==input_string_name_list_old_[p])&&(handle->generation == input_string_generation_old_[p]))
+			if ((input_string_name_list_[p]==input_string_name_list_old_[p])&&
+          (handle->generation == input_string_generation_old_[p]))
 			{
 				// this one was not created again
 				// hence we do not need to translate it again
@@ -1563,7 +1545,9 @@ bool InterfaceWithMatlab::save_input_matrices()
             
       if (need_file_transfer_) 
       {
-        if(!(file_transfer_->put_file(file_transfer_->local_file(input_string_matfile_[p]),file_transfer_->remote_file(input_string_matfile_[p]))))
+        if(!(file_transfer_->put_file(
+             file_transfer_->local_file(input_string_matfile_[p]),
+             file_transfer_->remote_file(input_string_matfile_[p]))))
         {
           error("InterfaceWithMatlab: Could not transfer file");
           std::string err = "Error :" + file_transfer_->geterror();
@@ -1756,7 +1740,7 @@ void InterfaceWithMatlab::tcl_command(GuiArgs& args, void* userdata)
 
     if (args[1] == "configfile")
     {
-      ServiceDBHandle servicedb = scinew ServiceDB;     
+      ServiceDBHandle servicedb = new ServiceDB;     
       // load all services and find all makers
       servicedb->loadpackages();
       
@@ -1771,8 +1755,3 @@ void InterfaceWithMatlab::tcl_command(GuiArgs& args, void* userdata)
 }
 
 } // End namespace InterfaceWithMatlabInterface
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209 
-#endif

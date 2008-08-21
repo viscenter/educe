@@ -46,7 +46,7 @@
 #include <Core/Geom/GeomSave.h>
 #include <Core/Geom/GeomTri.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Persistent/PersistentSTL.h>
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/Trig.h>
@@ -60,7 +60,7 @@ using std::endl;
 
 Persistent* make_GeomCylinder()
 {
-    return scinew GeomCylinder;
+    return new GeomCylinder;
 }
 
 PersistentTypeID GeomCylinder::type_id("GeomCylinder", "GeomObj",
@@ -68,7 +68,7 @@ PersistentTypeID GeomCylinder::type_id("GeomCylinder", "GeomObj",
 
 Persistent* make_GeomCappedCylinder()
 {
-    return scinew GeomCappedCylinder;
+    return new GeomCappedCylinder;
 }
 
 PersistentTypeID GeomCappedCylinder::type_id("GeomCappedCylinder", "GeomObj",
@@ -76,7 +76,7 @@ PersistentTypeID GeomCappedCylinder::type_id("GeomCappedCylinder", "GeomObj",
 
 Persistent* make_GeomCappedCylinders()
 {
-    return scinew GeomCappedCylinders;
+    return new GeomCappedCylinders;
 }
 
 PersistentTypeID GeomCappedCylinders::type_id("GeomCappedCylinders",
@@ -146,7 +146,7 @@ void GeomCylinder::adjust()
 
 GeomObj* GeomCylinder::clone()
 {
-    return scinew GeomCylinder(*this);
+    return new GeomCylinder(*this);
 }
 
 void GeomCylinder::get_bounds(BBox& bb)
@@ -335,7 +335,7 @@ GeomCappedCylinder::~GeomCappedCylinder()
 
 GeomObj* GeomCappedCylinder::clone()
 {
-    return scinew GeomCappedCylinder(*this);
+    return new GeomCappedCylinder(*this);
 }
 
 #define GEOMCAPPEDCYLINDER_VERSION 1
@@ -388,7 +388,7 @@ GeomCappedCylinders::add_radius(const Point& p1, float index1,
 
 GeomObj* GeomCappedCylinders::clone()
 {
-    return scinew GeomCappedCylinders(*this);
+    return new GeomCappedCylinders(*this);
 }
 
 #define GEOMCAPPEDCYLINDERS_VERSION 1

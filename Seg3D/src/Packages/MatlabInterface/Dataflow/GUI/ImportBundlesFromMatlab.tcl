@@ -105,44 +105,44 @@ itcl_class MatlabInterface_DataIO_ImportBundlesFromMatlab {
 
     # create a new gui window
 
-    toplevel $w 
+    sci_toplevel $w 
 
-    iwidgets::labeledframe $w.fileframe -labeltext "SELECT MATLAB FILE"
+    sci_labeledframe $w.fileframe -labeltext "SELECT MATLAB FILE"
     set childfile [$w.fileframe childsite]
     pack $w.fileframe -fill x
 
-    frame $childfile.f1
-    frame $childfile.f2
+    sci_frame $childfile.f1
+    sci_frame $childfile.f2
     
     pack $childfile.f1 $childfile.f2 -side top -fill x -expand yes
 
-    label $childfile.f1.label -text ".MAT FILE "
-    entry $childfile.f1.file -textvariable $this-filename
+    sci_label $childfile.f1.label -text ".MAT FILE "
+    sci_entry $childfile.f1.file -textvariable $this-filename
     set $this-filename-entry $childfile.f1.file  
-    button $childfile.f2.open -text "Open" -command "$this OpenMatfile"
-    button $childfile.f2.browse -text "Browse" -command "$this ChooseFile"
+    sci_button $childfile.f2.open -text "Open" -command "$this OpenMatfile"
+    sci_button $childfile.f2.browse -text "Browse" -command "$this ChooseFile"
 
     pack $childfile.f1.label -side left -padx 3p -pady 2p -padx 4p
     pack $childfile.f1.file -side left -fill x -expand yes -padx 3p -pady 2p
     pack $childfile.f2.browse -side right -padx 3p -pady 2p -anchor e
     pack $childfile.f2.open -side right -padx 3p -pady 2p -anchor e
 
-    iwidgets::labeledframe $w.matrixframe -labeltext "SELECT MATLAB MATRIX"
+    sci_labeledframe $w.matrixframe -labeltext "SELECT MATLAB MATRIX"
     set childframe [$w.matrixframe childsite]
     pack $w.matrixframe -fill both -expand yes
 
-    frame $childframe.portframe 
+    sci_frame $childframe.portframe 
     pack $childframe.portframe -fill x -pady 4p
     set $this-port $childframe.portframe
     
     for {set x 0} {$x < [set $this-numport]} {incr x} {
-            button [set $this-port].$x -text [format "Port %d" [expr $x + 1]] -command [format "%s SetPort %d" $this $x]
-            pack [set $this-port].$x  -side left -fill x -padx 2p -anchor w
+      sci_button [set $this-port].$x -text [format "Port %d" [expr $x + 1]] -command [format "%s SetPort %d" $this $x]
+      pack [set $this-port].$x  -side left -fill x -padx 2p -anchor w
     }
 
     [set $this-port].[set $this-portsel] configure -fg #FFFFFF
 
-    iwidgets::scrolledlistbox $childframe.listbox -selectmode single \
+    sci_scrolledlistbox $childframe.listbox -selectmode single \
           -selectioncommand "$this ChooseMatrix" \
           -width 500p -height 300p \
           -selectbackground #ffc0c0
@@ -150,14 +150,14 @@ itcl_class MatlabInterface_DataIO_ImportBundlesFromMatlab {
     $childframe.listbox component listbox configure -listvariable $this-matrixinfotexts
     pack $childframe.listbox -fill both -expand yes
 
-    frame $childframe.f1
+    sci_frame $childframe.f1
     
-    iwidgets::optionmenu $childframe.f1.pnrrds -command "$this Setpnrrds"
+    sci_optionmenu $childframe.f1.pnrrds -command "$this Setpnrrds"
     foreach opt {{prefer matrices} {prefer nrrds} {prefer fields}} {
       $childframe.f1.pnrrds insert end $opt
     }
 
-    iwidgets::optionmenu $childframe.f1.pbundles -command "$this Setpbundles"
+    sci_optionmenu $childframe.f1.pbundles -command "$this Setpbundles"
     foreach opt {{prefer sciobjects} {prefer bundles}} {
       $childframe.f1.pbundles insert end $opt
     }
@@ -277,7 +277,7 @@ itcl_class MatlabInterface_DataIO_ImportBundlesFromMatlab {
                   return
           }
 
-          toplevel $w -class TkFDialog
+          sci_toplevel $w -class TkFDialog
 
           set initdir ""
 

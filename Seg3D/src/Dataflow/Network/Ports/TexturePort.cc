@@ -31,7 +31,7 @@
 //    Date   : Thu Jul 15 15:01:21 2004
 
 #include <Dataflow/Network/Ports/TexturePort.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #undef SCISHARE
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
@@ -45,11 +45,11 @@ namespace SCIRun {
 extern "C" {
 SCISHARE IPort* make_TextureIPort(Module* module,
                                       const string& name) {
-  return scinew SimpleIPort<TextureHandle>(module,name);
+  return new SimpleIPort<TextureHandle>(module,name);
 }
 SCISHARE OPort* make_TextureOPort(Module* module,
                                       const string& name) {
-  return scinew SimpleOPort<TextureHandle>(module,name);
+  return new SimpleOPort<TextureHandle>(module,name);
 }
 }
 

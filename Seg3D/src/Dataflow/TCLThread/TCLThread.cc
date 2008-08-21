@@ -26,17 +26,20 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Dataflow/TCLThread/TCLThread.h>
-#include <Core/Containers/StringUtil.h>
-#include <Dataflow/GuiInterface/TCLInterface.h>
-#include <Dataflow/GuiInterface/TCLTask.h>
+#include <sci_defs/version_defs.h>
+
 #include <slivr/ShaderProgramARB.h>
+#include <Core/Containers/StringUtil.h>
 #include <Core/Util/Environment.h>
 #include <Core/Util/sci_system.h>
+
+
+#include <Dataflow/TCLThread/TCLThread.h>
+#include <Dataflow/GuiInterface/TCLInterface.h>
+#include <Dataflow/GuiInterface/TCLTask.h>
 #include <Dataflow/Network/NetworkEditor.h>
 #include <Dataflow/Network/PackageDB.h>
 #include <Dataflow/Network/NetworkIO.h>
-#include <main/sci_version.h>
 
 
 #ifdef _WIN32
@@ -215,8 +218,7 @@ TCLThread::startNetworkEditor()
   std::cout << "Tk,"; std::cout.flush();
   if (!scirun_nogui)
   {
-    printf("tk, ");
-    if (Tk_Init(the_interp) == TCL_ERROR) {
+      if (Tk_Init(the_interp) == TCL_ERROR) {
       printf("Tk_Init() failed.  Is the DISPLAY environment variable set properly?\n");
 
       Thread::exitAll(-1);//exit_all_threads(TCL_ERROR);
@@ -336,7 +338,7 @@ TCLThread::startNetworkEditor()
    * then no user-specific startup file will be run under any conditions.
    */
 
-  gui = scinew TCLInterface;
+  gui = new TCLInterface;
   
   // We parse the scirunrc file here before creating the network
   // editor.  Note that this may fail, but we need the network editor
@@ -420,6 +422,9 @@ TCLThread::startNetworkEditor()
     }
   }
 
+  // Check the dynamic compilation directory for validity
+  sci_putenv("SCIRUN_ON_THE_FLY_LIBS_DIR",gui->eval("getOnTheFlyLibsDir"));
+
   packageDB = new PackageDB(gui);
   // load the packages
   packageDB->loadPackage(!sci_getenv_p("SCIRUN_LOAD_MODULES_ON_STARTUP"));  
@@ -429,20 +434,28 @@ TCLThread::startNetworkEditor()
     gui->eval("hideProgress");
   }
   
-  // Check the dynamic compilation directory for validity
-  sci_putenv("SCIRUN_ON_THE_FLY_LIBS_DIR",gui->eval("getOnTheFlyLibsDir"));
-
+  gui->eval("licenseDialog 1");
+  
   // Activate "File" menu sub-menus once packages are all loaded.
   gui->eval("activate_file_submenus");
 
   // Test for shaders.
+  bool has_shaders = false;
 #if defined(HAVE_X11)
   X11OpenGLContext *context = new X11OpenGLContext(0, 0, 0, 10, 10, 0, false);
+  has_shaders = context->has_shaders();
   delete context;
 #elif defined(_WIN32)
   Win32OpenGLContext *context = new Win32OpenGLContext(0, 0, 0, 10, 10, false, false);
+  has_shaders = context->has_shaders();
   delete context;
 #endif
+
+  if (!has_shaders)
+  {
+    gui->eval("UpdateGraphicsDriversDialog");
+  }
+
   Tcl_CreateCommand(the_interp, "exit", exitproc, 0, 0);
 
 #ifdef EXPERIMENTAL_TCL_THREAD
@@ -481,14 +494,14 @@ TCLThread::startNetworkEditor()
     loaded_network = true;
   }
 
-  if (loaded_network && (sci_getenv_p("SCIRUN_CONVERT_NET_TO_SRN"))) 
-  {
-    size_t pos = fname.find(".net");
-    fname.replace(pos, 4, ".srn");
-    gui->eval("set netedit_savefile " + fname);
-    gui->eval("popupSaveMenu");
-    gui->eval("netedit quit");
-  }
+ // if (loaded_network && (sci_getenv_p("SCIRUN_CONVERT_NET_TO_SRN"))) 
+ // {
+ //   size_t pos = fname.find(".net");
+ //   fname.replace(pos, 4, ".srn");
+ //   gui->eval("set netedit_savefile " + fname);
+ //   gui->eval("popupSaveMenu");
+ //   gui->eval("netedit quit");
+ // }
 
   if (loaded_network &&
       (sci_getenv_p("SCIRUN_EXECUTE_ON_STARTUP") || 

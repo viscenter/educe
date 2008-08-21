@@ -33,61 +33,61 @@ itcl_class Teem_Tend_TendAnhist {
     inherit Module
 
     constructor {config} {
-        set name TendAnhist
+      set name TendAnhist
     }
 
     method set_defaults {} {
-	global $this-right
-	set $this-right 0
+      global $this-right
+      set $this-right 0
 
-	global $this-westin
-	set $this-westin 1
+      global $this-westin
+      set $this-westin 1
 
-	global $this-resolution
-	set $this-resolution 256
+      global $this-resolution
+      set $this-resolution 256
     }
 
     method ui {} {
-        set w .ui[modname]
-        if {[winfo exists $w]} {
-            return
-        }
-        toplevel $w
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          return
+      }
+      sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
-	
-	checkbutton $w.f.options.right \
-	    -text "Sample a right-triangle-shaped region, instead of a roughly equilateral triangle." \
-	    -variable $this-right
+      sci_frame $w.f
+      pack $w.f -padx 2 -pady 2 -side top -expand yes
+      
+      sci_frame $w.f.options
+      pack $w.f.options -side top -expand yes
+      
+      sci_checkbutton $w.f.options.right \
+          -text "Sample a right-triangle-shaped region, instead of a roughly equilateral triangle." \
+          -variable $this-right
 
-	radiobutton $w.f.options.westin1 \
-	    -text "Version 1 of Westin's Anisotropy Metric Triple" \
-	    -variable $this-westin \
-	    -value 1
+      sci_radiobutton $w.f.options.westin1 \
+          -text "Version 1 of Westin's Anisotropy Metric Triple" \
+          -variable $this-westin \
+          -value 1
 
-	radiobutton $w.f.options.westin2 \
-	    -text "Version 2 of Westin's Anisotropy Metric Triple" \
-	    -variable $this-westin \
-	    -value 2
+      sci_radiobutton $w.f.options.westin2 \
+          -text "Version 2 of Westin's Anisotropy Metric Triple" \
+          -variable $this-westin \
+          -value 2
 
-        pack $w.f.options.right \
+      pack $w.f.options.right \
 	    $w.f.options.westin1 $w.f.options.westin2 \
 	    -side top -expand yes -fill x
 	
 
-        iwidgets::entryfield $w.f.options.resolution \
+      sci_entryfield $w.f.options.resolution \
 	    -labeltext "Resolution:" \
 	    -textvariable $this-resolution
         pack $w.f.options.resolution -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
+      makeSciButtonPanel $w.f $w $this
+      moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+      pack $w.f -expand 1 -fill x
     }
 }
 

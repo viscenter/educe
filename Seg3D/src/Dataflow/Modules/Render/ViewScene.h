@@ -46,7 +46,7 @@
 #include <Dataflow/Network/Ports/GeometryPort.h>
 #include <Dataflow/Network/Ports/GeometryComm.h>
 #include <Core/Geom/GeomObj.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/Lighting.h>
 #include <Core/Geom/IndexedGroup.h>
 #include <Dataflow/Modules/Render/ViewGeom.h>

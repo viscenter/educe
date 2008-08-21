@@ -41,7 +41,7 @@
  */
 
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/Color.h>
 #include <Core/Geometry/Point.h>
 #include <Core/Geom/GeomSave.h>
@@ -61,7 +61,7 @@ using std::ostream;
 
 static Persistent* make_GeomText()
 {
-  return scinew GeomText;
+  return new GeomText;
 }
 
 PersistentTypeID GeomText::type_id("GeomText", "GeomObj", make_GeomText);
@@ -95,7 +95,7 @@ GeomText::GeomText(const GeomText& copy)
 
 GeomObj* GeomText::clone()
 {
-  return scinew GeomText(*this);
+  return new GeomText(*this);
 }
 
 void GeomText::get_bounds(BBox& in_bb)
@@ -138,7 +138,7 @@ GeomText::moveTo(const Point& new_at) {
 
 static Persistent* make_GeomTexts()
 {
-  return scinew GeomTexts;
+  return new GeomTexts;
 }
 
 PersistentTypeID GeomTexts::type_id("GeomTexts", "GeomObj", make_GeomTexts);
@@ -173,7 +173,7 @@ GeomTexts::~GeomTexts()
 
 GeomObj* GeomTexts::clone()
 {
-  return scinew GeomTexts(*this);
+  return new GeomTexts(*this);
 }
 
 
@@ -252,7 +252,7 @@ GeomTexts::io(Piostream& stream)
 
 static Persistent* make_GeomTextsCulled()
 {
-  return scinew GeomTextsCulled;
+  return new GeomTextsCulled;
 }
 
 PersistentTypeID GeomTextsCulled::type_id("GeomTextsCulled", "GeomTexts", make_GeomTextsCulled);
@@ -278,7 +278,7 @@ GeomTextsCulled::~GeomTextsCulled()
 
 GeomObj* GeomTextsCulled::clone()
 {
-  return scinew GeomTextsCulled(*this);
+  return new GeomTextsCulled(*this);
 }
 
 
@@ -323,7 +323,7 @@ GeomTextsCulled::io(Piostream& stream)
 
 static Persistent* make_GeomTextTexture()
 {
-  return scinew GeomTextTexture(string("invalid"));
+  return new GeomTextTexture(string("invalid"));
 }
 
 PersistentTypeID GeomTextTexture::type_id("GeomTextTexture", "GeomObj", make_GeomTextTexture);
@@ -337,7 +337,7 @@ GeomTextTexture::GeomTextTexture(const string &fontfile)
     color_(Color(1,1,1)),
     anchor_(sw)
 #ifdef HAVE_FTGL
-  ,font_(scinew GeomFTGLFontRenderer(fontfile.c_str()))
+  ,font_(new GeomFTGLFontRenderer(fontfile.c_str()))
 #endif
   ,up_hack_(false)
 {
@@ -358,7 +358,7 @@ GeomTextTexture::GeomTextTexture( const string &fontfile,
     anchor_(sw),
     own_font_(true)
 #ifdef HAVE_FTGL
-  ,font_(scinew GeomFTGLFontRenderer(fontfile.c_str()))
+  ,font_(new GeomFTGLFontRenderer(fontfile.c_str()))
 #endif
   ,up_hack_(false)
 {
@@ -394,7 +394,7 @@ GeomTextTexture::GeomTextTexture(const GeomTextTexture& copy)
 
 GeomObj* GeomTextTexture::clone()
 {
-  return scinew GeomTextTexture(*this);
+  return new GeomTextTexture(*this);
 }
 
 void GeomTextTexture::get_bounds(BBox& in_bb)
@@ -526,7 +526,7 @@ GeomTextTexture::io(Piostream& stream)
 #ifdef HAVE_FTGL
 static Persistent* make_GeomFTGLFontRenderer()
 {
-  return scinew GeomFTGLFontRenderer(string(""));
+  return new GeomFTGLFontRenderer(string(""));
 }
 
 PersistentTypeID GeomFTGLFontRenderer::type_id("GeomFTGLFontRenderer", "GeomObj", make_GeomFTGLFontRenderer);
@@ -536,7 +536,7 @@ GeomFTGLFontRenderer::GeomFTGLFontRenderer(const string &fontfile,
 					   int screenRez) :
   filename_(fontfile)
 {
-  font_ = scinew FTGLTextureFont(fontfile.c_str());
+  font_ = new FTGLTextureFont(fontfile.c_str());
   font_->CharMap(ft_encoding_unicode);
   set_resolution(ptRez,screenRez);
 }
@@ -548,7 +548,7 @@ GeomFTGLFontRenderer::GeomFTGLFontRenderer(const GeomFTGLFontRenderer& copy)
 
 GeomObj* GeomFTGLFontRenderer::clone()
 {
-  return scinew GeomFTGLFontRenderer(*this);
+  return new GeomFTGLFontRenderer(*this);
 }
 
 void

@@ -26,22 +26,24 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
-#include <Core/Datatypes/Matrix.h>
-#include <Core/Datatypes/Field.h>
+#include <Core/Algorithms/FiniteElements/Mapping/BuildFEGridMapping.h>
+
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Network/Module.h>
 
+#include <Dataflow/Network/Module.h>
 
 namespace ModelCreation {
 
 using namespace SCIRun;
 
 class CreateLinkBetweenMeshAndCompGrid : public Module {
-public:
-  CreateLinkBetweenMeshAndCompGrid(GuiContext*);
-  virtual void execute();
+  public:
+    CreateLinkBetweenMeshAndCompGrid(GuiContext*);
+    virtual void execute();
+
+  private: 
+    SCIRunAlgo::BuildFEGridMappingAlgo algo_;
 };
 
 
@@ -49,6 +51,9 @@ DECLARE_MAKER(CreateLinkBetweenMeshAndCompGrid)
 CreateLinkBetweenMeshAndCompGrid::CreateLinkBetweenMeshAndCompGrid(GuiContext* ctx)
   : Module("CreateLinkBetweenMeshAndCompGrid", ctx, Source, "FiniteElements", "ModelCreation")
 {
+  algo_.set_progress_reporter(this);
+  algo_.set_bool("build_potential_geomtogrid",false);
+  algo_.set_bool("build_current_gridtogeom",false);
 }
 
 
@@ -61,9 +66,8 @@ void CreateLinkBetweenMeshAndCompGrid::execute()
   
   if (inputs_changed_ || !oport_cached("GeomToComp") || !oport_cached("CompToGeom"))
   {
-    SCIRunAlgo::FieldsAlgo algo(this);
-    algo.CreateLinkBetweenMeshAndCompGrid(NodeLink,GeomToComp,CompToGeom);
-
+    MatrixHandle Dummy1, Dummy2;
+    algo_.run(NodeLink,Dummy1,CompToGeom,GeomToComp,Dummy2);
     send_output_handle("GeomToComp",GeomToComp,false);
     send_output_handle("CompToGeom",CompToGeom,false);
   }

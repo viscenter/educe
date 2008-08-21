@@ -44,97 +44,97 @@ itcl_class SCIRun_MiscField_CoregisterPointClouds {
     }
     
     method switch_to_method {name1 name2 op} {
-	#puts stdout "switching"
-	set window .ui[modname]
-	if {[winfo exists $window]} {
-	    set mf [$window.f.meth childsite]
-	    $mf.tabs view [set $this-method]
-	}
-    }
+      #puts stdout "switching"
+      set window .ui[modname]
+      if {[winfo exists $window]} {
+          set mf [$window.f.meth childsite]
+          $mf.tabs view [set $this-method]
+      }
+        }
 
-    method ui {} {
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    return
-	}
-	
-	toplevel $w
-	frame $w.f 
-	pack $w.f -padx 2 -pady 2 -expand 1 -fill x
-	set n "$this-c needexecute "
-	
-	checkbutton $w.f.s -text "Allow scale" \
-		-variable $this-allowScale
-	checkbutton $w.f.r -text "Allow rotate" \
-		-variable $this-allowRotate
-	checkbutton $w.f.t -text "Allow translate" \
-		-variable $this-allowTranslate
-	
-	pack $w.f.s $w.f.r $w.f.t
+        method ui {} {
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          return
+      }
+      
+      sci_toplevel $w
+      sci_frame $w.f 
+      pack $w.f -padx 2 -pady 2 -expand 1 -fill x
+      set n "$this-c needexecute "
+      
+      sci_checkbutton $w.f.s -text "Allow scale" \
+        -variable $this-allowScale
+      sci_checkbutton $w.f.r -text "Allow rotate" \
+        -variable $this-allowRotate
+      sci_checkbutton $w.f.t -text "Allow translate" \
+        -variable $this-allowTranslate
+      
+      pack $w.f.s $w.f.r $w.f.t
 
-	#  Methods
-	iwidgets::labeledframe $w.f.meth -labelpos nw -labeltext "Methods"
-	set mf [$w.f.meth childsite]
-	
-	iwidgets::tabnotebook  $mf.tabs -raiseselect true 
-	#-fill both
-	pack $mf.tabs -side top
+      #  Methods
+      sci_labeledframe $w.f.meth -labelpos nw -labeltext "Methods"
+      set mf [$w.f.meth childsite]
+      
+      sci_tabnotebook  $mf.tabs -raiseselect true 
+      #-fill both
+      pack $mf.tabs -side top
 
-	#  Method:
+      #  Method:
 
-	set alg [$mf.tabs add -label "Analytic" \
-		-command "$this select-alg 0"]
-	
-	set alg [$mf.tabs add -label "Procrustes" \
-		-command "$this select-alg 1"]
+      set alg [$mf.tabs add -label "Analytic" \
+        -command "$this select-alg 0"]
+      
+      set alg [$mf.tabs add -label "Procrustes" \
+        -command "$this select-alg 1"]
 
-	set alg [$mf.tabs add -label "Simplex" \
-		-command "$this select-alg 2"]
+      set alg [$mf.tabs add -label "Simplex" \
+        -command "$this select-alg 2"]
 
-	frame $alg.s
-	pack $alg.s -side top
-	label $alg.s.l -text "Seed: "
-	entry $alg.s.e -textvariable $this-seed
-	bind $alg.s.e <KeyPress-Return> $n
-	pack $alg.s.l $alg.s.e -side left -fill x -expand 1
+      sci_frame $alg.s
+      pack $alg.s -side top
+      sci_label $alg.s.l -text "Seed: "
+      sci_entry $alg.s.e -textvariable $this-seed
+      bind $alg.s.e <KeyPress-Return> $n
+      pack $alg.s.l $alg.s.e -side left -fill x -expand 1
 
-	frame $alg.iters
-	pack $alg.iters -side top
-	label $alg.iters.l -text "Max iterations: "
-	entry $alg.iters.e -textvariable $this-iters
-	bind $alg.iters.e <KeyPress-Return> $n
-	pack $alg.iters.l $alg.iters.e -side left -fill x -expand 1
+      sci_frame $alg.iters
+      pack $alg.iters -side top
+      sci_label $alg.iters.l -text "Max iterations: "
+      sci_entry $alg.iters.e -textvariable $this-iters
+      bind $alg.iters.e <KeyPress-Return> $n
+      pack $alg.iters.l $alg.iters.e -side left -fill x -expand 1
 
-	frame $alg.misfit
-	pack $alg.misfit -side top
-	label $alg.misfit.l -text "Misfit tolerance: "
-	entry $alg.misfit.e -textvariable $this-misfitTol
-	bind $alg.misfit.e <KeyPress-Return> $n
-	pack $alg.misfit.l $alg.misfit.e -side left -fill x -expand 1
+      sci_frame $alg.misfit
+      pack $alg.misfit -side top
+      sci_label $alg.misfit.l -text "Misfit tolerance: "
+      sci_entry $alg.misfit.e -textvariable $this-misfitTol
+      bind $alg.misfit.e <KeyPress-Return> $n
+      pack $alg.misfit.l $alg.misfit.e -side left -fill x -expand 1
 
-	button $alg.b -text "Abort" -command "$this-c stop"
-	pack $alg.b -side top
+      sci_button $alg.b -text "Abort" -command "$this-c stop"
+      pack $alg.b -side top
 
-	$mf.tabs view [set $this-method]
-	$mf.tabs configure -tabpos "n"
-	
-	pack $mf.tabs -side top
-	pack $w.f.meth -side top
+      $mf.tabs view [set $this-method]
+      $mf.tabs configure -tabpos "n"
+      
+      pack $mf.tabs -side top
+      pack $w.f.meth -side top
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
     }
 
     method select-alg { alg } {
-	global $this-method
+      global $this-method
 
-	if { $alg == 0 } {
-	    set $this-method "Analytic"
-	} elseif { $alg == 1 } {
-	    set $this-method "Procrustes"
-	} else {
-	    set $this-method "Simplex"
-	}
+      if { $alg == 0 } {
+          set $this-method "Analytic"
+      } elseif { $alg == 1 } {
+          set $this-method "Procrustes"
+      } else {
+          set $this-method "Simplex"
+      }
     }
 
 }

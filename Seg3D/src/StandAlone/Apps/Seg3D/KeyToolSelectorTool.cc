@@ -44,21 +44,22 @@
 namespace SCIRun {
 
 
-KeyToolSelectorTool::KeyToolSelectorTool(Painter *painter) :
-  KeyTool("Painter KeyToolSelectorTool"),
-  painter_(painter),
-  tm_(painter->tm_)
+SliceWindowKeyToolSelectorTool::SliceWindowKeyToolSelectorTool(Painter *p) :
+  KeyTool("Painter SliceWindowKeyToolSelectorTool"),
+  painter_(p),
+  tm_(p->tm_)
 {
 }
   
 
-KeyToolSelectorTool::~KeyToolSelectorTool()
+SliceWindowKeyToolSelectorTool::~SliceWindowKeyToolSelectorTool()
 {
 }
 
+
 BaseTool::propagation_state_e
-KeyToolSelectorTool::key_press(string, int keyval,
-                               unsigned int m, unsigned int)
+SliceWindowKeyToolSelectorTool::key_press(string, int keyval,
+                                          unsigned int m, unsigned int)
 {
   if (!painter_->cur_window_) return STOP_E;
 
@@ -67,34 +68,23 @@ KeyToolSelectorTool::key_press(string, int keyval,
 
   SliceWindow &window = *painter_->cur_window_;
   event_handle_t event;
-  switch (keyval) {
+  switch (keyval)
+  {
   case SCIRun_equal:    window.zoom_in(event); break;
   case SCIRun_minus:    window.zoom_out(event); break;
   case SCIRun_comma:    window.move_slice(-1); break;
   case SCIRun_period:   window.move_slice(1); break;
+  case SCIRun_p:        window.punch_current_slice(event); break;
+  case SCIRun_e:        window.erase_current_slice(event); break;
 
-  case SCIRun_Left:
-    if (m & EventModifiers::SHIFT_E)
-    {
-      painter_->move_layer_up();
-    }
-    else
-    {
-      painter_->current_layer_up();
-    }
+  case SCIRun_c:
+    Painter::ThrowSkinnerSignal("Painter::SetLayer", false);
     break;
 
-  case SCIRun_Right:
-    if (m & EventModifiers::SHIFT_E)
-    {
-      painter_->move_layer_down();
-    }
-    else
-    {
-      painter_->current_layer_down();
-    }
+  case SCIRun_space:
+    painter_->toggle_current_volume_visibility();
     break;
-
+    
   case SCIRun_Up:
     if (m & EventModifiers::SHIFT_E)
     {
@@ -110,10 +100,60 @@ KeyToolSelectorTool::key_press(string, int keyval,
     }
     window.move_slice(-1);
     break;
+  }
 
-  case SCIRun_p:        window.punch_current_slice(event); break;
+  return CONTINUE_E;
+}  
+
+
+GlobalKeyToolSelectorTool::GlobalKeyToolSelectorTool(Painter *p) :
+  KeyTool("Painter GlobalKeyToolSelectorTool"),
+  painter_(p),
+  tm_(p->tm_)
+{
+}
+  
+
+GlobalKeyToolSelectorTool::~GlobalKeyToolSelectorTool()
+{
+}
+
+
+BaseTool::propagation_state_e
+GlobalKeyToolSelectorTool::key_press(string, int keyval,
+                                          unsigned int m, unsigned int)
+{
+  if (sci_getenv_p("SCI_DEBUG"))
+    cerr << "keyval: " << keyval << std::endl;
+
+  event_handle_t event;
+  switch (keyval) {
+  case SCIRun_Left:
+    if (m & EventModifiers::SHIFT_E)
+    {
+      painter_->move_layer_down();
+    }
+    else
+    {
+      painter_->current_layer_down();
+    }
+    return STOP_E;
+
+  case SCIRun_Right:
+    if (m & EventModifiers::SHIFT_E)
+    {
+      painter_->move_layer_up();
+    }
+    else
+    {
+      painter_->current_layer_up();
+    }
+    return STOP_E;
+  }
 
 #if 0
+  switch (keyval)
+  {
   case SCIRun_c:        painter_->CopyLayer(event); break;
   case SCIRun_x:        painter_->DeleteLayer(event); break;
   case SCIRun_v:        painter_->NewLayer(event);break;
@@ -147,8 +187,8 @@ KeyToolSelectorTool::key_press(string, int keyval,
       painter_->set_all_slices_tex_dirty();
       painter_->redraw_all();
     } break;    
-#endif
   }
+#endif
 
   return CONTINUE_E;
 }  

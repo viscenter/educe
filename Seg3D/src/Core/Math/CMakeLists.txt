@@ -40,7 +40,6 @@ SET(Core_Math_SRCS
   TrigTable.cc
   sci_lapack.cc
   fft.c	
-  ssmult.c
 )
 
 IF(BUILD_SHARED_LIBS)

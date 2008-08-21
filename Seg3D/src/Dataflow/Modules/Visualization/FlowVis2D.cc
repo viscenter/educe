@@ -51,7 +51,7 @@ class FlowVis2D : public Module
 {
 public:
   FlowVis2D(GuiContext*);
-  virtual ~FlowVis2D();
+  virtual ~FlowVis2D() {}
 
   virtual void execute();
 
@@ -83,10 +83,6 @@ FlowVis2D::FlowVis2D(GuiContext* ctx)
     flowren_(0)
 {}
 
-FlowVis2D::~FlowVis2D()
-{}
-
-
 void
 FlowVis2D::execute()
 {
@@ -102,8 +98,7 @@ FlowVis2D::execute()
   if (vfield->generation != vfield_prev_generation_)
   {
     // new field or range change
-    VectorFieldInterfaceHandle vfi = vfield->query_vector_interface(this);
-    if (!vfi.get_rep())
+    if (!(vfield->vfield()->is_vector()))
     {
       error("Input field does not contain vector data.");
       return;

@@ -56,7 +56,7 @@
 
 #include <Core/Datatypes/SparseRowMatrix.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 
@@ -204,7 +204,7 @@ main(int argc, char **argv) {
     rows[last_r]=nnz;
   }
 
-  SparseRowMatrix *srm = scinew SparseRowMatrix(nr, nc, rows, columns, nnz, a);
+  SparseRowMatrix *srm = new SparseRowMatrix(nr, nc, rows, columns, nnz, a);
 
   cerr << "Done building matrix.\n";
 

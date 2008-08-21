@@ -37,8 +37,11 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
     method set_defaults {} {
 
 	trace variable $this-scalars_scaleNV w "$this new_scalars_scale"
+	trace variable $this-scalars_thresholdNV w "$this new_scalars_threshold"
 	trace variable $this-vectors_scaleNV w "$this new_vectors_scale"
+	trace variable $this-vectors_thresholdNV w "$this new_vectors_threshold"
 	trace variable $this-tensors_scaleNV w "$this new_tensors_scale"
+	trace variable $this-tensors_thresholdNV w "$this new_tensors_threshold"
 	trace variable $this-secondary_scaleNV w "$this new_secondary_scale"
 	trace variable $this-tertiary_scaleNV w "$this new_tertiary_scale"
 
@@ -58,6 +61,15 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 
 	global $this-ts_slider
 	set $this-ts_slider "not.set.yet"
+
+	global $this-st_slider
+	set $this-st_slider "not.set.yet"
+
+	global $this-vt_slider
+	set $this-vt_slider "not.set.yet"
+
+	global $this-tt_slider
+	set $this-tt_slider "not.set.yet"
 
 	global $this-second_slider
 	set $this-second_slider "not.set.yet"
@@ -80,6 +92,20 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
       }
     }
 
+    method new_scalars_threshold {a1 a2 a3} {
+      global $this-st_slider
+      set val [set $this-scalars_thresholdNV]
+      if {$val != -0.0} {
+        upvar $this-st_slider st_slider
+        if {[info exists $this-st_slider] && [winfo exists $st_slider]} {
+            $st_slider newvalue $val
+        } else {
+            set $this-scalars_threshold [set $this-scalars_thresholdNV]
+        }
+        set $this-scalars_thresholdNV -0.0
+      }
+    }
+    
     method new_vectors_scale {a1 a2 a3} {
       global $this-vs_slider
       set val [set $this-vectors_scaleNV]
@@ -94,6 +120,21 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
       }
     }
 
+
+    method new_vectors_threshold {a1 a2 a3} {
+      global $this-st_slider
+      set val [set $this-vectors_thresholdNV]
+      if {$val != -0.0} {
+        upvar $this-st_slider st_slider
+        if {[info exists $this-st_slider] && [winfo exists $st_slider]} {
+            $st_slider newvalue $val
+        } else {
+            set $this-vectors_threshold [set $this-vectors_thresholdNV]
+        }
+        set $this-vectors_thresholdNV -0.0
+      }
+    }
+    
     method new_tensors_scale {a1 a2 a3} {
       global $this-ts_slider
       set val [set $this-tensors_scaleNV]
@@ -108,6 +149,20 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
       }
     }
 
+
+    method new_tensors_threshold {a1 a2 a3} {
+      global $this-st_slider
+      set val [set $this-tensors_thresholdNV]
+      if {$val != -0.0} {
+        upvar $this-st_slider st_slider
+        if {[info exists $this-st_slider] && [winfo exists $st_slider]} {
+            $st_slider newvalue $val
+        } else {
+            set $this-tensors_threshold [set $this-tensors_thresholdNV]
+        }
+        set $this-tensors_thresholdNV -0.0
+      }
+    }
     method new_secondary_scale {a1 a2 a3} {
       global $this-second_slider
       set val [set $this-secondary_scaleNV]
@@ -174,13 +229,13 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	 set ig [expr int([set $color-g] * 65535)]
 	 set ib [expr int([set $color-b] * 65535)]
 	 
-	 frame $frame.colorFrame
-	 frame $frame.colorFrame.col -relief ridge -borderwidth \
+	 sci_frame $frame.colorFrame
+	 sci_frame $frame.colorFrame.col -relief ridge -borderwidth \
 		 4 -height 0.8c -width 1.0c \
 		 -background [format #%04x%04x%04x $ir $ig $ib]
 	 
 	 set cmmd "$this raiseColor $frame.colorFrame.col $color $colMsg"
-	 button $frame.colorFrame.set_color \
+	 sci_button $frame.colorFrame.set_color \
 		 -text $text -command $cmmd
 	 
 	 #pack the node color frame
@@ -208,46 +263,46 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
     method add_text_tab {dof} {
 	set text [$dof.tabs add -label "Text" \
 		-command "$this set_active_tab \"Text\""]
-	checkbutton $text.show_text \
+	sci_checkbutton $text.show_text \
 		-text "Show Text" \
 		-command "$this-c toggle_display_text" \
 		-variable $this-text_on
 
-	frame $text.def_col -borderwidth 2
+	sci_frame $text.def_col -borderwidth 2
 
-	checkbutton $text.backfacecull \
+	sci_checkbutton $text.backfacecull \
 	    -text "Cull backfacing text if possible" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_backface_cull
 
-	checkbutton $text.alwaysvisible \
+	sci_checkbutton $text.alwaysvisible \
 	    -text "Text always visible (not hidden by faces)" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_always_visible
 
-	checkbutton $text.locations \
+	sci_checkbutton $text.locations \
 	    -text "Render indices as locations" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_render_locations
 
-	frame $text.show 
-	checkbutton $text.show.data \
+	sci_frame $text.show 
+	sci_checkbutton $text.show.data \
 	    -text "Show data values" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_data
-	checkbutton $text.show.nodes \
+	sci_checkbutton $text.show.nodes \
 	    -text "Show node indices" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_nodes
-	checkbutton $text.show.edges \
+	sci_checkbutton $text.show.edges \
 	    -text "Show edge indices" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_edges
-	checkbutton $text.show.faces \
+	sci_checkbutton $text.show.faces \
 	    -text "Show face indices" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_faces
-	checkbutton $text.show.cells \
+	sci_checkbutton $text.show.cells \
 	    -text "Show cell indices" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_cells
@@ -270,9 +325,9 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	addColorSelection $text.def_col "Text Color" $this-text_color \
 	    "text_color_change"
 
-	frame $text.precision
-	label $text.precision.label -text "Text Precision  "
-	scale $text.precision.scale -orient horizontal \
+	sci_frame $text.precision
+	sci_label $text.precision.label -text "Text Precision  "
+	sci_scale $text.precision.scale -orient horizontal \
 	    -variable $this-text_precision -from 1 -to 16 \
 	    -showvalue true -resolution 1
 	bind $text.precision.scale <ButtonRelease> "$this-c rerender_text"
@@ -285,17 +340,18 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	    $text.precision -side top -pady 2 -fill y -anchor w
     }
 
+
     # Scalar Tab
     method add_scalar_tab {dof} {
 
 	set scalar [$dof.tabs add -label "Scalars" \
 		-command "$this set_active_tab \"Scalars\""]
-	checkbutton $scalar.show_scalars \
+	sci_checkbutton $scalar.show_scalars \
 		-text "Show Scalars" \
 		-command "$this-c toggle_display_scalars" \
 		-variable $this-scalars_on
 
-	checkbutton $scalar.transparency \
+	sci_checkbutton $scalar.transparency \
 		-text "Enable Transparency" \
 		-command "$this-c rerender_scalars" \
 		-variable $this-scalars_transparency
@@ -306,10 +362,15 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	    $this-scalars_color_type \
 	    { {Default 0} {"Colormap Lookup" 1} {"RGB Conversion" 2} }
 
-	checkbutton $scalar.normalize \
+	sci_checkbutton $scalar.normalize \
 		-text "Normalize before scaling" \
 		-command "$this-c rerender_scalars" \
 		-variable $this-scalars_normalize
+
+	sci_checkbutton $scalar.smalldot \
+		-text "Render glyphs below threshold" \
+		-command "$this-c rerender_scalars" \
+		-variable $this-scalars_small_is_dot
 
 	make_labeled_radio $scalar.radio \
 	    "Scalar Display Type" "$this-c rerender_scalars" top 2 \
@@ -318,7 +379,7 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 		 {Boxes Boxes} {Axes Axes}}
 	
 	pack $scalar.show_scalars $scalar.transparency \
-	    $scalar.color $scalar.normalize $scalar.radio \
+	    $scalar.color $scalar.normalize $scalar.smalldot $scalar.radio \
 	    -side top -pady 2 -fill y -anchor w
 
 	global $this-ss_slider
@@ -329,12 +390,20 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	bind $scalar.slide.scale <ButtonRelease> \
 	    "$this-c scalars_scale; set $this-use_default_size 0"
 
-	iwidgets::labeledframe $scalar.resolution \
+	global $this-st_slider
+	expscale $scalar.threshold -label "ScalarThreshold" \
+		-orient horizontal \
+		-variable $this-scalars_threshold
+	set $this-st_slider $scalar.threshold
+	bind $scalar.threshold.scale <ButtonRelease> \
+	    "$this-c scalars_threshold; set $this-use_default_size 0"
+
+	sci_labeledframe $scalar.resolution \
 	    -labelpos nw -labeltext "Glyph Resolution"
 	pack $scalar.resolution -side top -fill x -expand 1
 
 	set res [$scalar.resolution childsite]
-	scale $res.scale -orient horizontal \
+	sci_scale $res.scale -orient horizontal \
 	    -variable $this-scalars_resolution \
 	    -from 3 -to 20 -showvalue true -resolution 1
 	bind $res.scale <ButtonRelease> "$this-c scalars_resolution"
@@ -347,12 +416,12 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 
 	set vector [$dof.tabs add -label "Vectors" \
 		-command "$this set_active_tab \"Vectors\""]
-	checkbutton $vector.show \
+	sci_checkbutton $vector.show \
 		-text "Show Vectors" \
 		-command "$this-c toggle_display_vectors" \
 		-variable $this-vectors_on
 
-	checkbutton $vector.transparent \
+	sci_checkbutton $vector.transparent \
 		-text "Enable Transparency" \
 		-command "$this-c rerender_vectors" \
 		-variable $this-vectors_transparency
@@ -363,15 +432,20 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	    $this-vectors_color_type \
 	    { {Default 0} {"Colormap Lookup" 1} {"RGB Conversion" 2} }
 
-	checkbutton $vector.normalize \
+	sci_checkbutton $vector.normalize \
 		-text "Normalize before scaling" \
 		-command "$this-c rerender_vectors" \
 		-variable $this-vectors_normalize
 
-	checkbutton $vector.bidirectional \
+	sci_checkbutton $vector.bidirectional \
 		-text "Render bidirectionally" \
 		-command "$this-c rerender_vectors" \
 		-variable $this-vectors_bidirectional
+
+	sci_checkbutton $vector.smalldot \
+		-text "Render glyphs below threshold" \
+		-command "$this-c rerender_vectors" \
+		-variable $this-vectors_small_is_dot
 
 	make_labeled_radio $vector.radio \
 	    "Vector Display Type" "$this-c rerender_vectors" top 4 \
@@ -385,6 +459,7 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	pack $vector.show $vector.transparent \
 	    $vector.color $vector.normalize \
 	    $vector.bidirectional \
+      $vector.smalldot \
 	    $vector.radio -side top -pady 2 -fill y -anchor w
 
 	global $this-vs_slider
@@ -395,13 +470,20 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	bind $vector.slide.scale <ButtonRelease> \
 	    "$this-c vectors_scale; set $this-use_default_size 0"
 
+	global $this-vt_slider
+	expscale $vector.threshold -label "VectorThreshold" \
+		-orient horizontal \
+		-variable $this-vectors_threshold
+	set $this-st_slider $vector.threshold
+	bind $vector.threshold.scale <ButtonRelease> \
+	    "$this-c vectors_threshold; set $this-use_default_size 0"
 
-	iwidgets::labeledframe $vector.resolution \
+	sci_labeledframe $vector.resolution \
 	    -labelpos nw -labeltext "Glyph Resolution"
 	pack $vector.resolution -side top -fill x -expand 1
 
 	set res [$vector.resolution childsite]
-	scale $res.scale -orient horizontal \
+	sci_scale $res.scale -orient horizontal \
 	    -variable $this-vectors_resolution \
 	    -from 3 -to 20 -showvalue true -resolution 1
 	bind $res.scale <ButtonRelease> "$this-c vectors_resolution"
@@ -415,12 +497,12 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	set tensor [$dof.tabs add -label "Tensors" \
 		-command "$this set_active_tab \"Tensors\""]
 
-	checkbutton $tensor.show \
+	sci_checkbutton $tensor.show \
 		-text "Show Tensors" \
 		-command "$this-c toggle_display_tensors" \
 		-variable $this-tensors_on
 
-	checkbutton $tensor.transparent \
+	sci_checkbutton $tensor.transparent \
 		-command "$this-c rerender_tensors" \
 		-text "Enable Transparency" \
 		-variable $this-tensors_transparency
@@ -431,10 +513,15 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	    $this-tensors_color_type \
 	    { {Default 0} {"Colormap Lookup" 1} {"RGB Conversion" 2} }
 
-	checkbutton $tensor.normalize \
+	sci_checkbutton $tensor.normalize \
 		-text "Normalize before scaling" \
 		-command "$this-c rerender_tensors" \
 		-variable $this-tensors_normalize
+
+	sci_checkbutton $tensor.smalldot \
+		-text "Render glyphs below threshold" \
+		-command "$this-c rerender_tensors" \
+		-variable $this-tensors_small_is_dot
 
 	make_labeled_radio $tensor.radio \
 	    "Tensor Display Type" "$this-c rerender_tensors" top 2 \
@@ -446,15 +533,16 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	
 	pack $tensor.show $tensor.transparent \
 	    $tensor.color $tensor.normalize \
+      $tensor.smalldot \
 	    $tensor.radio -side top -pady 2 -fill y -anchor w
 	
-	iwidgets::labeledframe $tensor.emphasis \
+	sci_labeledframe $tensor.emphasis \
 	    -labelpos nw -labeltext "Superquadric Emphasis"
 	pack $tensor.emphasis -side top -fill x -expand 1
 
 	set emphasis [$tensor.emphasis childsite]
 
-	scale $emphasis.scale -orient horizontal \
+	sci_scale $emphasis.scale -orient horizontal \
 	    -variable $this-tensors_emphasis -showvalue false \
 	    -from 0.0 -to 1.0 -resolution 0.02
 
@@ -470,12 +558,20 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	bind $tensor.slide.scale <ButtonRelease> \
 	    "$this-c tensors_scale; set $this-use_default_size 0"
 
-	iwidgets::labeledframe $tensor.resolution \
+	global $this-tt_slider
+	expscale $tensor.threshold -label "TensorThreshold" \
+		-orient horizontal \
+		-variable $this-tensors_threshold
+	set $this-tt_slider $tensor.threshold
+	bind $tensor.threshold.scale <ButtonRelease> \
+	    "$this-c tensors_threshold; set $this-use_default_size 0"
+
+	sci_labeledframe $tensor.resolution \
 	    -labelpos nw -labeltext "Glyph Resolution"
 	pack $tensor.resolution -side top -fill x -expand 1
 
 	set res [$tensor.resolution childsite]
-	scale $res.scale -orient horizontal \
+	sci_scale $res.scale -orient horizontal \
 	    -variable $this-tensors_resolution \
 	    -from 3 -to 20 -showvalue true -resolution 1
 	bind $res.scale <ButtonRelease> "$this-c tensors_resolution"
@@ -488,7 +584,7 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	set secondary [$dof.tabs add -label "Secondary" \
 		-command "$this set_active_tab \"Secondary\""]
 
- 	checkbutton $secondary.show \
+ 	sci_checkbutton $secondary.show \
  		-text "Use Secondary" \
 		-command "$this-c rerender_all" \
  		-variable $this-secondary_on
@@ -499,11 +595,11 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	    $this-secondary_color_type \
 	    { {Off 0} {"Colormap Lookup" 1} {"RGB Conversion" 2} }
 
- 	checkbutton $secondary.alpha \
+ 	sci_checkbutton $secondary.alpha \
  		-text "Use data for alpha mapping" \
 		-command "$this-c rerender_all" \
  		-variable $this-secondary_alpha
- 	checkbutton $secondary.value \
+ 	sci_checkbutton $secondary.value \
  		-text "Use data for secondary glyph value" \
 		-command "$this-c rerender_all" \
  		-variable $this-secondary_value
@@ -534,7 +630,7 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	set tertiary [$dof.tabs add -label "Tertiary" \
 		-command "$this set_active_tab \"Tertiary\""]
 
- 	checkbutton $tertiary.show \
+ 	sci_checkbutton $tertiary.show \
  		-text "Use Tertiary" \
 		-command "$this-c rerender_all" \
  		-variable $this-tertiary_on
@@ -545,11 +641,11 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	    $this-tertiary_color_type \
 	    { {Off 0} {"Colormap Lookup" 1} {"RGB Conversion" 2} }
 
- 	checkbutton $tertiary.alpha \
+ 	sci_checkbutton $tertiary.alpha \
  		-text "Use data for alpha mapping" \
 		-command "$this-c rerender_all" \
  		-variable $this-tertiary_alpha
- 	checkbutton $tertiary.value \
+ 	sci_checkbutton $tertiary.value \
  		-text "Use data for tertiary glyph value" \
 		-command "$this-c rerender_all" \
  		-variable $this-tertiary_value
@@ -654,23 +750,23 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	if {[winfo exists $window]} {
 	    return
 	}
-	toplevel $window
+	sci_toplevel $window
 	#wm minsize $window 380 548
 
 	#frame for all options to live
-	frame $window.options
+	sci_frame $window.options
  
 	# node frame holds ui related to vert display (left side)
-	frame $window.options.disp -borderwidth 2
+	sci_frame $window.options.disp -borderwidth 2
 	pack $window.options.disp -padx 2 -pady 2 -side left \
 		-fill both -expand 1
 
 	# Display Options
-	iwidgets::labeledframe $window.options.disp.frame_title \
+	sci_labeledframe $window.options.disp.frame_title \
 		-labelpos nw -labeltext "Display Options"
 	set dof [$window.options.disp.frame_title childsite]
 
-	iwidgets::tabnotebook  $dof.tabs -height 420 -width 325 \
+	sci_tabnotebook  $dof.tabs -height 490 -width 325 \
 	    -raiseselect true 
 	#label $window.options.disp.frame_title -text "Display Options"
 
@@ -717,16 +813,16 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	pack $window.options.disp.frame_title -side top -expand yes -fill x
 	
 	#add bottom frame for execute and dismiss buttons
-	frame $window.control -relief groove -borderwidth 2 -width 500
-	frame $window.def
-	frame $window.def.vals
-	frame $window.def.col
-	frame $window.def.col.f
-	frame $window.def.col.le
+	sci_frame $window.control -relief groove -borderwidth 2 -width 500
+	sci_frame $window.def
+	sci_frame $window.def.vals
+	sci_frame $window.def.col
+	sci_frame $window.def.col.f
+	sci_frame $window.def.col.le
 
 	pack $window.def.col $window.def.vals -side left -padx 10
-	label $window.def.col.le.approxl -text "PWL Approx Div:"
-	entry $window.def.col.le.approx -textvar $this-approx-div -width 4
+	sci_label $window.def.col.le.approxl -text "PWL Approx Div:"
+	sci_entry $window.def.col.le.approx -textvar $this-approx-div -width 4
 
 	bind $window.def.col.le.approx <KeyRelease> "$this-c approx"
 
@@ -735,9 +831,9 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	addColorSelection $window.def.col.f "Default Color" \
 	    $this-def_color "default_color_change"
 
-	button $window.def.vals.calcdefs -text "Calculate Default Size" \
+	sci_button $window.def.vals.calcdefs -text "Calculate Default Size" \
 		-command "$this-c calcdefs; set $this-use_default_size 1"
-	checkbutton $window.def.vals.use_defaults \
+	sci_checkbutton $window.def.vals.use_defaults \
 		-text "Use Default Size" \
 		-variable $this-use_default_size
 
@@ -746,10 +842,10 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 	pack $window.def.vals.use_defaults $window.def.vals.calcdefs \
 	    -side top -pady 2
 
-	frame $window.fname -borderwidth 2
-	label $window.fname.label -text "Field Name"
-	entry $window.fname.entry -textvar $this-field_name
-	checkbutton $window.fname.override \
+	sci_frame $window.fname -borderwidth 2
+	sci_label $window.fname.label -text "Field Name"
+	sci_entry $window.fname.entry -textvar $this-field_name
+	sci_checkbutton $window.fname.override \
 		-text "Override" \
 		-command "$this-c rerender_all" \
 		-variable $this-field_name_override
@@ -777,10 +873,10 @@ itcl_class SCIRun_Visualization_ShowFieldGlyphs {
 
 	pack $window.control.exc_policy -side top -fill both
 
-	frame $window.control.excdis -borderwidth 2
+	sci_frame $window.control.excdis -borderwidth 2
 	pack $window.control.excdis -padx 4 -pady 4 -side top -fill both
 
-	makeSciButtonPanel $window.control.excdis $window $this
+	makeSciButtonPanel $window $window $this
 	moveToCursor $window
 
 	pack $window.control -padx 4 -pady 4 -side top -fill both

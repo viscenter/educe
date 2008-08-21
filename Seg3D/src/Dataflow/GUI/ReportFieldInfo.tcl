@@ -64,54 +64,51 @@ itcl_class SCIRun_MiscField_ReportFieldInfo {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-#	wm minsize $w 416 408
-#	wm maxsize $w 416 1000
+        sci_labeledframe $w.att -labelpos nw \
+                         -labeltext "Input Field Attributes" 
+                   
+        pack $w.att -fill x -expand yes
+        set att [$w.att childsite]
+        
+        entrypair $att.l1 "Name" $this-fldname
+        entrypair $att.l1a "Generation" $this-generation
+        labelpair $att.l2 "Type" $this-typename
+        labelpair3 $att.l3 "Center (x,y,z)" $this-cx $this-cy $this-cz
+        labelpair3 $att.l4 "Size (x,y,z)" $this-sizex $this-sizey $this-sizez
+        labelpair2 $att.l5 "Data min,max" $this-datamin $this-datamax
+        labelpair $att.l7 "# Nodes" $this-numnodes
+        labelpair $att.l8 "# Elements" $this-numelems
+        labelpair $att.l9 "Data at" $this-dataat
+        labelpair3 $att.l10 "Dims (x,y,z)" $this-nodesx $this-nodesy $this-nodesz
+        
+        pack $att.l1 $att.l1a $att.l2 $att.l3 $att.l4 $att.l5 \
+             $att.l7 $att.l8 $att.l9 $att.l10 -side top -expand yes -fill x
 
-	iwidgets::Labeledframe $w.att -labelpos nw \
-		               -labeltext "Input Field Attributes" 
-			       
-	pack $w.att -fill x
-	set att [$w.att childsite]
-	
-	entrypair $att.l1 "Name" $this-fldname
-	entrypair $att.l1a "Generation" $this-generation
-	labelpair $att.l2 "Type" $this-typename
-  labelpair3 $att.l3 "Center (x,y,z)" $this-cx $this-cy $this-cz
-  labelpair3 $att.l4 "Size (x,y,z)" $this-sizex $this-sizey $this-sizez
-	labelpair2 $att.l5 "Data min,max" $this-datamin $this-datamax
-	labelpair $att.l7 "# Nodes" $this-numnodes
-	labelpair $att.l8 "# Elements" $this-numelems
-	labelpair $att.l9 "Data at" $this-dataat
-  labelpair3 $att.l10 "Dims (x,y,z)" $this-nodesx $this-nodesy $this-nodesz
-  
-	pack $att.l1 $att.l1a $att.l2 $att.l3 $att.l4 $att.l5 \
-	     $att.l7 $att.l8 $att.l9 $att.l10 -side top -expand y -fill x
-
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 
     method entrypair { win text1 text2 } {
 
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 -width [set $this-firstwidth] \
-		      -anchor w -just left
-	label $win.colon -text ":" -width 2 -anchor w -just left 
+        sci_frame $win 
+        pack $win -side top -padx 5
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
+                -anchor w -just left
+        sci_label $win.colon -text ":" -width 2 -anchor w -just left 
 
-	entry $win.l2 -textvar $text2 \
-	    -just left -width 40 \
-	    -relief flat -state disabled \
-	    -fore darkred -borderwidth 0 \
-	    -xscrollcommand [list $win.xscroll set]
+        sci_entry $win.l2 -textvar $text2 \
+            -just left -width 40 \
+            -relief flat -state disabled \
+            -fore darkred -borderwidth 0 \
+            -xscrollcommand [list $win.xscroll set]
 
-	scrollbar $win.xscroll -orient horizontal \
-	    -command [list $win.l2 xview]
+        sci_scrollbar $win.xscroll -orient horizontal \
+            -command [list $win.l2 xview]
 
-	pack $win.l1 $win.colon $win.l2 -side left
-	pack $win.xscroll -side left -fill x
+        pack $win.l1 $win.colon $win.l2 -side left
+        pack $win.xscroll -side left -fill x
     } 
 }
 

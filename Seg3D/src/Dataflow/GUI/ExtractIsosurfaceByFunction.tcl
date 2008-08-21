@@ -46,18 +46,18 @@ itcl_class SCIRun_NewField_ExtractIsosurfaceByFunction {
     }
 
     method set_defaults {} {
-	global $this-continuous
-	set $this-continuous 0
+        global $this-continuous
+        set $this-continuous 0
 
-	global $this-active-slice-value-selection-tab
-	set $this-active-slice-value-selection-tab 0
+        global $this-active-slice-value-selection-tab
+        set $this-active-slice-value-selection-tab 0
     }
 
     method ui {} {
-	global $this-function
-	global $this-active-slice-value-selection-tab
+        global $this-function
+        global $this-active-slice-value-selection-tab
 
-	set oldmeth [set $this-active-slice-value-selection-tab]
+        set oldmeth [set $this-active-slice-value-selection-tab]
 
         set w .ui[modname]
         if {[winfo exists $w]} {
@@ -66,171 +66,185 @@ itcl_class SCIRun_NewField_ExtractIsosurfaceByFunction {
         }
 
 
-        toplevel $w
+        sci_toplevel $w
+
+        sci_labeledframe $w.inf -labeltext "Extract Isosurface By Function"
+        
+
+        
+        set infoframe [$w.inf childsite]
+        sci_frame $infoframe.info
+        pack $infoframe.info -side left
+        set info $infoframe.info
+        sci_label $info.info1 -text "Function: RESULT = function(DATA,POS,ELEMENT,INDEX,A,B,C,...)"
+        sci_label $info.info2 -text "Input array: DATA (scalar/vector/tensor: data from field port) "
+        sci_label $info.info3 -text "Input array: X, Y, Z (scalar: Cartensian coordinates of node/element)"
+        sci_label $info.info4 -text "Input array: POS (vector: vector with node/element position)"
+        sci_label $info.info6 -text "Input array: INDEX (scalar: number of the element)"
+        sci_label $info.info7 -text "Input array: SIZE (scalar: number of elements)"
+        sci_label $info.info8 -text "Input array: ELEMENT (element: object containing element properties)"
+
+        grid $info.info1 -row 0 -column 0 -sticky w
+        grid $info.info2 -row 1 -column 0 -sticky w
+        grid $info.info3 -row 2 -column 0 -sticky w
+        grid $info.info4 -row 3 -column 0 -sticky w
+        grid $info.info6 -row 4 -column 0 -sticky w
+        grid $info.info7 -row 5 -column 0 -sticky w
+        grid $info.info8 -row 6 -column 0 -sticky w
+
 
 # Function definition
-	iwidgets::labeledframe $w.func -labelpos nw \
-	    -labeltext "Function Definition"
-	set func [$w.func childsite]
+        sci_labeledframe $w.func -labelpos nw \
+            -labeltext "Function Definition"
+        set func [$w.func childsite]
 
-	label $func.label -text \
-	    "(Note: you can only use the values 'x', 'y', and 'z')"
+        sci_label $func.label -text \
+            "(Note: you can only use the values 'x', 'y', and 'z')"
 
-	option add *textBackground white	
-	iwidgets::scrolledtext $func.text -height 60 -hscrollmode dynamic
+        option add *textBackground white	
+        sci_scrolledtext $func.text -height 60 -hscrollmode dynamic
 
-	$func.text insert end [set $this-function]
+        $func.text insert end [set $this-function]
 
-	pack $func.label -side top -anchor w -padx 5 -pady 5
-	pack $func.text  -side top -e y -f both -padx 5
+        pack $func.label -side top -anchor w -padx 5 -pady 5
+        pack $func.text  -side top -e y -f both -padx 5
 
-# Optional through zero checks.
-# Currently hidden and is not used unless a trig function is found.
-
-#  	checkbutton $func.zero \
-#  	    -text "Apply trigometric ambiguity checks (0 == 2Pi)." \
-#  	    -relief flat -variable $this-zero-checks 
-
-# 	pack $func.zero -side top -anchor w -pady 5
-
-#  	TooltipMultiWidget "$func.zero" \
-#  	    "When using a trigometric function it is possible to interpolate between 0 and 2 Pi. This secondary check will remove these ambiguities."
 
 
 # Slice Value Selection Methods
-	iwidgets::labeledframe $w.slice -labelpos nw \
-	    -labeltext "Slice Value Selection"
-	set isf [$w.slice childsite]
+        sci_labeledframe $w.slice -labelpos nw \
+            -labeltext "Slice Value Selection"
+        set isf [$w.slice childsite]
 
-	global Color
-	iwidgets::tabnotebook $isf.tabs -raiseselect true -height 200 \
-	    -backdrop $Color(Basecolor)
-	pack $isf.tabs -side top -fill x -expand 1
+        global Color
+        sci_tabnotebook $isf.tabs -raiseselect true -height 200 \
+            -backdrop $Color(Basecolor)
+        pack $isf.tabs -side top -fill x -expand 1
 
 
 ###### Slice Value using slider
-	set sliceslider [$isf.tabs add -label "Slider" \
-		     -command "set $this-active-slice-value-selection-tab 0"]
+        set sliceslider [$isf.tabs add -label "Slider" \
+               -command "set $this-active-slice-value-selection-tab 0"]
 
-	scaleEntry2 $sliceslider.sliceval \
-	    [set $this-slice-value-min] [set $this-slice-value-max] \
-	     4c $this-slice-value $this-slice-value-typed
+        scaleEntry2 $sliceslider.sliceval \
+            [set $this-slice-value-min] [set $this-slice-value-max] \
+             4c $this-slice-value $this-slice-value-typed
 
-	iwidgets::labeledframe $sliceslider.opt -labelpos nw -labeltext "Options"
-	set opt [$sliceslider.opt childsite]
-	
-	iwidgets::optionmenu $opt.update -labeltext "Update:" \
-		-labelpos w -command "$this set_update_type $opt.update"
-	$opt.update insert end "On Release" Manual Auto
+        sci_labeledframe $sliceslider.opt -labelpos nw -labeltext "Options"
+        set opt [$sliceslider.opt childsite]
+        
+        sci_optionmenu $opt.update -labeltext "Update:" \
+          -labelpos w -command "$this set_update_type $opt.update"
+        $opt.update insert end "On Release" Manual Auto
 
-	$opt.update select [set $this-update_type]
+        $opt.update select [set $this-update_type]
 
-	global $this-update
-	set $this-update $opt.update
+        global $this-update
+        set $this-update $opt.update
 
-	pack $opt.update -side top -anchor w -pady 25
+        pack $opt.update -side top -anchor w -pady 25
 
-	pack $sliceslider.sliceval $sliceslider.opt -side top -anchor w -fill x
+        pack $sliceslider.sliceval $sliceslider.opt -side top -anchor w -fill x
 
 ###### Slice Value using quantity	
-	set slicequant [$isf.tabs add -label "Quantity" \
-		     -command "set $this-active-slice-value-selection-tab 1"]
-	
+        set slicequant [$isf.tabs add -label "Quantity" \
+               -command "set $this-active-slice-value-selection-tab 1"]
+        
 
 ###### Save the sliceval-quantity since the iwidget resets it
-	global $this-slice-value-quantity
-	set quantity [set $this-slice-value-quantity]
-	iwidgets::spinint $slicequant.q -labeltext "Number of evenly-spaced slices: " \
-	    -range {0 100} -step 1 \
-	    -textvariable $this-slice-value-quantity \
-	    -width 10 -fixed 10 -justify right
-	
-	$slicequant.q delete 0 end
-	$slicequant.q insert 0 $quantity
+        global $this-slice-value-quantity
+        set quantity [set $this-slice-value-quantity]
+        sci_spinint $slicequant.q -labeltext "Number of evenly-spaced slices: " \
+            -range {0 100} -step 1 \
+            -textvariable $this-slice-value-quantity \
+            -width 10 -fixed 10 -justify right
+        
+        $slicequant.q delete 0 end
+        $slicequant.q insert 0 $quantity
 
-	frame $slicequant.f
-	label $slicequant.f.l -text "List of Slice Values:"
-	entry $slicequant.f.e -width 40 -text $this-quantity-list -state disabled
-	pack $slicequant.f.l $slicequant.f.e -side left -fill both -expand 1
+        sci_frame $slicequant.f
+        sci_label $slicequant.f.l -text "List of Slice Values:"
+        sci_entry $slicequant.f.e -width 40 -text $this-quantity-list -state disabled
+        pack $slicequant.f.l $slicequant.f.e -side left -fill both -expand 1
 
-	frame $slicequant.m
-	radiobutton $slicequant.m.f -text "Field MinMax" \
-		-variable $this-quantity-range -value "field" \
-		-command "$this-c needexecute"
-	radiobutton $slicequant.m.m -text "Manual" \
-		-variable $this-quantity-range -value "manual" \
-		-command "$this-c needexecute"
+        sci_frame $slicequant.m
+        sci_radiobutton $slicequant.m.f -text "Field MinMax" \
+          -variable $this-quantity-range -value "field" \
+          -command "$this-c needexecute"
+        sci_radiobutton $slicequant.m.m -text "Manual" \
+          -variable $this-quantity-range -value "manual" \
+          -command "$this-c needexecute"
 
-	frame $slicequant.m.t 
-	label $slicequant.m.t.minl -text "Min"
-	entry $slicequant.m.t.mine -width 6 -text $this-quantity-min
-	label $slicequant.m.t.maxl -text "Max"
-	entry $slicequant.m.t.maxe -width 6 -text $this-quantity-max
-	bind $slicequant.m.t.mine <Return> "$this-c needexecute"
-	bind $slicequant.m.t.maxe <Return> "$this-c needexecute"
-	pack $slicequant.m.t.minl $slicequant.m.t.mine $slicequant.m.t.maxl $slicequant.m.t.maxe \
-		-side left -fill x -expand 1
+        sci_frame $slicequant.m.t 
+        sci_label $slicequant.m.t.minl -text "Min"
+        sci_entry $slicequant.m.t.mine -width 6 -text $this-quantity-min
+        sci_label $slicequant.m.t.maxl -text "Max"
+        sci_entry $slicequant.m.t.maxe -width 6 -text $this-quantity-max
+        bind $slicequant.m.t.mine <Return> "$this-c needexecute"
+        bind $slicequant.m.t.maxe <Return> "$this-c needexecute"
+        pack $slicequant.m.t.minl $slicequant.m.t.mine $slicequant.m.t.maxl $slicequant.m.t.maxe \
+          -side left -fill x -expand 1
 
-	pack $slicequant.m.f -side top -anchor w
-	pack $slicequant.m.m $slicequant.m.t -side left -anchor w
+        pack $slicequant.m.f -side top -anchor w
+        pack $slicequant.m.m $slicequant.m.t -side left -anchor w
 
-	frame $slicequant.t
-	radiobutton $slicequant.t.e -text "Exclusive" \
-		-variable $this-quantity-clusive -value "exclusive" \
-		-command "$this-c needexecute"
-	radiobutton $slicequant.t.i -text "Inclusive" \
-		-variable $this-quantity-clusive -value "inclusive" \
-		-command "$this-c needexecute"
+        sci_frame $slicequant.t
+        sci_radiobutton $slicequant.t.e -text "Exclusive" \
+          -variable $this-quantity-clusive -value "exclusive" \
+          -command "$this-c needexecute"
+        sci_radiobutton $slicequant.t.i -text "Inclusive" \
+          -variable $this-quantity-clusive -value "inclusive" \
+          -command "$this-c needexecute"
 
-	pack $slicequant.t.e $slicequant.t.i -side left -anchor w
+        pack $slicequant.t.e $slicequant.t.i -side left -anchor w
 
-	pack $slicequant.q $slicequant.m $slicequant.t -side top -expand 1 -fill x -pady 5
+        pack $slicequant.q $slicequant.m $slicequant.t -side top -expand 1 -fill x -pady 5
 
-	pack $slicequant.f -fill x
+        pack $slicequant.f -fill x
 
 ###### Slice Value using list
-	set slicelist [$isf.tabs add -label "List" \
-			 -command "set $this-active-slice-value-selection-tab 2"]
+        set slicelist [$isf.tabs add -label "List" \
+             -command "set $this-active-slice-value-selection-tab 2"]
 
-	
-	frame $slicelist.f
-	label $slicelist.f.l -text "List of Slice Values:"
-	entry $slicelist.f.e -width 40 -text $this-slice-value-list
-	bind $slicelist.f.e <Return> "$this-c needexecute"
-	pack $slicelist.f.l $slicelist.f.e -side left -fill both -expand 1
-	pack $slicelist.f -fill x
+        
+        sci_frame $slicelist.f
+        sci_label $slicelist.f.l -text "List of Slice Values:"
+        sci_entry $slicelist.f.e -width 40 -text $this-slice-value-list
+        bind $slicelist.f.e <Return> "$this-c needexecute"
+        pack $slicelist.f.l $slicelist.f.e -side left -fill both -expand 1
+        pack $slicelist.f -fill x
 
 
 ###### Slice Value using matrix
-	set slicematrix [$isf.tabs add -label "Matrix" \
-			   -command "set $this-active-slice-value-selection-tab 3"]
+        set slicematrix [$isf.tabs add -label "Matrix" \
+               -command "set $this-active-slice-value-selection-tab 3"]
 
-	frame $slicematrix.f
-	label $slicematrix.f.l -text "List of Slice Values:"
-	entry $slicematrix.f.e -width 40 -text $this-matrix-list -state disabled
-	pack $slicematrix.f.l $slicematrix.f.e -side left -fill both -expand 1
-	pack $slicematrix.f -fill x
+        sci_frame $slicematrix.f
+        sci_label $slicematrix.f.l -text "List of Slice Values:"
+        sci_entry $slicematrix.f.e -width 40 -text $this-matrix-list -state disabled
+        pack $slicematrix.f.l $slicematrix.f.e -side left -fill both -expand 1
+        pack $slicematrix.f -fill x
 
 
 # Pack the Slice Value Selection Tabs
 
-	$isf.tabs view $oldmeth
-	$isf.tabs configure -tabpos "n"
+        $isf.tabs view $oldmeth
+        $isf.tabs configure -tabpos "n"
 
-	pack $isf.tabs -side top
+        pack $isf.tabs -side top
 
 # Pack everything
-	pack $w.func $w.slice -side top -anchor w -expand 1 -fill x
+        pack $w.inf $w.func $w.slice -side top -anchor w -expand 1 -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 
     method update_text {} {
-	set w .ui[modname]
+        set w .ui[modname]
         if {[winfo exists $w]} {
-	    set func [$w.func childsite]
-	    set $this-function [$func.text get 1.0 end]
+          set func [$w.func childsite]
+          set $this-function [$func.text get 1.0 end]
         }
     }
 
@@ -314,10 +328,10 @@ itcl_class SCIRun_NewField_ExtractIsosurfaceByFunction {
     }
 
     method scaleEntry2 { win start stop length var_slider var_typed } {
-	frame $win 
+	sci_frame $win 
 
-	frame $win.l
-	frame $win.r
+	sci_frame $win.l
+	sci_frame $win.r
 	
 	set lg [expr floor( log10($stop-$start) ) ]
 	set range [expr pow(10.0, $lg )]
@@ -328,7 +342,7 @@ itcl_class SCIRun_NewField_ExtractIsosurfaceByFunction {
 	    set scale [expr pow(10.0, $lg-5 )]
 	}
 
-	scale $win.l.s \
+	sci_scale $win.l.s \
 	    -from $start -to $stop \
 	    -length $length \
 	    -variable $var_slider -orient horizontal -showvalue false \
@@ -336,7 +350,7 @@ itcl_class SCIRun_NewField_ExtractIsosurfaceByFunction {
 	    -resolution [expr $range/(1.0e4*$scale)] \
 	    -tickinterval [expr ($stop - $start)]
 
-	entry $win.r.e -width 7 -text $var_typed
+	sci_entry $win.r.e -width 7 -text $var_typed
 
 	bind $win.l.s <ButtonRelease> "$this set-slice-value"
 

@@ -76,16 +76,14 @@ TextureRenderer::TextureRenderer(Texture* tex,
   cmap2_dirty_(true),
   mode_(MODE_NONE),
   interp_(true),
-  lighting_(0),
+  lighting_(false),
   sampling_rate_(1.0),
   irate_(0.5),
   imode_(false),
   slice_alpha_(0.5),
-  hardware_raster_(false),
-  cmap2_size_(256),
+  cmap2_width_(256),
   cmap1_tex_(0),
   cmap2_tex_(0),
-  use_pbuffer_(true),
   tex_width_(0),
   blend_framebuffer_(0),
   blend_tex_id_(0),
@@ -118,8 +116,7 @@ TextureRenderer::TextureRenderer(const TextureRenderer& copy) :
   irate_(copy.irate_),
   imode_(copy.imode_),
   slice_alpha_(copy.slice_alpha_),
-  hardware_raster_(copy.hardware_raster_),
-  cmap2_size_(copy.cmap2_size_),
+  cmap2_width_(copy.cmap2_width_),
   cmap1_tex_(copy.cmap1_tex_),
   cmap2_tex_(copy.cmap2_tex_),
   shader_factory_(copy.shader_factory_),
@@ -176,10 +173,10 @@ TextureRenderer::set_colormap2(const vector<ColorMap2*> &cmap2)
 }
 
 void
-TextureRenderer::set_colormap_size(int size)
+TextureRenderer::set_colormap2_width(int size)
 {
-  if(cmap2_size_ != size) {
-    cmap2_size_ = size;
+  if (cmap2_width_ != size) {
+    cmap2_width_ = size;
     cmap2_dirty_ = true;
   }
 }
@@ -190,15 +187,6 @@ TextureRenderer::set_slice_alpha(double alpha)
   if(fabs(slice_alpha_ - alpha) > 0.0001) {
     slice_alpha_ = alpha;
     alpha_dirty_ = true;
-  }
-}
-
-void
-TextureRenderer::set_sw_raster(bool b)
-{
-  if(hardware_raster_ == b) {
-    hardware_raster_ = !b;
-    cmap2_dirty_ = true;
   }
 }
 
@@ -837,6 +825,10 @@ TextureRenderer::colormap2_hardware_rasterize()
     glTranslatef(-1.0, -1.0, 0.0);
     glScalef(2.0, 2.0, 2.0);
 
+    //    GLint val;
+    //    glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS_EXT, &val );
+    //    cout << "MAX_COLOR_ATTACHMENTS_EXT is " << val << "\n";
+
 #if defined(GL_ARB_fragment_program) || defined(GL_ATI_fragment_shader)
     if (glActiveTexture) { glActiveTexture(GL_TEXTURE0); }
 #endif
@@ -951,7 +943,7 @@ void
 TextureRenderer::colormap2_hardware_rasterize_setup()
 {
   CHECK_OPENGL_ERROR();
-  unsigned int s = cmap2_size_ * Pow2(cmap2_.size());
+  unsigned int s = cmap2_width_ * Pow2(cmap2_.size());
   
   if (tex_width_ != s) {
     //need to regenerate colormap2 framebuffer object.

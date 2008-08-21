@@ -92,7 +92,7 @@ void GetActivationTimes::execute()
 //    break;
 //  }
 
-  MatrixHandle output = scinew DenseMatrix(potentials->nrows(), 1);
+  MatrixHandle output = new DenseMatrix(potentials->nrows(), 1);
   
   double diff;         // current negative slope
   double max_diff;     // maximum negative slope

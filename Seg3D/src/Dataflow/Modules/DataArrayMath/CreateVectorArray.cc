@@ -34,9 +34,10 @@
 namespace SCIRun {
 
 class CreateVectorArray : public Module {
-public:
-  CreateVectorArray(GuiContext*);
-  virtual void execute();
+  public:
+    CreateVectorArray(GuiContext*);
+    virtual ~CreateVectorArray() {}
+    virtual void execute();
 };
 
 
@@ -52,12 +53,13 @@ CreateVectorArray::execute()
 {
   MatrixHandle X,Y,Z,V;
   
-  if (!(get_input_handle("X",X,true))) return;
-  if (!(get_input_handle("Y",Y,true))) return;
-  if (!(get_input_handle("Z",Z,true))) return;
+  get_input_handle("X",X,true);
+  get_input_handle("Y",Y,true);
+  get_input_handle("Z",Z,true);
 
   if (inputs_changed_ || !oport_cached("VectorArray"))
   {
+    update_state(Executing);
     // This needs to go to algorithms
     int n;
     int Xn, Yn, Zn;
@@ -97,7 +99,7 @@ CreateVectorArray::execute()
     Y = Y->dense();
     Z = Z->dense();
 
-    V = scinew DenseMatrix(n,3);
+    V = new DenseMatrix(n,3);
     
     double* xptr = X->get_data_pointer();
     double* yptr = Y->get_data_pointer();

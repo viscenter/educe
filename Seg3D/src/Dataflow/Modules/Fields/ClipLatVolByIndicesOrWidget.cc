@@ -103,8 +103,10 @@ ClipLatVolByIndicesOrWidget::ClipLatVolByIndicesOrWidget(GuiContext* ctx)
     init_(false),
     widgetid_(0)
 {
-  widget_ = scinew BoxWidget(this, &widget_lock_, 1.0, true, false);
-  widget_->Connect((GeometryOPort *)get_oport("Selection Widget"));
+  widget_ = new BoxWidget(this, &widget_lock_, 1.0, true, false);
+  GeometryOPortHandle ogport;
+  get_oport_handle("Selection Widget",ogport);
+  widget_->Connect(ogport.get_rep());
 }
 
 
@@ -216,11 +218,11 @@ ClipLatVolByIndicesOrWidget::execute()
     widget_->SetScale(l2norm * 0.015);
     widget_->SetPosition(center, right, down, in);
 
-    GeomGroup *widget_group = scinew GeomGroup;
+    GeomGroup *widget_group = new GeomGroup;
     widget_group->add(widget_->GetWidget());
 
-    GeometryOPort *ogport=0;
-    ogport = (GeometryOPort*)get_oport("Selection Widget");
+    GeometryOPortHandle ogport;
+    get_oport_handle("Selection Widget",ogport);
     widgetid_ = ogport->addObj(widget_group, "ClipLatVolByIndicesOrWidget Selection Widget",
 			       &widget_lock_);
     ogport->flushViews();
@@ -267,7 +269,7 @@ ClipLatVolByIndicesOrWidget::execute()
     }
 
     // Execute the clip.
-    NrrdDataHandle nrrdh = scinew NrrdData();
+    NrrdDataHandle nrrdh = new NrrdData();
     FieldHandle ofield = algo->execute(ifieldhandle, top, bottom, nrrdh);
 
     send_output_handle("Output Field", ofield);
@@ -311,7 +313,7 @@ ClipLatVolByIndicesOrWidgetAlgo::get_compile_info(const TypeDescription *fsrc)
   static const string base_class_name("ClipLatVolByIndicesOrWidgetAlgo");
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
+    new CompileInfo(template_class_name + "." +
 		       fsrc->get_filename() + ".",
                        base_class_name, 
                        template_class_name, 

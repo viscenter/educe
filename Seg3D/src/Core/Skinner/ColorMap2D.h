@@ -32,7 +32,7 @@
 //    Date   : Thu Jul  8 01:50:58 2004
 
 #include <Core/Skinner/Parent.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 #include <Core/Volume/CM2Widget.h>
 #include <Core/Volume/CM2Shader.h>
 #include <sci_gl.h>

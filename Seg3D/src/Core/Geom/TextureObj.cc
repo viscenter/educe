@@ -73,7 +73,7 @@ TextureObj::TextureObj(int components, int x, int y) :
   size[0] = components;
   size[1] = x;
   size[2] = y;
-  NrrdDataHandle nrrd_handle = scinew NrrdData();
+  NrrdDataHandle nrrd_handle = new NrrdData();
   nrrdAlloc_nva(nrrd_handle->nrrd_, nrrdTypeUChar, 3, size);
     
   set_nrrd(nrrd_handle);
@@ -127,7 +127,7 @@ TextureObj::resample_to_power_of_2()
   if (IsPowerOf2(nrrd_handle_->nrrd_->axis[1].size) &&
       IsPowerOf2(nrrd_handle_->nrrd_->axis[2].size)) 
     return;
-  NrrdDataHandle nout_handle = scinew NrrdData();
+  NrrdDataHandle nout_handle = new NrrdData();
 
   NrrdResampleInfo *info = nrrdResampleInfoNew();
   double p[NRRD_KERNEL_PARMS_NUM];
@@ -180,7 +180,7 @@ TextureObj::pad_to_power_of_2()
   if (IsPowerOf2(nrrd_handle_->nrrd_->axis[1].size) &&
       IsPowerOf2(nrrd_handle_->nrrd_->axis[2].size)) 
     return;
-  NrrdDataHandle nout_handle = scinew NrrdData();
+  NrrdDataHandle nout_handle = new NrrdData();
 
   const int pady = (Pow2(nrrd_handle_->nrrd_->axis[2].size) - 
                     nrrd_handle_->nrrd_->axis[2].size);

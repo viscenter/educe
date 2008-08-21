@@ -53,7 +53,7 @@ proc ComponentWizard { {window .componentWizard} } {
     global modname_font
     global time_font
     
-    toplevel $w
+    sci_toplevel $w
     wm withdraw $w; # immediately withdraw it to avoid flicker
 
     wm title $w "Component Wizard"
@@ -63,21 +63,22 @@ proc ComponentWizard { {window .componentWizard} } {
     wm protocol $w WM_DELETE_WINDOW "wm withdraw $w"
 
     # Tab panel
-    iwidgets::tabnotebook $w.tabs 
+    sci_tabnotebook $w.tabs 
     pack $w.tabs -fill both -expand yes
 
     # Horizontal separator
-    frame $w.separator -height 2 -relief sunken -borderwidth 2
-    pack  $w.separator -fill y -padx 5 -pady 5 -expand no -fill x
+    #sci_frame $w.separator -height 2 -relief sunken -borderwidth 2
+    #pack  $w.separator -fill y -padx 5 -pady 5 -expand no -fill x
 
     # Close / Create buttons
-    frame $w.buttons
+    global Color
+    frame $w.buttons -background $Color(MainBackGround) -bd 1
     pack $w.buttons -ipadx $PAD -ipady $PAD -fill x -expand no
 
 
-    button $w.buttons.close -text "Close" -command "wm withdraw $w"
-    button $w.buttons.help -text "Help" -command "showHelp"
-    button $w.buttons.create -text "Create" -command "array set $d \[array get $tmpd\]; generateXML $d"
+    sci_button $w.buttons.close -text "Close" -command "wm withdraw $w"
+    sci_button $w.buttons.help -text "Help" -command "showHelp"
+    sci_button $w.buttons.create -text "Create" -command "array set $d \[array get $tmpd\]; generateXML $d"
 
     pack $w.buttons.close $w.buttons.help $w.buttons.create -side left -expand yes -fill x -padx $PAD
 
@@ -94,7 +95,7 @@ proc ComponentWizard { {window .componentWizard} } {
 
     $w.tabs view "I/O"
 
-    moveToCursor $w "leave_up"
+    wm deiconify $window
 }
 
 proc showHelp {} {
@@ -110,18 +111,18 @@ proc showHelp {} {
 
 proc make_io_gui_pane {p d} {
     set PAD 5
-    global $d
+    global $d Color
 
     # Create the main frames  (Canvas Frame (cf), Command Frame (cmds), Check Button Frame (cbf))
-    frame $p.cf
-    frame $p.cont
-    frame $p.cont.cmds 
-    frame $p.cont.cbf  
+    sci_frame $p.cf
+    sci_frame $p.cont
+    sci_frame $p.cont.cmds 
+    sci_frame $p.cont.cbf  
 
     # Create the canvas
 
     canvas $p.cf.c -width 3i -height 3i -relief sunken \
-        -borderwidth 3 -background #036
+        -borderwidth 3 -background $Color(NetworkEditor)
     pack $p.cf.c -fill both -expand yes
 
     if { ![info exists ${d}(hasgui)] } {
@@ -131,7 +132,7 @@ proc make_io_gui_pane {p d} {
         set ${d}(dynamicport) 0
     }
 
-    checkbutton $p.cont.cbf.hasgui -text "Has GUI" -variable ${d}(hasgui) \
+    sci_checkbutton $p.cont.cbf.hasgui -text "Has GUI" -variable ${d}(hasgui) \
         -command "eval gui $p.cf.c \[set ${d}(hasgui)\]"
     TooltipMultiline $p.cont.cbf.hasgui \
         "Adds the 'UI' button to the module and creates a 'method ui {}' to the module's\n" \
@@ -139,7 +140,7 @@ proc make_io_gui_pane {p d} {
         "order to create the actual GUI."
 
     global ${d}.dynamicport
-    checkbutton $p.cont.cbf.dynamicport -text "Last port is dynamic" -variable ${d}(dynamicport)
+    sci_checkbutton $p.cont.cbf.dynamicport -text "Last port is dynamic" -variable ${d}(dynamicport)
     TooltipMultiline $p.cont.cbf.dynamicport \
         "If selected, the last input port will be dynamic.  This means that\n" \
         "any time a pipe is connected to it, another new port will be dynamically\n" \
@@ -150,8 +151,8 @@ proc make_io_gui_pane {p d} {
     make_icon $p.cf.c 150 50 [set ${d}(hasgui)] $d
 
     set modframe $p.cf.c.moduleFakeModule
-    button $p.cont.cmds.add_iport -text "Add Input Port"  -command "eval add_port $modframe i $d"
-    button $p.cont.cmds.add_oport -text "Add Output Port" -command "eval add_port $modframe o $d"
+    sci_button $p.cont.cmds.add_iport -text "Add Input Port"  -command "eval add_port $modframe i $d"
+    sci_button $p.cont.cmds.add_oport -text "Add Output Port" -command "eval add_port $modframe o $d"
 
     if [info exists ${d}(iports)] {
     } else {
@@ -165,25 +166,25 @@ proc make_io_gui_pane {p d} {
     configPorts $modframe "o" $d
 
 
-    frame $p.cp
+    sci_frame $p.cp
 
-    frame $p.cp.name
-    label $p.cp.name.label -text "Module Name:" -width 1
-    entry $p.cp.name.entry -textvar ${d}(title) 
+    sci_frame $p.cp.name
+    sci_label $p.cp.name.label -text "Module Name:" -width 1
+    sci_entry $p.cp.name.entry -textvar ${d}(title) 
 
     TooltipMultiWidget "$p.cp.name.label $p.cp.name.entry" \
         "The name for this module.  Names begin with a capital letter and must not contain spaces."
 
-    frame $p.cp.cat
-    label $p.cp.cat.label -text "Category:" -width 1
-    entry $p.cp.cat.entry -textvar ${d}(category) 
+    sci_frame $p.cp.cat
+    sci_label $p.cp.cat.label -text "Category:" -width 1
+    sci_entry $p.cp.cat.entry -textvar ${d}(category) 
 
     TooltipMultiWidget "$p.cp.cat.label $p.cp.cat.entry" \
         "The Category in which to place this module.  Examples: DataIO, Math, Visualization, etc..."
 
-    frame $p.cp.pack
-    label $p.cp.pack.label -text "Package:" -width 1
-    entry $p.cp.pack.entry -textvar ${d}(package) 
+    sci_frame $p.cp.pack
+    sci_label $p.cp.pack.label -text "Package:" -width 1
+    sci_entry $p.cp.pack.entry -textvar ${d}(package) 
 
     TooltipMultiWidget "$p.cp.pack.label $p.cp.pack.entry" \
         "The Pacakge in which to place this module.  Examples: SCIRun, BioPSE, MatlabInterface, etc..."
@@ -209,12 +210,6 @@ proc make_io_gui_pane {p d} {
     pack $p.cf -fill both -expand yes
     pack $p.cont -side top -fill x -expand yes -anchor e
     pack $p.cp -side top -fill both -expand yes -anchor w
-
-
-#    grid $p.cf   -sticky news -padx 5 -pady 2
-#    grid $p.cmds -column 1 -row 0 -sticky nws -pady 2
-#    grid $p.cbf  -sticky ew -padx 5 -pady 2 -ipadx 5 -ipady 2
-#    grid $p.cp   -columnspan 2 -ipady 5 -pady 5 -padx 5 -sticky ew
 
 }
 
@@ -253,9 +248,9 @@ proc make_description_pane {p d} {
 
 
 proc create_clb_entry {f label prompt array index} {
-    frame $f -relief groove -bd 2
+    sci_frame $f -relief groove -bd 2
 
-    label $f.l -text $label
+    sci_label $f.l -text $label
     pack  $f.l -padx 5 -anchor w
 
     global $array
@@ -284,19 +279,19 @@ proc text_entry_set_state { f state } {
 
 proc create_text_entry {f label array index {tip "" }} {
 
-    frame $f
+    sci_frame $f
     set l $f.l
     set t $f.t
     set sy $f.sy
     global $array
 
-    label $l -text $label
+    sci_label $l -text $label
 
     if { $tip != "" } {
         Tooltip $l $tip
     }
 
-    text $t -wrap word -yscrollcommand "$sy set"
+    sci_text $t -wrap word -yscrollcommand "$sy set"
     if [info exists ${array}($index)] {
        $t insert 1.0 [set ${array}($index)]  
     }
@@ -305,7 +300,7 @@ proc create_text_entry {f label array index {tip "" }} {
         global $array;
         set ${array}($index) \[%W get 1.0 end\]
     "
-    scrollbar $sy -orient vert -command "$t yview"
+    sci_scrollbar $sy -orient vert -command "$t yview"
 
     pack $l -side top -anchor w
     pack $t -side left -fill both -expand true
@@ -314,14 +309,24 @@ proc create_text_entry {f label array index {tip "" }} {
 
 proc gui {canvas has} {
     set modframe $canvas.moduleFakeModule
-    global $modframe.ff.ui
+    global $modframe.ff.ui Color
+    global ui_font modname_font time_font
+        
     set p $modframe.ff
     if $has {
-        make_ui_button $p
-        pack $p.ui -side left -ipadx 5 -ipady 2 -before $p.title
+        frame $p.f.ui -relief sunken -height 14 -width 22 -borderwidth 1 
+        pack $p.f.ui -side left -fill y -padx 2 -pady 0
+        frame $p.f.ui.indicator -relief raised -width 22 \
+            -borderwidth 1 -background $Color(ModuleButton)    
+        button $p.f.ui.indicator.text -text "UI" -font $time_font \
+            -background $Color(ModuleButton) -borderwidth 0 \
+            -activebackground $Color(MenuSelectBackGround)  \
+            -activeforeground $Color(MenuSelectForeGround)
+        place $p.f.ui.indicator -relheight 1
+        pack $p.f.ui.indicator.text -padx 0 -pady 0
     } else {
-        destroy $p.ui
-        pack forget $p.ui
+        destroy $p.f.ui
+        pack forget $p.f.ui
     }
 }
 
@@ -333,13 +338,15 @@ proc make_ui_button {p} {
 }
 
 proc make_icon {canvas modx mody {gui 0} d} {
-    global $d
-    
+    global $d Color
+    global ui_font modname_font time_font
+            
     #lappend canvases $canvas
     set modframe $canvas.moduleFakeModule
-    frame $modframe -relief raised -borderwidth 3
+    frame $modframe -relief raised -borderwidth 2\
+          -background $Color(Module)
     
-    frame $modframe.ff
+    frame $modframe.ff -background $Color(Module)
     pack $modframe.ff -side top -expand yes -fill both -padx 5 -pady 6
     
     set p $modframe.ff
@@ -356,31 +363,41 @@ proc make_icon {canvas modx mody {gui 0} d} {
             global $p.title.real_text;
             set ${d}(title) \[set $p.title.real_text\];
         " -relief flat -justify left -width 17 -font $modname_font 
+    $p.title configure -background $Color(Module)
 
     set_prompted_entry $p.title [set ${d}(title)]
+    pack $p.title -side top -padx 2 -anchor nw 
 
     # Make the time label
-    label $p.time -text "00.00" \
-         -font $time_font
-    
-    # Make the progress graph
-    frame $p.inset -relief sunken -height 4 -borderwidth 2 \
-            -width .5i
-    frame $p.inset.graph -relief raised -width .5i -borderwidth 2 \
-            -background green
-    # Don't pack it in yet - the width is zero... 
-    pack $p.inset.graph -fill y -expand yes -anchor nw
+    frame $p.f -height 16 -background $Color(Module)
+    pack $p.f -side left -fill y -padx 0 -pady 0
+
+    frame $p.inset -relief sunken -height 16 \
+        -borderwidth 1 -width 60 -background $Color(ModuleButton)
+    pack $p.inset -side left -fill y -padx 0 -pady 0
+    frame $p.inset.graph -relief raised \
+        -width 20 -borderwidth 1 -background $Color(ModuleProgress)
+    label $p.inset.graph.time -text "" -font $time_font -background $Color(ModuleProgress) -foreground white 
+    place $p.inset.graph -relheight 1
+    place $p.inset.graph.time -relheight 1
 
     # make a UI button if necessary
     if {$gui} {
-        make_ui_button $p
-        pack $p.ui -side left -ipadx 5 -ipady 2
+        frame $p.f.ui -relief sunken -height 14 -width 22 -borderwidth 1 
+        pack $p.f.ui -side left -fill y -padx 2 -pady 0
+        frame $p.f.ui.indicator -relief raised -width 22 \
+            -borderwidth 1 -background $Color(ModuleButton)    
+        button $p.f.ui.indicator.text -text "UI" -font $time_font \
+            -background $Color(ModuleButton) -borderwidth 0 \
+            -activebackground $Color(MenuSelectBackGround)  \
+            -activeforeground $Color(MenuSelectForeGround)
+        place $p.f.ui.indicator -relheight 1
+        pack $p.f.ui.indicator.text -padx 0 -pady 0
     }
 
     # pack the stuff now
-    pack $p.title -side top -padx 2 -anchor w 
-    pack $p.time -side left -padx 2
-    pack $p.inset -side left -fill y -padx 2 -pady 2
+    #pack $p.time -side left -padx 2
+    #pack $p.inset -side left -fill y -padx 2 -pady 2
     
     # Stick it in the canvas
     $canvas create window $modx $mody -window $modframe -tags FakeModule -anchor n
@@ -398,7 +415,6 @@ proc add_port {modframe type d} {
     global $portnum
     lappend ${d}($ports) $portnum
     configPorts $modframe $type $d
-
     edit_port $portnum
 }
 
@@ -414,9 +430,9 @@ proc configPorts {icon type d} {
 }
 
 proc placePort {icon portnum pos type d} {
-    set port_width 13
-    set port_spacing 18
-    set port_height 7
+    set port_width 11
+    set port_spacing 12
+    set port_height 5
     set portcolor red
     set x [expr $pos * $port_spacing + 6]
     set ports ${type}ports
@@ -425,10 +441,10 @@ proc placePort {icon portnum pos type d} {
     set portlight ${port}light
     if [ expr [lsearch [place slaves $icon] $icon.$port] == -1 ] {
         bevel $icon.$port -width $port_width \
-            -height $port_height -borderwidth 3 \
+            -height $port_height -borderwidth 2 \
             -edge $e -background $portcolor \
-            -pto 2 -pwidth 7 -pborder 2       
-        frame $icon.$portlight -width $port_width -height 4 \
+            -pto 2 -pwidth 6 -pborder 1       
+        frame $icon.$portlight -width $port_width -height 2 \
         -relief raised -background black -borderwidth 0 
         set menu $icon.$port.menu
         global $menu
@@ -460,7 +476,7 @@ proc edit_port {portnum} {
         destroy $w
     }
 
-    toplevel $w
+    sci_toplevel $w
     wm withdraw $w; # immediately withdraw it to avoid flicker
 
     wm title $w "Edit Port Information"
@@ -468,11 +484,11 @@ proc edit_port {portnum} {
 
     set f $w.f
     global $f
-    frame $f
+    sci_frame $f
     
     set lname $w.f.lname
     global $lname
-    label $lname -text "Name:"
+    sci_label $lname -text "Name:"
     grid $lname -column 0 -row 0 -sticky e -padx .1c -pady .1c
 
     set ename $w.f.ename
@@ -490,7 +506,7 @@ proc edit_port {portnum} {
 
     set ldatatype $w.f.ldatatype
     global $ldatatype
-    label $ldatatype -text "Datatype:"
+    sci_label $ldatatype -text "Datatype:"
     grid $ldatatype -column 0 -row 1 -sticky e -padx .1c -pady .1c
     
     set edatatype $w.f.edatatype
@@ -507,23 +523,25 @@ proc edit_port {portnum} {
 
 
     set fbuttons $w.fcubbonts
-    global $fbuttons
-    frame $fbuttons 
+    global $fbuttons Color
+    frame $fbuttons -background $Color(MainBackGround)
 
     set save $fbuttons.save
     set close $fbuttons.close
     global $close
     global $save
 
-    button $save -text OK -command "save_port_edit $portnum ; destroy $w"
-    button $close -text Close -command "destroy $w"
+    sci_button $save -text OK -command "save_port_edit $portnum ; destroy $w"
+    sci_button $close -text Close -command "destroy $w"
+    frame $fbuttons.space -background $Color(MainBackGround) -width 24
 
-    pack $close $save -side right -padx 5 -pady 2 -ipadx .1c -ipady 2
+
+    pack $fbuttons.space $close $save -side right -padx 5 -pady 2 -ipadx .1c -ipady 2
 
     pack $f -fill x -expand yes -side top -padx 2 -pady 2
     pack $fbuttons -fill both -expand yes -side top
 
-    moveToCursor $w "leave_up"
+    wm deiconify $w
 
     focus $w
     grab $w

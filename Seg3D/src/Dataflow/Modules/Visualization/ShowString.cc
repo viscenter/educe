@@ -29,12 +29,12 @@
 #include <Core/Datatypes/String.h>
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Ports/GeometryPort.h>
 #include <Core/Geom/GeomGroup.h>
 #include <Core/Geom/GeomText.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomSticky.h>
 
 namespace SCIRun {
@@ -80,7 +80,7 @@ ShowString::ShowString(GuiContext* context)
     gui_color_r_(context->subVar("color-r"), 1.0),
     gui_color_g_(context->subVar("color-g"), 1.0),
     gui_color_b_(context->subVar("color-b"), 1.0),
-    material_handle_(scinew Material(Color(1.0, 1.0, 1.0))),
+    material_handle_(new Material(Color(1.0, 1.0, 1.0))),
     color_changed_(false)
 {
 }
@@ -123,14 +123,14 @@ void ShowString::execute()
 
 GeomHandle ShowString::generate( string str )
 {
-  GeomGroup *group = scinew GeomGroup();
+  GeomGroup *group = new GeomGroup();
 
   int nchars = 0;
   int nlines = 1;
 
   group->add( generateTitle( str, nchars, nlines ) );
     
-  return scinew GeomSticky(group);
+  return new GeomSticky(group);
 }
 
 
@@ -139,7 +139,7 @@ GeomHandle ShowString::generateTitle( string istr, int &nchars, int &nlines )
   nchars = 0;
   nlines = 0;
     
-  GeomTexts* texts = scinew GeomTexts();
+  GeomTexts* texts = new GeomTexts();
   texts->set_font_index(gui_size_.get());
   texts->set_is_2d(true);
 

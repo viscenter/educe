@@ -39,7 +39,7 @@
 #include <Core/Containers/StringUtil.h>
 #include <Core/Datatypes/Color.h>
 #include <Core/Exceptions/InternalError.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h> // for SWAP
 #include <Core/Thread/Mutex.h>
 #include <Core/Thread/Thread.h>
@@ -255,7 +255,11 @@ X11OpenGLContext::swap()
   X11Lock::unlock();
 }
 
-
+bool
+X11OpenGLContext::has_shaders()
+{
+  return(SLIVR::ShaderProgramARB::shaders_supported());
+}
 
 #define GETCONFIG(attrib) \
 if(glXGetConfig(display, &vinfo[i], attrib, &value) != 0){\
@@ -344,13 +348,6 @@ X11OpenGLContext::listvisuals()
     tag += to_string(value) + ":";
     GETCONFIG(GLX_ACCUM_ALPHA_SIZE);
     tag += to_string(value);
-#ifdef __sgi
-    tag += ", samples=";
-    GETCONFIG(GLX_SAMPLES_SGIS);
-    if(value)
-      score+=50;
-    tag += to_string(value);
-#endif
 
     tag += ", score=" + to_string(score);
     

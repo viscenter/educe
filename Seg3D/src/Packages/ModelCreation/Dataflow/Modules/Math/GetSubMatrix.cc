@@ -27,7 +27,11 @@
 */
 
 #include <Core/Datatypes/Matrix.h>
-#include <Core/Algorithms/Math/MathAlgo.h>
+
+#include <Core/Algorithms/Math/SelectMatrix/SelectSubMatrix.h>
+#include <Core/Algorithms/Math/SelectMatrix/SelectMatrixRows.h>
+#include <Core/Algorithms/Math/SelectMatrix/SelectMatrixColumns.h>
+
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
@@ -37,9 +41,14 @@ namespace ModelCreation {
 using namespace SCIRun;
 
 class GetSubMatrix : public Module {
-public:
-  GetSubMatrix(GuiContext*);
-  virtual void execute();
+  public:
+    GetSubMatrix(GuiContext*);
+    virtual void execute();
+
+  private:
+    SCIRunAlgo::SelectSubMatrixAlgo select_submatrix_; 
+    SCIRunAlgo::SelectMatrixRowsAlgo select_rows_; 
+    SCIRunAlgo::SelectMatrixColumnsAlgo select_columns_; 
 };
 
 
@@ -47,6 +56,9 @@ DECLARE_MAKER(GetSubMatrix)
 GetSubMatrix::GetSubMatrix(GuiContext* ctx)
   : Module("GetSubMatrix", ctx, Source, "Math", "ModelCreation")
 {
+  select_submatrix_.set_progress_reporter(this); 
+  select_rows_.set_progress_reporter(this); 
+  select_columns_.set_progress_reporter(this);
 }
 
 
@@ -69,26 +81,24 @@ GetSubMatrix::execute()
   {
     MatrixHandle output;
   
-    SCIRunAlgo::MathAlgo malgo(this);
-    SCIRunAlgo::ConverterAlgo calgo(this);
-    
     std::vector<Matrix::index_type> ri, ci;
+    SCIRunAlgo::ConverterAlgo calgo(this);
     
     if (rows.get_rep() && columns.get_rep())
     {
       if (!(calgo.MatrixToIndexVector(rows,ri))) return;
       if (!(calgo.MatrixToIndexVector(columns,ci))) return;
-      if (!(malgo.SelectSubMatrix(matrix,output,ri,ci))) return;
+      if (!(select_submatrix_.run(matrix,output,ri,ci))) return;
     }
     else if (rows.get_rep() == 0)
     {
       if (!(calgo.MatrixToIndexVector(columns,ci))) return;
-      if (!(malgo.SelectMatrixColumns(matrix,output,ci))) return;    
+      if (!(select_columns_.run(matrix,output,ci))) return;    
     }
     else
     {
       if (!(calgo.MatrixToIndexVector(rows,ri))) return;
-      if (!(malgo.SelectMatrixRows(matrix,output,ri))) return;        
+      if (!(select_rows_.run(matrix,output,ri))) return;        
     }
   
     send_output_handle("Matrix", output);

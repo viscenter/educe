@@ -50,7 +50,7 @@
 #include <Dataflow/Constraints/RatioConstraint.h>
 #include <Core/Geom/GeomCylinder.h>
 #include <Core/Geom/GeomSphere.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
@@ -87,36 +87,43 @@ enum { PickSphR, PickSphL, PickSphD, PickSphU, PickSphI, PickSphO,
  *      includes some consistency checking to ensure full initialization.
  */
 BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock, 
-		      double widget_scale,
-		      bool aligned , bool slideable) :
+		      double widget_scale, bool aligned , bool slideable) :
   BaseWidget(module, lock, "BoxWidget",
 	     NumVars, NumCons, NumGeoms, NumPcks, NumMatls,
 	     0, NumSwitches, widget_scale),
   is_aligned_(aligned),
   is_slideable_(slideable),
+  restrict_translation_xyz_(false),
+  restrict_x_(false),
+  restrict_y_(false),
+  restrict_z_(false),
+  restrict_translation_rdi_(false),
+  restrict_r_(false),
+  restrict_d_(false),
+  restrict_i_(false),
   oldrightaxis(1, 0, 0),
   olddownaxis(0, 1, 0),
   oldinaxis(0, 0, 1)
 {
   const double INIT = 5.0*widget_scale;
-  variables[CenterVar] = scinew PointVariable("Center", solve, Scheme1, Point(0, 0, 0));
-  variables[PointRVar] = scinew PointVariable("PntR", solve, Scheme1, Point(INIT, 0, 0));
-  variables[PointDVar] = scinew PointVariable("PntD", solve, Scheme2, Point(0, INIT, 0));
-  variables[PointIVar] = scinew PointVariable("PntI", solve, Scheme3, Point(0, 0, INIT));
-  variables[DistRVar] = scinew RealVariable("DISTR", solve, Scheme4, INIT);
-  variables[DistDVar] = scinew RealVariable("DISTD", solve, Scheme5, INIT);
-  variables[DistIVar] = scinew RealVariable("DISTI", solve, Scheme6, INIT);
-  variables[HypoRDVar] = scinew RealVariable("HYPOR", solve, Scheme4, sqrt(2*INIT*INIT));
-  variables[HypoDIVar] = scinew RealVariable("HYPOD", solve, Scheme5, sqrt(2*INIT*INIT));
-  variables[HypoIRVar] = scinew RealVariable("HYPOI", solve, Scheme6, sqrt(2*INIT*INIT));
-  variables[SDistRVar] = scinew RealVariable("SDistR", solve, Scheme7, INIT/2.0);
-  variables[SDistDVar] = scinew RealVariable("SDistD", solve, Scheme7, INIT/2.0);
-  variables[SDistIVar] = scinew RealVariable("SDistI", solve, Scheme7, INIT/2.0);
-  variables[RatioRVar] = scinew RealVariable("RatioR", solve, Scheme1, 0.5);
-  variables[RatioDVar] = scinew RealVariable("RatioD", solve, Scheme1, 0.5);
-  variables[RatioIVar] = scinew RealVariable("RatioI", solve, Scheme1, 0.5);
+  variables[CenterVar] = new PointVariable("Center", solve, Scheme1, Point(0, 0, 0));
+  variables[PointRVar] = new PointVariable("PntR", solve, Scheme1, Point(INIT, 0, 0));
+  variables[PointDVar] = new PointVariable("PntD", solve, Scheme2, Point(0, INIT, 0));
+  variables[PointIVar] = new PointVariable("PntI", solve, Scheme3, Point(0, 0, INIT));
+  variables[DistRVar] = new RealVariable("DISTR", solve, Scheme4, INIT);
+  variables[DistDVar] = new RealVariable("DISTD", solve, Scheme5, INIT);
+  variables[DistIVar] = new RealVariable("DISTI", solve, Scheme6, INIT);
+  variables[HypoRDVar] = new RealVariable("HYPOR", solve, Scheme4, sqrt(2*INIT*INIT));
+  variables[HypoDIVar] = new RealVariable("HYPOD", solve, Scheme5, sqrt(2*INIT*INIT));
+  variables[HypoIRVar] = new RealVariable("HYPOI", solve, Scheme6, sqrt(2*INIT*INIT));
+  variables[SDistRVar] = new RealVariable("SDistR", solve, Scheme7, INIT/2.0);
+  variables[SDistDVar] = new RealVariable("SDistD", solve, Scheme7, INIT/2.0);
+  variables[SDistIVar] = new RealVariable("SDistI", solve, Scheme7, INIT/2.0);
+  variables[RatioRVar] = new RealVariable("RatioR", solve, Scheme1, 0.5);
+  variables[RatioDVar] = new RealVariable("RatioD", solve, Scheme1, 0.5);
+  variables[RatioIVar] = new RealVariable("RatioI", solve, Scheme1, 0.5);
 
-  constraints[ConstRatioR] = scinew RatioConstraint("ConstRatioR",
+  constraints[ConstRatioR] = new RatioConstraint("ConstRatioR",
 						    NumSchemes,
 						    variables[SDistRVar],
 						    variables[DistRVar],
@@ -129,7 +136,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstRatioR]->VarChoices(Scheme6, 0, 0, 0);
   constraints[ConstRatioR]->VarChoices(Scheme7, 2, 2, 2);
   constraints[ConstRatioR]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstRatioD] = scinew RatioConstraint("ConstRatioD",
+  constraints[ConstRatioD] = new RatioConstraint("ConstRatioD",
 						    NumSchemes,
 						    variables[SDistDVar],
 						    variables[DistDVar],
@@ -142,7 +149,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstRatioD]->VarChoices(Scheme6, 0, 0, 0);
   constraints[ConstRatioD]->VarChoices(Scheme7, 2, 2, 2);
   constraints[ConstRatioD]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstRatioI] = scinew RatioConstraint("ConstRatioI",
+  constraints[ConstRatioI] = new RatioConstraint("ConstRatioI",
 						    NumSchemes,
 						    variables[SDistIVar],
 						    variables[DistIVar],
@@ -155,7 +162,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstRatioI]->VarChoices(Scheme6, 0, 0, 0);
   constraints[ConstRatioI]->VarChoices(Scheme7, 2, 2, 2);
   constraints[ConstRatioI]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstRD] = scinew DistanceConstraint("ConstRD",
+  constraints[ConstRD] = new DistanceConstraint("ConstRD",
 						   NumSchemes,
 						   variables[PointRVar],
 						   variables[PointDVar],
@@ -168,7 +175,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstRD]->VarChoices(Scheme6, 2, 2, 0);
   constraints[ConstRD]->VarChoices(Scheme7, 1, 0, 1);
   constraints[ConstRD]->Priorities(P_Default, P_Default, P_Default);
-  constraints[ConstPythRD] = scinew PythagorasConstraint("ConstPythRD",
+  constraints[ConstPythRD] = new PythagorasConstraint("ConstPythRD",
 							 NumSchemes,
 							 variables[DistRVar],
 							 variables[DistDVar],
@@ -181,7 +188,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstPythRD]->VarChoices(Scheme6, 2, 2, 0);
   constraints[ConstPythRD]->VarChoices(Scheme7, 1, 0, 1);
   constraints[ConstPythRD]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstDI] = scinew DistanceConstraint("ConstDI",
+  constraints[ConstDI] = new DistanceConstraint("ConstDI",
 						   NumSchemes,
 						   variables[PointDVar],
 						   variables[PointIVar],
@@ -194,7 +201,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstDI]->VarChoices(Scheme6, 2, 2, 0);
   constraints[ConstDI]->VarChoices(Scheme7, 1, 0, 1);
   constraints[ConstDI]->Priorities(P_Default, P_Default, P_Default);
-  constraints[ConstPythDI] = scinew PythagorasConstraint("ConstPythDI",
+  constraints[ConstPythDI] = new PythagorasConstraint("ConstPythDI",
 							 NumSchemes,
 							 variables[DistDVar],
 							 variables[DistIVar],
@@ -207,7 +214,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstPythDI]->VarChoices(Scheme6, 2, 2, 0);
   constraints[ConstPythDI]->VarChoices(Scheme7, 1, 0, 1);
   constraints[ConstPythDI]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstIR] = scinew DistanceConstraint("ConstIR",
+  constraints[ConstIR] = new DistanceConstraint("ConstIR",
 						   NumSchemes,
 						   variables[PointIVar],
 						   variables[PointRVar],
@@ -220,7 +227,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstIR]->VarChoices(Scheme6, 2, 2, 0);
   constraints[ConstIR]->VarChoices(Scheme7, 1, 0, 1);
   constraints[ConstIR]->Priorities(P_Default, P_Default, P_Default);
-  constraints[ConstPythIR] = scinew PythagorasConstraint("ConstPythIR",
+  constraints[ConstPythIR] = new PythagorasConstraint("ConstPythIR",
 							 NumSchemes,
 							 variables[DistIVar],
 							 variables[DistRVar],
@@ -233,7 +240,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstPythIR]->VarChoices(Scheme6, 2, 2, 0);
   constraints[ConstPythIR]->VarChoices(Scheme7, 1, 0, 1);
   constraints[ConstPythIR]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstRC] = scinew DistanceConstraint("ConstRC",
+  constraints[ConstRC] = new DistanceConstraint("ConstRC",
 						   NumSchemes,
 						   variables[PointRVar],
 						   variables[CenterVar],
@@ -246,7 +253,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstRC]->VarChoices(Scheme6, 0, 0, 0);
   constraints[ConstRC]->VarChoices(Scheme7, 1, 0, 1);
   constraints[ConstRC]->Priorities(P_Highest, P_Highest, P_Default);
-  constraints[ConstDC] = scinew DistanceConstraint("ConstDC",
+  constraints[ConstDC] = new DistanceConstraint("ConstDC",
 						   NumSchemes,
 						   variables[PointDVar],
 						   variables[CenterVar],
@@ -259,7 +266,7 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstDC]->VarChoices(Scheme6, 0, 0, 0);
   constraints[ConstDC]->VarChoices(Scheme7, 1, 0, 1);
   constraints[ConstDC]->Priorities(P_Highest, P_Highest, P_Default);
-  constraints[ConstIC] = scinew DistanceConstraint("ConstIC",
+  constraints[ConstIC] = new DistanceConstraint("ConstIC",
 						   NumSchemes,
 						   variables[PointIVar],
 						   variables[CenterVar],
@@ -274,60 +281,60 @@ BoxWidget::BoxWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstIC]->Priorities(P_Highest, P_Highest, P_Default);
 
   Index geom, pick;
-  GeomGroup* cyls = scinew GeomGroup;
+  GeomGroup* cyls = new GeomGroup;
   for (geom = SmallSphereIUL; geom <= SmallSphereODL; geom++)
   {
-    geometries[geom] = scinew GeomSphere;
+    geometries[geom] = new GeomSphere;
     cyls->add(geometries[geom]);
   }
   for (geom = CylIU; geom <= CylOL; geom++)
   {
-    geometries[geom] = scinew GeomCylinder;
+    geometries[geom] = new GeomCylinder;
     cyls->add(geometries[geom]);
   }
-  picks_[PickCyls] = scinew GeomPick(cyls, module, this, PickCyls);
+  picks_[PickCyls] = new GeomPick(cyls, module, this, PickCyls);
   picks(PickCyls)->set_highlight(DefaultHighlightMaterial);
-  materials[EdgeMatl] = scinew GeomMaterial(picks_[PickCyls], DefaultEdgeMaterial);
+  materials[EdgeMatl] = new GeomMaterial(picks_[PickCyls], DefaultEdgeMaterial);
   CreateModeSwitch(0, materials[EdgeMatl]);
 
-  GeomGroup* pts = scinew GeomGroup;
+  GeomGroup* pts = new GeomGroup;
   for (geom = SphereR, pick = PickSphR;
        geom <= SphereO; geom++, pick++)
   {
-    geometries[geom] = scinew GeomSphere;
-    picks_[pick] = scinew GeomPick(geometries[geom], module, this, pick);
+    geometries[geom] = new GeomSphere;
+    picks_[pick] = new GeomPick(geometries[geom], module, this, pick);
     picks(pick)->set_highlight(DefaultHighlightMaterial);
     pts->add(picks_[pick]);
   }
-  materials[PointMatl] = scinew GeomMaterial(pts, DefaultPointMaterial);
+  materials[PointMatl] = new GeomMaterial(pts, DefaultPointMaterial);
   CreateModeSwitch(1, materials[PointMatl]);
    
-  GeomGroup* resizes = scinew GeomGroup;
+  GeomGroup* resizes = new GeomGroup;
   for (geom = GeomResizeR, pick = PickResizeR;
        geom <= GeomResizeO; geom++, pick++)
   {
-    geometries[geom] = scinew GeomCappedCylinder;
-    picks_[pick] = scinew GeomPick(geometries[geom], module, this, pick);
+    geometries[geom] = new GeomCappedCylinder;
+    picks_[pick] = new GeomPick(geometries[geom], module, this, pick);
     picks(pick)->set_highlight(DefaultHighlightMaterial);
     resizes->add(picks_[pick]);
   }
-  materials[ResizeMatl] = scinew GeomMaterial(resizes, DefaultResizeMaterial);
+  materials[ResizeMatl] = new GeomMaterial(resizes, DefaultResizeMaterial);
   CreateModeSwitch(2, materials[ResizeMatl]);
 
-  GeomGroup* sliders = scinew GeomGroup;
-  geometries[SliderCylR] = scinew GeomCappedCylinder;
-  picks_[PickSliderR] = scinew GeomPick(geometries[SliderCylR], module, this, PickSliderR);
+  GeomGroup* sliders = new GeomGroup;
+  geometries[SliderCylR] = new GeomCappedCylinder;
+  picks_[PickSliderR] = new GeomPick(geometries[SliderCylR], module, this, PickSliderR);
   picks(PickSliderR)->set_highlight(DefaultHighlightMaterial);
   sliders->add(picks_[PickSliderR]);
-  geometries[SliderCylD] = scinew GeomCappedCylinder;
-  picks_[PickSliderD] = scinew GeomPick(geometries[SliderCylD], module, this, PickSliderD);
+  geometries[SliderCylD] = new GeomCappedCylinder;
+  picks_[PickSliderD] = new GeomPick(geometries[SliderCylD], module, this, PickSliderD);
   picks(PickSliderD)->set_highlight(DefaultHighlightMaterial);
   sliders->add(picks_[PickSliderD]);
-  geometries[SliderCylI] = scinew GeomCappedCylinder;
-  picks_[PickSliderI] = scinew GeomPick(geometries[SliderCylI], module, this, PickSliderI);
+  geometries[SliderCylI] = new GeomCappedCylinder;
+  picks_[PickSliderI] = new GeomPick(geometries[SliderCylI], module, this, PickSliderI);
   picks(PickSliderI)->set_highlight(DefaultHighlightMaterial);
   sliders->add(picks_[PickSliderI]);
-  materials[SliderMatl] = scinew GeomMaterial(sliders, DefaultSliderMaterial);
+  materials[SliderMatl] = new GeomMaterial(sliders, DefaultSliderMaterial);
   CreateModeSwitch(3, materials[SliderMatl]);
 
   // Switch0 are the bars
@@ -422,6 +429,9 @@ BoxWidget::redraw()
   Point L(Center-Right);
   Point I(Center+In);
   Point O(Center-In);
+  Vector X(1.0,0.0,0.0);
+  Vector Y(0.0,1.0,0.0);
+  Vector Z(0.0,0.0,1.0);
    
   // draw the edges
   if (mode_switches[0]->get_state())
@@ -510,21 +520,59 @@ BoxWidget::redraw()
     }
     else if ((geom == PickSphL) || (geom == PickSphR))
     {
-      picks(geom)->set_principal(Down, In);
+      picks(geom)->set_principal(X, Y, Z);
     }
     else if ((geom == PickSphU) || (geom == PickSphD))
     {
-      picks(geom)->set_principal(Right, In);
+      picks(geom)->set_principal(X, Y, Z);
     }
     else if ((geom == PickSphO) || (geom == PickSphI))
     {
-      picks(geom)->set_principal(Right, Down);
+      picks(geom)->set_principal(X, Y, Z);
     }
     else
     {
-      picks(geom)->set_principal(Right, Down, In);
+      if (restrict_translation_xyz_)
+      {
+        if (restrict_x_ && restrict_y_ && restrict_z_)
+          picks(geom)->set_principal();
+        else if (restrict_x_ && restrict_y_)
+          picks(geom)->set_principal(Z);
+        else if (restrict_x_ && restrict_z_)
+          picks(geom)->set_principal(Y);
+        else if (restrict_y_ && restrict_z_)
+          picks(geom)->set_principal(X);
+        else if (restrict_x_)
+          picks(geom)->set_principal(Y,Z);
+        else if (restrict_y_)
+          picks(geom)->set_principal(X,Z);
+        else if (restrict_z_)
+          picks(geom)->set_principal(X,Y);
+      }
+      else if(restrict_translation_rdi_)
+      {
+        if (restrict_r_ && restrict_d_ && restrict_i_)
+          picks(geom)->set_principal();
+        else if (restrict_r_ && restrict_d_)
+          picks(geom)->set_principal(In);
+        else if (restrict_r_ && restrict_i_)
+          picks(geom)->set_principal(Down);
+        else if (restrict_d_ && restrict_i_)
+          picks(geom)->set_principal(Right);
+        else if (restrict_r_)
+          picks(geom)->set_principal(Down,In);
+        else if (restrict_d_)
+          picks(geom)->set_principal(Right,In);
+        else if (restrict_i_)
+          picks(geom)->set_principal(Right,Down);
+      }
+      else
+      {
+        picks(geom)->set_principal(Right, Down, In);
+      }
     }
   }
+
 }
 
 // if rotating, save the start position of the selected widget 
@@ -541,30 +589,49 @@ BoxWidget::geom_pick( GeomPickHandle p, ViewWindow *w,
 
   const Point c2 = (variables[CenterVar]->point().vector()*2).point();
   Point start_point;
+  Point norm1, norm2;
   switch(pick)
   {
   case PickSphU:
     start_point = (c2 - pick_pointdvar_).point();
+    norm1 = pick_pointrvar_;
+    norm2 = pick_pointivar_;
     break;
   case PickSphD:
     start_point = pick_pointdvar_;
+    norm1 = pick_pointrvar_;
+    norm2 = pick_pointivar_;
     break;
   case PickSphL:
     start_point = (c2 - pick_pointrvar_).point();
+    norm1 = pick_pointdvar_;
+    norm2 = pick_pointivar_;
     break;
   case PickSphR:
     start_point = pick_pointrvar_;
+    norm1 = pick_pointdvar_;
+    norm2 = pick_pointivar_;
     break;
   case PickSphO:
     start_point = (c2 - pick_pointivar_).point();
+    norm1 = pick_pointdvar_;
+    norm2 = pick_pointrvar_;
     break;
   case PickSphI:
     start_point = pick_pointivar_;
+    norm1 = pick_pointdvar_;
+    norm2 = pick_pointrvar_;
     break;
   default:
     return;
   }
-  rot_start_ray_ = start_point - variables[CenterVar]->point();
+  
+  Point c1 = variables[CenterVar]->point();
+  rot_start_ray_ = start_point - c1;
+  
+  Vector vec = Cross(norm1-c1,norm2-c1);
+  if (Dot(vec,rot_start_ray_) < 0.0) vec = -vec;
+  if (rot_start_ray_.length() < vec.length() ) rot_start_ray_ = vec;
 }
 
 
@@ -604,6 +671,7 @@ BoxWidget::geom_moved( GeomPickHandle, int axis, double dist,
       Transform trans;
       trans.post_translate(c.vector());
       const double amount = pick_offset.length() / rot_start_ray_.length();
+      
       trans.post_rotate(amount, rot_axis);
       trans.post_translate(-c.vector());
       variables[PointDVar]->Move(trans.project(pick_pointdvar_));
@@ -894,7 +962,7 @@ BoxWidget::get_clipper()
   t.pre_translate(Vector(center.x(), center.y(), center.z()));
   t.invert();
 
-  return scinew BoxClipper(t);
+  return new BoxClipper(t);
 }
 
 

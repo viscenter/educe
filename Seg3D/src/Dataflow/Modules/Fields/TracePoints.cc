@@ -37,17 +37,17 @@
 namespace SCIRun {
 
 class TracePoints : public Module {
-public:
-  TracePoints(GuiContext*);
-  virtual void execute();
+  public:
+    TracePoints(GuiContext*);
+    virtual ~TracePoints() {}
+    virtual void execute();
 
-private:
-  GuiDouble  guitol_;
-  
-  FieldHandle output_;    
-  int field_generation_;
-  int time_generation_;
-
+  private:
+    GuiDouble  guitol_;
+    
+    FieldHandle output_;    
+    int field_generation_;
+    int time_generation_;
 };
 
 
@@ -67,8 +67,8 @@ TracePoints::execute()
   FieldHandle Input,Output;
   MatrixHandle Time;
   
-  if(!(get_input_handle("Singularity Points",Input,true))) return;
-  if(!(get_input_handle("Time",Time,true))) return;
+  get_input_handle("Singularity Points",Input,true);
+  get_input_handle("Time",Time,true);
 
   // Make sure we synchronous
   if ((field_generation_ != Input->generation)&&(time_generation_  != Time->generation))

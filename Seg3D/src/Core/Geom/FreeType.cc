@@ -42,7 +42,7 @@
 
 #include <Core/Exceptions/InternalError.h>
 #include <Core/Exceptions/FileNotFound.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Geom/FreeType.h>
 #include <Core/Math/MiscMath.h>
 #include <Core/Util/Assert.h>
@@ -72,7 +72,7 @@ FreeTypeLibrary::~FreeTypeLibrary() {
 FreeTypeFace *
 FreeTypeLibrary::load_face(string filename)
 {
-  FreeTypeFace *face = scinew FreeTypeFace(this, filename);
+  FreeTypeFace *face = new FreeTypeFace(this, filename);
   return face;
 }
 
@@ -227,7 +227,7 @@ FreeTypeText::layout()
   glyphs_.resize(text_.length());
   for (unsigned int i = 0; i < text_.length(); i++ ) 
   {
-    FreeTypeGlyph *glyph = scinew FreeTypeGlyph();
+    FreeTypeGlyph *glyph = new FreeTypeGlyph();
     glyphs_[i] = glyph;
 
     FT_ULong charcode = text_.c_str()[i];

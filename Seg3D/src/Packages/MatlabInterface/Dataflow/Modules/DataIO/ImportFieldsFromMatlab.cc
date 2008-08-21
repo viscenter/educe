@@ -26,39 +26,27 @@
    DEALINGS IN THE SOFTWARE.
 */
 
- 
-/*
- * FILE: ImportFieldsFromMatlab.cc
- * AUTH: Jeroen G Stinstra
- * DATE: 30 MAR 2004
- */
- 
 /* 
  * This module reads a matlab file and converts it to a SCIRun matrix
  *
  */
 
-
-/* 
- * This file was adapted from mlMatricesReader.h 
- */
-
-#include <sgi_stl_warnings_off.h>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/String.h>
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Datatypes/Field.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/StringPort.h>
+
 #include <Core/Matlab/matlabfile.h>
 #include <Core/Matlab/matlabarray.h>
 #include <Core/Matlab/matlabconverter.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Datatypes/String.h>
 
 namespace MatlabIO {
 
@@ -132,9 +120,9 @@ DECLARE_MAKER(ImportFieldsFromMatlab)
 ImportFieldsFromMatlab::ImportFieldsFromMatlab(GuiContext* ctx)
   : Module("ImportFieldsFromMatlab", ctx, Source, "DataIO", "MatlabInterface"),
     guifilename_(get_ctx()->subVar("filename")),
-    guifilenameset_(get_ctx()->subVar("filename-set")),
-    guimatrixinfotexts_(get_ctx()->subVar("matrixinfotexts")),     
-    guimatrixnames_(get_ctx()->subVar("matrixnames")),    
+    guifilenameset_(get_ctx()->subVar("filename-set",false)),
+    guimatrixinfotexts_(get_ctx()->subVar("matrixinfotexts",false)),     
+    guimatrixnames_(get_ctx()->subVar("matrixnames",false)),    
     guimatrixname_(get_ctx()->subVar("matrixname"))
 {
   indexmatlabfile(false);
@@ -206,7 +194,7 @@ void ImportFieldsFromMatlab::execute()
 			send_output_handle(p,mh,true);
     }
     
-    SCIRun::StringHandle filenameH = scinew String(filename);
+    SCIRun::StringHandle filenameH = new String(filename);
     send_output_handle("Filename",filenameH,true);
     
   }

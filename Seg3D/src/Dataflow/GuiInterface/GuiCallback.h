@@ -45,10 +45,10 @@
 
 #include <Dataflow/GuiInterface/TCLTask.h> // for TCLCONST
 
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h>
+
 
 // find a more 'consolidated' place to put this...
 #include <tcl.h>

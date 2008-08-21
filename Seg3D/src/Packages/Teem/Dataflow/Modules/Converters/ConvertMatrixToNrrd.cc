@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -114,7 +114,7 @@ ConvertMatrixToNrrd::create_and_send_column_matrix_nrrd(MatrixHandle matH)
   size_t size[NRRD_DIM_MAX];
   size[0] = matrix->nrows();
   
-  NrrdData *nd = scinew NrrdData();
+  NrrdData *nd = new NrrdData();
   nrrdAlloc_nva(nd->nrrd_, nrrdTypeDouble, 1, size);
 
   nrrdAxisInfoSet_va(nd->nrrd_, nrrdAxisInfoKind, nrrdKindDomain);
@@ -143,7 +143,7 @@ ConvertMatrixToNrrd::create_and_send_dense_matrix_nrrd(MatrixHandle matH)
   Matrix::size_type rows = matrix->nrows();
   Matrix::size_type cols = matrix->ncols();
   
-  NrrdData *nd = scinew NrrdData();
+  NrrdData *nd = new NrrdData();
   size_t size[NRRD_DIM_MAX];
   size[0] = cols; size[1] = rows;
   nrrdAlloc_nva(nd->nrrd_, nrrdTypeDouble, 2, size);
@@ -183,12 +183,12 @@ ConvertMatrixToNrrd::create_and_send_sparse_matrix_nrrd(MatrixHandle matH)
   Matrix::size_type rows = matrix->nrows();
 
   // create 3 nrrds (data, rows, cols)
-  NrrdData *data_n = scinew NrrdData();
+  NrrdData *data_n = new NrrdData();
   nrrdAlloc_nva(data_n->nrrd_, nrrdTypeDouble, 1, nnz);
   nrrdAxisInfoSet_nva(data_n->nrrd_, nrrdAxisInfoLabel, "sparse-data");
   data_n->nrrd_->axis[0].kind = nrrdKindDomain;
 
-  NrrdData *rows_n = scinew NrrdData();
+  NrrdData *rows_n = new NrrdData();
   size_t sparse_size[NRRD_DIM_MAX];
   sparse_size[0] = rows + 1;
   
@@ -204,7 +204,7 @@ ConvertMatrixToNrrd::create_and_send_sparse_matrix_nrrd(MatrixHandle matH)
   nrrdAxisInfoSet_nva(rows_n->nrrd_, nrrdAxisInfoLabel, "sparse-rows");
   rows_n->nrrd_->axis[0].kind = nrrdKindDomain;
 
-  NrrdData *cols_n = scinew NrrdData();
+  NrrdData *cols_n = new NrrdData();
 
   if (sizeof(Matrix::index_type) == 4)
   {

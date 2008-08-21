@@ -37,10 +37,12 @@ namespace SCIRun {
 
 class DecomposeTensorArrayIntoEigenVectors : public Module
 {
-public:
-  DecomposeTensorArrayIntoEigenVectors(GuiContext*);
-  virtual void execute();
+  public:
+    DecomposeTensorArrayIntoEigenVectors(GuiContext*);
+    virtual ~DecomposeTensorArrayIntoEigenVectors() {}
+    virtual void execute();
 };
+
 
 
 DECLARE_MAKER(DecomposeTensorArrayIntoEigenVectors)
@@ -55,13 +57,15 @@ DecomposeTensorArrayIntoEigenVectors::execute()
 {
   MatrixHandle eigvec1, eigvec2, eigvec3, eigval1, eigval2, eigval3,tensor, temp;
   
-  if (!(get_input_handle("TensorArray",tensor,true))) return;
+  get_input_handle("TensorArray",tensor,true);
   
   if (inputs_changed_ || !oport_cached("EigenVector1") ||
       !oport_cached("EigenVector2") || !oport_cached("EigenVector3") ||
       !oport_cached("EigenValue1") || !oport_cached("EigenValue2") ||
       !oport_cached("EigenValue3"))
   {
+    update_state(Executing);
+      
     if ((tensor->ncols()!=6)||(tensor->ncols()!=9))
     {
       error("TenosrArray needs to have 6 or 9 columns");
@@ -79,13 +83,13 @@ DecomposeTensorArrayIntoEigenVectors::execute()
 
     const int n = tensor->nrows();
     
-    eigvec1 = scinew DenseMatrix(n, 3);
-    eigvec2 = scinew DenseMatrix(n, 3);
-    eigvec3 = scinew DenseMatrix(n, 3);
+    eigvec1 = new DenseMatrix(n, 3);
+    eigvec2 = new DenseMatrix(n, 3);
+    eigvec3 = new DenseMatrix(n, 3);
     
-    eigval1 = scinew DenseMatrix(n, 1);
-    eigval2 = scinew DenseMatrix(n, 1);
-    eigval3 = scinew DenseMatrix(n, 1);
+    eigval1 = new DenseMatrix(n, 1);
+    eigval2 = new DenseMatrix(n, 1);
+    eigval3 = new DenseMatrix(n, 1);
     
     double* eigvec1ptr = eigvec1->get_data_pointer();
     double* eigvec2ptr = eigvec2->get_data_pointer();

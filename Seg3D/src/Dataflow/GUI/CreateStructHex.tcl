@@ -39,44 +39,44 @@ itcl_class SCIRun_NewField_CreateStructHex {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.row1
-	frame $w.row2
-	frame $w.row3
-	frame $w.row31
-	frame $w.which -relief groove -borderwidth 2
+        sci_frame $w.row1
+        sci_frame $w.row2
+        sci_frame $w.row3
+        sci_frame $w.row31
+        sci_frame $w.which -relief groove -borderwidth 2
 
-	pack $w.row1 $w.row2 $w.row3 $w.row31 $w.which -side top \
-		-e y -f both -padx 5 -pady 5
-	
-	label $w.row1.xsize_label -text "X Size   "
-	entry $w.row1.xsize -textvariable $this-sizex
-	label $w.row2.ysize_label -text "Y Size   "
-	entry $w.row2.ysize -textvariable $this-sizey
-	label $w.row3.zsize_label -text "Z Size   "
-	entry $w.row3.zsize -textvariable $this-sizez
+        pack $w.row1 $w.row2 $w.row3 $w.row31 $w.which -side top \
+          -e y -f both -padx 5 -pady 5
+        
+        sci_label $w.row1.xsize_label -text "X Size   "
+        sci_entry $w.row1.xsize -textvariable $this-sizex
+        sci_label $w.row2.ysize_label -text "Y Size   "
+        sci_entry $w.row2.ysize -textvariable $this-sizey
+        sci_label $w.row3.zsize_label -text "Z Size   "
+        sci_entry $w.row3.zsize -textvariable $this-sizez
 
-	label $w.row31.zsize_label -text "Pad Percentage"
-	entry $w.row31.zsize -textvariable $this-padpercent
+        sci_label $w.row31.zsize_label -text "Pad Percentage"
+        sci_entry $w.row31.zsize -textvariable $this-padpercent
 
-	pack $w.row1.xsize_label $w.row1.xsize -side left
-	pack $w.row2.ysize_label $w.row2.ysize -side left
-	pack $w.row3.zsize_label $w.row3.zsize -side left
-	pack $w.row31.zsize_label $w.row31.zsize -side left
+        pack $w.row1.xsize_label $w.row1.xsize -side left
+        pack $w.row2.ysize_label $w.row2.ysize -side left
+        pack $w.row3.zsize_label $w.row3.zsize -side left
+        pack $w.row31.zsize_label $w.row31.zsize -side left
 
-	label $w.which.l -text "Data at Location"
-	radiobutton $w.which.node -text "Nodes (linear basis)" \
-		-variable $this-data-at -value Nodes
-	radiobutton $w.which.cell -text "Cells (constant basis)" \
-		-variable $this-data-at -value Cells
-	radiobutton $w.which.none -text "None" \
-		-variable $this-data-at -value None
-	pack $w.which.l -side top
-	pack $w.which.node $w.which.cell $w.which.none -anchor nw
+        sci_label $w.which.l -text "Data at Location"
+        sci_radiobutton $w.which.node -text "Nodes (linear basis)" \
+          -variable $this-data-at -value Nodes
+        sci_radiobutton $w.which.cell -text "Cells (constant basis)" \
+          -variable $this-data-at -value Cells
+        sci_radiobutton $w.which.none -text "None" \
+          -variable $this-data-at -value None
+        pack $w.which.l -side top
+        pack $w.which.node $w.which.cell $w.which.none -anchor nw
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

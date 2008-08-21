@@ -33,7 +33,10 @@ SET(Core_Containers_SRCS
 )
 
 SCIRUN_ADD_LIBRARY(Core_Containers ${Core_Containers_SRCS})
-TARGET_LINK_LIBRARIES(Core_Containers Core_Thread Core_Exceptions)
+TARGET_LINK_LIBRARIES(Core_Containers 
+                  Core_Thread 
+                  Core_Exceptions 
+                  ${TEEM_LIBRARY})
 
 IF(BUILD_SHARED_LIBS)
   ADD_DEFINITIONS(-DBUILD_Core_Containers)

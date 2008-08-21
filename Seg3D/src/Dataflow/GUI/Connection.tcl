@@ -40,34 +40,36 @@ proc connectionMenu {x y conn cx cy} {
 }
 
 proc regenConnectionMenu { menu_id conn } {
-    global network_executing
+    global network_executing Color
 
     # create menu if it doesnt exist
     if ![winfo exists $menu_id] {
-	menu $menu_id -tearoff 0 -disabledforeground white
+      menu $menu_id -tearoff 0 -bd 2 -activeborderwidth 0 \
+       -activebackground $Color(MenuSelectBackGround)  \
+       -activeforeground $Color(MenuSelectForeGround) \
+       -background $Color(MenuBackGround) \
+       -foreground $Color(MenuForeGround)   
     }
     # Wipe the menu clean...
     for {set c 0} {$c <= 10 } {incr c } {
-	$menu_id delete $c
+      $menu_id delete $c
     }
     global Subnet Disabled ConnectionRoutes
     $menu_id add command -label "Connection" -state disabled
     $menu_id add separator
     set connid [makeConnID $conn]
-    if {$network_executing == "0"} {
-	$menu_id add command -label "Delete" -command "destroyConnection {$conn} 1"
-	if { [insertModuleOnConnectionMenu $conn $menu_id.insertModule] } {
-	    $menu_id add cascade -label "Insert Module" -menu $menu_id.insertModule
-	}
-	setIfExists disabled Disabled($connid) 0
-	set label [expr $disabled?"Enable":"Disable"]
-	$menu_id add command -command "connection$label {$conn}" -label $label
+    $menu_id add command -label "Delete" -command "destroyConnection {$conn} 1"
+    if { [insertModuleOnConnectionMenu $conn $menu_id.insertModule] } {
+      $menu_id add cascade -label "Insert Module" -menu $menu_id.insertModule
     }
+    setIfExists disabled Disabled($connid) 0
+    set label [expr $disabled?"Enable":"Disable"]
+    $menu_id add command -command "connection$label {$conn}" -label $label
     $menu_id add command -label "Notes" -command "notesWindow $connid"
     if {  [array exists ConnectionRoutes] && \
 	      [array names ConnectionRoutes $connid] != "" } {
-	$menu_id add command -label "Auto Path" \
-	    -command "array unset ConnectionRoutes $connid
+      $menu_id add command -label "Auto Path" \
+        -command "array unset ConnectionRoutes $connid
                       drawConnections \{\{$conn\}\}"
     }
 
@@ -389,9 +391,9 @@ proc createConnection { conn { record_undo 0 } { tell_SCIRun 1 } } {
 	 [string first Subnet [oMod conn]] != 0 &&
 	 ![string equal [lindex [portName [iPort conn]] 0] \
 	       [lindex [portName [oPort conn]] 0]] } {
-	displayErrorWarningOrInfo "*** Cannot create connection from [oMod conn] output \#[oNum conn] to [iMod conn] input \#[iNum conn].\n*** Port types do not match.\n*** Please fix your network." "error"
-	drawConnectionTrace $conn
-	return
+      displayErrorWarningOrInfo "*** Cannot create connection from [oMod conn] output \#[oNum conn] to [iMod conn] input \#[iNum conn].\n*** Port types do not match.\n*** Please fix your network." "error"
+      drawConnectionTrace $conn
+      return
     }
     
     # make sure the connection lives entirely on the same subnet
@@ -510,26 +512,26 @@ proc getConnectionNotesOptions { id } {
     # set true if input module is left of the output module on the canvas
     set left [expr [lindex $path 0] > [lindex $path end-1]]
     switch [llength $path] {
-	4 { 
-	    return [list [lindex $path 0] \
-			[expr ([lindex $path 1]+[lindex $path 3])/2-$off] \
-		    -width 0 -anchor s]
-	}
-	8 { 
-	    # if output module is right of input module
-	    set x1 [expr $left?[lindex $path 6]:[expr [lindex $path 0]+$off]]
-	    set x2 [expr $left?[expr [lindex $path 0]-$off]:[lindex $path 6]]
-	    return [list [expr $x1+($x2-$x1)/2] [expr [lindex $path 3]-$off] \
-			-width [expr $x2-$x1] -anchor s]
-	}	
-	default {
-	    set x [expr ($left?[lindex $path 4]:[lindex $path 6])+$off]
-	    set x2 [expr ($left?[lindex $path 2]:[lindex $path 8])-2*$off]
-	    set y [expr ($left?[expr [lindex $path 3]-$off]:\
-			       [expr [lindex $path end-2]+$off])]
-	    return [list $x $y -width [expr $x2-$x] \
-			-anchor [expr $left?"sw":"nw"]]
-	}
+      4 { 
+          return [list [lindex $path 0] \
+          [expr ([lindex $path 1]+[lindex $path 3])/2-$off] \
+            -width 0 -anchor s]
+      }
+      8 { 
+          # if output module is right of input module
+          set x1 [expr $left?[lindex $path 6]:[expr [lindex $path 0]+$off]]
+          set x2 [expr $left?[expr [lindex $path 0]-$off]:[lindex $path 6]]
+          return [list [expr $x1+($x2-$x1)/2] [expr [lindex $path 3]-$off] \
+          -width [expr $x2-$x1] -anchor s]
+      }	
+      default {
+          set x [expr ($left?[lindex $path 4]:[lindex $path 6])+$off]
+          set x2 [expr ($left?[lindex $path 2]:[lindex $path 8])-2*$off]
+          set y [expr ($left?[expr [lindex $path 3]-$off]:\
+                 [expr [lindex $path end-2]+$off])]
+          return [list $x $y -width [expr $x2-$x] \
+          -anchor [expr $left?"sw":"nw"]]
+      }
     }
 }
 
@@ -691,29 +693,31 @@ proc routeConnection { conn } {
     set connid [makeConnID $conn]
     if {  [array exists ConnectionRoutes] && \
 	      [array names ConnectionRoutes $connid] != "" } {
-	set path $ConnectionRoutes($connid)
-	set path [setPathSegmentX $path 0 $ox]
-	set path [lreplace $path 1 1 $oy]
-	set last [expr [getPathLength $path]-1]
-	set path [setPathSegmentX $path $last $ix]
-	set path [lreplace $path end end $iy]
-	if { ![string equal $path $ConnectionRoutes($connid)] } {
-	    set ConnectionRoutes($connid) $path
-	}
-	return $path
+      set path $ConnectionRoutes($connid)
+      set path [setPathSegmentX $path 0 $ox]
+      set path [lreplace $path 1 1 $oy]
+      set last [expr [getPathLength $path]-1]
+      set path [setPathSegmentX $path $last $ix]
+      set path [lreplace $path end end $iy]
+      if { ![string equal $path $ConnectionRoutes($connid)] } {
+          set ConnectionRoutes($connid) $path
+      }
+      return $path
     }
 
     if {[envBool SCIRUN_STRAIGHT_CONNECTIONS] } {
-	return [list $ox $oy $ox [expr $oy+2] $ix [expr $iy-3] $ix $iy]
+      return [list $ox $oy $ox [expr $oy+2] $ix [expr $iy-3] $ix $iy]
     } elseif { $ox == $ix && $oy <= $iy } {
-	return [list $ox $oy $ix $iy]
-    } elseif {[expr $oy+19] < $iy} {
-	set my [expr ($oy+$iy)/2]
-	return [list $ox $oy $ox $my $ix $my $ix $iy]
+      set my [expr ($oy+$iy)/2]
+      return [list $ox $oy $ix $iy]
+    } elseif {[expr $oy+10] < $iy} {
+      set my [expr ($oy+$iy)/2]
+      return [list $ox $oy $ox $my $ix $my $ix $iy]
     } else {
-	set mx [expr ($ox<$ix?$ox:$ix)-50]
-	return [list $ox $oy $ox [expr $oy+10] $mx [expr $oy+10] \
-		    $mx [expr $iy-10] $ix [expr $iy-10] $ix $iy]
+      set mx [expr ($ox<$ix?$ox:$ix)-30]
+      if {$mx < 0 } { set mx 0}
+      return [list $ox $oy $ox [expr $oy+7] $mx [expr $oy+7] \
+              $mx [expr $iy-7] $ix [expr $iy-7] $ix $iy]
     }
 }
 
@@ -745,39 +749,47 @@ proc findModulesToInsertOnConnection { conn } {
 
 
 proc insertModuleOnConnectionMenu { conn menu } {
-    global ModuleMenu
+    global ModuleMenu Color
     # return if there is no information to put in menu
     if { ![info exists ModuleMenu] } { return 0 }
     set moduleList [findModulesToInsertOnConnection $conn]
     if { ![llength $moduleList] } { return 0 }
     # destroy the old menu
     if [winfo exists $menu] {
-	return 1
+      return 1
     }
 
     # create a new menu
-    menu $menu -tearoff false -disabledforeground black
+    menu $menu -tearoff false -bd 2 -activeborderwidth 0 \
+     -activebackground $Color(MenuSelectBackGround)  \
+     -activeforeground $Color(MenuSelectForeGround) \
+     -background $Color(MenuBackGround) \
+     -foreground $Color(MenuForeGround)   
 
     set added ""
     foreach path $moduleList {
 
-	if { [lsearch $added [lindex $path 0]] == -1 } {
-	    lappend added [lindex $path 0]
-	    # Add a menu separator if this package isn't the first one
-	    if { [$menu index end] != "none" } {
-		$menu add separator 
-	    }
-	    # Add a label for the Package name
-	    $menu add command -label [lindex $path 0] -state disabled
-	}
+      if { [lsearch $added [lindex $path 0]] == -1 } {
+        lappend added [lindex $path 0]
+        # Add a menu separator if this package isn't the first one
+        if { [$menu index end] != "none" } {
+          $menu add separator 
+        }
+        # Add a label for the Package name
+        $menu add command -label [lindex $path 0] -state disabled
+      }
 
-	set submenu $menu.menu_[join [lrange $path 0 1] _]
-	if { ![winfo exists $submenu] } {
-	    menu $submenu -tearoff false
-	    $menu add cascade -label "  [lindex $path 1]" -menu $submenu
-	}
-	set command "insertModuleOnConnection \{$conn\} $path"
-	$submenu add command -label [lindex $path 2] -command $command
+      set submenu $menu.menu_[join [lrange $path 0 1] _]
+      if { ![winfo exists $submenu] } {
+          menu $submenu -tearoff false -bd 2 -activeborderwidth 0 \
+           -activebackground $Color(MenuSelectBackGround)  \
+           -activeforeground $Color(MenuSelectForeGround) \
+           -background $Color(MenuBackGround) \
+           -foreground $Color(MenuForeGround)   
+          $menu add cascade -label "  [lindex $path 1]" -menu $submenu
+      }
+      set command "insertModuleOnConnection \{$conn\} $path"
+      $submenu add command -label [lindex $path 2] -command $command
     }
     update idletasks
     return 1
@@ -790,10 +802,10 @@ proc insertModuleOnConnection { conn package category module onum inum } {
     set insertOffset "0 0"
     set Subnet(Loading) $Subnet([oMod conn])
     if { ![isaSubnetEditor [oMod conn]] } {
-	set canvas $Subnet(Subnet$Subnet([oMod conn])_canvas)
-	set bbox [$canvas bbox [oMod conn]]
-	set mouseX [lindex $bbox 0]
-	set mouseY [expr [lindex $bbox 3] + 10]
+      set canvas $Subnet(Subnet$Subnet([oMod conn])_canvas)
+      set bbox [$canvas bbox [oMod conn]]
+      set mouseX [lindex $bbox 0]
+      set mouseY [expr [lindex $bbox 3] + 10]
     }
     set modid [addModuleAtPosition $package $category $module $mouseX $mouseY]
     set Subnet(Loading) 0
@@ -828,7 +840,7 @@ proc findRealConnections { conn } {
 proc makeConn { port1 port2 } {
     if [string equal [pType port1] [pType port2]] { return "" }
     if [string equal [pType port1] o] {
-	return "[pMod port1] [pNum port1] [pMod port2] [pNum port2]"
+      return "[pMod port1] [pNum port1] [pMod port2] [pNum port2]"
     }
     return "[pMod port2] [pNum port2] [pMod port1] [pNum port1]"
 }

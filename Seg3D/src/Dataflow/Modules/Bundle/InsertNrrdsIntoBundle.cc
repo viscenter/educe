@@ -26,11 +26,12 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
-#include <Dataflow/Network/Ports/BundlePort.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/NrrdData.h>
-#include <Dataflow/Network/Ports/NrrdPort.h>
+
 #include <Dataflow/Network/Module.h>
+#include <Dataflow/Network/Ports/BundlePort.h>
+#include <Dataflow/Network/Ports/NrrdPort.h>
 
 using namespace SCIRun;
 
@@ -103,6 +104,7 @@ InsertNrrdsIntoBundle::execute()
 
       guibundlename_.changed() || !oport_cached("bundle"))
   {
+    update_state(Executing);
   
     std::string nrrd1Name = guinrrd1name_.get();
     std::string nrrd2Name = guinrrd2name_.get();
@@ -118,7 +120,7 @@ InsertNrrdsIntoBundle::execute()
     }
     else
     {
-      handle = scinew Bundle();
+      handle = new Bundle();
       if (handle.get_rep() == 0)
       {
         error("Could not allocate new bundle");

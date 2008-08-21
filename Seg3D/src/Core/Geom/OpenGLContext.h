@@ -32,10 +32,10 @@
 #ifndef SCIRun_OpenGLContext_h
 #define SCIRun_OpenGLContext_h
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 
 using std::string;
@@ -46,18 +46,19 @@ using std::vector;
 namespace SCIRun {
 
 class SCISHARE OpenGLContext {
-public:
-  OpenGLContext();
-  virtual ~OpenGLContext();
-  
-  virtual bool			make_current() = 0;
-  virtual void			release() = 0;
-  virtual int			width() = 0;
-  virtual int			height() = 0;
-  virtual void			swap() = 0;
-
-  virtual void                  lock();
-  virtual void                  unlock();
+  public:
+    OpenGLContext();
+    virtual ~OpenGLContext();
+    
+    virtual bool			make_current() = 0;
+    virtual void			release() = 0;
+    virtual int       width() = 0;
+    virtual int       height() = 0;
+    virtual void			swap() = 0;
+    virtual bool      has_shaders() = 0;
+    
+    virtual void      lock();
+    virtual void      unlock();
 };
 
 } // End namespace SCIRun

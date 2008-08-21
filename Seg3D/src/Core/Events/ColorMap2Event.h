@@ -36,18 +36,30 @@
 #include <Core/Volume/ColorMap2.h>
 
 namespace SCIRun {
-  class ColorMap2Event : public BaseEvent {
-  public:
-    typedef vector<ColorMap2Handle>    ColorMap2Handle_t;
-    ColorMap2Event(const ColorMap2Handle_t &data) :
-      BaseEvent("", 0),
-      data_(data) {}
-    virtual ~ColorMap2Event() {}
-    ColorMap2Handle_t &                get_data() { return data_; }
-    ColorMap2Event *                   clone() { return new ColorMap2Event(*this); }
-  private:
-    ColorMap2Handle_t                  data_;
-  };
+
+class ColorMap2Event : public BaseEvent {
+public:
+  typedef vector<ColorMap2Handle>    ColorMap2Vector_t;
+  ColorMap2Event(const ColorMap2Vector_t &data) :
+    BaseEvent("", 0),
+    data_(data)
+  {}
+
+  ColorMap2Event(const ColorMap2Handle &cmap) :
+    BaseEvent("", 0),
+    data_()
+  { data_.push_back(cmap); }
+
+  virtual ~ColorMap2Event() {}
+  ColorMap2Event    *clone() { return new ColorMap2Event(*this); }
+
+  ColorMap2Vector_t &get_data() { return data_; }
+
+private:
+  ColorMap2Vector_t                  data_;
+};
+
+
 }
 
 #endif

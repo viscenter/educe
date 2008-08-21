@@ -50,43 +50,43 @@ itcl_class SCIRun_NewField_InsertHexVolSheetAlongSurface {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 80
 
-	frame $w.bound1
-	label $w.bound1.t1 -text "Intersected Hexes in"
-	pack $w.bound1.t1
-	pack $w.bound1
+        sci_frame $w.bound1
+        sci_label $w.bound1.t1 -text "Intersected Hexes in"
+        pack $w.bound1.t1
+        pack $w.bound1
 
-	frame $w.bound
-	radiobutton $w.bound.side_1 -text "Side 1" \
-	    -variable $this-side -value "side1"
-	radiobutton $w.bound.side_2 -text "Side 2" \
-	    -variable $this-side -value "side2"
-	pack $w.bound.side_1 $w.bound.side_2 \
-	    -side left -anchor nw -padx 3
-	pack $w.bound -side top
+        sci_frame $w.bound
+        sci_radiobutton $w.bound.side_1 -text "Side 1" \
+            -variable $this-side -value "side1"
+        sci_radiobutton $w.bound.side_2 -text "Side 2" \
+            -variable $this-side -value "side2"
+        pack $w.bound.side_1 $w.bound.side_2 \
+            -side left -anchor nw -padx 3
+        pack $w.bound -side top
 
-	frame $w.layer1
-	label $w.layer1.t1
-	label $w.layer1.t2 -text "Add Sheet?"
-	pack $w.layer1.t1 $w.layer1.t2
-	pack $w.layer1
+        sci_frame $w.layer1
+        sci_label $w.layer1.t1
+        sci_label $w.layer1.t2 -text "Add Sheet?"
+        pack $w.layer1.t1 $w.layer1.t2
+        pack $w.layer1
 
-	frame $w.layer
-	radiobutton $w.layer.addlayeron -text "On" \
-	    -variable $this-addlayer -value "On"
-	radiobutton $w.layer.addlayeroff -text "Off" \
-	    -variable $this-addlayer -value "Off"
-	pack $w.layer.addlayeron $w.layer.addlayeroff \
-	    -side left -anchor nw -padx 3
-	pack $w.layer -side top
+        sci_frame $w.layer
+        sci_radiobutton $w.layer.addlayeron -text "On" \
+            -variable $this-addlayer -value "On"
+        sci_radiobutton $w.layer.addlayeroff -text "Off" \
+            -variable $this-addlayer -value "Off"
+        pack $w.layer.addlayeron $w.layer.addlayeroff \
+            -side left -anchor nw -padx 3
+        pack $w.layer -side top
 
-        frame $w.f
- 	frame $w.fb
-	pack $w.f $w.fb -padx 2 -pady 2 -side top -expand yes
+        sci_frame $w.f
+        sci_frame $w.fb
+        pack $w.f $w.fb -padx 2 -pady 2 -side top -expand yes
 
         makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        moveToCursor $w
     }
 }

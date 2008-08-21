@@ -44,9 +44,9 @@
 #include <Core/ICom/IComAddress.h>
 #include <Core/ICom/IComVirtualSocket.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <iostream>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/ICom/share.h>
 

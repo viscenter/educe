@@ -26,31 +26,21 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-/*
- *  CalculateIsInsideField.cc:
- *
- *  Written by:
- *   jeroen
- *   TODAY'S DATE HERE
- *
- */
-
-#include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Matrix.h>
+#include <Core/Algorithms/Fields/FieldsAlgo.h>
 
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-
-#include <Core/Datatypes/Field.h>
-#include <Core/Datatypes/Matrix.h>
-
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
+#include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
 
-class CalculateIsInsideField : public Module {
+class CalculateIsInsideField : public Module 
+{
   public:
     CalculateIsInsideField(GuiContext*);
+    virtual ~CalculateIsInsideField() {}
     virtual void execute();   
   
   private:

@@ -26,11 +26,12 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
+#include <Core/Datatypes/NrrdData.h>
+
+#include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
-#include <Core/Datatypes/NrrdData.h>
-#include <Dataflow/Network/Module.h>
 
 using namespace SCIRun;
 
@@ -72,7 +73,7 @@ GetNrrdsFromBundle::GetNrrdsFromBundle(GuiContext* ctx)
     guitransposenrrd4_(get_ctx()->subVar("transposenrrd4"), 0),
     guitransposenrrd5_(get_ctx()->subVar("transposenrrd5"), 0),
     guitransposenrrd6_(get_ctx()->subVar("transposenrrd6"), 0),
-    guinrrds_(get_ctx()->subVar("nrrd-selection"), "")
+    guinrrds_(get_ctx()->subVar("nrrd-selection",false), "")
 {
 }
 
@@ -83,7 +84,7 @@ GetNrrdsFromBundle::execute()
   BundleHandle handle;
   
   // Get data from input port:
-  if (!(get_input_handle("bundle",handle,true))) return; 
+  get_input_handle("bundle",handle,true); 
   
   if (inputs_changed_ || guinrrd1name_.changed() || 
       guinrrd2name_.changed() || guinrrd3name_.changed() || 
@@ -96,6 +97,7 @@ GetNrrdsFromBundle::execute()
       !oport_cached("nrrd3") || !oport_cached("nrrd4") ||
       !oport_cached("nrrd5") || !oport_cached("nrrd6"))
   {
+    update_state(Executing);
     NrrdDataHandle fhandle;
     
     std::string nrrd1name = guinrrd1name_.get();

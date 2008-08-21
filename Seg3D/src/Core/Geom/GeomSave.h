@@ -46,9 +46,9 @@
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/Point.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <iosfwd>
-#include <sgi_stl_warnings_on.h>
+
 
 namespace SCIRun {
 
@@ -77,7 +77,7 @@ struct GeomSave {
 
     void translate(std::ostream&, const Point& p);
     void rotateup(std::ostream&, const Vector& up, const Vector& new_up);
-    void start_node(std::ostream&, char*);
+    void start_node(std::ostream&, const char*);
     void end_node(std::ostream&);
 };
 

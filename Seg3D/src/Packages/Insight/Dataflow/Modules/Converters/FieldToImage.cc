@@ -31,7 +31,7 @@
 #include <Core/Basis/QuadBilinearLgn.h>
 #include <Core/Basis/HexTrilinearLgn.h>
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/TypeDescription.h>
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
@@ -85,7 +85,7 @@ DECLARE_MAKER(FieldToImage)
 FieldToImage::FieldToImage(GuiContext* ctx)
   : Module("FieldToImage", ctx, Source, "Converters", "Insight")
 {
-  img_ = scinew ITKDatatype;
+  img_ = new ITKDatatype;
 }
 
 

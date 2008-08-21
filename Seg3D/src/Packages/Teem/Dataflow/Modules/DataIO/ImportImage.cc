@@ -105,11 +105,7 @@ ImportImage::execute()
 
   // If we haven't read yet, or if it's a new filename, 
   //  or if the datestamp has changed -- then read...
-#ifdef __sgi
-  time_t new_filemodification = buf.st_mtim.tv_sec;
-#else
   time_t new_filemodification = buf.st_mtime;
-#endif
 
 
 #if defined HAVE_PNG && HAVE_PNG
@@ -247,7 +243,7 @@ ImportImage::execute()
 
       
       //   Send the data downstream.
-      handle_ = scinew NrrdData();
+      handle_ = new NrrdData();
       handle_->nrrd_ = nrrd;
       
       NrrdOPort *outport = (NrrdOPort *)get_output_port(0);

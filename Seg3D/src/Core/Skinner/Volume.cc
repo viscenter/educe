@@ -41,7 +41,7 @@
 #include <Core/Volume/ColorMap2.h>
 #include <Core/Volume/CM2Widget.h>
 #include <Core/Volume/VolumeRenderer.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 #include <Core/Datatypes/NrrdData.h>
 #include <Core/Math/MiscMath.h>
 #include <slivr/TextureRenderer.h>
@@ -87,7 +87,7 @@ Volume::process_event(event_handle_t &event)
   if (cm2e)
   {
     if (volume_renderer_) { volume_renderer_->lock(); }
-    ColorMap2Event::ColorMap2Handle_t cm2s = cm2e->get_data();
+    ColorMap2Event::ColorMap2Vector_t cm2s = cm2e->get_data();
     if (cm2s.size())
     {
       cm2_ = cm2s[0];
@@ -130,8 +130,10 @@ Volume::process_event(event_handle_t &event)
 
 
 void
-Volume::set_nrrd(NrrdDataHandle &nin)
+Volume::set_nrrd(NrrdDataHandle nin)
 {
+  nin = resize_nrrd(nin);
+
   if (nin->nrrd_->type != nrrdTypeUChar) {
     nin = Histogram::UnuQuantize(nin);
   }
@@ -177,19 +179,26 @@ Volume::load_colormap2(const string &fn)
   ColorMap2 *cmap2 = new ColorMap2();
   ColorMap2Handle icmap = cmap2;
 
-  Piostream *stream = auto_istream(fn, 0);
-  if (!stream) {
+  if (!validFile(fn))
+  {
     create_default_colormap2(icmap);
   }
   else
   {
-    try {
-      Pio(*stream, icmap);
-    } catch (...) {
-      cerr << "Error loading "+fn+", using default instead." << std::endl;
+    Piostream *stream = auto_istream(fn, 0);
+    if (!stream) {
       create_default_colormap2(icmap);
     }
-    delete stream;
+    else
+    {
+      try {
+        Pio(*stream, icmap);
+      } catch (...) {
+        cerr << "Error loading "+fn+", using default instead." << std::endl;
+        create_default_colormap2(icmap);
+      }
+      delete stream;
+    }
   }
 
   if (volume_renderer_) { volume_renderer_->lock(); }
@@ -201,9 +210,7 @@ Volume::load_colormap2(const string &fn)
     volume_renderer_->unlock();
   }
 
-  ColorMap2Event::ColorMap2Handle_t tmp;
-  tmp.push_back(cm2_);
-  ColorMap2Event *cm2e = new ColorMap2Event(tmp);
+  ColorMap2Event *cm2e = new ColorMap2Event(cm2_);
   EventManager::add_event(cm2e);
 
   return true;
@@ -304,6 +311,132 @@ Volume::SetParameters(event_handle_t &event)
   volume_renderer_->unlock();
 
   return CONTINUE_E;
+}
+
+
+#define BIG 1<<25
+
+
+static size_t
+compute_size(size_t samples[4])
+{
+  size_t size = 1;
+  for (int i = 0; i < 4; i++)
+  {
+    size *= samples[i];
+  }
+  return size;
+}
+
+
+static size_t
+find_next_size(size_t a)
+{
+  static size_t chart[12] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 510, 1020, 2042 };
+  for (int i = 1; i < 12; i++)
+  {
+    if (chart[i] >= a) { return chart[i-1]; }
+  }
+  return chart[11];
+}
+
+
+static void
+compute_new_size(size_t samples[4], double spacings[4], size_t big)
+{
+  size_t size = compute_size(samples);
+  while (size > big)
+  {
+    int mi = 1;
+    for (int i = 2; i < 4; i++)
+    {
+      if (samples[i] != 1 &&
+          spacings[i] < spacings[mi] ||
+          spacings[i] == spacings[mi] && samples[i] > samples[mi])
+      {
+        mi = i;
+      }
+    }
+    size_t nsize = find_next_size(samples[mi]); 
+    spacings[mi] *= samples[mi] / (double)nsize;
+    samples[mi] = nsize;
+    size = compute_size(samples);
+  }    
+}
+
+
+NrrdDataHandle
+Volume::resize_nrrd(NrrdDataHandle nrrd)
+{
+  size_t i;
+
+  Nrrd *nin = nrrd->nrrd_;
+
+  size_t size = 1;
+  for (i = 0; i < nin->dim; i++)
+  {
+    size *= nin->axis[i].size;
+  }
+
+  if (size < BIG)
+  {
+    return nrrd;
+  }
+
+  NrrdResampleInfo *info = nrrdResampleInfoNew();
+  NrrdKernel *kern = nrrdKernelAQuartic;
+  double p[NRRD_KERNEL_PARMS_NUM];
+  memset(p, 0, NRRD_KERNEL_PARMS_NUM * sizeof(double));
+  p[0] = 1.0;
+  p[1] = 0.0834;
+
+  size_t samples[4];
+  double spacings[4];
+  for (i = 0; i < 4; i++)
+  {
+    samples[i] = nin->axis[i].size;
+    spacings[i] = nin->axis[i].spacing;
+  }
+
+  compute_new_size(samples, spacings, BIG);
+
+  cout << "resampling volume to " << samples[1] << " " << samples[2] << " " << samples[3] << "\n";
+  
+  for (int a = 0; a < 4; a++)
+  {
+    info->kernel[a] = a==0?0:kern;
+
+    info->samples[a] = samples[a];
+
+    memcpy(info->parm[a], p, NRRD_KERNEL_PARMS_NUM * sizeof(double));
+
+    if (info->kernel[a] && 
+    	(!(airExists(nin->axis[a].min) && airExists(nin->axis[a].max))))
+    {
+      nrrdAxisInfoMinMaxSet(nin, a, nin->axis[a].center ? 
+                            nin->axis[a].center : nrrdDefaultCenter);
+    }
+
+    info->min[a] = nin->axis[a].min;
+    info->max[a] = nin->axis[a].max;
+  }    
+  info->boundary = nrrdBoundaryBleed;
+  info->type = nin->type;
+  info->renormalize = AIR_TRUE;
+
+  NrrdDataHandle nout_handle = new NrrdData;
+  Nrrd *nout = nout_handle->nrrd_;
+  if (nrrdSpatialResample(nout, nin, info)) {
+    char *err = biffGetDone(NRRD);
+    string errstr(err);
+    free(err);
+    throw "Trouble resampling: " + errstr;
+  }
+  nrrdResampleInfoNix(info); 
+
+  nrrdKeyValueCopy(nout, nin);
+
+  return nout_handle;
 }
 
 

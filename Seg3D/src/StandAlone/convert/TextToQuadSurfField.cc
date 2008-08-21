@@ -54,7 +54,7 @@
 #include <Core/Datatypes/QuadSurfMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <StandAlone/convert/FileUtils.h>
 #include <Core/Init/init.h>
 #include <iostream>
@@ -200,7 +200,7 @@ main(int argc, char **argv) {
   typedef NoDataBasis<double>             DatBasis;
   typedef GenericField<QSMesh, DatBasis, vector<double> > QSField; 
   
-  QSField *qs = scinew QSField(qsm);
+  QSField *qs = new QSField(qsm);
   FieldHandle qsH(qs);
   
   if (binOutput) {

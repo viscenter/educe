@@ -33,75 +33,75 @@ itcl_class SCIRun_ChangeFieldData_ConvertFieldDataType {
     constructor {config} {
         set name ConvertFieldDataType
 
-	# The width of the first column of the data display.
-	setGlobal $this-firstwidth 12
-    }
-
-    method ui {} {
-        set w .ui[modname]
-        if {[winfo exists $w]} {
-            return
+      # The width of the first column of the data display.
+      setGlobal $this-firstwidth 12
         }
-        toplevel $w
-	wm maxsize $w 397 187 
 
-	iwidgets::Labeledframe $w.att -labelpos nw \
-		               -labeltext "Input Field Type" 
-			       
-	pack $w.att 
-	set att [$w.att childsite]
-	
-	labelpair $att.l1 "Name" $this-fldname
-	labelpair $att.l2 "Typename" $this-inputdatatype
-	pack $att.l1 $att.l2 -side top 
+        method ui {} {
+            set w .ui[modname]
+            if {[winfo exists $w]} {
+                return
+            }
+            sci_toplevel $w
+      wm maxsize $w 397 187 
 
-	iwidgets::Labeledframe $w.edit -labelpos nw \
-		               -labeltext "Output Field Type" 
-			       
-	pack $w.edit 
-	set edit [$w.edit childsite]
-	labelcombo $edit.l1 "Data Type" \
-		{"unsigned char" "unsigned short" "unsigned int" \
-		char short int float double Vector Tensor} \
-		   $this-outputdatatype
-	pack $edit.l1 -side top 
+      sci_labeledframe $w.att -labelpos nw \
+                       -labeltext "Input Field Type" 
+                 
+      pack $w.att 
+      set att [$w.att childsite]
+      
+      labelpair $att.l1 "Name" $this-fldname
+      labelpair $att.l2 "Typename" $this-inputdatatype
+      pack $att.l1 $att.l2 -side top 
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      sci_labeledframe $w.edit -labelpos nw \
+                       -labeltext "Output Field Type" 
+                 
+      pack $w.edit 
+      set edit [$w.edit childsite]
+      labelcombo $edit.l1 "Data Type" \
+        {"unsigned char" "unsigned short" "unsigned int" \
+        char short int float double Vector Tensor} \
+           $this-outputdatatype
+      pack $edit.l1 -side top 
+
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
     }
 
 
     method labelcombo { win text1 arglist var} {
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 -width [set $this-firstwidth] \
-		      -anchor w -just left
-	label $win.colon  -text ":" -width 2 -anchor w -just left
-	iwidgets::optionmenu $win.c -foreground darkred \
-		-command " $this comboget $win.c $var "
+      sci_frame $win 
+      pack $win -side top -padx 5
+      sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
+              -anchor w -just left
+      sci_label $win.colon  -text ":" -width 2 -anchor w -just left
+      sci_optionmenu $win.c -foreground darkred \
+        -command " $this comboget $win.c $var "
 
-	set i 0
-	set found 0
-	set length [llength $arglist]
-	for {set elem [lindex $arglist $i]} {$i<$length} \
-	    {incr i 1; set elem [lindex $arglist $i]} {
-	    if {"$elem"=="[set $var]"} {
-		set found 1
-	    }
-	    $win.c insert end $elem
-	}
+      set i 0
+      set found 0
+      set length [llength $arglist]
+      for {set elem [lindex $arglist $i]} {$i<$length} \
+          {incr i 1; set elem [lindex $arglist $i]} {
+          if {"$elem"=="[set $var]"} {
+        set found 1
+          }
+          $win.c insert end $elem
+      }
 
-	if {!$found} {
-	    $win.c insert end [set $var]
-	}
+      if {!$found} {
+          $win.c insert end [set $var]
+      }
 
-	label $win.l2 -text "" -width 40 -anchor w -just left
+      sci_label $win.l2 -text "" -width 40 -anchor w -just left
 
-	# hack to associate optionmenus with a textvariable
-	bind $win.c <Map> "$win.c select {[set $var]}"
+      # hack to associate optionmenus with a textvariable
+      bind $win.c <Map> "$win.c select {[set $var]}"
 
-	pack $win.l1 $win.colon -side left
-	pack $win.c $win.l2 -side left	
+      pack $win.l1 $win.colon -side left
+      pack $win.c $win.l2 -side left	
     }
 
     method comboget { win var } {

@@ -79,11 +79,13 @@ public:
   { return nrrd_to_itk_image(nrrd_handle_); }
     
   bool                write(const string &filename, bool nrrd_on_error = true);
+  static string       create_nrrd_header(const Nrrd *nrrd);
 
   void                set_label(unsigned int label);
   void                set_label_color(const Color &c);
   // Old way of doing this, retain compatability with 1.8.1 and prior.
   void                set_label_color_legacy(unsigned int index);
+  static Color        get_next_label_color();
   
   void                set_nrrd(NrrdDataHandle &);
   NrrdDataHandle      get_nrrd_strip_subaxis();  // Makes a copy of the nrrd.
@@ -102,7 +104,10 @@ public:
   void                reset_data_range();
 
   // Methods to transform between index and world space
+private:
   void                build_index_to_world_matrix();
+public:
+  void                rebuild_transform();
   Point               index_to_world(const vector<int> &index);
   Point               index_to_point(const vector<double> &index);
   vector<int>         world_to_index(const Point &p);
@@ -151,7 +156,9 @@ public:
   void                set_slices_dirty();
   void                reset_clut();
 
-  // This next function must be called inside an opengl context, becuase
+  bool                visible();
+  
+  // This next function must be called inside an opengl context, because
   // it may call a geometry class desctructor that is deletes GL elements
   // that are bound to a gl context, and thus the context must be current.
   void                purge_unused_slices();
@@ -164,6 +171,10 @@ public:
   // Do this when deleting a label volume so that it's internal
   // allocation bitplane is defeferenced.
   void                unparent();
+
+  // True if this is the only label volume that is using this
+  // particular nrrd.
+  bool                only_one_label();
 
   Painter *           painter_;
 private:
@@ -184,7 +195,6 @@ public:
   unsigned int        label_;
 
   DenseMatrix         transform_; 
-  Skinner::Var<bool>  visible_;
   LayerButton *       button_;
   bool                tmp_visible_; // Don't use outside rebuild_layer_buttons
   bool                dirty_;

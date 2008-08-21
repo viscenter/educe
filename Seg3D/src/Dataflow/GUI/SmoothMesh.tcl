@@ -53,60 +53,60 @@ itcl_class SCIRun_ChangeMesh_SmoothMesh {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         #wm minsize $w 80 130
 
-	frame $w.bound -relief groove -borderwidth 2
-	label $w.bound.t1 -text "Smooth Boundary"
-	pack $w.bound.t1 
+        sci_frame $w.bound -relief groove -borderwidth 2
+        sci_label $w.bound.t1 -text "Smooth Boundary"
+        pack $w.bound.t1 
 
-	radiobutton $w.bound.smoothboundaryon -text "On" \
-	    -variable $this-smoothboundary -value "On"
-	radiobutton $w.bound.smoothboundaryoff -text "Off" \
-	    -variable $this-smoothboundary -value "Off"
-	pack $w.bound.smoothboundaryon $w.bound.smoothboundaryoff \
-	    -side left -anchor n
+        sci_radiobutton $w.bound.smoothboundaryon -text "On" \
+            -variable $this-smoothboundary -value "On"
+        sci_radiobutton $w.bound.smoothboundaryoff -text "Off" \
+            -variable $this-smoothboundary -value "Off"
+        pack $w.bound.smoothboundaryon $w.bound.smoothboundaryoff \
+            -side left -anchor n
 
-	frame $w.style -relief groove -borderwidth 2
- 	label $w.style.t1 -text "Smoothing Scheme"
-	pack $w.style.t1
+        sci_frame $w.style -relief groove -borderwidth 2
+        sci_label $w.style.t1 -text "Smoothing Scheme"
+        pack $w.style.t1
 
-	radiobutton $w.style.none -text "None" \
-	    -variable $this-smoothscheme -value "None"
-	radiobutton $w.style.laplacian -text "Laplacian" \
-	    -variable $this-smoothscheme -value "Laplacian"
-	radiobutton $w.style.smartlaplacian -text "Smart Laplacian" \
-	    -variable $this-smoothscheme -value "SmartLaplacian"
-	radiobutton $w.style.shapeimprovement -text "Shape Improvement" \
-	    -variable $this-smoothscheme -value "ShapeImprovement"
-	pack $w.style.none $w.style.laplacian $w.style.smartlaplacian $w.style.shapeimprovement \
-	    -side top -anchor w
+        sci_radiobutton $w.style.none -text "None" \
+            -variable $this-smoothscheme -value "None"
+        sci_radiobutton $w.style.laplacian -text "Laplacian" \
+            -variable $this-smoothscheme -value "Laplacian"
+        sci_radiobutton $w.style.smartlaplacian -text "Smart Laplacian" \
+            -variable $this-smoothscheme -value "SmartLaplacian"
+        sci_radiobutton $w.style.shapeimprovement -text "Shape Improvement" \
+            -variable $this-smoothscheme -value "ShapeImprovement"
+        pack $w.style.none $w.style.laplacian $w.style.smartlaplacian $w.style.shapeimprovement \
+            -side top -anchor w
 
 
-	frame $w.isovalue -relief groove -borderwidth 2
-	label $w.isovalue.t1 -text "Addional Constraints"
-	pack $w.isovalue.t1 
+        sci_frame $w.isovalue -relief groove -borderwidth 2
+        sci_label $w.isovalue.t1 -text "Addional Constraints"
+        pack $w.isovalue.t1 
 
-	radiobutton $w.isovalue.none -text "Do not add constraint" \
-	    -variable $this-isomethod -value ""
-	radiobutton $w.isovalue.lessthan -text "Do not move nodes with values less than isovalue" \
-	    -variable $this-isomethod -value "LessThan"
-	radiobutton $w.isovalue.equalto -text "Do not move nodes with values equal to isovalue" \
-	    -variable $this-isomethod -value "EqualTo"
-	radiobutton $w.isovalue.greaterthan -text "Do not move nodes with values greater than isovalue" \
-	    -variable $this-isomethod -value "GreaterThan"
-  frame $w.isovalue.f 
-  
-  label $w.isovalue.f.label -text "IsoValue :"
-  entry $w.isovalue.f.value  -textvariable $this-isovalue
-  pack $w.isovalue.f.label $w.isovalue.f.value -side left -anchor n
-          
-	pack $w.isovalue.none $w.isovalue.lessthan $w.isovalue.equalto $w.isovalue.greaterthan $w.isovalue.f\
-	    -side top -anchor w
+        sci_radiobutton $w.isovalue.none -text "Do not add constraint" \
+            -variable $this-isomethod -value ""
+        sci_radiobutton $w.isovalue.lessthan -text "Do not move nodes with values less than isovalue" \
+            -variable $this-isomethod -value "LessThan"
+        sci_radiobutton $w.isovalue.equalto -text "Do not move nodes with values equal to isovalue" \
+            -variable $this-isomethod -value "EqualTo"
+        sci_radiobutton $w.isovalue.greaterthan -text "Do not move nodes with values greater than isovalue" \
+            -variable $this-isomethod -value "GreaterThan"
+        sci_frame $w.isovalue.f 
+        
+        sci_label $w.isovalue.f.label -text "IsoValue :"
+        sci_entry $w.isovalue.f.value  -textvariable $this-isovalue
+        pack $w.isovalue.f.label $w.isovalue.f.value -side left -anchor n
+                
+        pack $w.isovalue.none $w.isovalue.lessthan $w.isovalue.equalto $w.isovalue.greaterthan $w.isovalue.f\
+            -side top -anchor w
 
-  pack $w.bound $w.style $w.isovalue -side top -e y -f both -padx 5 -pady 5
+        pack $w.bound $w.style $w.isovalue -side top -e y -f both -padx 5 -pady 5
 
-  makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }

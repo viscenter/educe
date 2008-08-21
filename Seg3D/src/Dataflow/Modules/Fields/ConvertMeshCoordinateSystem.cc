@@ -39,24 +39,25 @@
  *  Copyright (C) 1994 SCI Group
  */
 
-#include <Dataflow/Modules/Fields/ConvertMeshCoordinateSystem.h>
-#include <Dataflow/Network/Module.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Algorithms/Fields/TransformMesh/ConvertMeshCoordinateSystem.h>
+
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Containers/StringUtil.h>
-#include <Core/Containers/Handle.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Util/DynamicCompilation.h>
-#include <iostream>
+#include <Dataflow/Network/Module.h>
+
 
 namespace SCIRun {
 
 class ConvertMeshCoordinateSystem : public Module {
-public:
-  ConvertMeshCoordinateSystem(GuiContext* ctx);
-  virtual ~ConvertMeshCoordinateSystem();
-  virtual void execute();
-  GuiString gui_oldsystem_;
-  GuiString gui_newsystem_;
+  public:
+    ConvertMeshCoordinateSystem(GuiContext* ctx);
+    virtual ~ConvertMeshCoordinateSystem() {}
+    virtual void execute();
+
+  private:
+    SCIRunAlgo::ConvertMeshCoordinateSystemAlgo algo_;
+    GuiString gui_oldsystem_;
+    GuiString gui_newsystem_;
 };
 
 DECLARE_MAKER(ConvertMeshCoordinateSystem)
@@ -67,49 +68,21 @@ ConvertMeshCoordinateSystem::ConvertMeshCoordinateSystem(GuiContext* ctx)
 {
 }
 
-ConvertMeshCoordinateSystem::~ConvertMeshCoordinateSystem()
-{
-}
-
 void
 ConvertMeshCoordinateSystem::execute()
 {
   // The input port (with data) is required.
-  FieldHandle field;
-  if (!get_input_handle("Input Field", field)) return;
+  FieldHandle input, output;
+  get_input_handle("Input Field", input, true);
 
-  string oldsystem = gui_oldsystem_.get();
-  string newsystem = gui_newsystem_.get();
-  field.detach();
-  field->mesh_detach();
-  const TypeDescription *meshtd = field->mesh()->get_type_description();
-  CompileInfoHandle ci = ConvertMeshCoordinateSystemAlgo::get_compile_info(meshtd);
-  Handle<ConvertMeshCoordinateSystemAlgo> algo;
-  if (!DynamicCompilation::compile(ci, algo, this)) return;
-  algo->execute(this, field->mesh(), oldsystem, newsystem);
-
-  send_output_handle("Output Field", field);
-}
-
-CompileInfo *
-ConvertMeshCoordinateSystemAlgo::get_compile_info(const TypeDescription *mesh_td)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("ConvertMeshCoordinateSystemAlgoT");
-  static const string base_class_name("ConvertMeshCoordinateSystemAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       mesh_td->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       mesh_td->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  mesh_td->fill_compile_info(rval);
-  return rval;
+  if (inputs_changed_ || gui_oldsystem_.changed() ||
+      gui_newsystem_.changed() || !oport_cached("Output Field"))
+  {
+    algo_.set_option("input_system",gui_oldsystem_.get());
+    algo_.set_option("output_system",gui_newsystem_.get());
+    algo_.run(input,output);
+    send_output_handle("Output Field", output);
+  }
 }
 
 } // End namespace SCIRun

@@ -44,7 +44,8 @@
 #include <Core/Containers/StringUtil.h>
 #include <Dataflow/Modules/Math/EvaluateLinAlgGeneral.h>
 #include <Core/Util/DynamicCompilation.h>
-#include <Core/Containers/HashTable.h>
+
+#include <sci_hash_map.h>
 #include <iostream>
 
 namespace SCIRun {
@@ -56,7 +57,7 @@ private:
 
 public:
   EvaluateLinAlgGeneral(GuiContext* ctx);
-  virtual ~EvaluateLinAlgGeneral();
+  virtual ~EvaluateLinAlgGeneral() {}
   virtual void execute();
   virtual void presave();
 };
@@ -67,15 +68,9 @@ DECLARE_MAKER(EvaluateLinAlgGeneral)
 
 EvaluateLinAlgGeneral::EvaluateLinAlgGeneral(GuiContext* ctx)
   : Module("EvaluateLinAlgGeneral", ctx, Filter,"Math", "SCIRun"),
-    function_(get_ctx()->subVar("function"), "o1 = i1 * 12;")
+    function_(get_ctx()->subVar("function"), "o1 = i1 * i2;")
 {
 }
-
-
-EvaluateLinAlgGeneral::~EvaluateLinAlgGeneral()
-{
-}
-
 
 void
 EvaluateLinAlgGeneral::execute()
@@ -163,7 +158,12 @@ EvaluateLinAlgGeneralAlgo::get_compile_info(int argc,
 				    int hashoffset)
 
 {
-  unsigned int hashval = Hash(function, 0x7fffffff) + hashoffset;
+#if defined(__ECC) || defined(_MSC_VER)
+  hash_compare<const char*> H;
+#else
+  hash<const char*> H;
+#endif
+  unsigned int hashval = H(function.c_str()) + hashoffset;
 
   // use cc_to_h if this is in the .cc file, otherwise just __FILE__
   static const string include_path(TypeDescription::cc_to_h(__FILE__));
@@ -172,7 +172,7 @@ EvaluateLinAlgGeneralAlgo::get_compile_info(int argc,
   static const string base_class_name("EvaluateLinAlgGeneralAlgo");
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_name + ".",
+    new CompileInfo(template_name + ".",
 		       base_class_name,
 		       template_name + ";//",
 		       "");

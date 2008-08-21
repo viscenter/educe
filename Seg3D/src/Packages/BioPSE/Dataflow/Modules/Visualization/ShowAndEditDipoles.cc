@@ -49,7 +49,7 @@
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Geom/GeomLine.h>
 #include <Core/Geom/GeomSwitch.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/Trig.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Thread/CrowdMonitor.h>
@@ -158,15 +158,20 @@ ShowAndEditDipoles::maybe_resize_widget(void *ptr)
   if (sci_getenv_p("SCIRUN_USE_DEFAULT_SETTINGS"))
   {
     ShowAndEditDipoles* me = (ShowAndEditDipoles*)ptr;
-    GeometryOPort *ogeom = (GeometryOPort *)me->get_oport("Geometry");
+    GeometryOPortHandle ogeom;
+    me->get_oport_handle("Geometry",ogeom);
     BBox b;
-    if (ogeom->get_view_bounds(b)) {
+    if (ogeom->get_view_bounds(b)) 
+    {
       double sc = b.diagonal().length() * 0.02;
-      for (int i = 0; i < me->num_dipoles_.get(); i++) {
-	me->widget_[i]->SetScale(sc);
-	me->widget_[i]->SetLength(2 * sc);
+      for (int i = 0; i < me->num_dipoles_.get(); i++) 
+      {
+        me->widget_[i]->SetScale(sc);
+        me->widget_[i]->SetLength(2 * sc);
       }
-    } else {
+    } 
+    else 
+    {
       me->warning("Could not create default widget size");
     }  
   }
@@ -176,18 +181,22 @@ ShowAndEditDipoles::maybe_resize_widget(void *ptr)
 void
 ShowAndEditDipoles::execute()
 {
-  GeometryOPort *ogeom = (GeometryOPort *)get_oport("Geometry");
+  GeometryOPortHandle ogeom;
+  get_oport_handle("Geometry",ogeom);
   
   // if this is the first execution then try loading all the values
   // from saved GuiVars, load the widgets from these values
-  if (!been_executed_) {
+  if (!been_executed_) 
+  {
     load_gui();
     been_executed_ = true;
   }
   FieldHandle fieldH;
-  if (!get_input_handle("dipoleFld", fieldH)) return;
+  get_input_handle("dipoleFld", fieldH);
+  
   PCField *field_pcv;
-  if (!(field_pcv=dynamic_cast<PCField*>(fieldH.get_rep()))) {
+  if (!(field_pcv=dynamic_cast<PCField*>(fieldH.get_rep()))) 
+  {
     error("Input field was not a valid point cloud.");
     return;
   }
@@ -199,8 +208,8 @@ ShowAndEditDipoles::execute()
   if (reset_ || (gen != lastGen_))
   {
     lastGen_ = gen;
-    if (reset_ || 
-	(field_pcv->fdata().size() != (unsigned)num_dipoles_.get())) {
+    if (reset_ || (field_pcv->fdata().size() != (unsigned)num_dipoles_.get())) 
+    {
       new_input_data(field_pcv);
     }
     if (force_field_reset_.get())
@@ -246,12 +255,14 @@ ShowAndEditDipoles::load_gui()
     }
 
     // it is possible that these were created already, dont do it twice.
-    if ((int)widget_id_.size() != num_dipoles_.get()) {
-      GeometryOPort *ogeom = (GeometryOPort *)get_oport("Geometry");
-
-      ArrowWidget *a = scinew ArrowWidget(this, &widget_lock_, 
+    if ((int)widget_id_.size() != num_dipoles_.get()) 
+    {
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Geometry",ogeom);
+ 
+      ArrowWidget *a = new ArrowWidget(this, &widget_lock_, 
 					  widgetSizeGui_.get());
-      a->Connect(ogeom);
+      a->Connect(ogeom.get_rep());
       a->SetCurrentMode(1);
       widget_.add(a);
       deflMatl_ = widget_[0]->GetMaterial(0);
@@ -283,26 +294,32 @@ ShowAndEditDipoles::new_input_data(PCField *in)
   showLastVecGui_.reset();
   reset_ = false;
 
-  if (widget_switch_.size()) {
+  if (widget_switch_.size()) 
+  {
     widget_[num_dipoles_.get() - 1]->SetCurrentMode(1);
     widget_[num_dipoles_.get() - 1]->SetMaterial(0, deflMatl_);
   }
   // turn off any extra arrow widgets we might have.
-  if (in->fdata().size() < (unsigned)num_dipoles_.get()) {
+  if (in->fdata().size() < (unsigned)num_dipoles_.get()) 
+  {
     for (int i = in->fdata().size(); i < num_dipoles_.get(); i++)
       ((GeomSwitch *)(widget_switch_[i].get_rep()))->set_state(0);
     num_dipoles_.set(in->fdata().size());
     num_dipoles_.reset();
-  } else {
-    GeometryOPort *ogeom = (GeometryOPort *)get_oport("Geometry");
+  } 
+  else 
+  {
+    GeometryOPortHandle ogeom;
+    get_oport_handle("Geometry",ogeom);
 
     unsigned i;
     for (i = num_dipoles_.get(); i < widget_switch_.size(); i++)
       ((GeomSwitch *)(widget_switch_[i].get_rep()))->set_state(1);
-    for (; i < in->fdata().size(); i++) {
-      ArrowWidget *a = scinew ArrowWidget(this, &widget_lock_, 
+    for (; i < in->fdata().size(); i++) 
+    {
+      ArrowWidget *a = new ArrowWidget(this, &widget_lock_, 
 					  widgetSizeGui_.get());
-      a->Connect(ogeom);
+      a->Connect(ogeom.get_rep());
       a->SetCurrentMode(1);
       widget_.add(a);
       deflMatl_ = widget_[0]->GetMaterial(0);
@@ -318,24 +335,31 @@ ShowAndEditDipoles::new_input_data(PCField *in)
     load_gui();
   }
   
-  if (showLastVecGui_.get()) {
+  if (showLastVecGui_.get()) 
+  {
     widget_[num_dipoles_.get() - 1]->SetCurrentMode(1);
     widget_[num_dipoles_.get() - 1]->SetMaterial(0, deflMatl_);
-  } else {
+  } 
+  else 
+  {
     widget_[num_dipoles_.get() - 1]->SetCurrentMode(2);
     widget_[num_dipoles_.get() - 1]->SetMaterial(0, greenMatl_);
   }
   
-  for (int i = 0; i < num_dipoles_.get(); i++) {
+  for (int i = 0; i < num_dipoles_.get(); i++) 
+  {
     Vector v(in->fdata()[i]);
     double dv = v.length();
-    if (i == 0 || dv > max_len_.get()) {
+    if (i == 0 || dv > max_len_.get()) 
+    {
       max_len_.set(dv);
       max_len_.reset();
     }
   }
+  
   string scaleMode = scaleModeGui_.get();
-  for (int i = 0; i < num_dipoles_.get(); i++) {
+  for (int i = 0; i < num_dipoles_.get(); i++) 
+  {
  
     PCMesh::handle_type field_mesh = in->get_typed_mesh();
     Point p;
@@ -366,15 +390,19 @@ ShowAndEditDipoles::last_as_vec()
   bool slv = showLastVecGui_.get();
   if (!num_dipoles_.get()) return;
 
-  if (slv) {
+  if (slv) 
+  {
     widget_[num_dipoles_.get() - 1]->SetCurrentMode(1);
     widget_[num_dipoles_.get() - 1]->SetMaterial(0, deflMatl_);
-  } else {
+  } 
+  else 
+  {
     widget_[num_dipoles_.get() - 1]->SetCurrentMode(2);
     widget_[num_dipoles_.get() - 1]->SetMaterial(0, greenMatl_);
   }
 
-  GeometryOPort *ogeom = (GeometryOPort *)get_oport("Geometry");
+  GeometryOPortHandle ogeom;
+  get_oport_handle("Geometry",ogeom);
   ogeom->flushViews();
 }
 
@@ -388,20 +416,30 @@ ShowAndEditDipoles::scale_mode_changed()
   widgetSizeGui_.reset();
   max_len_.reset();
   double max = max_len_.get();
-  for (int i = 0; i < num_dipoles_.get(); i++) {   
+  for (int i = 0; i < num_dipoles_.get(); i++) 
+  {   
     double sc = widgetSizeGui_.get();
 
-    if (scaleMode == "normalize") {
-      if (last_scale_mode_ == "scale") {
-	sc *= (widget_[i]->GetScale() / last_scale_) / max;
-      } else {
-	sc *= widget_[i]->GetScale() / max;
+    if (scaleMode == "normalize") 
+    {
+      if (last_scale_mode_ == "scale") 
+      {
+      sc *= (widget_[i]->GetScale() / last_scale_) / max;
+      } 
+      else 
+      {
+        sc *= widget_[i]->GetScale() / max;
       }
-    } else if (scaleMode == "scale") {
-      if (last_scale_mode_ == "normalize") {
-	sc *= (widget_[i]->GetScale() * max) / last_scale_;
-      } else {
-	sc *= widget_[i]->GetScale();
+    } 
+    else if (scaleMode == "scale") 
+    {
+      if (last_scale_mode_ == "normalize") 
+      {
+        sc *= (widget_[i]->GetScale() * max) / last_scale_;
+      } 
+      else 
+      {
+        sc *= widget_[i]->GetScale();
       }
     }
     new_magnitudes_[i]->set(sc);
@@ -411,7 +449,8 @@ ShowAndEditDipoles::scale_mode_changed()
   last_scale_ = widgetSizeGui_.get();
   last_scale_mode_ = scaleMode;
 
-  GeometryOPort *ogeom = (GeometryOPort *)get_oport("Geometry");
+  GeometryOPortHandle ogeom;
+  get_oport_handle("Geometry",ogeom);
   ogeom->flushViews();
 }
 
@@ -423,9 +462,11 @@ ShowAndEditDipoles::scale_changed()
   widgetSizeGui_.reset();
   max_len_.reset();
 
-  for (int i = 0; i < num_dipoles_.get(); i++) {    
+  for (int i = 0; i < num_dipoles_.get(); i++) 
+  {    
     double sc = widgetSizeGui_.get();
-    if (scaleMode != "fixed") {
+    if (scaleMode != "fixed") 
+    {
       sc *= widget_[i]->GetScale() / last_scale_;
     }
     new_magnitudes_[i]->set(sc);
@@ -434,7 +475,8 @@ ShowAndEditDipoles::scale_changed()
   }
   last_scale_ = widgetSizeGui_.get();
 
-  GeometryOPort *ogeom = (GeometryOPort *)get_oport("Geometry");
+  GeometryOPortHandle ogeom;
+  get_oport_handle("Geometry",ogeom);
   ogeom->flushViews();
 }
 
@@ -442,10 +484,12 @@ ShowAndEditDipoles::scale_changed()
 bool
 ShowAndEditDipoles::generate_output_field()
 {
-  if (output_dirty_) {
+  if (output_dirty_) 
+  {
     output_dirty_ = false;
     PCMesh *msh = new PCMesh;
-    for (int i = 0; i < num_dipoles_.get(); i++) {      
+    for (int i = 0; i < num_dipoles_.get(); i++) 
+    {      
       msh->add_node(new_positions_[i]->get());
     }
     PCMesh::handle_type mh(msh);
@@ -453,15 +497,18 @@ ShowAndEditDipoles::generate_output_field()
     scaleModeGui_.reset();
     string scaleMode = scaleModeGui_.get();
     double max = max_len_.get();
-    for (int i = 0; i < num_dipoles_.get(); i++) {  
+    for (int i = 0; i < num_dipoles_.get(); i++) 
+    {  
       Vector d = new_directions_[i]->get();
       double sc = 1.0f;
 
-      if (scaleMode == "normalize") {
-	sc = widgetSizeGui_.get() / max;
+      if (scaleMode == "normalize") 
+      {
+        sc = widgetSizeGui_.get() / max;
       }
-      else if (scaleMode == "scale") {
-	sc = widgetSizeGui_.get();
+      else if (scaleMode == "scale") 
+      {
+        sc = widgetSizeGui_.get();
       }
 
       d *= widget_[i]->GetScale() / sc;
@@ -477,34 +524,13 @@ ShowAndEditDipoles::generate_output_field()
 void
 ShowAndEditDipoles::widget_moved(bool release, BaseWidget*)
 {
-  if (release) {
+  if (release) 
+  {
     output_dirty_ = true;
     scaleModeGui_.reset();
     string scaleMode = scaleModeGui_.get();
     double max = max_len_.get();
-#if 0
-    double old_max = max;
-    double new_max = 0.;   
-    //may have a new max length for normalize.
-    for (int i = 0; i < num_dipoles_.get(); i++) {
-      double sc = 1.0f;
-      
-      if (scaleMode == "normalize") {
-	sc = widgetSizeGui_.get() / max;
-      }
-      else if (scaleMode == "scale") {
-	sc = widgetSizeGui_.get();
-      }
-      double mag = widget_[i]->GetScale() / sc;
 
-      if (mag > new_max) {
-	new_max = mag;
-      }
-    }
-    max_len_.set(new_max);
-    max_len_.reset();
-    max = new_max;
-#endif
     // dont know which widget moved so update all of them
     for (int i = 0; i < num_dipoles_.get(); i++) {
 
@@ -513,17 +539,20 @@ ShowAndEditDipoles::widget_moved(bool release, BaseWidget*)
 
       double sc = 1.0f;
 
-      if (scaleMode == "normalize") {
-	// need to renormalize...
-	double old = widget_[i]->GetScale();
-	// undo the old normalize
-//	double vec = (old * old_max) / widgetSizeGui_.get();
-	double vec = (old * max) / widgetSizeGui_.get();
-	sc = widgetSizeGui_.get() * (vec / max);
-	widget_[i]->SetScale(sc); 
-	new_magnitudes_[i]->set(sc);
-      } else {
-	new_magnitudes_[i]->set(widget_[i]->GetScale());
+      if (scaleMode == "normalize") 
+      {
+        // need to renormalize...
+        double old = widget_[i]->GetScale();
+        // undo the old normalize
+      //	double vec = (old * old_max) / widgetSizeGui_.get();
+        double vec = (old * max) / widgetSizeGui_.get();
+        sc = widgetSizeGui_.get() * (vec / max);
+        widget_[i]->SetScale(sc); 
+        new_magnitudes_[i]->set(sc);
+      } 
+      else 
+      {
+        new_magnitudes_[i]->set(widget_[i]->GetScale());
       }
 
       new_positions_[i]->reset();
@@ -533,7 +562,9 @@ ShowAndEditDipoles::widget_moved(bool release, BaseWidget*)
     last_scale_ = widgetSizeGui_.get();
     draw_lines();
 
-    GeometryOPort *ogeom = (GeometryOPort *)get_oport("Geometry");
+
+    GeometryOPortHandle ogeom;
+    get_oport_handle("Geometry",ogeom);
     ogeom->flushViews();
   }
   if (release) want_to_execute();
@@ -542,10 +573,12 @@ ShowAndEditDipoles::widget_moved(bool release, BaseWidget*)
 void 
 ShowAndEditDipoles::draw_lines()
 {
-  GeometryOPort *ogeom = (GeometryOPort *)get_oport("Geometry");
+  GeometryOPortHandle ogeom;
+  get_oport_handle("Geometry",ogeom);
 
   showLinesGui_.reset();
-  if (gidx_) { 
+  if (gidx_) 
+  { 
     ogeom->delObj(gidx_); 
     gidx_=0; 
   }
@@ -554,7 +587,8 @@ ShowAndEditDipoles::draw_lines()
     GeomLines *g = new GeomLines;
     for (unsigned i = 0; i < new_positions_.size() - 1; i++) 
       for (unsigned j = i+1; j < new_positions_.size(); j++) 
-	g->add(new_positions_[i]->get(), new_positions_[j]->get());
+        g->add(new_positions_[i]->get(), new_positions_[j]->get());
+
     GeomMaterial *gm = new GeomMaterial(g, new Material(Color(.8,.8,.2)));
     gidx_ = ogeom->addObj(gm, string("ShowDipole Lines"));
   }
@@ -562,24 +596,37 @@ ShowAndEditDipoles::draw_lines()
 }
 
 void 
-ShowAndEditDipoles::tcl_command(GuiArgs& args, void* userdata) {
-  if(args.count() < 2){
+ShowAndEditDipoles::tcl_command(GuiArgs& args, void* userdata) 
+{
+  if(args.count() < 2)
+  {
     args.error("ShowAndEditDipoles needs a minor command");
     return;
   }
 
-  if (args[1] == "widget_scale") {
+  if (args[1] == "widget_scale") 
+  {
     scale_changed();
-  } else if (args[1] == "scale_mode") {
+  } 
+  else if (args[1] == "scale_mode") 
+  {
     scale_mode_changed();
-  } else if (args[1] == "show_last_vec") {
+  } 
+  else if (args[1] == "show_last_vec") 
+  {
     last_as_vec();
-  } else  if (args[1] == "show_lines") {
+  } 
+  else if (args[1] == "show_lines") 
+  {
     draw_lines();
-  } else  if (args[1] == "reset") {
+  } 
+  else if (args[1] == "reset") 
+  {
     reset_ = true;
     want_to_execute();
-  } else{
+  } 
+  else
+  {
     Module::tcl_command(args, userdata);
   }
 }

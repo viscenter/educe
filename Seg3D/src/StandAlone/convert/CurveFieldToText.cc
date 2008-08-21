@@ -53,7 +53,7 @@
 #include <Core/Basis/CrvLinearLgn.h>
 #include <Core/Datatypes/CurveMesh.h>
 #include <Core/Datatypes/GenericField.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <Core/Persistent/Pstreams.h>
 

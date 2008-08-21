@@ -28,9 +28,9 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 
-#include <Core/Bundle/Bundle.h>
+
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/String.h>
 #include <Core/Datatypes/Matrix.h>
@@ -40,11 +40,11 @@
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <sstream>
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h> 
+ 
 
 namespace CardioWaveInterface {
 
@@ -91,7 +91,7 @@ void CBDAddReference::execute()
   
   if (ReferenceBundle.get_rep() == 0) 
   {
-    ReferenceBundle = scinew Bundle();
+    ReferenceBundle = new Bundle();
     if (ReferenceBundle.get_rep() == 0)
     {
       error("Could not allocate new reference bundle");
@@ -124,7 +124,7 @@ void CBDAddReference::execute()
   
   // Add a new bundle to the bundle with the data
   // from this module
-  BundleHandle Reference = scinew Bundle();
+  BundleHandle Reference = new Bundle();
   if (Reference.get_rep() == 0)
   {
     error("Could not allocate new reference bundle");
@@ -180,10 +180,10 @@ void CBDAddReference::execute()
     Reference->setMatrix("UseElement",UseElement);
   }
   
-  StringHandle SourceFile = scinew String("BCondZero.cc ");
+  StringHandle SourceFile = new String("BCondZero.cc ");
   Reference->setString("SourceFile",SourceFile);
 
-  StringHandle Parameters = scinew String("");
+  StringHandle Parameters = new String("");
   Reference->setString("Parameters",Parameters);
 
   send_output_handle("ReferenceBundle",ReferenceBundle,true);

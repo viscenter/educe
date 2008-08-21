@@ -50,20 +50,18 @@
 //! Need to fix this and couple it to sci-defs
 #include <Core/Datatypes/MeshSupport.h>
 
+#include <Core/Containers/Array3.h>
+#include <Core/Containers/SearchGridT.h>
+
 #include <Core/Geometry/Point.h>
-#include <slivr/Plane.h>
 #include <Core/Geometry/CompGeom.h>
 
-#include <Core/Containers/Array3.h>
-
 #include <Core/Datatypes/LatVolMesh.h>
-#include <Core/Datatypes/SearchGrid.h>
 
 //! Incude needed for Windows: declares SCISHARE
 #include <Core/Datatypes/share.h>
 
 namespace SCIRun {
-using SLIVR::Plane;
 using std::string;
 using std::vector;
 
@@ -256,17 +254,351 @@ public:
                     typename LatVolMesh<Basis>::Cell::index_type &i) const
   { return get_size(i); };
 
-  bool locate(typename LatVolMesh<Basis>::Node::index_type &,
-              const Point &) const;
-  bool locate(typename LatVolMesh<Basis>::Edge::index_type &,
-              const Point &) const
-  { return false; }
-  bool locate(typename LatVolMesh<Basis>::Face::index_type &,
-              const Point &) const
-  { return false; }
-  bool locate(typename LatVolMesh<Basis>::Cell::index_type &, 
-              const Point &) const;
+  bool locate(typename LatVolMesh<Basis>::Node::index_type &node,
+              const Point &p) const
+    { return (locate_node(node,p)); }
+    
+  bool locate(typename LatVolMesh<Basis>::Edge::index_type &edge,
+              const Point &p) const
+    { return false; }
+  bool locate(typename LatVolMesh<Basis>::Face::index_type &face,
+              const Point &p) const
+    { return false; }
+  bool locate(typename LatVolMesh<Basis>::Cell::index_type &elem, 
+              const Point &p) const
+    { return (locate_elem(elem,p)); }
+    
+  bool locate(typename LatVolMesh<Basis>::Cell::index_type &elem, 
+              std::vector<double>& coords,
+              const Point &p) const
+    { return (locate_elem(elem,coords,p)); }
+    
+  bool find_closest_node(double& pdist, Point &result, 
+                         typename LatVolMesh<Basis>::Node::index_type &node, 
+                         const Point &p) const
+    { return (find_closest_node(pdist,result,node,p,-1.0)); }
 
+  bool find_closest_node(double& pdist, Point &result, 
+                         typename LatVolMesh<Basis>::Node::index_type &node, 
+                         const Point &p, double maxdist) const;
+
+  template<class INDEX>
+  bool find_closest_elem(double& pdist, 
+                         Point& result, 
+                         INDEX& elem, 
+                         const Point& p) const
+  {
+    StackVector<double,3> coords;
+    return(find_closest_elem(pdist,result,coords,elem,p,-1.0));
+  }
+
+  template<class INDEX, class ARRAY>
+  bool find_closest_elem(double& pdist, 
+                         Point& result, 
+                         ARRAY& coords,
+                         INDEX& elem, 
+                         const Point& p) const
+  {
+    return(find_closest_elem(pdist,result,coords,elem,p,-1.0));  
+  }
+
+  template<class INDEX, class ARRAY>
+  bool find_closest_elem(double& pdist, 
+                         Point& result, 
+                         ARRAY& coords,
+                         INDEX& elem, 
+                         const Point& p,
+                         double maxdist) const
+  {
+    // TODO: Generate bounding boxes for elements and integrate this into the
+    // basis function code.
+
+    //! If there are no nodes we cannot find a closest point
+    if (this->ni_ == 0 || this->nj_ == 0 || this->nk_ == 0) return (false);
+
+    if (maxdist < 0.0) maxdist = DBL_MAX; else maxdist = maxdist*maxdist;
+
+    //! Check whether the estimate given in idx is the point we are looking for    
+    if (elem.i_ >= 0 && elem.i_ < (this->ni_-1) &&
+        elem.j_ >= 0 && elem.j_ < (this->nj_-1) &&
+        elem.k_ >= 0 && elem.k_ < (this->nk_-1)) 
+    {
+      elem.mesh_ = this;
+      if (inside(elem,p)) 
+      {
+        ElemData ed(*this,elem);
+        this->basis_.get_coords(coords,p,ed);  
+        pdist = 0.0;
+        result = p;
+        return (true);
+      }
+    }
+
+    ASSERTMSG(synchronized_ & Mesh::ELEM_LOCATE_E,
+                  "StructHexVolMesh: need to synchronize ELEM_LOCATE_E first");
+
+// Find whether we are inside an element
+    typename SearchGridT<typename LatVolMesh<Basis>::Cell::index_type>::iterator it, eit;
+    if (elem_grid_->lookup(it, eit, p))
+    {
+      while (it != eit)
+      {
+        if (inside(*it, p))
+        {
+          elem = INDEX(*it);
+          ElemData ed(*this,elem);
+          this->basis_.get_coords(coords,p,ed);
+          pdist = 0.0;
+          result = p;
+          return (true);
+        }
+        ++it;
+      }
+    }
+  
+    // Find where we are in terms of boundary elements
+    
+    // If not start searching for the closest outer boundary
+    // get grid sizes
+    const size_type ni = elem_grid_->get_ni()-1;
+    const size_type nj = elem_grid_->get_nj()-1;
+    const size_type nk = elem_grid_->get_nk()-1;
+
+    // Convert to grid coordinates.
+    index_type bi, ei, bj, ej, bk, ek;
+    elem_grid_->unsafe_locate(bi, bj, bk, p);
+
+    // Clamp to closest point on the grid.
+    if (bi > ni) bi = ni; if (bi < 0) bi = 0;
+    if (bj > nj) bj = nj; if (bj < 0) bj = 0;
+    if (bk > nk) bk = nk; if (bk < 0) bk = 0;
+
+    ei = bi; ej = bj; ek = bk;
+        
+    double dmin = maxdist;
+    bool found = true;
+    bool found_one = false;
+    
+    do 
+    {
+      found = true; 
+      //! We need to do a full shell without any elements that are closer
+      //! to make sure there no closer elements in neighboring searchgrid cells
+      for (index_type i = bi; i <= ei; i++)
+      {
+        if (i < 0 || i > ni) continue;
+        for (index_type j = bj; j <= ej; j++)
+        {
+        if (j < 0 || j > nj) continue;
+          for (index_type k = bk; k <= ek; k++)
+          {
+            if (k < 0 || k > nk) continue;
+            if (i == bi || i == ei || j == bj || j == ej || k == bk || k == ek)
+            {
+              if (elem_grid_->min_distance_squared(p, i, j, k) < dmin)
+              {
+                found = false;
+                typename SearchGridT<typename LatVolMesh<Basis>::Cell::index_type>::iterator it, eit;
+                elem_grid_->lookup_ijk(it,eit, i, j, k);
+
+                while (it != eit)
+                {
+                  Point r;
+                  typename LatVolMesh<Basis>::Cell::index_type cidx = (*it);
+                  
+                  const index_type ii = (*it).i_;
+                  const index_type jj = (*it).j_;
+                  const index_type kk = (*it).k_;
+                  if (ii == 0)
+                  {
+                    est_closest_point_on_quad(r, p,
+                                         points_(kk,jj,ii),
+                                         points_(kk,jj+1,ii),
+                                         points_(kk+1,jj+1,ii),
+                                         points_(kk+1,jj,ii));
+                    const double dtmp = (p - r).length2();
+                    if (dtmp < dmin)
+                    {
+                      found_one = true;
+                      result = r;
+                      elem = INDEX(cidx);
+                      dmin = dtmp;
+                      
+                      if (dmin < epsilon2_)
+                      {
+                        ElemData ed(*this,elem);
+                        this->basis_.get_coords(coords,result,ed);
+
+                        result = this->basis_.interpolate(coords,ed);
+                        pdist = sqrt((result-p).length2());
+                        return (true);
+                      }
+                    }
+                  }
+
+                  if (ii == this->ni_-2)
+                  {
+                    est_closest_point_on_quad(r, p,
+                                         points_(kk,jj,ii+1),
+                                         points_(kk,jj+1,ii+1),
+                                         points_(kk+1,jj+1,ii+1),
+                                         points_(kk+1,jj,ii+1));
+                    const double dtmp = (p - r).length2();
+                    if (dtmp < dmin)
+                    {
+                      found_one = true;
+                      result = r;
+                      elem = INDEX(cidx);
+                      dmin = dtmp;
+                      
+                      if (dmin < epsilon2_)
+                      {
+                        ElemData ed(*this,elem);
+                        this->basis_.get_coords(coords,result,ed);
+
+                        result = this->basis_.interpolate(coords,ed);
+                        pdist = sqrt((result-p).length2());
+                        return (true);
+                      }
+                    }
+                  }
+
+                  if (jj == 0)
+                  {
+                    est_closest_point_on_quad(r, p,
+                                         points_(kk,jj,ii),
+                                         points_(kk,jj,ii+1),
+                                         points_(kk+1,jj,ii+1),
+                                         points_(kk+1,jj,ii));
+                    const double dtmp = (p - r).length2();
+                    if (dtmp < dmin)
+                    {
+                      found_one = true;
+                      result = r;
+                      elem = INDEX(cidx);
+                      dmin = dtmp;
+                      
+                      if (dmin < epsilon2_)
+                      {
+                        ElemData ed(*this,elem);
+                        this->basis_.get_coords(coords,result,ed);
+
+                        result = this->basis_.interpolate(coords,ed);
+                        pdist = sqrt((result-p).length2());
+                        return (true);
+                      }
+                    }
+                  }
+
+                  if (jj == this->nj_-2)
+                  {
+                    est_closest_point_on_quad(r, p,
+                                         points_(kk,jj+1,ii),
+                                         points_(kk,jj+1,ii+1),
+                                         points_(kk+1,jj+1,ii+1),
+                                         points_(kk+1,jj+1,ii));
+                    const double dtmp = (p - r).length2();
+                    if (dtmp < dmin)
+                    {
+                      found_one = true;
+                      result = r;
+                      elem = INDEX(cidx);
+                      dmin = dtmp;
+                      
+                      if (dmin < epsilon2_)
+                      {
+                        ElemData ed(*this,elem);
+                        this->basis_.get_coords(coords,result,ed);
+
+                        result = this->basis_.interpolate(coords,ed);
+                        pdist = sqrt((result-p).length2());
+                        return (true);
+                      }
+                    }
+                  }
+
+                  if (kk == 0)
+                  {
+                    est_closest_point_on_quad(r, p,
+                                         points_(kk,jj,ii),
+                                         points_(kk,jj,ii+1),
+                                         points_(kk,jj+1,ii+1),
+                                         points_(kk,jj+1,ii));
+                    const double dtmp = (p - r).length2();
+                    if (dtmp < dmin)
+                    {
+                      found_one = true;
+                      result = r;
+                      elem = INDEX(cidx);
+                      dmin = dtmp;
+                      
+                      if (dmin < epsilon2_)
+                      {
+                        ElemData ed(*this,elem);
+                        this->basis_.get_coords(coords,result,ed);
+
+                        result = this->basis_.interpolate(coords,ed);
+                        pdist = sqrt((result-p).length2());
+                        return (true);
+                      }
+                    }
+                  }
+
+                  if (kk == this->nk_-2)
+                  {
+                    est_closest_point_on_quad(r, p,
+                                         points_(kk+1,jj,ii),
+                                         points_(kk+1,jj,ii+1),
+                                         points_(kk+1,jj+1,ii+1),
+                                         points_(kk+1,jj+1,ii));
+                    const double dtmp = (p - r).length2();
+                    if (dtmp < dmin)
+                    {
+                      found_one = true;
+                      result = r;
+                      elem = INDEX(cidx);
+                      dmin = dtmp;
+                      
+                      if (dmin < epsilon2_)
+                      {
+                        ElemData ed(*this,elem);
+                        this->basis_.get_coords(coords,result,ed);
+
+                        result = this->basis_.interpolate(coords,ed);
+                        pdist = sqrt((result-p).length2());
+                        return (true);
+                      }
+                    }
+                  }
+                  
+                  ++it;
+                }
+              }
+            }
+          }
+        }
+      }
+      bi--;ei++;
+      bj--;ej++;
+      bk--;ek++;
+    } 
+    while (!found) ;
+
+    if (!found_one) return (false);
+
+    ElemData ed(*this,elem);
+    this->basis_.get_coords(coords,result,ed);
+
+    result = this->basis_.interpolate(coords,ed);
+    dmin = (result-p).length2();
+    pdist = sqrt(dmin);
+    return (true);
+  }
+
+
+  bool find_closest_elems(double& pdist, Point &result, 
+                          vector<typename LatVolMesh<Basis>::Elem::index_type> &elems, 
+                          const Point &p) const;
 
   int get_weights(const Point &,
                   typename LatVolMesh<Basis>::Node::array_type &, double *);
@@ -430,7 +762,8 @@ public:
 
   virtual bool synchronize(mask_type);
   virtual bool unsynchronize(mask_type);
-  
+  bool clear_synchronization();
+    
   //! Export this class using the old Pio system
   virtual void io(Piostream&);
   static PersistentTypeID structhexvol_typeid;
@@ -448,29 +781,248 @@ public:
   { return cell_type_description(); }
 
   //! This function returns a maker for Pio.
-  static Persistent *maker() { return scinew StructHexVolMesh<Basis>(); }
+  static Persistent *maker() { return new StructHexVolMesh<Basis>(); }
   //! This function returns a handle for the virtual interface.
-  static MeshHandle mesh_maker()  { return scinew StructHexVolMesh<Basis>(); }
+  static MeshHandle mesh_maker()  { return new StructHexVolMesh<Basis>(); }
   //! This function returns a handle for the virtual interface.
   static MeshHandle structhexvol_maker(size_type x,
 				       size_type y,
 				       size_type z)
   {
-    return scinew StructHexVolMesh<Basis>(x,y,z);
+    return new StructHexVolMesh<Basis>(x,y,z);
   }
 
   Array3<Point>& get_points() { return (points_); }
 
-private:
-  void compute_grid();
-  void compute_epsilon();
+  bool inside(typename LatVolMesh<Basis>::Elem::index_type idx, 
+              const Point &p) const
+  {
+    // rewrote this function to more accurately deal with hexes that do not have 
+    // face aligned with the axes of the coordinate system
+    
+    // First a fast test to see whether we are inside the bounding box 
+    // (this code could be faster, by testing axis by axis)
+    // Then if it is inside a tight bounding box compute the local coordinates
+    // using the Newton search, this way we account for not planar surfaces of
+    // the hexes.
+    
+    typename LatVolMesh<Basis>::Node::array_type nodes;
+    get_nodes(nodes,idx);
+    
+    BBox bbox;
+    bbox.extend(points_(nodes[0].k_,nodes[0].j_,nodes[0].i_));
+    bbox.extend(points_(nodes[1].k_,nodes[1].j_,nodes[1].i_));
+    bbox.extend(points_(nodes[2].k_,nodes[2].j_,nodes[2].i_));  
+    bbox.extend(points_(nodes[3].k_,nodes[3].j_,nodes[3].i_));  
+    bbox.extend(points_(nodes[4].k_,nodes[4].j_,nodes[4].i_));  
+    bbox.extend(points_(nodes[5].k_,nodes[5].j_,nodes[5].i_));  
+    bbox.extend(points_(nodes[6].k_,nodes[6].j_,nodes[6].i_));  
+    bbox.extend(points_(nodes[7].k_,nodes[7].j_,nodes[7].i_));  
+    bbox.extend(epsilon_);
 
-  bool inside8_p(typename LatVolMesh<Basis>::Cell::index_type idx,
-                 const Point &p) const;
+    if (bbox.inside(p))
+    {
+      StackVector<double,3> coords;
+      ElemData ed(*this, idx);
+      if(this->basis_.get_coords(coords, p, ed)) return (true);
+    }
+    
+    return (false);
+  }
+
+
+
+  template <class INDEX>
+  inline bool locate_elem(INDEX &elem, const Point &p) const
+  {
+    // TODO: Generate bounding boxes for elements and integrate this into the
+    // basis function code.
+    if (this->basis_.polynomial_order() > 1) return elem_locate(elem, *this, p);
+
+    //! If there are no nodes we cannot find a closest point
+    if (this->ni_ == 0 || this->nj_ == 0 || this->nk_ == 0) return (false);
+
+    //! Check whether the estimate given in idx is the point we are looking for    
+    if (elem.i_ >= 0 && elem.i_ < (this->ni_-1) &&
+        elem.j_ >= 0 && elem.j_ < (this->nj_-1) &&
+        elem.k_ >= 0 && elem.k_ < (this->nk_-1)) 
+    {
+      elem.mesh_ = this;
+      if (inside(elem,p)) return (true);
+    }
+
+    ASSERTMSG(synchronized_ & Mesh::ELEM_LOCATE_E,
+                  "StructHexVolMesh: need to synchronize ELEM_LOCATE_E first");
+
+    typename SearchGridT<typename LatVolMesh<Basis>::Cell::index_type>::iterator it, eit;
+    if (elem_grid_->lookup(it, eit, p))
+    {
+      while (it != eit)
+      {
+        if (inside(*it, p))
+        {
+          elem = INDEX(*it);
+          return (true);
+        }
+        ++it;
+      }
+    }
+    return (false);
+  }
+
+  template <class INDEX, class ARRAY>
+  inline bool locate_elem(INDEX &elem, ARRAY& coords, const Point &p) const
+  {
+    // TODO: Generate bounding boxes for elements and integrate this into the
+    // basis function code.
+    if (this->basis_.polynomial_order() > 1) return elem_locate(elem, *this, p);
+
+    //! If there are no nodes we cannot find a closest point
+    if (this->ni_ == 0 || this->nj_ == 0 || this->nk_ == 0) return (false);
+
+    //! Check whether the estimate given in idx is the point we are looking for    
+    if (elem.i_ >= 0 && elem.i_ < (this->ni_-1) &&
+        elem.j_ >= 0 && elem.j_ < (this->nj_-1) &&
+        elem.k_ >= 0 && elem.k_ < (this->nk_-1)) 
+    {
+      elem.mesh_ = this;
+      if (inside(elem,p)) 
+      {
+        ElemData ed(*this,elem);
+        this->basis_.get_coords(coords,p,ed);        
+        return (true);
+      }
+    }
+
+    ASSERTMSG(synchronized_ & Mesh::ELEM_LOCATE_E,
+                  "StructHexVolMesh: need to synchronize ELEM_LOCATE_E first");
+
+    typename SearchGridT<typename LatVolMesh<Basis>::Cell::index_type>::iterator it, eit;
+    if (elem_grid_->lookup(it, eit, p))
+    {
+      while (it != eit)
+      {
+        if (inside(*it, p))
+        {
+          elem = INDEX(*it);
+          ElemData ed(*this,elem);
+          this->basis_.get_coords(coords,p,ed);
+          return (true);
+        }
+        ++it;
+      }
+    }
+    return (false);
+  }
+
+
+  template <class INDEX>
+  bool inline locate_node(INDEX &node, const Point &p) const
+  {
+    //! If there are no nodes we cannot find a closest point
+    if (this->ni_ == 0 || this->nj_ == 0 || this->nk_ == 0) return (false);
+    
+    //! Check first guess
+    if (node.i_ >= 0 && node.i_ < this->ni_ &&
+        node.j_ >= 0 && node.j_ < this->nj_ &&
+        node.k_ >= 0 && node.k_ < this->nk_) 
+    {
+      node.mesh_ = this;
+      if ((p - points_(node.k_,node.j_,node.i_)).length2() < epsilon2_) 
+        return (true);
+    }    
+    
+    ASSERTMSG(synchronized_ & Mesh::NODE_LOCATE_E,
+          "StructHexVolMesh::locate_node requires synchronize(NODE_LOCATE_E).")
+
+    // get grid sizes
+    const size_type ni = node_grid_->get_ni()-1;
+    const size_type nj = node_grid_->get_nj()-1;
+    const size_type nk = node_grid_->get_nk()-1;
+
+    // Convert to grid coordinates.
+    index_type bi, bj, bk, ei, ej, ek;
+    node_grid_->unsafe_locate(bi, bj, bk, p);
+
+    // Clamp to l;..;,closest point on the grid.
+    if (bi > ni) bi =ni; if (bi < 0) bi = 0;
+    if (bj > nj) bj =nj; if (bj < 0) bj = 0;
+    if (bk > nk) bk =nk; if (bk < 0) bk = 0;
+
+    ei = bi; 
+    ej = bj; 
+    ek = bk;
+    
+    double dmin = DBL_MAX;
+    bool found = true;
+    do 
+    {
+      found = true; 
+      //! We need to do a full shell without any elements that are closer
+      //! to make sure there no closer elements in neighboring searchgrid cells
+    
+      for (index_type i = bi; i <= ei; i++)
+      {
+        if (i < 0 || i > ni) continue;
+        for (index_type j = bj; j <= ej; j++)
+        {
+          if (j < 0 || j > nj) continue;
+          for (index_type k = bk; k <= ek; k++)
+          {
+            if (k < 0 || k > nk) continue;
+            if (i == bi || i == ei || j == bj || j == ej || k == bk || k == ek)
+            {
+              if (node_grid_->min_distance_squared(p, i, j, k) < dmin)
+              {
+                found = false;
+                typename SearchGridT<typename LatVolMesh<Basis>::Node::index_type>::iterator it, eit;
+                node_grid_->lookup_ijk(it, eit, i, j, k);
+
+                while (it != eit)
+                {
+                  const typename LatVolMesh<Basis>::Node::index_type idx = *it;
+                  const Point point = points_(idx.k_,idx.j_,idx.i_);
+                  const double dist = (p-point).length2();
+
+                  if (dist < dmin) 
+                  { 
+                    node = idx;   
+                    dmin = dist; 
+
+                    if (dist < epsilon2_) return (true);
+                  }
+                  ++it;
+                }
+              }
+            }
+          }
+        }
+      }
+      bi--;ei++;
+      bj--;ej++;
+      bk--;ek++;
+    } 
+    while ((!found)||(dmin == DBL_MAX)) ;
+
+    return (true); 
+  }
+
+
+
+
+private:
+
+  void insert_elem_into_grid(typename LatVolMesh<Basis>::Elem::index_type idx);
+  void remove_elem_from_grid(typename LatVolMesh<Basis>::Elem::index_type idx);
+  void insert_node_into_grid(typename LatVolMesh<Basis>::Node::index_type idx);
+  void remove_node_from_grid(typename LatVolMesh<Basis>::Node::index_type idx);
+
+  void compute_node_grid(BBox& bb);
+  void compute_elem_grid(BBox& bb);
+  void compute_epsilon(BBox& bb);
+
   double polygon_area(const typename LatVolMesh<Basis>::Node::array_type &,
                       const Vector) const;
-  double pyramid_volume(const typename LatVolMesh<Basis>::Node::array_type &,
-                        const Point &)const;
   const Point &point(
                 const typename LatVolMesh<Basis>::Node::index_type &idx) const
   { return points_(idx.k_, idx.j_, idx.i_); }
@@ -478,10 +1030,13 @@ private:
 
   Array3<Point> points_;
 
-  LockingHandle<SearchGrid>           grid_;
+  LockingHandle<SearchGridT<typename LatVolMesh<Basis>::Node::index_type> >  node_grid_;
+  LockingHandle<SearchGridT<typename LatVolMesh<Basis>::Elem::index_type> >  elem_grid_;
+  
   Mutex                               synchronize_lock_;
   mask_type                           synchronized_;
   double                              epsilon_;
+  double                              epsilon2_; 
   double                              epsilon3_; //! for volumertic comparison
 };
 
@@ -493,10 +1048,12 @@ StructHexVolMesh<Basis>::structhexvol_typeid(StructHexVolMesh<Basis>::type_name(
 
 template <class Basis>
 StructHexVolMesh<Basis>::StructHexVolMesh():
-  grid_(0),
+  node_grid_(0),
+  elem_grid_(0),
   synchronize_lock_("Synchronize lock"),
   synchronized_(Mesh::ALL_ELEMENTS_E),
   epsilon_(0.0),
+  epsilon2_(0.0),
   epsilon3_(0.0)
 {
     //! Create a new virtual interface for this copy
@@ -512,10 +1069,12 @@ StructHexVolMesh<Basis>::StructHexVolMesh(size_type i,
                                           size_type k) :
   LatVolMesh<Basis>(i, j, k, Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)),
   points_(k, j, i),
-  grid_(0),
+  node_grid_(0),
+  elem_grid_(0),
   synchronize_lock_("Synchronize lock"),
   synchronized_(Mesh::ALL_ELEMENTS_E),
   epsilon_(0.0),
+  epsilon2_(0.0),
   epsilon3_(0.0)
 {
     //! Create a new virtual interface for this copy
@@ -528,26 +1087,24 @@ StructHexVolMesh<Basis>::StructHexVolMesh(size_type i,
 template <class Basis>
 StructHexVolMesh<Basis>::StructHexVolMesh(const StructHexVolMesh<Basis> &copy):
   LatVolMesh<Basis>(copy),
-  grid_(0),
+  node_grid_(0),
+  elem_grid_(0),
   synchronize_lock_("Synchronize lock"),
   synchronized_(Mesh::ALL_ELEMENTS_E),
-  epsilon_(copy.epsilon_),
-  epsilon3_(copy.epsilon3_)
+  epsilon_(0.0),
+  epsilon2_(0.0),
+  epsilon3_(0.0)
 {
-  points_.copy( copy.points_ );
-
   StructHexVolMesh &lcopy = (StructHexVolMesh &)copy;
   lcopy.synchronize_lock_.lock();
 
-  synchronized_ &= ~Mesh::LOCATE_E;
-  if (copy.grid_.get_rep())
-  {
-    grid_ = scinew SearchGrid(*(copy.grid_.get_rep()));
-  }
-  
-  synchronized_ |= copy.synchronized_ & Mesh::LOCATE_E;
-  synchronized_ |= copy.synchronized_ & Mesh::EPSILON_E;
+  points_.copy(copy.points_);
 
+  // Epsilon does not require much space, hence copy those
+  synchronized_ |= copy.synchronized_ & Mesh::EPSILON_E;
+  epsilon_  = copy.epsilon_;
+  epsilon2_ = copy.epsilon2_;
+  epsilon3_ = copy.epsilon3_;
 
   lcopy.synchronize_lock_.unlock();
   
@@ -610,7 +1167,8 @@ StructHexVolMesh<Basis>::transform(const Transform &t)
   }
 
   synchronize_lock_.lock();
-  if (grid_.get_rep()) { grid_->transform(t); }
+  if (node_grid_.get_rep()) { node_grid_->transform(t); }
+  if (elem_grid_.get_rep()) { elem_grid_->transform(t); }
   synchronize_lock_.unlock();
 
 }
@@ -684,181 +1242,129 @@ StructHexVolMesh<Basis>::get_center(Point &result,
   result.asVector() *= (1.0 / 8.0);
 }
 
-
 template <class Basis>
 bool
-StructHexVolMesh<Basis>::inside8_p( typename LatVolMesh<Basis>::Cell::index_type idx,
-				    const Point &p) const
+StructHexVolMesh<Basis>::find_closest_node(double& pdist, Point &result, 
+      typename LatVolMesh<Basis>::Node::index_type &node, const Point &p,
+      double maxdist) const
 {
-  static const int table[6][3][3] =
-  {{{0, 0, 0},
-    {0, 1, 0},
-    {0, 0, 1}},
-
-   {{0, 0, 0},
-    {1, 0, 0},
-    {0, 1, 0}},
-
-   {{0, 0, 0},
-    {0, 0, 1},
-    {1, 0, 0}},
-
-   {{1, 1, 1},
-    {1, 1, 0},
-    {1, 0, 1}},
-
-   {{1, 1, 1},
-    {1, 0, 1},
-    {0, 1, 1}},
-
-   {{1, 1, 1},
-    {0, 1, 1},
-    {1, 1, 0}}};
-
-  Point center;
-  get_center(center, idx);
-
-  for (int i = 0; i < 6; i++)
+  //! If there are no nodes we cannot find a closest point
+  if (this->ni_ == 0 || this->nj_ == 0 || this->nk_ == 0) return (false);
+  
+  if (maxdist < 0.0) maxdist = DBL_MAX; else maxdist = maxdist*maxdist;
+  
+  //! Check first guess
+  if (node.i_ >= 0 && node.i_ < this->ni_ &&
+      node.j_ >= 0 && node.j_ < this->nj_ &&
+      node.k_ >= 0 && node.k_ < this->nk_) 
   {
-    typename LatVolMesh<Basis>::Node::index_type n0(this,
-						    idx.i_ + table[i][0][0],
-						    idx.j_ + table[i][0][1],
-						    idx.k_ + table[i][0][2]);
-    typename LatVolMesh<Basis>::Node::index_type n1(this,
-						    idx.i_ + table[i][1][0],
-						    idx.j_ + table[i][1][1],
-						    idx.k_ + table[i][1][2]);
-    typename LatVolMesh<Basis>::Node::index_type n2(this,
-						    idx.i_ + table[i][2][0],
-						    idx.j_ + table[i][2][1],
-						    idx.k_ + table[i][2][2]);
-
-    Point p0, p1, p2;
-    get_center(p0, n0);
-    get_center(p1, n1);
-    get_center(p2, n2);
-
-    const Vector v0(p1 - p0), v1(p2 - p0);
-    const Vector normal = Cross(v0, v1);
-    const Vector off0(p - p0);
-    const Vector off1(center - p0);
-
-    double dotprod = Dot(off0, normal);
-
-    //! Account for round off - the point may be on the plane!!
-    if( fabs( dotprod ) < epsilon3_ )
-      continue;
-
-    //! If orientated correctly the second dot product is not needed.
-    //! Only need to check to see if the sign is negative.
-    if (dotprod * Dot(off1, normal) < 0.0)
-      return false;
-  }
-
-  return true;
-}
-
-
-template <class Basis>
-bool
-StructHexVolMesh<Basis>::locate(typename LatVolMesh<Basis>::Cell::index_type &cell,
-				const Point &p) const
-{
-  if (this->basis_.polynomial_order() > 1) return elem_locate(cell, *this, p);
-
-  //! Check last cell found first. Copy cache to cell first so that we
-  //! don't care about thread safeness, such that worst case on context
-  //! switch is that cache is not found.
-
-  if (cell.mesh_)
-  {
-    if (cell >= typename LatVolMesh<Basis>::Cell::index_type(this, 0, 0, 0) &&
-        cell < typename LatVolMesh<Basis>::Cell::index_type(this,
-							    this->ni_ - 1,
-                                                            this->nj_ - 1,
-                                                            this->nk_ - 1) &&
-        inside8_p(cell, p))
+    node.mesh_ = this;
+    Point point = points_(node.k_,node.j_,node.i_); 
+    double dist = (point-p).length2();
+    
+    if ( dist < epsilon2_ )
     {
-        return true;
-    }
-  }
+      result = point;
+      pdist = sqrt(dist);
+      return (true);
+    }           
+  } 
+  
+  ASSERTMSG(synchronized_ & Mesh::NODE_LOCATE_E,
+    "StructHexVolMesh::find_closest_node requires synchronize(NODE_LOCATE_E).")
 
-  ASSERTMSG(synchronized_ & Mesh::LOCATE_E,
-            "Must call synchronize LOCATE_E on HexVolMesh first.");
+  // get grid sizes
+  const size_type ni = node_grid_->get_ni()-1;
+  const size_type nj = node_grid_->get_nj()-1;
+  const size_type nk = node_grid_->get_nk()-1;
 
-  index_type *iter, *end;
-  if (grid_->lookup(&iter, &end, p))
+  // Convert to grid coordinates.
+  index_type bi, bj, bk, ei, ej, ek;
+  node_grid_->unsafe_locate(bi, bj, bk, p);
+
+  // Clamp to closest point on the grid.
+  if (bi > ni) bi = ni; if (bi < 0) bi = 0;
+  if (bj > nj) bj = nj; if (bj < 0) bj = 0;
+  if (bk > nk) bk = nk; if (bk < 0) bk = 0;
+
+  ei = bi; ej = bj; ek = bk;
+  
+  double dmin = maxdist;
+  bool found = true;
+  bool found_one = false;
+  
+  do 
   {
-    while (iter != end)
+    found = true; 
+    //! We need to do a full shell without any elements that are closer
+    //! to make sure there no closer elements in neighboring searchgrid cells
+  
+    for (index_type i = bi; i <= ei; i++)
     {
-      typename LatVolMesh<Basis>::Cell::index_type idx;
-
-      to_index(idx, *iter);
-
-      if( inside8_p(idx, p) )
+      if (i < 0 || i > ni) continue;
+      for (index_type j = bj; j <= ej; j++)
       {
-        cell = idx;
-        return true;
-      }
-      ++iter;
-    }
-  }
+        if (j < 0 || j > nj) continue;
+        for (index_type k = bk; k <= ek; k++)
+        {
+          if (k < 0 || k > nk) continue;
+          if (i == bi || i == ei || j == bj || j == ej || k == bk || k == ek)
+          {
+            if (node_grid_->min_distance_squared(p, i, j, k) < dmin)
+            {
+              typename SearchGridT<typename LatVolMesh<Basis>::Node::index_type>::iterator it, eit;
+              found = false;
+              node_grid_->lookup_ijk(it,eit, i, j, k);
 
-  return false;
-}
-
-
-template <class Basis>
-bool
-StructHexVolMesh<Basis>::locate(typename LatVolMesh<Basis>::Node::index_type &node,
-				const Point &p) const
-{
-  node.mesh_ = this;
-  typename LatVolMesh<Basis>::Cell::index_type ci;
-  if (locate(ci, p)) { //! first try the fast way.
-    typename LatVolMesh<Basis>::Node::array_type nodes;
-    get_nodes(nodes, ci);
-
-    double dmin =
-      (p - points_(nodes[0].k_, nodes[0].j_, nodes[0].i_)).length2();
-    node = nodes[0];
-    for (size_t i = 1; i < nodes.size(); i++)
-    {
-      const double d =
-        (p - points_(nodes[i].k_, nodes[i].j_, nodes[i].i_)).length2();
-      if (d < dmin)
-      {
-        dmin = d;
-        node = nodes[i];
+              while (it != eit)
+              {
+                const typename LatVolMesh<Basis>::Node::index_type idx = *it;
+                const Point point = points_(idx.k_,idx.j_,idx.i_);
+                const double dist = (p-point).length2();
+                
+                if (dist < dmin) 
+                { 
+                  found_one = true;
+                  result = point; 
+                  node = idx; 
+                  dmin = dist; 
+                  //! If we are closer than eps^2 we found a node close enough
+                  if (dmin < epsilon2_) 
+                  {
+                    pdist = sqrt(dmin);
+                    return (true);
+                  }
+                }
+                ++it;
+              }
+            }
+          }
+        }
       }
     }
-    return true;
-  }
-  else
-  {  //! do exhaustive search.
-    typename LatVolMesh<Basis>::Node::iterator ni, nie;
-    begin(ni);
-    end(nie);
-    if (ni == nie) { return false; }
+    bi--;ei++;
+    bj--;ej++;
+    bk--;ek++;
+  } 
+  while ((!found)||(dmin == DBL_MAX)) ;
 
-    double min_dist = (p - points_((*ni).k_, (*ni).j_, (*ni).i_)).length2();
-    node = *ni;
-    ++ni;
+  if (!found_one) return (false);
 
-    while (ni != nie)
-    {
-      const double dist =
-        (p - points_((*ni).k_, (*ni).j_, (*ni).i_)).length2();
-      if (dist < min_dist)
-      {
-        node = *ni;
-        min_dist = dist;
-      }
-      ++ni;
-    }
-    return true;
-  }
+  pdist = sqrt(dmin);
+  return (true);
 }
+
+  //! Find the closest elements to a point  
+template<class Basis>  
+bool 
+StructHexVolMesh<Basis>::find_closest_elems(double& pdist, Point &result, 
+  vector<typename LatVolMesh<Basis>::Elem::index_type> &elems, 
+  const Point &p) const
+{  
+  ASSERTFAIL("StructHexVolMesh: Find closest element has not yet been implemented.");  
+  return (false);
+}
+
 
 
 template <class Basis>
@@ -868,7 +1374,7 @@ StructHexVolMesh<Basis>::get_weights(const Point &p,
                                      double *w)
 {
   typename LatVolMesh<Basis>::Cell::index_type idx;
-  if (locate(idx, p))
+  if (locate_elem(idx, p))
   {
     get_nodes(l,idx);
     vector<double> coords(3);
@@ -889,7 +1395,7 @@ StructHexVolMesh<Basis>::get_weights(const Point &p,
                                      double *w)
 {
   typename LatVolMesh<Basis>::Cell::index_type idx;
-  if (locate(idx, p))
+  if (locate_elem(idx, p))
   {
     l.resize(1);
     l[0] = idx;
@@ -973,79 +1479,10 @@ StructHexVolMesh<Basis>::polygon_area(const typename LatVolMesh<Basis>::Node::ar
 }
 
 
-template <class Basis>
-double
-StructHexVolMesh<Basis>::pyramid_volume(const typename LatVolMesh<Basis>::Node::array_type &face,
-					const Point &p) const
-{
-  Vector e1(point(face[1])-point(face[0]));
-  Vector e2(point(face[1])-point(face[2]));
-  if (Cross(e1,e2).length2()>0.0)
-  {
-    Plane plane(point(face[0]), point(face[1]), point(face[2]));
-    //! double dist = plane.eval_point(p);
-    return fabs(plane.eval_point(p)*polygon_area(face,plane.normal())*0.25);
-  }
-  Vector e3(point(face[3])-point(face[2]));
-  if (Cross(e2,e3).length2()>0.0) {
-    Plane plane(point(face[1]), point(face[2]), point(face[3]));
-    //! double dist = plane.eval_point(p);
-    return fabs(plane.eval_point(p)*polygon_area(face,plane.normal())*0.25);
-  }
-  return 0.0;
-}
-
-
 inline double tri_area(const Point &a, const Point &b, const Point &c)
 {
   return (0.5*Cross((a-b),(b-c)).length());
 }
-
-
-template <class Basis>
-void
-StructHexVolMesh<Basis>::compute_grid()
-{
-
-  BBox bb = get_bounding_box();
-  if (bb.valid())
-  {
-    //! Cubed root of number of cells to get a subdivision ballpark.
-    typename LatVolMesh<Basis>::Cell::size_type csize;  size(csize);
-    const int s = (int)(ceil(pow((double)csize , (1.0/3.0)))) / 2 + 1;
-    const Vector cell_epsilon = bb.diagonal() * (1.0e-4 / s);
-    bb.extend(bb.min() - cell_epsilon*2);
-    bb.extend(bb.max() + cell_epsilon*2);
-
-    SearchGridConstructor sgc(s, s, s, bb.min(), bb.max());
-
-    BBox box;
-    typename LatVolMesh<Basis>::Node::array_type nodes;
-    typename LatVolMesh<Basis>::Cell::iterator ci, cie;
-    begin(ci); end(cie);
-    while(ci != cie)
-    {
-      get_nodes(nodes, *ci);
-
-      box.reset();
-      for (size_t i = 0; i < nodes.size(); i++)
-      {
-        box.extend(points_(nodes[i].k_, nodes[i].j_, nodes[i].i_));
-      }
-      const Point padmin(box.min() - cell_epsilon);
-      const Point padmax(box.max() + cell_epsilon);
-      box.extend(padmin);
-      box.extend(padmax);
-
-      sgc.insert(*ci, box);
-
-      ++ci;
-    }
-
-    grid_ = scinew SearchGrid(sgc);
-  }
-}
-
 
 template <class Basis>
 double
@@ -1196,25 +1633,40 @@ StructHexVolMesh<Basis>::get_random_point(Point &p,
 
 template <class Basis>
 bool
-StructHexVolMesh<Basis>::synchronize(unsigned int tosync)
+StructHexVolMesh<Basis>::synchronize(mask_type sync)
 {
   synchronize_lock_.lock();
  
-  if (tosync & Mesh::LOCATE_E && !(synchronized_ & Mesh::LOCATE_E))
+  if (sync & (Mesh::NODE_LOCATE_E|Mesh::ELEM_LOCATE_E|Mesh::EPSILON_E
+              |Mesh::FIND_CLOSEST_E|Mesh::ELEM_LOCATE_E) && 
+      ( !(synchronized_ & Mesh::NODE_LOCATE_E) ||
+        !(synchronized_ & Mesh::ELEM_LOCATE_E) ||
+        !(synchronized_ & Mesh::EPSILON_E) ))
   {
-    compute_grid();
-    synchronized_ |= Mesh::LOCATE_E;
-    if (!(synchronized_ & Mesh::EPSILON_E))
-    {
-      compute_epsilon();
-      synchronized_ |= Mesh::EPSILON_E;
-    }
-  }
+    //! These computations share the evalution of the bounding box
+    BBox bb = get_bounding_box(); 
 
-  if (tosync & Mesh::EPSILON_E && !(synchronized_ & Mesh::EPSILON_E))
-  {  
-    compute_epsilon();
-    synchronized_ |= Mesh::EPSILON_E;  
+    //! Compute the epsilon for geometrical closeness comparisons
+    //! Mainly used by the grid lookup tables
+    if (sync & (Mesh::EPSILON_E|Mesh::LOCATE_E|Mesh::FIND_CLOSEST_E) && 
+        !(synchronized_ & Mesh::EPSILON_E))
+    {
+      compute_epsilon(bb);
+    }
+
+    //! Table for finding nodes in space
+    if (sync & (Mesh::NODE_LOCATE_E|Mesh::FIND_CLOSEST_NODE_E) && 
+        !(synchronized_ & Mesh::NODE_LOCATE_E))
+    {
+      compute_node_grid(bb);
+    }
+
+    //! Table for finding elements in space
+    if (sync & (Mesh::ELEM_LOCATE_E|Mesh::FIND_CLOSEST_ELEM_E) && 
+        !(synchronized_ & Mesh::ELEM_LOCATE_E))
+    {
+      compute_elem_grid(bb);
+    }
   }
 
   synchronize_lock_.unlock();
@@ -1224,16 +1676,163 @@ StructHexVolMesh<Basis>::synchronize(unsigned int tosync)
 
 template <class Basis>
 bool
-StructHexVolMesh<Basis>::unsynchronize(unsigned int tosync)
+StructHexVolMesh<Basis>::unsynchronize(mask_type sync)
 {
   return true;
 }
 
 template <class Basis>
-void
-StructHexVolMesh<Basis>::compute_epsilon()
+bool
+StructHexVolMesh<Basis>::clear_synchronization()
 {
-  epsilon_ = get_bounding_box().diagonal().length()*1e-8;
+  synchronize_lock_.lock();
+
+  // Undo marking the synchronization 
+  synchronized_ = Mesh::NODES_E | Mesh::ELEMS_E | Mesh::CELLS_E;
+
+  // Free memory where possible
+  
+  node_grid_ = 0;
+  elem_grid_ = 0;
+
+  synchronize_lock_.unlock();
+  
+  return (true);
+}
+
+
+template <class Basis>
+void
+StructHexVolMesh<Basis>::insert_elem_into_grid(typename LatVolMesh<Basis>::Elem::index_type idx)
+{
+  // TODO:  This can crash if you insert a new cell outside of the grid.
+  // Need to recompute grid at that point.
+
+  BBox box;
+  box.extend(points_(idx.k_,idx.j_,idx.i_));
+  box.extend(points_(idx.k_+1,idx.j_,idx.i_));
+  box.extend(points_(idx.k_,idx.j_+1,idx.i_));
+  box.extend(points_(idx.k_+1,idx.j_+1,idx.i_));
+  box.extend(points_(idx.k_,idx.j_,idx.i_+1));
+  box.extend(points_(idx.k_+1,idx.j_,idx.i_+1));
+  box.extend(points_(idx.k_,idx.j_+1,idx.i_+1));
+  box.extend(points_(idx.k_+1,idx.j_+1,idx.i_+1));
+  box.extend(epsilon_);
+  elem_grid_->insert(idx, box);
+}
+
+
+template <class Basis>
+void
+StructHexVolMesh<Basis>::remove_elem_from_grid(typename LatVolMesh<Basis>::Elem::index_type idx)
+{
+  BBox box;
+  box.extend(points_(idx.k_,idx.j_,idx.i_));
+  box.extend(points_(idx.k_+1,idx.j_,idx.i_));
+  box.extend(points_(idx.k_,idx.j_+1,idx.i_));
+  box.extend(points_(idx.k_+1,idx.j_+1,idx.i_));
+  box.extend(points_(idx.k_,idx.j_,idx.i_+1));
+  box.extend(points_(idx.k_+1,idx.j_,idx.i_+1));
+  box.extend(points_(idx.k_,idx.j_+1,idx.i_+1));
+  box.extend(points_(idx.k_+1,idx.j_+1,idx.i_+1));
+  box.extend(epsilon_);
+  elem_grid_->remove(idx, box);
+}
+
+
+template <class Basis>
+void
+StructHexVolMesh<Basis>::insert_node_into_grid(typename LatVolMesh<Basis>::Node::index_type ni)
+{
+  // TODO:  This can crash if you insert a new cell outside of the grid.
+  // Need to recompute grid at that point.
+  node_grid_->insert(ni,points_[ni]);
+}
+
+
+template <class Basis>
+void
+StructHexVolMesh<Basis>::remove_node_from_grid(typename LatVolMesh<Basis>::Node::index_type ni)
+{
+  node_grid_->remove(ni,points_[ni]);
+}
+
+template <class Basis>
+void
+StructHexVolMesh<Basis>::compute_elem_grid(BBox& bb)
+{
+  if (bb.valid())
+  {
+    // Cubed root of number of cells to get a subdivision ballpark.
+    
+    const size_type esz = (this->ni_-1)*(this->nj_-1)*(this->nk_-1);
+    
+    const size_type s = 
+      3*static_cast<size_type>((ceil(pow(static_cast<double>(esz) , (1.0/3.0))))/2.0 + 1.0);
+
+    Vector diag  = bb.diagonal();
+    double trace = (diag.x()+diag.y()+diag.z());
+    size_type sx = static_cast<size_type>(ceil(diag.x()/trace*s));
+    size_type sy = static_cast<size_type>(ceil(diag.y()/trace*s));
+    size_type sz = static_cast<size_type>(ceil(diag.z()/trace*s));
+    
+    BBox b = bb; b.extend(10*epsilon_);
+    elem_grid_ = new SearchGridT<typename LatVolMesh<Basis>::Elem::index_type>(sx, sy, sz, b.min(), b.max());
+
+    typename LatVolMesh<Basis>::Elem::iterator ci, cie;
+    begin(ci); end(cie);
+    while(ci != cie)
+    {
+      insert_elem_into_grid(*ci);
+      ++ci;
+    }
+  }
+
+  synchronized_ |= Mesh::ELEM_LOCATE_E;
+}
+
+template <class Basis>
+void
+StructHexVolMesh<Basis>::compute_node_grid(BBox& bb)
+{
+  if (bb.valid())
+  {
+    // Cubed root of number of cells to get a subdivision ballpark.
+    
+    const size_type esz = (this->ni_)*(this->nj_)*(this->nk_);
+    
+    const size_type s =  3*static_cast<size_type>
+                  ((ceil(pow(static_cast<double>(esz) , (1.0/3.0))))/2.0 + 1.0);
+
+    Vector diag  = bb.diagonal();
+    double trace = (diag.x()+diag.y()+diag.z());
+    size_type sx = static_cast<size_type>(ceil(diag.x()/trace*s));
+    size_type sy = static_cast<size_type>(ceil(diag.y()/trace*s));
+    size_type sz = static_cast<size_type>(ceil(diag.z()/trace*s));
+    
+    BBox b = bb; b.extend(10*epsilon_);
+    node_grid_ = new SearchGridT<typename LatVolMesh<Basis>::Node::index_type>(sx, sy, sz, b.min(), b.max());
+
+    typename LatVolMesh<Basis>::Node::iterator ni, nie;
+    begin(ni); end(nie);
+    while(ni != nie)
+    {
+      insert_node_into_grid(*ni);
+      ++ni;
+    }
+  }
+
+  synchronized_ |= Mesh::NODE_LOCATE_E;
+}
+
+
+
+template <class Basis>
+void
+StructHexVolMesh<Basis>::compute_epsilon(BBox& bb)
+{
+  epsilon_ = bb.diagonal().length()*1e-8;
+  epsilon2_ = epsilon_*epsilon_;
   epsilon3_ = epsilon_*epsilon_*epsilon_;
   synchronized_ |= Mesh::EPSILON_E;
 }
@@ -1305,9 +1904,9 @@ get_type_description(StructHexVolMesh<Basis> *)
   if (!td)
   {
     const TypeDescription *sub = SCIRun::get_type_description((Basis*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("StructHexVolMesh", subs,
+    td = new TypeDescription("StructHexVolMesh", subs,
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1333,7 +1932,7 @@ StructHexVolMesh<Basis>::node_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((StructHexVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Node",
+    td = new TypeDescription(me->get_name() + "::Node",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1351,7 +1950,7 @@ StructHexVolMesh<Basis>::edge_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((StructHexVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Edge",
+    td = new TypeDescription(me->get_name() + "::Edge",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1369,7 +1968,7 @@ StructHexVolMesh<Basis>::face_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((StructHexVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Face",
+    td = new TypeDescription(me->get_name() + "::Face",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1387,7 +1986,7 @@ StructHexVolMesh<Basis>::cell_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((StructHexVolMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Cell",
+    td = new TypeDescription(me->get_name() + "::Cell",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);

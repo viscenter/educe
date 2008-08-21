@@ -40,9 +40,9 @@
  *  Copyright (C) 2007 SCI Institute
  */
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/Field.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
@@ -418,7 +418,7 @@ ShowFieldGlyphs::ShowFieldGlyphs(GuiContext* ctx) :
   text_show_edges_(get_ctx()->subVar("text_show_edges"), 0),
   text_show_faces_(get_ctx()->subVar("text_show_faces"), 0),
   text_show_cells_(get_ctx()->subVar("text_show_cells"), 0),
-  text_material_(scinew Material(Color(0.75, 0.75, 0.75))),
+  text_material_(new Material(Color(0.75, 0.75, 0.75))),
 
   field_data_basis_type_("none"),
 
@@ -426,7 +426,7 @@ ShowFieldGlyphs::ShowFieldGlyphs(GuiContext* ctx) :
   def_color_g_(get_ctx()->subVar("def_color-g"), 0.5),
   def_color_b_(get_ctx()->subVar("def_color-b"), 0.5),
   def_color_a_(get_ctx()->subVar("def_color-a"), 0.5),
-  def_material_(scinew Material(Color(0.5, 0.5, 0.5))),
+  def_material_(new Material(Color(0.5, 0.5, 0.5))),
 
   active_tab_(get_ctx()->subVar("active_tab"), "Text"),
   interactive_mode_(get_ctx()->subVar("interactive_mode"), "Interactive"),
@@ -717,10 +717,10 @@ ShowFieldGlyphs::execute()
 	  sfld_handle->has_virtual_interface() &&
 	  tfld_handle->has_virtual_interface())
       {
-        text_renderer_ = scinew RenderFieldV;
-        scalar_renderer_ = scinew RenderScalarFieldV;
-        vector_renderer_ = scinew RenderVectorFieldV;
-        tensor_renderer_ = scinew RenderTensorFieldV;
+        text_renderer_ = new RenderFieldV;
+        scalar_renderer_ = new RenderScalarFieldV;
+        vector_renderer_ = new RenderVectorFieldV;
+        tensor_renderer_ = new RenderTensorFieldV;
         
         BBox bbox = pfld_handle->vmesh()->get_bounding_box();
      
@@ -1031,8 +1031,8 @@ ShowFieldGlyphs::execute()
 // 				    render_state_[SECONDARY],
 // 				    render_state_[TERTIARY]);
 
-//     GeomHandle gmat = scinew GeomMaterial(data_geometry, def_material_);
-//     GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
+//     GeomHandle gmat = new GeomMaterial(data_geometry, def_material_);
+//     GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
 //     if (data_id_) ogeom_->delObj(data_id_);
 //     data_id_ = ogeom_->addObj(geom, fname +
 // 			      (scalars_transparency_.get()?"Transparent Scalars":"Scalars"));
@@ -1053,8 +1053,8 @@ ShowFieldGlyphs::execute()
 // 				    render_state_[SECONDARY],
 // 				    render_state_[TERTIARY]);
 
-//     GeomHandle gmat = scinew GeomMaterial(data_geometry, def_material_);
-//     GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
+//     GeomHandle gmat = new GeomMaterial(data_geometry, def_material_);
+//     GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
 //     const string vdname = vectors_transparency_.get() ?
 //       "Transparent Vectors":
 //       ((vectors_display_type_.get()=="Needles" ||
@@ -1079,8 +1079,8 @@ ShowFieldGlyphs::execute()
 // 				    render_state_[SECONDARY],
 // 				    render_state_[TERTIARY]);
 
-//     GeomHandle gmat = scinew GeomMaterial(data_geometry, def_material_);
-//     GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
+//     GeomHandle gmat = new GeomMaterial(data_geometry, def_material_);
+//     GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
 //     const string tdname = tensors_transparency_.get() ?
 //       "Transparent Tensors":"Tensors";
 
@@ -1120,8 +1120,8 @@ ShowFieldGlyphs::execute()
 //				    render_state_[SECONDARY],
 //				    render_state_[TERTIARY]);
 //      
-//    GeomHandle gmat = scinew GeomMaterial(data_geometry, def_material_);
-//    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
+//    GeomHandle gmat = new GeomMaterial(data_geometry, def_material_);
+//    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
       */    
       const string gdname = glyphs_transparency_.get() ?
       "Transparent Glyphs":"Glyphs";
@@ -1148,8 +1148,8 @@ ShowFieldGlyphs::execute()
 				  text_show_cells_.get(),
 				  text_always_visible_.get());
     
-    GeomHandle gmat = scinew GeomMaterial(text_geometry, text_material_);
-    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
+    GeomHandle gmat = new GeomMaterial(text_geometry, text_material_);
+    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
     if (text_id_) ogeom_->delObj(text_id_);
     text_id_ = ogeom_->addObj(geom, fname +
 			      (text_backface_cull_.get()?"Culled Text Data":"Text Data"));

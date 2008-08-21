@@ -38,17 +38,10 @@
  *  Copyright (C) 1994 SCI Group
  */
 
-/*
- * Limitations:
- *   Uses .tcl file with "filename"
- *   Output port must be of type SimpleOPort
- */
-
-
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Core/Datatypes/String.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Module.h>
 #include <sys/stat.h>
 
@@ -60,7 +53,7 @@ class GenericReader : public Module
 public:
   GenericReader(const string &name, GuiContext* ctx,
 		const string &category, const string &package);
-  virtual ~GenericReader();
+  virtual ~GenericReader() {}
 
   virtual void execute();
 
@@ -87,11 +80,6 @@ GenericReader<HType>::GenericReader(const string &name, GuiContext* ctx,
 {
 }
 
-template <class HType>
-GenericReader<HType>::~GenericReader()
-{
-}
-
 
 template <class HType>
 bool
@@ -106,7 +94,6 @@ template <class HType>
 void
 GenericReader<HType>::execute()
 {
-
   bool filename_changed = gui_filename_.changed();
   
   if (gui_from_env_.get() != "")
@@ -155,18 +142,15 @@ GenericReader<HType>::execute()
 
   // If we haven't read yet, or if it's a new filename, 
   //  or if the datestamp has changed -- then read...
-#ifdef __sgi
-  time_t new_filemodification = buf.st_mtim.tv_sec;
-#else
+
   time_t new_filemodification = buf.st_mtime;
-#endif
 
   if( inputs_changed_ || filename_changed ||
       new_filemodification != old_filemodification_ ||
       !oport_cached(0) ||
       !oport_cached("Filename") )
   {
-  
+    update_state(Executing);  
     old_filemodification_ = new_filemodification;
 
     HType handle;
@@ -183,7 +167,7 @@ GenericReader<HType>::execute()
     }
     else
     {
-      Piostream *stream = auto_istream(filename, this);
+      Piostream *stream = auto_istream(filename, 0);
       if (!stream)
       {
         error("Error reading file '" + filename + "'.");
@@ -205,7 +189,7 @@ GenericReader<HType>::execute()
 
     send_output_handle(0, handle);
 
-    shandle = (StringHandle) scinew String(gui_filename_.get());
+    shandle = (StringHandle) new String(gui_filename_.get());
     send_output_handle("Filename", shandle);
   }
 

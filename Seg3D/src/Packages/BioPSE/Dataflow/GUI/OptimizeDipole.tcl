@@ -33,36 +33,36 @@ itcl_class BioPSE_Inverse_OptimizeDipole {
     inherit Module
 
     constructor {config} {
-	set name OptimizeDipole
-	set_defaults
+      set name OptimizeDipole
+      set_defaults
     }
 
     method set_defaults {} {	
-	global $this-use_cache_gui_
-	set $this-use_cache_gui_ 1
+      global $this-use_cache_gui_
+      set $this-use_cache_gui_ 1
     }
 
     method ui {} {
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    raise $w
-	    return;
-	}
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          raise $w
+          return;
+      }
 	
-        toplevel $w
-	wm minsize $w 100 50
-	
-	set n "$this-c needexecute "
-        
-	frame $w.g
-        button $w.g.go -text "Execute" -relief raised -command $n 
-        button $w.g.p -text "Pause" -relief raised -command "$this-c pause"
-        button $w.g.np -text "Unpause" -relief raised -command "$this-c unpause"
-	button $w.g.stop -text "Stop" -relief raised -command "$this-c stop"
-	pack $w.g.go $w.g.p $w.g.np $w.g.stop -side left -fill x
-	global $this-use_cache_gui_
-	checkbutton $w.b -text "UseCache" -variable $this-use_cache_gui_
-	pack $w.g $w.b -side top -fill x
+      sci_toplevel $w
+      wm minsize $w 100 50
+      
+      set n "$this-c needexecute "
+            
+      sci_frame $w.g
+      sci_button $w.g.go -text "Execute" -relief raised -command $n 
+      sci_button $w.g.p -text "Pause" -relief raised -command "$this-c pause"
+      sci_button $w.g.np -text "Unpause" -relief raised -command "$this-c unpause"
+      sci_button $w.g.stop -text "Stop" -relief raised -command "$this-c stop"
+      pack $w.g.go $w.g.p $w.g.np $w.g.stop -side left -fill x
+      global $this-use_cache_gui_
+      sci_checkbutton $w.b -text "UseCache" -variable $this-use_cache_gui_
+      pack $w.g $w.b -side top -fill x
     }
 }
 

@@ -48,7 +48,7 @@
 #include <Core/Geom/GeomPick.h>
 #include <Core/Geom/GeomCylinder.h>
 #include <Core/Containers/StringUtil.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Constraints/DistanceConstraint.h>
 
@@ -85,11 +85,11 @@ ArrowWidget::ArrowWidget( Module* module, CrowdMonitor* lock,
     direction(1, 0, 0)
 {
   length = 1;
-  variables[PointVar] = scinew PointVariable("Point", solve, Scheme1, Point(0, 0, 0));
-  variables[HeadVar]  = scinew PointVariable("Head", solve, Scheme1, Point(length, 0, 0));
-  variables[DistVar]  = scinew RealVariable("Dist", solve,  Scheme1, length);
+  variables[PointVar] = new PointVariable("Point", solve, Scheme1, Point(0, 0, 0));
+  variables[HeadVar]  = new PointVariable("Head", solve, Scheme1, Point(length, 0, 0));
+  variables[DistVar]  = new RealVariable("Dist", solve,  Scheme1, length);
 
-  constraints[ConstDist]=scinew DistanceConstraint("ConstDist",
+  constraints[ConstDist]=new DistanceConstraint("ConstDist",
 						   NumSchemes,
 						   variables[PointVar],
 						   variables[HeadVar],
@@ -99,28 +99,28 @@ ArrowWidget::ArrowWidget( Module* module, CrowdMonitor* lock,
   constraints[ConstDist]->Priorities(P_Lowest, P_Lowest, P_Highest);
 
 						
-  geometries[GeomPoint] = scinew GeomSphere;
-  picks_[PointP] = scinew GeomPick(geometries[GeomPoint], module, this, PointP);
+  geometries[GeomPoint] = new GeomSphere;
+  picks_[PointP] = new GeomPick(geometries[GeomPoint], module, this, PointP);
   picks(PointP)->set_highlight(DefaultHighlightMaterial);
-  materials[PointMatl] = scinew GeomMaterial(picks_[PointP], DefaultPointMaterial);
+  materials[PointMatl] = new GeomMaterial(picks_[PointP], DefaultPointMaterial);
   CreateModeSwitch(0, materials[PointMatl]);
 
-  geometries[GeomShaft] = scinew GeomCylinder;
-  picks_[ShaftP] = scinew GeomPick(geometries[GeomShaft], module, this, ShaftP);
+  geometries[GeomShaft] = new GeomCylinder;
+  picks_[ShaftP] = new GeomPick(geometries[GeomShaft], module, this, ShaftP);
   picks(ShaftP)->set_highlight(DefaultHighlightMaterial);
-  materials[ShaftMatl] = scinew GeomMaterial(picks_[ShaftP], DefaultEdgeMaterial);
+  materials[ShaftMatl] = new GeomMaterial(picks_[ShaftP], DefaultEdgeMaterial);
   CreateModeSwitch(1, materials[ShaftMatl]);
 
-  geometries[GeomHead] = scinew GeomCappedCone;
-  picks_[HeadP] = scinew GeomPick(geometries[GeomHead], module, this, HeadP);
+  geometries[GeomHead] = new GeomCappedCone;
+  picks_[HeadP] = new GeomPick(geometries[GeomHead], module, this, HeadP);
   picks(HeadP)->set_highlight(DefaultHighlightMaterial);
-  materials[HeadMatl] = scinew GeomMaterial(picks_[HeadP], DefaultEdgeMaterial);
+  materials[HeadMatl] = new GeomMaterial(picks_[HeadP], DefaultEdgeMaterial);
   CreateModeSwitch(2, materials[HeadMatl]);
 
-  geometries[GeomResize] = scinew GeomCappedCylinder;
-  picks_[ResizeP] = scinew GeomPick(geometries[GeomResize], module, this, ResizeP);
+  geometries[GeomResize] = new GeomCappedCylinder;
+  picks_[ResizeP] = new GeomPick(geometries[GeomResize], module, this, ResizeP);
   picks(ResizeP)->set_highlight(DefaultHighlightMaterial);
-  materials[ResizeMatl] = scinew GeomMaterial(picks_[ResizeP], DefaultResizeMaterial);
+  materials[ResizeMatl] = new GeomMaterial(picks_[ResizeP], DefaultResizeMaterial);
   CreateModeSwitch(3, materials[ResizeMatl]);
 
   SetMode(Mode0, Switch0|Switch1|Switch2);

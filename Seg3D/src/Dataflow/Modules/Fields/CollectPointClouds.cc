@@ -50,7 +50,7 @@ class CollectPointClouds : public Module
 {
 public:
   CollectPointClouds(GuiContext* ctx);
-  virtual ~CollectPointClouds();
+  virtual ~CollectPointClouds() {}
 
   virtual void execute();
   virtual void tcl_command(GuiArgs& args, void* userdata);
@@ -76,12 +76,6 @@ CollectPointClouds::CollectPointClouds(GuiContext* ctx)
     field_output_handle_(0)
 {
 }
-
-
-CollectPointClouds::~CollectPointClouds()
-{
-}
-
 
 void
 CollectPointClouds::execute()

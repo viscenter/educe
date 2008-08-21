@@ -26,11 +26,12 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
+#include <Core/Datatypes/Matrix.h>
+
+#include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Datatypes/Matrix.h>
-#include <Dataflow/Network/Module.h>
 
 using namespace SCIRun;
 
@@ -72,7 +73,7 @@ GetMatricesFromBundle::GetMatricesFromBundle(GuiContext* ctx)
     guitransposenrrd4_(get_ctx()->subVar("transposenrrd4"), 0),
     guitransposenrrd5_(get_ctx()->subVar("transposenrrd5"), 0),
     guitransposenrrd6_(get_ctx()->subVar("transposenrrd6"), 0),
-    guimatrices_(get_ctx()->subVar("matrix-selection"), "")
+    guimatrices_(get_ctx()->subVar("matrix-selection",false), "")
 {
 }
 
@@ -83,7 +84,7 @@ GetMatricesFromBundle::execute()
   BundleHandle handle;
   
   // Get data from input port:
-  if (!(get_input_handle("bundle",handle,true))) return;
+  get_input_handle("bundle",handle,true);
   
   if (inputs_changed_ || guimatrix1name_.changed() || 
       guimatrix2name_.changed() || guimatrix3name_.changed() || 
@@ -96,6 +97,8 @@ GetMatricesFromBundle::execute()
       !oport_cached("matrix3") || !oport_cached("matrix4") ||
       !oport_cached("matrix5") || !oport_cached("matrix6"))
   {
+    update_state(Executing);
+  
     MatrixHandle fhandle;
     std::string matrix1name = guimatrix1name_.get();
     std::string matrix2name = guimatrix2name_.get();

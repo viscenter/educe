@@ -159,11 +159,15 @@ proc biopseIconList_Config {w argList} {
 proc biopseIconList_Create {w} {
     upvar #0 $w data
 
-    frame $w
+    global Color
+
+    frame $w -background $Color(UIBackGround)
     set data(sbar)   [scrollbar $w.sbar -orient horizontal \
-        -highlightthickness 0 -takefocus 0]
-    set data(canvas) [canvas $w.canvas -bd 2 -relief sunken \
-        -width 400 -height 120 -takefocus 1]
+        -highlightthickness 0 -takefocus 0 -elementborderwidth 1 \
+      -bd 1 -troughcolor $Color(ButtonBackGround) \
+      -background $Color(UIBackGround) ]
+    set data(canvas) [canvas $w.canvas -bd 1 -relief sunken \
+        -width 400 -height 120 -takefocus 1 -background $Color(EditBackGround)]
     pack $data(sbar) -side bottom -fill x -padx 2
     pack $data(canvas) -expand yes -fill both
 
@@ -779,34 +783,37 @@ proc biopseFDialog {argstring} {
     # so we know how big it wants to be, then center the window in the
     # display and de-iconify it.
 
-    wm withdraw $w
-    update idletasks
     set x [expr {[winfo screenwidth $w]/2 - [winfo reqwidth $w]/2 \
             - [winfo vrootx [winfo parent $w]]}]
     set y [expr {[winfo screenheight $w]/2 - [winfo reqheight $w]/2 \
             - [winfo vrooty [winfo parent $w]]}]
-    wm geom $w [winfo reqwidth $w]x[winfo reqheight $w]+$x+$y
+ 
+    if {![string compare $data(-donotresize) ""]} {
+      wm withdraw $w
+      update idletasks
+      wm geom $w [winfo reqwidth $w]x[winfo reqheight $w]+$x+$y
+    }
     wm title $w $data(-title)
-
+    
     # 7. Set a grab and claim the focus too.
 
-    set oldFocus [focus]
-    set oldGrab [grab current $w]
-    if {$oldGrab != ""} {
-        set grabStatus [grab status $oldGrab]
-    }
-
-    grab $w
-    focus $data(ent)
-    $data(ent) delete 0 end
-
-    $data(ent) insert 0 $data(selectFile)
-    $data(ent) select from 0
-    $data(ent) select to   end
-    $data(ent) icursor end
-
-    catch {focus $oldFocus}
-    grab release $w
+#    set oldFocus [focus]
+#    set oldGrab [grab current $w]
+#    if {$oldGrab != ""} {
+#        set grabStatus [grab status $oldGrab]
+#    }
+#
+#    grab $w
+#    focus $data(ent)
+#    $data(ent) delete 0 end
+#
+#    $data(ent) insert 0 $data(selectFile)
+#    $data(ent) select from 0
+#    $data(ent) select to   end
+#    $data(ent) icursor end
+#
+#    catch {focus $oldFocus}
+#    grab release $w
 
     # For now, return the window that this thing created so other
     # parts of the code can deal with it... sigh.
@@ -842,6 +849,7 @@ proc biopseFDialog_Config {w type argList} {
             {-numbervar  "" "" ""}
             {-delayvar  "" "" ""}
             {-pinnedvar "" "" ""}
+            {-donotresize "" "" ""}
         }
         set data(-initialfile) ""
     } else {
@@ -875,6 +883,7 @@ proc biopseFDialog_Config {w type argList} {
             {-numbervar  "" "" ""}
             {-delayvar  "" "" ""}
             {-pinnedvar "" "" ""}
+            {-donotresize "" "" ""}
         }
     }
 
@@ -899,6 +908,8 @@ proc biopseFDialog_Config {w type argList} {
     }
     
     # 4.a: setting initial file to the filevar contents, if it is specified
+    global $data(-filevar)
+    
     if { [info exists $data(-filevar)]} {
 
         set tmp [set $data(-filevar)]
@@ -953,18 +964,35 @@ proc biopseFDialog_Create {w} {
 
     upvar #0 $dataName data
     upvar #0 $w data
-    global tk_library command
+    global Color tk_library command
 
     # toplevel is now created in the modules UI function (as it should be)
-    #toplevel $w -class TkFDialog
+    #toplevel $w -class TkFDialog -background $Color(UIBackGround)
+    $w configure -background $Color(UIBackGround)
 
     # f1: the frame with the directory option menu
-    set f1 [frame $w.f1]
-    label $f1.lab -text "Directory:" -under 0
+    set f1 [frame $w.f1 -background $Color(UIBackGround)]
+    label $f1.lab -text "Directory:" -under 0 -background $Color(UIBackGround) \
+      -foreground $Color(UIForeGround)
     set data(dirMenuBtn) $f1.menu
     set data(dirMenu) [tk_optionMenu $f1.menu [format .%s(selectPath) $dataName] ""]
-    
-    set data(upBtn) [button $f1.up]
+    $f1.menu configure  -bd $Color(BorderWidth) \
+                        -background $Color(ButtonBackGround)\
+                        -foreground $Color(ButtonForeGround)\
+                        -activebackground $Color(MenuSelectBackGround)  \
+                        -activeforeground $Color(MenuSelectForeGround) \
+                        -highlightthickness 0
+    $data(dirMenu) configure -background $Color(ButtonBackGround)\
+                        -foreground $Color(ButtonForeGround)\
+                        -activebackground $Color(MenuSelectBackGround)  \
+                        -activeforeground $Color(MenuSelectForeGround) \
+                                                    
+    set data(upBtn) [button $f1.up  \
+                      -bd $Color(BorderWidth) \
+                      -background $Color(ButtonBackGround) \
+                      -foreground $Color(ButtonForeGround) \
+                      -activebackground $Color(MenuSelectBackGround)  \
+                      -activeforeground $Color(MenuSelectForeGround)]
     if {![info exists biopsePriv(updirImage)]} {
         set biopsePriv(updirImage) [image create bitmap -data {
 	    #define updir_width 28
@@ -979,9 +1007,7 @@ proc biopseFDialog_Create {w} {
     }
 
     $data(upBtn) config -image $biopsePriv(updirImage)
-    
-    $f1.menu config -takefocus 1 -highlightthickness 2
- 
+     
     pack $data(upBtn) -side right -padx 4 -fill both
     pack $f1.lab -side left -padx 4 -fill both
     pack $f1.menu -expand yes -fill both -padx 4
@@ -991,12 +1017,24 @@ proc biopseFDialog_Create {w} {
         -browsecmd "biopseFDialog_ListBrowse $w" \
         -command   "biopseFDialog_SetCmd $w"]
 
-    iwidgets::tabnotebook $w.tabs -raiseselect true -tabpos n -backdrop gray
+    iwidgets::tabnotebook $w.tabs -raiseselect true -tabpos n \
+      -background $Color(UIBackGround) \
+      -foreground $Color(UIForeGround) \
+      -backdrop $Color(UIBackDrop) \
+      -tabbackground $Color(UIBackDrop) \
+      -bevelamount 0 -gap 0 -borderwidth 0 \
+      -equaltabs fals \
+      -height 120
+          
     # sd = Single Data, md = Multiple Data
     set sd_tab [$w.tabs add -label "Single File"]
     
-    label $sd_tab.lab -text "File name:" -anchor e -width 14 -under 5 -pady 0
-    set data(ent) [entry $sd_tab.ent]
+    label $sd_tab.lab -text "File name:" -under 5 \
+      -background $Color(UIBackGround) -foreground $Color(UIForeGround)
+    global $data(-filevar)
+    set data(ent) [entry $sd_tab.ent -textvariable $data(-filevar)\
+      -background $Color(EditBackGround) -foreground $Color(EditForeGround)\
+      -bd $Color(BorderWidth)]
 
     $w.tabs view 0
         
@@ -1007,20 +1045,29 @@ proc biopseFDialog_Create {w} {
         # md_tab: the tab for inputing multiple files
 
         ## Frame for VCR Buttons
-        frame $md_tab.vcr -relief groove -borderwidth 2
+        frame $md_tab.vcr -background $Color(UIBackGround)
         ## Frame for file base, and delay
-        frame $md_tab.f1
+        frame $md_tab.f1 -background $Color(UIBackGround)
         ## Frame for current file.
-        frame $md_tab.f2
+        frame $md_tab.f2 -background $Color(UIBackGround)
 
-        label $md_tab.f1.lab -text "File base:" -anchor e -width 10 -pady 0
-        entry $md_tab.f1.ent -textvariable $data(-filename_basevar)
-        label $md_tab.f1.delay_lab -text "Delay:" -anchor e -width 8 -pady 0
-        entry $md_tab.f1.delay_ent -textvariable $data(-delayvar)
+        label $md_tab.f1.lab -text "File base:" -anchor e -width 10 -pady 0\
+          -background $Color(UIBackGround) -foreground $Color(UIForeGround)
+        entry $md_tab.f1.ent -textvariable $data(-filename_basevar) \
+          -background $Color(EditBackGround) -foreground $Color(EditForeGround)\
+          -bd $Color(BorderWidth)
+        label $md_tab.f1.delay_lab -text "Delay:" -anchor e -width 8 -pady 0\
+          -background $Color(UIBackGround) -foreground $Color(UIForeGround)
+        entry $md_tab.f1.delay_ent -textvariable $data(-delayvar) \
+          -background $Color(EditBackGround) -foreground $Color(EditForeGround)\
+          -bd $Color(BorderWidth)
 
         if { [info exists $data(-filevar)]} {
-            label $md_tab.f2.current_file_lab -text "Current File:" -anchor e -width 10 -pady 0
-            entry $md_tab.f2.current_file_ent -textvariable $data(-filevar)
+            label $md_tab.f2.current_file_lab -text "Current File:" -anchor e -width 10 -pady 0 \
+              -background $Color(UIBackGround) -foreground $Color(UIForeGround)
+            entry $md_tab.f2.current_file_ent -textvariable $data(-filevar) \
+              -background $Color(EditBackGround) -foreground $Color(EditForeGround)\
+              -bd $Color(BorderWidth)
         }
 
         TooltipMultiWidget "$md_tab.f1.ent $md_tab.f1.lab" "Select first file in series."
@@ -1041,24 +1088,59 @@ proc biopseFDialog_Create {w} {
         set fforward [image create photo -file ${image_dir}/fast-forward-icon.ppm]
 
         # Create and pack the VCR buttons frame
-        button $md_tab.vcr.rewind -image $rewind \
-            -command "setMultipleFilePlayMode $w rewind;\
-                      handleMultipleFiles $w"
-        button $md_tab.vcr.stepb -image $stepb \
+        button $md_tab.vcr.rewind -text "<<" \
+          -command "setMultipleFilePlayMode $w rewind;\
+                      handleMultipleFiles $w" \
+          -background $Color(ButtonBackGround) \
+          -foreground $Color(ButtonForeGround) \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround) \
+          -bd $Color(BorderWidth) -width 2
+                    
+        button $md_tab.vcr.stepb -text "|<" \
             -command "setMultipleFilePlayMode $w stepb;\
-                      handleMultipleFiles $w"
-        button $md_tab.vcr.pause -image $pause \
+                      handleMultipleFiles $w" \
+          -background $Color(ButtonBackGround) \
+          -foreground $Color(ButtonForeGround) \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround) \
+          -bd $Color(BorderWidth) -width 2
+                      
+        button $md_tab.vcr.pause -text "||" \
             -command "setMultipleFilePlayMode $w stop;\
-                      handleMultipleFiles $w"
-        button $md_tab.vcr.play  -image $play  \
+                      handleMultipleFiles $w" \
+          -background $Color(ButtonBackGround) \
+          -foreground $Color(ButtonForeGround) \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround) \
+          -bd $Color(BorderWidth) -width 2     
+                      
+        button $md_tab.vcr.play -text ">"  \
             -command "setMultipleFilePlayMode $w play;\
-                      handleMultipleFiles $w"
-        button $md_tab.vcr.stepf -image $stepf \
+                      handleMultipleFiles $w" \
+          -background $Color(ButtonBackGround) \
+          -foreground $Color(ButtonForeGround) \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround) \
+          -bd $Color(BorderWidth) -width 2          
+
+        button $md_tab.vcr.stepf -text ">|" \
             -command "setMultipleFilePlayMode $w step;\
-                      handleMultipleFiles $w"
-        button $md_tab.vcr.fforward -image $fforward \
+                      handleMultipleFiles $w" \
+          -background $Color(ButtonBackGround) \
+          -foreground $Color(ButtonForeGround) \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround) \
+          -bd $Color(BorderWidth) -width 2          
+
+        button $md_tab.vcr.fforward -text ">>" \
             -command "setMultipleFilePlayMode $w fforward;\
-                      handleMultipleFiles $w"
+                      handleMultipleFiles $w" \
+          -background $Color(ButtonBackGround) \
+          -foreground $Color(ButtonForeGround) \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround) \
+          -bd $Color(BorderWidth) -width 2
 
         global ToolTipText
         Tooltip $md_tab.vcr.rewind $ToolTipText(VCRrewind)
@@ -1068,18 +1150,20 @@ proc biopseFDialog_Create {w} {
         Tooltip $md_tab.vcr.stepf $ToolTipText(VCRstepforward)
         Tooltip $md_tab.vcr.fforward $ToolTipText(VCRfastforward)
 
-        pack $md_tab.vcr.rewind $md_tab.vcr.stepb $md_tab.vcr.pause \
-            $md_tab.vcr.play $md_tab.vcr.stepf $md_tab.vcr.fforward -side left -fill both -expand 1
+        pack $md_tab.vcr.fforward $md_tab.vcr.stepf  $md_tab.vcr.play  \
+            $md_tab.vcr.pause $md_tab.vcr.stepb $md_tab.vcr.rewind -side right -padx 1
 
     }
 
     if { $data(-fromenv) != "" } {
       set env_tab [$w.tabs add -label "Script"]
     
-      frame $env_tab.f 
-      label $env_tab.f.l1 -text "Initialize filename with environment variable:"
-      entry $env_tab.f.e1 -textvariable $data(-fromenv) 
-      
+      frame $env_tab.f -background $Color(UIBackGround)
+      label $env_tab.f.l1 -text "Initialize filename with environment variable:" \
+        -background $Color(UIBackGround) -foreground $Color(UIForeGround)
+      entry $env_tab.f.e1 -textvariable $data(-fromenv) \
+        -background $Color(EditBackGround) -foreground $Color(EditBackGround)\
+        -bd $Color(BorderWidth)
       pack $env_tab.f -fill x -expand yes -padx 4
       pack $env_tab.f.l1 $env_tab.f.e1 -fill x -anchor e
     }
@@ -1091,11 +1175,11 @@ proc biopseFDialog_Create {w} {
     set $w.icons(font) [$data(ent) cget -font]
 
     # f3: the frame with the cancel button and the file types field
-    set f3 [frame $w.f3 -bd 0]
+    set f3 [frame $w.f3 -bd 0 -background $Color(UIBackGround)]
 
     # f4: the frame for Save dialog boxes with 
     # split-checkbutton (if -splitvar specified) and format menu
-    set f4 [frame $w.f4 -bd 0]
+    set f4 [frame $w.f4 -bd 0 -background $Color(UIBackGround)]
 
     # The "File of types:" label needs to be grayed-out when
     # -filetypes are not specified. The label widget does not support
@@ -1103,58 +1187,76 @@ proc biopseFDialog_Create {w} {
     # use a button widget to emulate a label widget (by setting its
     # bindtags)
 
-    set data(typeMenuLab) [button $f3.lab -text "Files of type:" \
-        -anchor e -width 14 -under 9 \
-        -bd [$sd_tab.lab cget -bd] \
+    set data(typeMenuLab) [label $f3.lab -text "Files of type:" \
+        -anchor e -under 9 \
         -highlightthickness [$sd_tab.lab cget -highlightthickness] \
-        -relief [$sd_tab.lab cget -relief] \
-        -padx [$sd_tab.lab cget -padx] \
-        -pady [$sd_tab.lab cget -pady]]
+        -background $Color(UIBackGround) \
+        -foreground $Color(UIForeGround) \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) ]
     bindtags $data(typeMenuLab) [list $data(typeMenuLab) Label \
             [winfo toplevel $data(typeMenuLab)] all]
 
-    set data(typeMenuBtn) [menubutton $f3.menu -indicatoron 1 -menu $f3.menu.m]
-    set data(typeMenu) [menu $data(typeMenuBtn).m -tearoff 0]
-    $data(typeMenuBtn) config -takefocus 1 -highlightthickness 2 \
-        -relief raised -bd 2 -anchor w
+    set data(typeMenuBtn) [menubutton $f3.menu -menu $f3.menu.m \
+        -bd $Color(BorderWidth) \
+        -background $Color(ButtonBackGround) \
+        -foreground $Color(ButtonForeGround) \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -highlightthickness 0]
+    set data(typeMenu) [menu $f3.menu.m -tearoff 0 \
+        -background $Color(ButtonBackGround) \
+        -foreground $Color(ButtonForeGround) \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround)]
+    $data(typeMenuBtn) config -takefocus 1 -highlightthickness 1 \
+        -relief raised -anchor w
 
    # the setBtn is created after the typeMenu so that the keyboard traversal
     # is in the right order
     # Ok, Execute, Cancel, and Find (optional) at bottom
-    set f7 [frame $w.f7]
+    set f7 [frame $w.f7 -background $Color(MainBackGround) -bd 1 -relief raised]
     
     if { [string length $data(-setcmd)] } {
         set data(setBtn) [button $f7.ok     -text Set     -under 0 -width 10 \
-                                  -default active -pady 3]
+          -bd $Color(BorderWidth) \
+          -background $Color(ButtonBackGround) \
+          -foreground $Color(ButtonForeGround) \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround)]
         Tooltip $f7.ok "Set the filename and dimiss\nthe UI without executing"
     }
 
     # Horizontal separator
-    frame $f7.h_separator -height 2 -relief sunken -borderwidth 2
+#    frame $f7.h_separator -height 2 -relief sunken -borderwidth 2
 
-    set data(pinnedBtn) [checkbutton $f7.pin -text "Pin GUI" \
-			     -command "toggle_Pinned $w"]
+#    set data(pinnedBtn) [checkbutton $f7.pin -text "Pin GUI" \
+#			     -command "toggle_Pinned $w"]
 
-    if { [info exists $data(-pinnedvar)]} {
-      set data(-pinned) [set $data(-pinnedvar)]
-    } else {
-      set data(-pinned) 0
-    }
+#    if { [info exists $data(-pinnedvar)]} {
+#      set data(-pinned) [set $data(-pinnedvar)]
+#    } else {
+#      set data(-pinned) 0
+#    }
 
-    if { $data(-pinned) == 0 } {
-      $data(pinnedBtn) deselect
-    } else {
-      $data(pinnedBtn) select
-    }
+#    if { $data(-pinned) == 0 } {
+#      $data(pinnedBtn) deselect
+#    } else {
+#      $data(pinnedBtn) select
+#    }
 
-    Tooltip $f7.pin "Do not dismiss the GUI when pressing Execute/Set."
+#    Tooltip $f7.pin "Do not dismiss the GUI when pressing Execute/Set."
 
     set bName Execute 
     if { [string length $data(-commandname)] } {
       set bName $data(-commandname)
     }
     set data(executeBtn) [button $f7.execute -text $bName -under 0 -width 10\
-                              -default normal -pady 3]
+          -bd $Color(BorderWidth) \
+          -background $Color(ButtonBackGround) \
+          -foreground $Color(ButtonForeGround) \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround)]
     # For the viewer Save Image window, have it say Save instead of Execute
     if {[string first "ViewWindow" $w] != -1} {
         $data(executeBtn) config -text "Save"
@@ -1169,7 +1271,11 @@ proc biopseFDialog_Create {w} {
     }
 
     set data(cancelBtn) [button $f7.cancel -text Cancel -under 0 -width 10\
-			     -default normal -pady 3]
+          -bd $Color(BorderWidth) \
+          -background $Color(ButtonBackGround) \
+          -foreground $Color(ButtonForeGround) \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround)]
     Tooltip $f7.cancel "Dismiss the UI without\nsetting the filename"
     
     # only include a find button if this dialog has the form
@@ -1179,38 +1285,56 @@ proc biopseFDialog_Create {w} {
     set have_find [array get Subnet $mod]
     if {[llength $have_find] > 0} {
         set data(findBtn) [button $f7.find   -text Find   -under 0  -width 10 \
-                               -default normal -pady 3] 
+                           -bd $Color(BorderWidth) \
+                           -background $Color(ButtonBackGround) \
+                           -foreground $Color(ButtonForeGround) \
+                           -activebackground $Color(MenuSelectBackGround)  \
+                           -activeforeground $Color(MenuSelectForeGround)] 
         Tooltip $f7.find "Highlights (on the Network Editor) the\nmodule that corresponds to this GUI"    
     }
 
     # pack the widgets in f7
 
-    pack $f7.h_separator -fill x -pady 5
-    pack $f7.pin -side right -fill y -padx 4 -anchor e
+#    pack $f7.h_separator -fill x -pady 5
+#    pack $f7.pin -side right -fill y -padx 4 -anchor e
 
-    if {[llength $have_find] > 0} {
-        pack $data(findBtn) -side right -padx 4 -anchor e -fill x -expand 0
-    }
-    pack $data(cancelBtn) -side right -padx 4 -anchor e -fill x -expand 0
-    pack $data(executeBtn) -side right -padx 4 -anchor e -fill x -expand 0
     if { [string length $data(-setcmd)] } {
-        pack $data(setBtn) -side right -padx 4 -anchor e -fill x -expand 0
+        pack $data(setBtn) -side left -padx 4 -pady 5 -anchor e -fill x -expand 0
+    }
+    pack $data(executeBtn) -side left -padx 4 -pady 5 -anchor e -fill x -expand 0
+    pack $data(cancelBtn) -side left -padx 4 -pady 5 -anchor e -fill x -expand 0
+    if {[llength $have_find] > 0} {
+        pack $data(findBtn) -side left -padx 4 -pady 5 -anchor e -fill x -expand 0
     }
 
-    pack $f7 -side bottom -anchor s 
+
+    pack $f7 -side bottom -anchor w -fill x
 
     # creating additional widgets for Save-dialog box
     if {![string compare $data(type) save]} {
-        set data(formatMenuLab) [button $f4.lab -text "Format:" \
+        set data(formatMenuLab) [label $f4.lab -text "Format:" \
                 -anchor e -width 14 -under 9 \
-                -bd [$sd_tab.lab cget -bd] \
                 -highlightthickness [$sd_tab.lab cget -highlightthickness] \
                 -relief [$sd_tab.lab cget -relief] \
                 -padx [$sd_tab.lab cget -padx] \
-                -pady [$sd_tab.lab cget -pady]]
+                -pady [$sd_tab.lab cget -pady] \
+                -bd $Color(BorderWidth) \
+                -background $Color(UIBackGround) \
+                -foreground $Color(UIForeGround)]
 
-        set data(formatMenuBtn) [menubutton $f4.menu -indicatoron 1 -menu $f4.menu.m]
-        set data(formatMenu) [menu $data(formatMenuBtn).m -tearoff 0]
+        set data(formatMenuBtn) [menubutton $f4.menu -menu $f4.menu.m\
+                -indicatoron 1 \
+                -bd $Color(BorderWidth) \
+                -background $Color(ButtonBackGround) \
+                -foreground $Color(ButtonForeGround) \
+                -activebackground $Color(MenuSelectBackGround)  \
+                -activeforeground $Color(MenuSelectForeGround) \
+                -highlightthickness 1]
+        set data(formatMenu) [menu $data(formatMenuBtn).m -tearoff 0\
+                -background $Color(ButtonBackGround) \
+                -foreground $Color(ButtonForeGround) \
+                -activebackground $Color(MenuSelectBackGround)  \
+                -activeforeground $Color(MenuSelectForeGround)]
 
         set formats $data(-formats)
         if {[llength $formats] == 0} {
@@ -1225,6 +1349,7 @@ proc biopseFDialog_Create {w} {
             $data(formatMenu) add command -label $f \
                 -command "biopseFDialog_SetFormat $w $f"
 
+            global $data(-formatvar)
             if { [string compare [set $data(-formatvar)] $f] == 0} {
                 biopseFDialog_SetFormat $w $f
             }
@@ -1233,16 +1358,20 @@ proc biopseFDialog_Create {w} {
         # creating 'Increment' and 'Current index' widgets
         if {$data(-incrementvar) != ""} {
                 set f8 [frame $w.f8 -bd 0]
-                label $f8.lab -text "" -width 15 -anchor e
+                label $f8.lab -text "" -width 15 -anchor e \
+                       -background $Color(UIBackGround)
         #add a current index label and entry
                 label $f8.current_label -text "Current index: " \
-                        -foreground grey64
+                       -background $Color(UIBackGround) \
+                       -foreground grey64 -bd $Color(BorderWidth)
                 entry $f8.entry -text $data(-currentvar) \
-                        -foreground grey64
+                        -background $Color(EditBackGround) \
+                        -foreground grey64 -bd $Color(BorderWidth)
         # add an increment checkbutton
                 checkbutton $f8.button  -text "Increment " \
                         -variable $data(-incrementvar) \
-                        -command "toggle_Current $w"
+                        -command "toggle_Current $w" \
+                        -background $Color(UIBackGround)
         #pack these widgets
             pack $f8.lab -side left -padx 2
             pack $f8.button -side left -padx 2
@@ -1262,10 +1391,11 @@ proc biopseFDialog_Create {w} {
 
         if {$data(-confirmoncevar) != ""} {
             set f10 [frame $w.f10 -bd 0]
-            label $f10.lab -text "" -width 15 -anchor e
+            label $f10.lab -text "" -width 15 -anchor e -background $Color(UIBackGround)
             checkbutton $f10.button \
               -text "Confirm only once for each file name " \
-              -variable $data(-confirmoncevar) 
+              -variable $data(-confirmoncevar) \
+              -background $Color(UIBackGround)
             pack $f10.lab -side left -padx 2
             pack $f10.button -side left -padx 2
             pack $f10 -side bottom -fill x -pady 4
@@ -1273,34 +1403,46 @@ proc biopseFDialog_Create {w} {
 				
         if {$data(-confirmvar) != ""} {
             set f6 [frame $w.f6 -bd 0]
-            label $f6.lab -text "" -width 15 -anchor e
+            label $f6.lab -text "" -width 15 -anchor e -background $Color(UIBackGround)
             checkbutton $f6.button -text "Confirm before overwriting file " \
-              -variable $data(-confirmvar) 
+              -variable $data(-confirmvar) \
+              -background $Color(UIBackGround)
             pack $f6.lab -side left -padx 2
             pack $f6.button -side left -padx 2
             pack $f6 -side bottom -fill x -pady 4
         }
 
         if {$data(-imgwidth) != ""} {
-            set f5 [frame $w.f5 -bd 0]
-            label $f5.resxl  -text "Width:"  -width 15 -anchor e
-            entry $f5.resx -width 5 -text $data(-imgwidth)
-        
-            label $f5.resyl  -text "Height:" -width 15 -anchor e
-            entry $f5.resy -width 5 -text $data(-imgheight)
-        
-            label $f5.ressl -text "Scale:" -width 15 -anchor e
-            entry $f5.ress -width 5 -text $data(-imgscale)
-
+            set f5 [frame $w.f5 -bd 0 -background $Color(UIBackGround)]
+            label $f5.resxl  -text "Width:"  -width 15 -anchor e \
+              -background $Color(UIBackGround)
+            entry $f5.resx -width 5 -text $data(-imgwidth) \
+              -background $Color(EditBackGround) \
+              -foreground $Color(EditForeGround) \
+              -bd $Color(BorderWidth)             
+            label $f5.resyl  -text "Height:" -width 15 -anchor e \
+              -background $Color(UIBackGround)
+            entry $f5.resy -width 5 -text $data(-imgheight) \
+              -background $Color(EditBackGround) \
+              -foreground $Color(EditForeGround) \
+              -bd $Color(BorderWidth)  
+            label $f5.ressl -text "Scale:" -width 15 -anchor e \
+              -background $Color(UIBackGround)
+            entry $f5.ress -width 5 -text $data(-imgscale) \
+              -background $Color(EditBackGround) \
+              -foreground $Color(EditForeGround) \
+              -bd $Color(BorderWidth)  
+            
             pack $f5.resxl $f5.resx $f5.resyl $f5.resy $f5.ressl $f5.ress \
                 -side left -padx 2
             pack $f5 -side bottom -fill x -pady 4
         }
 
-        $data(formatMenuBtn) config -takefocus 1 -highlightthickness 2 \
-                                    -relief raised -bd 2 -anchor w
+        $data(formatMenuBtn) config -takefocus 1 -highlightthickness 1 \
+                                    -relief raised -bd 1 -anchor w
         set data(splitBtn) [checkbutton $f4.split -text Split -disabledforeground "" \
-                -onvalue 1 -offvalue 0 -width 5 -pady 2]
+                -onvalue 1 -offvalue 0 -width 5 -pady 2\
+                -background $Color(UIBackGround) ]
         pack $data(splitBtn) -side right -padx 4 -anchor w
 
         if { [set data(is_split)] } {       
@@ -1320,19 +1462,21 @@ proc biopseFDialog_Create {w} {
     }
 
     # pack the widgets in sd_tab and md_tab
-    pack $sd_tab.lab -side left -padx 4
-    pack $sd_tab.ent -expand yes -fill x -padx 2 -pady 0
+    pack $sd_tab.lab -side left -padx 4 -pady 6
+    pack $sd_tab.ent -side left -fill x -expand yes -padx 4 -pady 6
+    
+    global $data(-filevar)
     
     if { $data(-allowMultipleFiles) != "" } {
-        pack $md_tab.vcr -fill x -padx 8 -pady 4
-        pack $md_tab.f1 -fill x -expand y
-        pack $md_tab.f2 -fill x -expand y
+        pack $md_tab.vcr -fill x -padx 8 -pady 3 -side top -anchor ne
+        pack $md_tab.f1 -fill x -side top -pady 3 -anchor nw
+        pack $md_tab.f2 -fill x -side top -pady 3 -anchor nw
         pack $md_tab.f1.lab $md_tab.f1.ent -side left -fill x -padx 4 -pady 0
         pack $md_tab.f1.delay_lab $md_tab.f1.delay_ent \
 	    -side left -fill x -padx 4 -pady 0
         if { [info exists $data(-filevar)]} {
             # Back both the label and entry on the same line...
-            pack $md_tab.f2.current_file_lab $md_tab.f2.current_file_ent \
+        pack $md_tab.f2.current_file_lab $md_tab.f2.current_file_ent \
 		-side left -fill x -padx 4 -pady 0
             # ... but allow the entry to expand
             pack $md_tab.f2.current_file_ent -expand y
@@ -1340,7 +1484,7 @@ proc biopseFDialog_Create {w} {
     }
 
     pack $data(typeMenuLab) -side left -padx 4
-    pack $data(typeMenuBtn) -expand yes -fill x -side right
+    pack $data(typeMenuBtn) -side left -fill x -expand yes 
 
     
     # Pack all the frames together. We are done with widget construction.
@@ -1352,7 +1496,7 @@ proc biopseFDialog_Create {w} {
     pack $data(icons) -expand yes -fill both -padx 4 -pady 1
 
     # Set up the event handlers
-    bind $data(ent) <Return>  "biopseFDialog_ActivateEnt $w"
+    # bind $data(ent) <Return>  "biopseFDialog_ActivateEnt $w"
     
     $data(upBtn)     config -command "biopseFDialog_UpDirCmd $w"
     if { [string length $data(-setcmd)] } {
@@ -1393,16 +1537,16 @@ proc biopseFDialog_Create {w} {
 proc toggle_Pinned {w} {
     upvar #0 $w data
 
-    if { $data(-pinned) == 0 } {
-	set data(-pinned) 1
-	$data(pinnedBtn) select
-    } else {
-	set data(-pinned) 0
-	$data(pinnedBtn) deselect
-    }
+#    if { $data(-pinned) == 0 } {
+#      set data(-pinned) 1
+#      $data(pinnedBtn) select
+#    } else {
+#     set data(-pinned) 0
+#     $data(pinnedBtn) deselect
+#    }
 
-    if { [info exists $data(-pinnedvar)]} {
-	set $data(-pinnedvar) $data(-pinned)
+#    if { [info exists $data(-pinnedvar)]} {
+#     	set $data(-pinnedvar) $data(-pinned)
     }
 }
 
@@ -1673,6 +1817,7 @@ proc biopseFDialog_SetFilter {w type} {
 proc biopseFDialog_SetFormat { w format } {
     upvar #0 $w data
     
+    global $data(-formatvar)
     set $data(-formatvar) $format
     $data(formatMenuBtn) configure -text [set $data(-formatvar)]
 }
@@ -2051,6 +2196,7 @@ proc biopseFDialog_Done {w {selectFilePath ""} {whichBtn execute}} {
     }
     
     # AS: final steps before returning: setting filename variable and executing command
+    global $data(-filevar)
     if { [info exists $data(-filevar)]} {
       #puts "setting file var"
       #puts "file $data(-filevar)"
@@ -2059,10 +2205,10 @@ proc biopseFDialog_Done {w {selectFilePath ""} {whichBtn execute}} {
 
     if {$whichBtn == "set"} {
 
-        if { $data(-pinned) == 0 } { 
-            # If the GUI is not pinned, then close it
-            wm withdraw $w
-        }
+#        if { $data(-pinned) == 0 } { 
+#            # If the GUI is not pinned, then close it
+#            wm withdraw $w
+#        }
     } else {
         
         if { $data(-allowMultipleFiles) != "" && [$w.tabs view] == 1 } {
@@ -2116,10 +2262,10 @@ proc biopseFDialog_Done {w {selectFilePath ""} {whichBtn execute}} {
             # In single file mode...
             eval $data(-command)
 
-	    if { $data(-pinned) == 0 } { 
-                # If the GUI is not pinned, then close it
-                wm withdraw $w
-            }
+#	    if { $data(-pinned) == 0 } { 
+#                # If the GUI is not pinned, then close it
+#                wm withdraw $w
+#            }
         }
     }
 }

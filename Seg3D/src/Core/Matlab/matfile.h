@@ -83,7 +83,6 @@
  */
 
 #include <stdio.h>
-#include <zlib.h>
 
 #include <string>
 #include <stack>

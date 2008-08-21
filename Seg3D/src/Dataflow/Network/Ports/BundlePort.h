@@ -33,16 +33,21 @@
  * data types together
  */
 
-#ifndef SCIRun_Dataflow_BundlePort_h
-#define SCIRun_Dataflow_BundlePort_h 1
+#ifndef DATAFLOW_NETWORK_PORTS_BUNDLEPORT_H
+#define DATAFLOW_NETWORK_PORTS_BUNDLEPORT_H 1
+
+#include <Core/Datatypes/Bundle.h>
+#include <Core/Containers/LockingHandle.h>
 
 #include <Dataflow/Network/Ports/SimplePort.h>
-#include <Core/Bundle/Bundle.h>
 
 namespace SCIRun {
 
-typedef SimpleIPort<BundleHandle> BundleIPort;
-typedef SimpleOPort<BundleHandle> BundleOPort;
+typedef SimpleIPort<BundleHandle>  BundleIPort;
+typedef SimpleOPort<BundleHandle>  BundleOPort;
+typedef LockingHandle<BundleIPort> BundleIPortHandle;
+typedef LockingHandle<BundleOPort> BundleOPortHandle;
+
 
 } // End namespace CWave
 

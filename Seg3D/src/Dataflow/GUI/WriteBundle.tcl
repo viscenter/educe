@@ -72,7 +72,7 @@ itcl_class SCIRun_DataIO_WriteBundle {
             return
         }
         
-        toplevel $w -class TkFDialog
+        sci_toplevel $w -class TkFDialog
         # place to put preferred data directory
         # it's used if $this-filename is empty
         set initdir [netedit getenv SCIRUN_DATA]
@@ -97,7 +97,7 @@ itcl_class SCIRun_DataIO_WriteBundle {
             -parent $w \
             -filevar $this-filename \
             -setcmd "wm withdraw $w" \
-            -command "$this-c needexecute; wm withdraw $w" \
+            -command "$this-c needexecute;" \
             -cancel "wm withdraw $w" \
             -title $title \
             -filetypes $tmp2 \

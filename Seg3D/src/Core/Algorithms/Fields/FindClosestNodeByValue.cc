@@ -67,7 +67,7 @@ bool FindClosestNodeByValueAlgo::FindClosestNodeByValue(ProgressReporter *pr, Fi
   
   // Setup dynamic files
 
-  SCIRun::CompileInfoHandle ci = scinew CompileInfo(
+  SCIRun::CompileInfoHandle ci = new CompileInfo(
     "ALGOFindClosestNodeByValue."+fi.get_field_filename()+"."+fp.get_field_filename()+".",
     "FindClosestNodeByValueAlgo","FindClosestNodeByValueAlgoT",
     fi.get_field_name() + "," + fp.get_field_name());

@@ -1,2 +1,161 @@
-For the latest release notes, please see this Wiki page --
-http://software.sci.utah.edu/SCIRunDocs/index.php/CIBC:Documentation:SCIRun:ReleaseNotes:3.0
+RELEASE NOTES
+
+Program: SCIRun 4.0 (BETA 1)
+Date: 08-08-2008
+
+Note:
+
+This is the first SCIRun 4.0 beta version. This one is for testing purposes
+only, as not all functions are supported yet.
+
+
+Release cycle:
+
+SCIRun 4.0 is distrubuted in a different fashion in comparison to previous
+SCIRun releases. We will be updating and releasing new SCIRun binaries twice a 
+month to improve feedback to the users of our binary release. With each binary
+release we will also release new tar/zip files with the code, for people who
+want to contribute to the development of SCIRun.
+
+These intermediate releases are intented to quickly ship bug fixes and new 
+features without too much delays.
+
+
+Supported platforms:
+[1] Windows: SCIRun 4.0 currently runs on both Windows Vista and Windows XP. 
+Currently only 32bit version is available, but a 64bit version is under 
+development. Please upgrade to the latest service packs of both Vista or XP
+before installing SCIRun. 
+
+[2] OSX: SCIRun 4.0 supports both OSX 10.4.9 and higher and OSX 10.5.4 and higher.
+Currently both a 32bit and a 64bit version are available. The 64bit version is
+only available for OSX 10.5.
+
+[3] Linux: SCIRun 4.0 supports most flavors of Linux, but requires the user to
+compile SCIRun from scratch. Generally, ATI graphics cards do not work with 
+SCIRun on Linux, for functionality such as volume rendering. For Linux we 
+recommend an NVDIA graphics card, as the NVDIA drivers show a better compatiblity
+with SCIRun.
+
+
+Binary versions:
+
+[1] Binary versions are available for Windows XP, Windows Vista, OS X 10.4, and 
+OS X 10.5.
+
+
+Source code:
+
+[1] Source code of SCIRun is available from https://code.sci.utah.edu/, use svn
+to checkout the latest version of the code. The latest code can be downloaded by:
+
+svn co https://code.sci.utah.edu/svn/SCIRun/cibc/trunk/ .
+
+
+Limitations of this beta version:
+
+[1] Currently a few modules are not yet available in the binary version:
+     EvalutateLinAlgGeneral, GenerateSrtreamLinesHeuristic, RemoveHexSheet, and
+     InsertHexVolSheetAlongSurface, and CollectPointClouds
+
+[2] We have upgraded all the modules that take in code to evaluate functions.
+    Please check the documentation of the modules to upgrade the functions.
+    For example the module CalculateFieldDataCompiled needs to be replaced by
+    CalaculateFieldData. We are working on a better conversion from old networks
+    but that is not yet available in the beta version
+
+[3] Insight Package is not available in SCIRun 4.0. Due to many issues with this
+    package it will not be available in this version. Better and improved ITK
+    support will follow later in SCIRun 4.1.
+    
+
+Documentation:
+
+[1] Currently only documentation of the old SCIRun version is available and is
+available for guidance in this new SCIRun version. As we are developing a new
+documentation system for our software, new tutorials and instructional movies
+will become available this fall. We apologize for not having up to date 
+documentation at this point. Questions regarding SCIRun can always be posted
+to scirun-users@sci.utah.edu and we will be organizing works at the start of
+winter season to teach SCIRun.
+
+
+Known bugs:
+[1] 2D Colormap editor crashes SCIRun when it is deleted.
+
+[2] GenerateStreamLines currently only works for the cell walking, the integrating
+    methods need to be fixed.
+    
+
+
+New features:
+
+[1] Binary release for Windows and OSX. Dynamic compilation has been removed from
+    most of SCIRun, allow the distribution of binary versions.
+
+[2] Full 64bit support for Matrices and Fields, so both can be larger than 2Gb.
+    Internally the 64bit version of SCIRun now use 64bit indices to support
+    ever growing models.
+    
+[3] Support for periodic FE models, support for floating electrodes. New modules
+    are available to insert knowns into the FE matrix system and to merge the FE
+    equations at the boundaries of a domain.
+    
+[4] Added support for Leopard, and Leopard 64bit. OSX Leopard is now properly 
+    supported by SCIRun.
+    
+[5] Added module for importing environment variables into SCIRun.
+
+[6] Added support for specifying environment variables on the command line, e.g.
+    specify +VAR=value on the commandline to set VAR to value.
+
+[7] Removed dynamic compilation, so SCIRun does not require a compiler anymore.
+
+[8] Simplified Volume Rendering pipeline: new FieldToTextureConverter will 
+    generate 2D histogram automatically.
+
+[9] Modules do not generate mapping matrix if it is not needed. If a matrix 
+    output port is not connected the ampping matrix will not be generated in the
+    newer modules, to safe memory     
+
+[10] Precompiling tables will now be done in parallel, to improve efficiency.
+     Field data types rely heavily on precompiling tables to speed up geometry
+     computations. These computations are now done in parallel to improve
+     performance on multi-core architechtures .
+     
+[11] Internally most function calls are now virtual so modules work on a wider
+     range of mesh types and field types. Instead using the class name of a 
+     field to select whether an algorithm will work, we use the properties. 
+     Allow modules to work more broadly. 
+     
+[12] Modules like SetFieldData will do automatically a conversion of basis type
+     as well as data type, allowing pipes to be connected more flexibly.
+
+[13] Most modules will do an automatic unstructure of the data if needed to
+     make it easier for the user to like up modules.
+     
+[14] Modules now report errors more thoroughly. Connecting a wrong input will
+     not cause SCIRun to crash anymore.
+     
+[15] The SCIRun look has been upgraded to look more modern. All GUIs have been
+     updated. 
+     
+[16] Modules in the editor look smaller to support a better overview of what is
+     going on in a module.
+     
+[17] The network editor now supports editing networks while running a network.
+
+[18] Added a new smaller network overview is added to the lower part of the
+     network editor.
+
+[19] All the menus of the ViewScene module have been upgraded to be better
+     accessible and usability.
+     
+[20] Improved the box widget, it is easier now to rotate this widget and to 
+     restrict its movements.
+     
+[21] Upgrade of parsed code. Code is no longer parsed through the compiler, but
+     a parser designed for fast performance was integrated, which run in parallel
+     and outperforms the old dynamically compiled versions.
+          
+     

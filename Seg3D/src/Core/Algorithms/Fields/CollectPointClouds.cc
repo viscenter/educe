@@ -76,7 +76,7 @@ CollectPointClouds(ProgressReporter *pr,
   fo.set_mesh_basis_type("CrvLinearLgn");
   fo.set_basis_type("CrvLinearLgn");
   
-  CompileInfoHandle ci = scinew CompileInfo(
+  CompileInfoHandle ci = new CompileInfo(
     template_name + "." +
     fi.get_field_filename() + "." + 
     fo.get_field_filename() + ".",

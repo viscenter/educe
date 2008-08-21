@@ -28,7 +28,6 @@
 
 # CMakeLists.txt for Packages/ModelCreation/Dataflow/Modules
 
-ADD_SUBDIRECTORY(BreakPoint)
 ADD_SUBDIRECTORY(ChangeFieldData)
 ADD_SUBDIRECTORY(ChangeMesh)
 ADD_SUBDIRECTORY(Converter)

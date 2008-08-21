@@ -99,20 +99,20 @@ itcl_class MatlabInterface_DataIO_ExportDatatypesToMatlab {
 
 		# create a new gui window
 
-		toplevel $w 
+		sci_toplevel $w 
 
-		iwidgets::labeledframe $w.fileframe -labeltext "SELECT MATLAB FILE" 
+		sci_labeledframe $w.fileframe -labeltext "SELECT MATLAB FILE" 
 		set childfile [$w.fileframe childsite]
 		pack $w.fileframe -fill x
 
-		frame $childfile.f1 
-		frame $childfile.f2
+		sci_frame $childfile.f1 
+		sci_frame $childfile.f2
 		
-		label $childfile.f1.label -text ".MAT FILE "
-		entry $childfile.f1.file -textvariable $this-filename -width 45
+		sci_label $childfile.f1.label -text ".MAT FILE "
+		sci_entry $childfile.f1.file -textvariable $this-filename -width 45
 		set $this-filename-entry $childfile.f1.file  
-		button $childfile.f1.browse -text "Browse" -command "$this ChooseFile"
-		checkbutton $childfile.f2.overwrite -text "Confirm before overwriting an existing file" -variable $this-overwrite
+		sci_button $childfile.f1.browse -text "Browse" -command "$this ChooseFile"
+		sci_checkbutton $childfile.f2.overwrite -text "Confirm before overwriting an existing file" -variable $this-overwrite
 
 		pack $childfile.f1 $childfile.f2 -fill x -expand yes
 		pack $childfile.f1.label -side left -padx 3p -pady 2p -padx 4p
@@ -120,16 +120,16 @@ itcl_class MatlabInterface_DataIO_ExportDatatypesToMatlab {
 		pack $childfile.f1.browse -side right -padx 3p -pady 2p -anchor e
 		pack $childfile.f2.overwrite -side bottom -anchor e -padx 3p -pady 2p 
 
-		iwidgets::labeledframe $w.matrixframe -labeltext "CREATE MATLAB MATRICES" 
+		sci_labeledframe $w.matrixframe -labeltext "CREATE MATLAB MATRICES" 
 		set childframe [$w.matrixframe childsite]
 		set $this-matrixsetup $childframe
 		
 		pack $w.matrixframe -fill x -expand yes
 	
 		for {set x 0} {$x < [set $this-numport]} {incr x} {
-			frame $childframe.port-$x -bd 2 -relief groove
-			frame $childframe.port-$x.f1
-			frame $childframe.port-$x.f2
+			sci_frame $childframe.port-$x -bd 2 -relief groove
+			sci_frame $childframe.port-$x.f1
+			sci_frame $childframe.port-$x.f2
 			
 			set matrixname [lindex [set $this-matrixname] $x]
 			set dataformat [lindex [set $this-dataformat] $x]
@@ -137,20 +137,20 @@ itcl_class MatlabInterface_DataIO_ExportDatatypesToMatlab {
 			
 			
 			if [expr [expr $x >= 0] && [expr $x < 3]] {
-				label $childframe.port-$x.f1.label -text [format "Field %d :" [expr $x+1]]
+				sci_label $childframe.port-$x.f1.label -text [format "Field %d :" [expr $x+1]]
 				}
 			if [expr [expr $x >= 3] && [expr $x < 6]] {
-				label $childframe.port-$x.f1.label -text [format "Matrix %d :" [expr $x+1]]
+				sci_label $childframe.port-$x.f1.label -text [format "Matrix %d :" [expr $x+1]]
 				}
 			if [expr [expr $x >= 6] && [expr $x < 9]] {
-				label $childframe.port-$x.f1.label -text [format "Nrrd %d :" [expr $x+1]]
+				sci_label $childframe.port-$x.f1.label -text [format "Nrrd %d :" [expr $x+1]]
 				}
 				
-			entry $childframe.port-$x.f1.matrixname 
+			sci_entry $childframe.port-$x.f1.matrixname 
 			$childframe.port-$x.f1.matrixname insert 0 $matrixname
 			
 			if [expr $x >= 3] {
-				iwidgets::optionmenu $childframe.port-$x.f2.dataformat
+				sci_optionmenu $childframe.port-$x.f2.dataformat
 				foreach dformat {{same as data} {double} {single} {int8} {uint8} {int16} {uint16} {int32} {uint32}} {
 					$childframe.port-$x.f2.dataformat insert end $dformat
 				}
@@ -158,7 +158,7 @@ itcl_class MatlabInterface_DataIO_ExportDatatypesToMatlab {
 				if [expr $dataformatindex > 0] { $childframe.port-$x.f2.dataformat select $dataformatindex }
 			}
 			
-			iwidgets::optionmenu $childframe.port-$x.f2.matrixformat
+			sci_optionmenu $childframe.port-$x.f2.matrixformat
 			foreach dformat {{numeric array} {struct array}} {
 				$childframe.port-$x.f2.matrixformat insert end $dformat
 			}
@@ -198,7 +198,7 @@ itcl_class MatlabInterface_DataIO_ExportDatatypesToMatlab {
 	    		return
 		}
 	
-		toplevel $w -class TkFDialog
+		sci_toplevel $w -class TkFDialog
 
 		set initdir ""
 	

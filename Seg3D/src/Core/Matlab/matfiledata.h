@@ -85,11 +85,6 @@
 #include <string>
 
 #include "matfilebase.h"
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209 
-#endif
  
 #include "share.h"
 
@@ -971,13 +966,6 @@ void matfiledata::putandcast(ITERATOR is, ITERATOR ie, mitype type)
       throw unknown_type();              
   }
 }
-
-
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209 
-#endif
 
 } // end namespace
 

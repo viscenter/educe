@@ -32,7 +32,6 @@
 #include <Core/Events/OGLView/ViewScaleTool.h>
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/MinMax.h>
-#include <Core/Math/Expon.h>
 #include <sstream>
 
 namespace SCIRun {

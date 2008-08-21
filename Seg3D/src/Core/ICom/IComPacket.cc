@@ -26,20 +26,6 @@
    DEALINGS IN THE SOFTWARE.
 */
 
- 
-/*
- *  IComPacket.cc 
- *
- *  Written by:
- *  Jeroen Stinstra
- *
- */
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209 
-#endif
-
 #include <Core/ICom/IComPacket.h>
  
 namespace SCIRun {
@@ -253,7 +239,7 @@ void	IComPacket::swap_bytes(void *vbuffer,int size,int elsize)
 
 IComPacket* IComPacket::clone()
 {
-	IComPacket *ptr = scinew IComPacket(datasize_*elsize_);
+	IComPacket *ptr = new IComPacket(datasize_*elsize_);
 	ptr->elsize_ = elsize_;
 	ptr->datasize_ = datasize_;
 	ptr->packtag_ = packtag_;
@@ -266,9 +252,4 @@ IComPacket* IComPacket::clone()
 
 		
 } // end namespace
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209 
-#endif
 

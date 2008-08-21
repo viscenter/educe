@@ -269,7 +269,7 @@ bool MapFieldDataOntoFieldNodesAlgoT<MAPPING,FSRC,FDST,FOUT>::MapFieldDataOntoFi
   }
 
   // Creating output mesh and field
-  output = dynamic_cast<Field *>(scinew FOUT(dmesh));
+  output = dynamic_cast<Field *>(new FOUT(dmesh));
   if (output.get_rep() == 0)
   {
     pr->error("MapFieldDataOntoFieldNodes: Could no allocate output field");
@@ -415,7 +415,7 @@ bool ModalMappingAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::ModalMapping(Progress
     return (false);  
   }
 
-  output = dynamic_cast<Field *>(scinew FOUT(dmesh));
+  output = dynamic_cast<Field *>(new FOUT(dmesh));
   if (output.get_rep() == 0)
   {
     pr->error("ModalMapping: Could no allocate output field");
@@ -509,8 +509,8 @@ void ModalMappingAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::parallel(int procnum,
       while (it != eit)
       {
         integrator.get_nodes_and_weights(*it,points,weights);
-        typename FOUT::value_type val = 0;
-        typename FOUT::value_type tval = 0;
+        typename FOUT::value_type val(0);
+        typename FOUT::value_type tval(0);
 
         if (points.size() > 0)
         {
@@ -533,8 +533,8 @@ void ModalMappingAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::parallel(int procnum,
       while (it != eit)
       {
         integrator.get_nodes_and_weights(*it,points,weights);
-        typename FOUT::value_type val = 0;
-        typename FOUT::value_type tval = 0;
+        typename FOUT::value_type val(0);
+        typename FOUT::value_type tval(0);
 
         if (points.size() > 0)
         {
@@ -569,8 +569,8 @@ void ModalMappingAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::parallel(int procnum,
         }
         sort(valarray.begin(),valarray.end());
 				 
-        typename FOUT::value_type rval = 0;
-        typename FOUT::value_type val = 0;
+        typename FOUT::value_type rval(0);
+        typename FOUT::value_type val(0);
         int rnum = 0;
 				
         int p = 0;
@@ -600,7 +600,7 @@ void ModalMappingAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::parallel(int procnum,
       {
         integrator.get_nodes_and_iweights(*it,points,weights);
 
-        val = 0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
           if(!(mapping.get_data(points[p],val2))) val2 = static_cast<typename FOUT::value_type>(idata->def_value);
@@ -620,7 +620,7 @@ void ModalMappingAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::parallel(int procnum,
       {
         integrator.get_nodes_and_weights(*it,points,weights);
 
-        val = 0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
           if(!(mapping.get_data(points[p],val2))) val2 = static_cast<typename FOUT::value_type>(idata->def_value);
@@ -640,7 +640,7 @@ void ModalMappingAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::parallel(int procnum,
       {
         integrator.get_nodes_and_weights(*it,points,weights);
 				
-        val = 0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
           if(!(mapping.get_data(points[p],val2))) val2 = static_cast<typename FOUT::value_type>(idata->def_value);
@@ -659,7 +659,7 @@ void ModalMappingAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::parallel(int procnum,
       {
         integrator.get_nodes_and_weights(*it,points,weights);
 				
-        val = 0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
           if (!(mapping.get_data(points[p],val2))) val2 = static_cast<typename FOUT::value_type>(idata->def_value);
@@ -742,7 +742,7 @@ bool MapFieldDataGradientOntoFieldAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::MapF
     return (false);  
   }
 
-  output = dynamic_cast<Field *>(scinew FOUT(dmesh));
+  output = dynamic_cast<Field *>(new FOUT(dmesh));
   if (output.get_rep() == 0)
   {
     pr->error("MapFieldDataGradientOntoField: Could no allocate output field");
@@ -819,7 +819,7 @@ void MapFieldDataGradientOntoFieldAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::para
         valarray.resize(points.size());
         for (size_t p = 0; p < points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],valarray[p]))) valarray[p] = 0;
+          if(!(mapping.get_gradient(points[p],valarray[p]))) valarray[p] = typename FOUT::value_type(0);
         }
         sort(valarray.begin(),valarray.end());
         int idx = static_cast<int>((valarray.size()/2));
@@ -835,15 +835,15 @@ void MapFieldDataGradientOntoFieldAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::para
       while (it != eit)
       {
         integrator.get_nodes_and_weights(*it,points,weights);
-        typename FOUT::value_type val; val = 0;
-        typename FOUT::value_type tval; tval = 0;
+        typename FOUT::value_type val(0);
+        typename FOUT::value_type tval(0);
 
         if (points.size() > 0)
         {
-          if(!(mapping.get_gradient(points[0],val))) val = 0;
+          if(!(mapping.get_gradient(points[0],val))) val = typename FOUT::value_type(0);
           for (size_t p = 1; p < points.size(); p++)
           {
-            if(!(mapping.get_gradient(points[p],tval))) tval = 0;
+            if(!(mapping.get_gradient(points[p],tval))) tval = typename FOUT::value_type(0);
             if (tval < val) val = tval;
           }
         }
@@ -859,15 +859,15 @@ void MapFieldDataGradientOntoFieldAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::para
       while (it != eit)
       {
         integrator.get_nodes_and_weights(*it,points,weights);
-        typename FOUT::value_type val; val = 0;
-        typename FOUT::value_type tval; tval = 0;
+        typename FOUT::value_type val(0);
+        typename FOUT::value_type tval(0);
 
         if (points.size() > 0)
         {
-          if (!(mapping.get_gradient(points[0],val))) val = 0;
+          if (!(mapping.get_gradient(points[0],val))) val =typename FOUT::value_type(0);
           for (size_t p = 1; p < points.size(); p++)
           {
-            if (!(mapping.get_gradient(points[p],tval))) tval = 0;
+            if (!(mapping.get_gradient(points[p],tval))) tval = typename FOUT::value_type(0);
             if (tval > val) val = tval;
           }
         }
@@ -889,12 +889,12 @@ void MapFieldDataGradientOntoFieldAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::para
         valarray.resize(points.size());
         for (size_t p = 0; p < points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],valarray[p]))) valarray[p] = 0;
+          if(!(mapping.get_gradient(points[p],valarray[p]))) valarray[p] = typename FOUT::value_type(0);
         }
         sort(valarray.begin(),valarray.end());
 				 
-        typename FOUT::value_type rval; rval = 0;
-        typename FOUT::value_type val; val = 0;
+        typename FOUT::value_type rval(0);
+        typename FOUT::value_type val(0);
         int rnum = 0;
 				
         int p = 0;
@@ -924,10 +924,10 @@ void MapFieldDataGradientOntoFieldAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::para
       {
         integrator.get_nodes_and_iweights(*it,points,weights);
 
-        val = 0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if(!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           val += val2*weights[p];
         }
 				
@@ -944,10 +944,10 @@ void MapFieldDataGradientOntoFieldAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::para
       {
         integrator.get_nodes_and_weights(*it,points,weights);
 
-        val = 0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if(!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           val += val2*weights[p];
         }
 				
@@ -964,10 +964,10 @@ void MapFieldDataGradientOntoFieldAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::para
       {
         integrator.get_nodes_and_weights(*it,points,weights);      
 				
-        val = 0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if(!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           val += val2 * (1.0/points.size());
         }
         ofield->set_value(val,*it);
@@ -983,10 +983,10 @@ void MapFieldDataGradientOntoFieldAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::para
       {
         integrator.get_nodes_and_weights(*it,points,weights);
 				
-        val = 0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
-          if (!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if (!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           val += val2;
         }
         ofield->set_value(val,*it);
@@ -1065,7 +1065,7 @@ bool MapFieldDataGradientOntoFieldNormAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::
     return (false);  
   }
 
-  output = dynamic_cast<Field *>(scinew FOUT(dmesh));
+  output = dynamic_cast<Field *>(new FOUT(dmesh));
   if (output.get_rep() == 0)
   {
     pr->error("MapFieldDataGradientOntoField: Could no allocate output field");
@@ -1144,7 +1144,7 @@ void MapFieldDataGradientOntoFieldNormAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::
         valarray.resize(points.size());
         for (size_t p = 0; p < points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if(!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           valarray[p] = static_cast<typename FOUT::value_type>(val2.length());
         }
         sort(valarray.begin(),valarray.end());
@@ -1161,16 +1161,16 @@ void MapFieldDataGradientOntoFieldNormAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::
       while (it != eit)
       {
         integrator.get_nodes_and_weights(*it,points,weights);
-        typename FOUT::value_type val; val = 0;
-        typename FOUT::value_type tval; tval = 0;
+        typename FOUT::value_type val(0);
+        typename FOUT::value_type tval(0);
 
         if (points.size() > 0)
         {
-          if(!(mapping.get_gradient(points[0],val2))) val2 = 0;
+          if(!(mapping.get_gradient(points[0],val2))) val2 = typename FOUT::value_type(0);
           val = static_cast<typename FOUT::value_type>(val2.length());
           for (size_t p = 1; p < points.size(); p++)
           {
-            if(!(mapping.get_gradient(points[p],val2))) val2 = 0;
+            if(!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
             tval = static_cast<typename FOUT::value_type>(val2.length());
             if (tval < val) val = tval;
           }
@@ -1187,16 +1187,16 @@ void MapFieldDataGradientOntoFieldNormAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::
       while (it != eit)
       {
         integrator.get_nodes_and_weights(*it,points,weights);
-        typename FOUT::value_type val; val = 0;
-        typename FOUT::value_type tval; tval = 0;
+        typename FOUT::value_type val(0);
+        typename FOUT::value_type tval(0);
 
         if (points.size() > 0)
         {
-          if (!(mapping.get_gradient(points[0],val2))) val2 = 0;
+          if (!(mapping.get_gradient(points[0],val2))) val2 = typename FOUT::value_type(0);
           val = static_cast<typename FOUT::value_type>(val2.length());
           for (size_t p = 1; p < points.size(); p++)
           {
-            if (!(mapping.get_gradient(points[p],val2))) val2 = 0;
+            if (!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
             val = static_cast<typename FOUT::value_type>(val2.length());
             if (tval > val) val = tval;
           }
@@ -1218,13 +1218,13 @@ void MapFieldDataGradientOntoFieldNormAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::
         valarray.resize(points.size());
         for (size_t p = 0; p < points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if(!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           valarray[p] = static_cast<typename FOUT::value_type>(val2.length());
         }
         sort(valarray.begin(),valarray.end());
 				 
-        typename FOUT::value_type rval; rval = 0;
-        typename FOUT::value_type val; val = 0;
+        typename FOUT::value_type rval(0);
+        typename FOUT::value_type val(0);
         int rnum = 0;
 				
         int p = 0;
@@ -1254,10 +1254,10 @@ void MapFieldDataGradientOntoFieldNormAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::
       {
         integrator.get_nodes_and_iweights(*it,points,weights);
 
-        val = 0.0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if(!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           val += static_cast<typename FOUT::value_type>(val2.length())*weights[p];
         }
 				
@@ -1274,10 +1274,10 @@ void MapFieldDataGradientOntoFieldNormAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::
       {
         integrator.get_nodes_and_weights(*it,points,weights);
 
-        val = 0.0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if(!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           val += static_cast<typename FOUT::value_type>(val2.length())*weights[p];
         }
 				
@@ -1294,10 +1294,10 @@ void MapFieldDataGradientOntoFieldNormAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::
       {
         integrator.get_nodes_and_weights(*it,points,weights);      
 				
-        val = 0.0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
-          if(!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if(!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           val += static_cast<typename FOUT::value_type>(val2.length()) * (1.0/points.size());
         }
         ofield->set_value(val,*it);
@@ -1313,10 +1313,10 @@ void MapFieldDataGradientOntoFieldNormAlgoT<MAPPING,INTEGRATOR,FSRC,FDST,FOUT>::
       {
         integrator.get_nodes_and_weights(*it,points,weights);
 				
-        val = 0.0;
+        val = typename FOUT::value_type(0);
         for (int p=0; p<points.size(); p++)
         {
-          if (!(mapping.get_gradient(points[p],val2))) val2 = 0;
+          if (!(mapping.get_gradient(points[p],val2))) val2 = typename FOUT::value_type(0);
           val += static_cast<typename FOUT::value_type>(val2.length());
         }
         ofield->set_value(val,*it);
@@ -1543,7 +1543,7 @@ InterpolatedData<FIELD>::InterpolatedData(FIELD* field)
 }
 
 template <class FIELD>
-InterpolatedData<FIELD>::~InterpolatedData<FIELD>()
+InterpolatedData<FIELD>::~InterpolatedData()
 {
 }
 
@@ -1590,7 +1590,7 @@ InterpolatedGradient<FIELD>::InterpolatedGradient(FIELD* field)
 }
 
 template <class FIELD>
-InterpolatedGradient<FIELD>::~InterpolatedGradient<FIELD>()
+InterpolatedGradient<FIELD>::~InterpolatedGradient()
 {
 }
 
@@ -1710,7 +1710,7 @@ class GaussianIntegration
       for (int k=0; k < coords_.size(); k++)
       {
         mesh_->interpolate(gpoints[k],coords_[k],idx);
-        gweights[k] = weights_[k]*(vol_/mesh_->det_jacobian(coords_[k],idx));
+        gweights[k] = weights_[k]*(abs(mesh_->det_jacobian(coords_[k],idx))*vol_);
       }
     }
 
@@ -1811,7 +1811,7 @@ class RegularIntegration
       for (int k=0; k < weights_.size(); k++)
       {
         mesh_->interpolate(gpoints[k],coords_[k],idx);
-        gweights[k] = weights_[k]*(1.0/mesh_->det_jacobian(coords_[k],idx));
+        gweights[k] = weights_[k]*(abs(mesh_->det_jacobian(coords_[k],idx)));
       }
     }
 
@@ -1878,7 +1878,7 @@ class NormalGaussianIntegration
 
         mesh_->interpolate(gpoints[k],coords_[k],idx);
         mesh_->get_normal(gnormals[k],coords_[k],idx,0);
-				gweights[k] = weights_[k]*(vol_/mesh_->det_jacobian(coords_[k],idx));
+				gweights[k] = weights_[k]*(abs(mesh_->det_jacobian(coords_[k],idx))*vol_);
       }
     }
 
@@ -1982,7 +1982,7 @@ class NormalRegularIntegration
       {
         mesh_->interpolate(gpoints[k],coords_[k],idx);
         mesh_->get_normal(gnormals[k],coords_[k],idx,0);
-				gweights[k] = weights_[k]*(1.0/mesh_->det_jacobian(coords_[k],idx));
+				gweights[k] = weights_[k]*(abs(mesh_->det_jacobian(coords_[k],idx)));
       }
     }
 

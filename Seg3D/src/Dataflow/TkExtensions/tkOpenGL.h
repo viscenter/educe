@@ -46,10 +46,6 @@
 #  include <X11\XUtil.h>
 #endif
 
-#ifdef __sgi
-#  include <X11/extensions/SGIStereo.h>
-#endif
-
 
 /*
  * A data structure of the following type is kept for each OpenGL

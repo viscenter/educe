@@ -42,16 +42,8 @@
 #include <Dataflow/GuiInterface/UIvar.h>
 using namespace SCIRun;
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1468
-#endif
-
 //template class UiSingle<string>;
 template class UiSingle<double>;
 template class UiSingle<int>;
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1468
-#endif
 
 

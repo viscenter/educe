@@ -31,9 +31,9 @@
 #include <Core/Geometry/IntVector.h>
 #include <Core/Persistent/Persistent.h>
 #include <Core/Util/TypeDescription.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <iostream>
-#include <sgi_stl_warnings_on.h>
+
 using std::ostream;
 
 namespace SCIRun{
@@ -61,7 +61,7 @@ get_type_description(IntVector*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("IntVector", IntVector::get_h_file_path(), "SCIRun");
+    td = new TypeDescription("IntVector", IntVector::get_h_file_path(), "SCIRun");
   }
   return td;
 }

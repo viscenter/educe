@@ -56,7 +56,7 @@ class SCISHARE HexSamplingSchemes
       weights.resize(num_points);
       for (unsigned int i=0; i<num_points; i++)
       {
-        coords[i].resize(num_points);
+        coords[i].resize(num_coords);
         for (unsigned int j=0; j<num_coords; j++)
           coords[i][j] = static_cast<typename coords_type::value_type>(gaussian_coords[i][j]);
         weights[i] = static_cast<typename ARRAY2::value_type>(gaussian_weights[i]);
@@ -82,7 +82,7 @@ class SCISHARE HexSamplingSchemes
       weights.resize(num_points);
       for (unsigned int i=0; i<num_points; i++)
       {
-        coords[i].resize(num_points);
+        coords[i].resize(num_coords);
         for (unsigned int j=0; j<num_coords; j++)
           coords[i][j] = static_cast<typename coords_type::value_type>(gaussian_coords[i][j]);
         weights[i] = static_cast<typename ARRAY2::value_type>(gaussian_weights[i]);
@@ -141,7 +141,7 @@ class SCISHARE HexSamplingSchemes
       weights.resize(num_points);
       for (unsigned int i=0; i<num_points; i++)
       {
-        coords[i].resize(num_points);
+        coords[i].resize(num_coords);
         for (unsigned int j=0; j<num_coords; j++)
           coords[i][j] = static_cast<typename coords_type::value_type>(gaussian_coords[i][j]);
         weights[i] = static_cast<typename ARRAY2::value_type>(gaussian_weights[i]);

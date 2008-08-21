@@ -41,16 +41,16 @@
 #include <Core/Containers/StringUtil.h>
 #include <Core/Datatypes/Color.h>
 #include <Core/Exceptions/InternalError.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Thread/Mutex.h>
 #include <Core/Thread/Thread.h>
 #include <Core/Util/Assert.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <sci_gl.h>
 #include <sci_glx.h>

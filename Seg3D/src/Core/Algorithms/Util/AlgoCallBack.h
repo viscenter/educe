@@ -61,7 +61,7 @@ class SCISHARE AlgoCallBackList {
     void remove_callback(AlgoCallBack* callback);
     
   //! These functions are called by the algorithm
-  protected:
+  public:
   
     //! Execute all the callbacks
     void do_callbacks();

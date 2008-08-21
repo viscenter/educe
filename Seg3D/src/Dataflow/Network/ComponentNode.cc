@@ -42,7 +42,7 @@
 #include <libxml/xmlreader.h>
 #include <Core/Util/Environment.h>
 #include <Core/Util/RWS.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -65,7 +65,7 @@ set_port_info(vector<PInfo*> &ports, xmlNodePtr snode)
   for (; ipnode != 0; ipnode = ipnode->next) {
     if (string(to_char_ptr(ipnode->name)) == string("port"))
     {
-      PInfo *pinfo = scinew PInfo;
+      PInfo *pinfo = new PInfo;
       xmlNodePtr pnode = ipnode->children;
       for (; pnode != 0; pnode = pnode->next) {
 	if (string(to_char_ptr(pnode->name)) == string("name")) {
@@ -276,7 +276,6 @@ read_component_file(ModuleInfo &mi, const char* filename)
   }
   /* parse the file, activating the DTD validation option */
   doc = xmlCtxtReadFile(ctxt, filename, 0, (XML_PARSE_DTDATTR | 
-					    XML_PARSE_DTDVALID | 
 					    XML_PARSE_NOERROR));
   /* check if parsing suceeded */
   if (doc == 0 || ctxt->valid == 0) {
@@ -289,55 +288,77 @@ read_component_file(ModuleInfo &mi, const char* filename)
     }
     ostringstream msg;
     msg << "createSciDialog -error -title \"Component XML " 
-	<< mtype << "Error\" -message \"" 
-	<< endl << mtype << "Failure for: " << endl << filename << endl
-	<< endl << "Error Message: " << endl << error->message << endl << "\"";
+        << mtype << "Error\" -message \"" 
+        << endl << mtype << "Failure for: " << endl << filename << endl
+        << endl << "Error Message: " << endl << error->message << endl << "\"";
     gui->eval(msg.str());
     return false;
   } 
   
   xmlNode* node = doc->children;
-  for (; node != 0; node = node->next) {
+  for (; node != 0; node = node->next) 
+  {
     // skip all but the component node.
     if (node->type == XML_ELEMENT_NODE && 
-	string(to_char_ptr(node->name)) == string("component")) 
+        string(to_char_ptr(node->name)) == string("component")) 
     {
       //! set all the ModuleInfo
       xmlAttrPtr name_att = get_attribute_by_name(node, "name");
       xmlAttrPtr cat_att = get_attribute_by_name(node, "category");
-      
+      xmlAttrPtr version_att = get_attribute_by_name(node, "version");
+            
       // set the component attributes.
-      if (name_att == 0 || cat_att == 0) {
-	std::cerr << "Attibutes missing from component node in : " 
-		  << filename << std::endl;
-	return false;
+      if (name_att == 0 || cat_att == 0) 
+      {
+        std::cerr << "Attibutes missing from component node in : " 
+            << filename << std::endl;
+        return false;
       }
       mi.module_name_ = string(to_char_ptr(name_att->children->content));
       mi.category_name_ = string(to_char_ptr(cat_att->children->content));
       xmlAttrPtr opt_att = get_attribute_by_name(node, "optional");
+ 
+      mi.module_version_ = "1.0";
+      if (version_att != 0) 
+      {
+        mi.module_version_ = string(to_char_ptr(version_att->children->content));
+      }
+      
       mi.optional_ = false;
       if (opt_att != 0) 
       {
-	if (string(to_char_ptr(opt_att->children->content)) == string("true")) 
-	{
-	  mi.optional_ = true;
-	}
+        if (string(to_char_ptr(opt_att->children->content)) == string("true")) 
+        {
+          mi.optional_ = true;
+        }
       }
 			
       if (!sci_getenv_p("SCIRUN_SHOW_HIDDEN_MODULES"))
       {
-	opt_att = get_attribute_by_name(node, "hide");			
-	mi.hide_ = false;
-	if (opt_att != 0) 
-	{
-	  if (string(to_char_ptr(opt_att->children->content)) == 
-	      string("true")) 
-	  {
-	    mi.hide_ = true;
-	  }
-	}
+        opt_att = get_attribute_by_name(node, "hide");			
+        mi.hide_ = false;
+        if (opt_att != 0) 
+        {
+          if (string(to_char_ptr(opt_att->children->content)) == 
+              string("true")) 
+          {
+            mi.hide_ = true;
+          }
+        }
       }
-			
+
+      opt_att = get_attribute_by_name(node, "dynamic");			
+      mi.dynamic_ = false;
+      if (opt_att != 0) 
+      {
+        if (string(to_char_ptr(opt_att->children->content)) == 
+            string("true")) 
+        {
+          mi.dynamic_ = true;
+          if (!sci_getenv_p("SCIRUN_ON_THE_FLY_LIBS_DIR")) mi.hide_ = true;
+        }
+      }
+
       //set the description string.
       set_description(mi, node);
       set_port_info(mi, node);

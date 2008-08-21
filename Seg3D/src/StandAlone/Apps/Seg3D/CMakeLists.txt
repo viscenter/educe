@@ -72,6 +72,7 @@ ENDIF(NOT ITK_DIR)
 FIND_PACKAGE( ITK )
 IF(ITK_FOUND)
   INCLUDE(${ITK_USE_FILE})
+  INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/itk_temp/Source/)
 ELSE(ITK_FOUND)
   MESSAGE(FATAL_ERROR "Cannot build Seg3D without ITK. Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
@@ -152,9 +153,15 @@ SET(Seg3D_SRCS
   GuiCode/resampletool.cpp
   GuiCode/medianfiltertool.cpp
   GuiCode/maskfilter.cpp
+  GuiCode/measurementtool.cpp
+  GuiCode/movescaletoolpanel.cpp
   GuiCode/optionlessfilter.cpp
-  GuiCode/itkthresholdfilter.cpp
+  GuiCode/polylinetoolpanel.cpp
+  GuiCode/thresholdtoolpanel.cpp
   GuiCode/itkDiscreteGaussianImageFilter.cpp
+  GuiCode/itkspeedtopathgradientdescentfilter.cpp
+  GuiCode/itkspeedtopathregularstepgradientdescentfilter.cpp
+  GuiCode/itkspeedtopathiterateneighborhoodfilter.cpp
 )
 
 IF(WIN32)
@@ -169,7 +176,6 @@ SET(Seg3D_LIBS
   ${SLIVR_LIBRARY}
   Core_Matlab 
   Core_Basis 
-  Core_Bundle 
   Core_Containers 
   Core_Datatypes 
   Core_Events 

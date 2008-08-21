@@ -13,11 +13,11 @@ itcl_class SCIRun_String_ReportStringInfo {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
-        frame $w.f     
+        sci_toplevel $w
+        sci_frame $w.f     
         pack $w.f -expand yes -fill both
 
-        iwidgets::scrolledtext $w.f.str -vscrollmode dynamic \
+        sci_scrolledtext $w.f.str -vscrollmode dynamic \
             -labeltext "String Contents"  
         $w.f.str insert end [set $this-inputstring]
         pack $w.f.str -fill both -expand yes

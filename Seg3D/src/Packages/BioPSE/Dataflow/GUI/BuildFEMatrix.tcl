@@ -46,37 +46,37 @@ itcl_class BioPSE_Forward_BuildFEMatrix {
         set_defaults
     }
     method set_defaults {} {
-	global $this-UseCondTCL
-	global $this-UseBasisTCL
-        global $this-NProcessorsTCL
-	set $this-UseCondTCL 1
-	set $this-UseBasisTCL 0
-	set $this-NProcessorsTCL "auto"
+      global $this-UseCondTCL
+      global $this-UseBasisTCL
+            global $this-NProcessorsTCL
+      set $this-UseCondTCL 1
+      set $this-UseBasisTCL 0
+      set $this-NProcessorsTCL "auto"
     }
     method ui {} {
-        set w .ui[modname]
+      set w .ui[modname]
 
-        if {[winfo exists $w]} {
-            return
-        }
-	global $this-UseCondTCL
-	global $this-UseBasisTCL
-	global $this-NProcessorsTCL
+      if {[winfo exists $w]} {
+          return
+      }
+      global $this-UseCondTCL
+      global $this-UseBasisTCL
+      global $this-NProcessorsTCL
 
-        toplevel $w
+      sci_toplevel $w
 
-	frame $w.np
-	label $w.np.l -text "Number of Threads"
-	entry $w.np.e -width 5 -textvariable $this-NProcessorsTCL -justify center
-	pack $w.np.l $w.np.e -side left
+      sci_frame $w.np
+      sci_label $w.np.l -text "Number of Threads"
+      sci_entry $w.np.e -width 5 -textvariable $this-NProcessorsTCL -justify center
+      pack $w.np.l $w.np.e -side left
 
-	checkbutton $w.c -text "Use Conductivities" \
-	    -variable $this-UseCondTCL
-	checkbutton $w.b -text "Use Conductivity Basis Matrices" \
-	    -variable $this-UseBasisTCL
-	pack $w.np $w.c $w.b -side top -anchor w -padx 4 -pady 2
+      sci_checkbutton $w.c -text "Use Conductivities" \
+          -variable $this-UseCondTCL
+      sci_checkbutton $w.b -text "Use Conductivity Basis Matrices" \
+          -variable $this-UseBasisTCL
+      pack $w.np $w.c $w.b -side top -anchor w -padx 4 -pady 2
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
     }
 }

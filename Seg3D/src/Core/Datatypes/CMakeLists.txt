@@ -29,21 +29,23 @@
 # Sources of Core/Datatypes classes
 
 SET(Core_Datatypes_SRCS
+  Bundle.cc
   Clipper.cc
-  Color.cc		    	
+  Color.cc
+  ColorMap.cc		    	
   ColumnMatrix.cc	    	
   Datatype.cc
   DenseColMajMatrix.cc	    	
   DenseMatrix.cc	    	
   Field.cc
   FieldRNG.cc
-  FieldInformation.cc		    	
-  FieldInterfaceAux.cc
+  FieldInformation.cc
   VFData.cc	
   VFDataT_0.cc	
   VFDataT_1.cc	
   VFDataT_2.cc	
-  Image.cc		    	
+  Image.cc	
+  Material.cc	    	
   Matrix.cc		    	
   MatrixOperations.cc	    	
   Mesh.cc		    	

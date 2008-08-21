@@ -44,7 +44,7 @@
 #include <Core/Geometry/BBox.h>
 #include <Core/Util/NotFinished.h>
 #include <Core/Geom/GeomSave.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <iostream>
 using std::cerr;
@@ -99,7 +99,7 @@ Transform GeomTransform::getTransform()
 
 GeomObj* GeomTransform::clone()
 {
-    return scinew GeomTransform(*this);
+    return new GeomTransform(*this);
 }
 
 void GeomTransform::get_bounds(BBox& bb)

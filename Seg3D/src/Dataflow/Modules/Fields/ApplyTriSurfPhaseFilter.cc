@@ -38,6 +38,7 @@ namespace SCIRun {
 class ApplyTriSurfPhaseFilter : public Module {
   public:
     ApplyTriSurfPhaseFilter(GuiContext*);
+    virtual ~ApplyTriSurfPhaseFilter() {}
     virtual void execute();   
 };
 

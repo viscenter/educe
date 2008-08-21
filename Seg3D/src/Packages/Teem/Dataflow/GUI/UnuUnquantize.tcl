@@ -41,47 +41,47 @@ itcl_class Teem_UnuNtoZ_UnuUnquantize {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	frame $w.f.options.min -relief groove -borderwidth 2
-	pack $w.f.options.min -side top -expand yes -fill x
+        sci_frame $w.f.options.min -relief groove -borderwidth 2
+        pack $w.f.options.min -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.min.v -labeltext "Min:" \
-	    -textvariable $this-min
+        sci_entryfield $w.f.options.min.v -labeltext "Min:" \
+          -textvariable $this-min
         pack $w.f.options.min.v -side top -expand yes -fill x
 
-        checkbutton $w.f.options.min.useinputmin \
-	    -text "Use Input's Min" \
-	    -variable $this-useinputmin
+        sci_checkbutton $w.f.options.min.useinputmin \
+          -text "Use Input's Min" \
+          -variable $this-useinputmin
         pack $w.f.options.min.useinputmin -side top -anchor nw 
 
-	frame $w.f.options.max -relief groove -borderwidth 2
-	pack $w.f.options.max -side top -expand yes -fill x
+        sci_frame $w.f.options.max -relief groove -borderwidth 2
+        pack $w.f.options.max -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.max.v -labeltext "Max:" \
-	    -textvariable $this-max
+        sci_entryfield $w.f.options.max.v -labeltext "Max:" \
+          -textvariable $this-max
         pack $w.f.options.max.v -side top -expand yes -fill x
 
-        checkbutton $w.f.options.max.useinputmax \
-	    -text "Use Input's Max" \
-	    -variable $this-useinputmax
+        sci_checkbutton $w.f.options.max.useinputmax \
+          -text "Use Input's Max" \
+          -variable $this-useinputmax
         pack $w.f.options.max.useinputmax -side top -anchor nw 
 
 
-	checkbutton $w.f.options.double -text "Use double for output type" \
-	    -variable $this-double
-	pack $w.f.options.double -side top -expand yes -fill x
+        sci_checkbutton $w.f.options.double -text "Use double for output type" \
+            -variable $this-double
+        pack $w.f.options.double -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
     }
 }
 

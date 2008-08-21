@@ -35,10 +35,12 @@
 
 #include <Core/Events/OGLView/ViewToolInterface.h>
 #include <Core/Events/BaseTool.h>
+
 #include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Material.h>
+#include <Core/Datatypes/ColorMap.h>
+
 #include <Core/Geom/GeomObj.h>
-#include <Core/Geom/Material.h>
-#include <Core/Geom/ColorMap.h>
 #include <vector>
 #include <set>
 

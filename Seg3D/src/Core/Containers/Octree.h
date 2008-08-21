@@ -30,7 +30,7 @@
 #ifndef OCTREE_H
 #define OCTREE_H
 
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCIRun {
 
@@ -109,7 +109,7 @@ Octree<T>::Octree(const T stored, nodeType t, const Octree<T> *parent):
   if( t == LEAF ){
     children = 0;
   } else {
-    children = scinew Octree<T>*[8];
+    children = new Octree<T>*[8];
     for( int i = 0; i < 8; i++)
       children[i] = 0;
   }

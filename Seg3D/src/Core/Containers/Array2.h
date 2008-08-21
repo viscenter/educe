@@ -144,6 +144,9 @@ public:
 
   inline size_type size() const { return (static_cast<size_type>(dm1*dm2)); }
 
+  void zero()
+    { size_type sz = size(); for(size_type j=0; j<sz; j++) obj[j] = T(0); } 
+
   //////////
   //Initialize all values in an array
   void initialize(const T&);

@@ -34,34 +34,29 @@
 
 namespace SCIRun {
 
-  class InterfaceWithCamal : public Module
-  {
+class InterfaceWithCamal : public Module
+{
   public:
     InterfaceWithCamal(GuiContext* ctx);
-    virtual ~InterfaceWithCamal();
+    virtual ~InterfaceWithCamal() {}
 
     virtual void execute();
-  };
+};
 
 
-  DECLARE_MAKER(InterfaceWithCamal)
+DECLARE_MAKER(InterfaceWithCamal)
 
-  InterfaceWithCamal::InterfaceWithCamal(GuiContext* ctx)
-  : Module("InterfaceWithCamal", ctx, Filter, "NewField", "SCIRun")
-  {
-  }
-
-
-  InterfaceWithCamal::~InterfaceWithCamal()
-  {
-  }
+InterfaceWithCamal::InterfaceWithCamal(GuiContext* ctx)
+: Module("InterfaceWithCamal", ctx, Filter, "NewField", "SCIRun")
+{
+}
 
 
-  void
-  InterfaceWithCamal::execute()
-  {
-    error("This module is disabled, because the necessary supporting libraries were not found at build time.");
-  }
+void
+InterfaceWithCamal::execute()
+{
+  error("This module is disabled, because the necessary supporting libraries were not found at build time.");
+}
 
 
 } // end namespace SCIRun

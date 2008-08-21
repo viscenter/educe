@@ -26,35 +26,25 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+#include <Core/Datatypes/Bundle.h>
 
-/*
- *  ReadBundle.cc:
- *
- *  Written by:
- *   jeroen
- *   TODAY'S DATE HERE
- *
- */
-
-#include <Core/Bundle/Bundle.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Modules/DataIO/GenericReader.h>
 
 using namespace SCIRun;
 using namespace std;
 
 class ReadBundle : public GenericReader<BundleHandle> {
-public:
-  ReadBundle(GuiContext*);
+  public:
+    ReadBundle(GuiContext*);
+    virtual ~ReadBundle() {}
 
-  virtual ~ReadBundle();
-
-  virtual void execute();
-protected:
-  GuiString guiTypes_;
-  GuiString guiFileType_;
+    virtual void execute();
+  protected:
+    GuiString guiTypes_;
+    GuiString guiFileType_;
   
 };
 
@@ -72,12 +62,6 @@ DECLARE_MAKER(ReadBundle)
 
   guiTypes_.set(importtypes);
 }
-
-
-ReadBundle::~ReadBundle()
-{
-}
-
 
 void
 ReadBundle::execute()

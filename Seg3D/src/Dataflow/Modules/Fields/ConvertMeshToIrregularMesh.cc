@@ -26,37 +26,54 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+// Include the algorithm
+#include <Core/Algorithms/Fields/ConvertMeshType/ConvertMeshToIrregularMesh.h>
 
+// Base class for the module
 #include <Dataflow/Network/Module.h>
+
+// Ports included in the module
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
+
+// For Windows support
+#include <Dataflow/Modules/Fields/share.h>
 
 namespace SCIRun {
 
 class ConvertMeshToIrregularMesh : public Module
 {
-public:
-  ConvertMeshToIrregularMesh(GuiContext* ctx);
-  virtual void execute();
+  public:
+    ConvertMeshToIrregularMesh(GuiContext* ctx);
+    virtual ~ConvertMeshToIrregularMesh() {}
+    virtual void execute();
+    
+  private:
+    SCIRunAlgo::ConvertMeshToIrregularMeshAlgo algo_; 
 };
 
 DECLARE_MAKER(ConvertMeshToIrregularMesh)
 ConvertMeshToIrregularMesh::ConvertMeshToIrregularMesh(GuiContext* context)
   : Module("ConvertMeshToIrregularMesh", context, Filter, "ChangeMesh", "SCIRun")
 {
+  //! Forward errors to the module
+  algo_.set_progress_reporter(this);
 }
 
 void
 ConvertMeshToIrregularMesh::execute()
 {
+  // Define fieldhandles
   FieldHandle ifield, ofield;
-  if (!(get_input_handle("Input Field",ifield,true))) return;
+  
+  // Get data from input port
+  get_input_handle("Input Field",ifield,true);
 
+  // We only execute if something changed
   if (inputs_changed_ || !oport_cached("Output Field"))
   {
-    SCIRunAlgo::FieldsAlgo algo(this);
-    if (!(algo.ConvertMeshToIrregularMesh(ifield,ofield))) return;
-
+    // Run the algorithm
+    if (!(algo_.run(ifield,ofield))) return;
+    // Send to output to the output port
     send_output_handle("Output Field", ofield);
   }
 }

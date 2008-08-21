@@ -34,9 +34,11 @@
 namespace SCIRun {
 
 class SplitVectorArrayInXYZ : public Module {
-public:
-  SplitVectorArrayInXYZ(GuiContext*);
-  virtual void execute();
+  public:
+    SplitVectorArrayInXYZ(GuiContext*);
+    virtual ~SplitVectorArrayInXYZ() {}
+
+    virtual void execute();
 };
 
 
@@ -52,11 +54,13 @@ SplitVectorArrayInXYZ::execute()
 {
   MatrixHandle X,Y,Z,V;
   
-  if (!(get_input_handle("VectorArray",V,true)));
+  get_input_handle("VectorArray",V,true);
   
   if (inputs_changed_ || !oport_cached("X") ||
       !oport_cached("Y") || !oport_cached("Z"))
   {
+    update_state(Executing);
+      
     int n;
     n = V->nrows();
     
@@ -74,9 +78,9 @@ SplitVectorArrayInXYZ::execute()
     
     MatrixHandle tmp;
     tmp = V->dense(); V = tmp;
-    X = scinew DenseMatrix(n, 1);
-    Y = scinew DenseMatrix(n, 1);
-    Z = scinew DenseMatrix(n, 1);
+    X = new DenseMatrix(n, 1);
+    Y = new DenseMatrix(n, 1);
+    Z = new DenseMatrix(n, 1);
     
     double* vptr = V->get_data_pointer();
     double* xptr = X->get_data_pointer();

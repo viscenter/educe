@@ -41,13 +41,14 @@ using namespace std;
 
 class GetCentroidsFromMesh : public Module {
   public:
-    GetCentroidsFromMesh(GuiContext* ctx);  
+    GetCentroidsFromMesh(GuiContext* ctx);
+    virtual ~GetCentroidsFromMesh() {}
+    
     virtual void execute();
 
   private:  
     SCIRunAlgo::GetCentroidsAlgo algo_;
-    
-  private:
+
     GuiString component_;
 };
 

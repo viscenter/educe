@@ -36,7 +36,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Core/Datatypes/ColumnMatrix.h>
 
@@ -93,7 +93,7 @@ CreateElectrodeParameterMatrices::execute()
   unsigned int startNodeIndex = Max(startNodeIdxTCL_.get(), 0);
 
   ColumnMatrix* elParams;
-  elParams = scinew ColumnMatrix(4);
+  elParams = new ColumnMatrix(4);
 
   if (model==0)
   {
@@ -111,7 +111,7 @@ CreateElectrodeParameterMatrices::execute()
   // There are numEl-1 unique current patterns
   // Current pattern index is 1-based
   ColumnMatrix* currPattIndicies;
-  currPattIndicies = scinew ColumnMatrix(numEl-1);
+  currPattIndicies = new ColumnMatrix(numEl-1);
   for (unsigned int i = 0; i < numEl-1; i++)
   {
     (*currPattIndicies)[i] = i + 1;

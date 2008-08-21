@@ -474,9 +474,9 @@ const TypeDescription* get_type_description(TriLinearLgn<T> *)
   static TypeDescription* td = 0;
   if(!td){
     const TypeDescription *sub = get_type_description((T*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("TriLinearLgn", subs, 
+    td = new TypeDescription("TriLinearLgn", subs, 
 				std::string(__FILE__),
 				"SCIRun", 
 				TypeDescription::BASIS_E);
@@ -513,13 +513,6 @@ TriLinearLgn<T>::io(Piostream &stream)
   stream.end_class();
 }
 
-
 } //namespace SCIRun
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-// Turn back on 'implicit conversion... loss of accuracy' messages.
-#  pragma reset woff 1506
-#endif
-
 
 #endif // TriLinearLgn_h

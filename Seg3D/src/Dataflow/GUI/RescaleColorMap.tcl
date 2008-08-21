@@ -35,135 +35,135 @@ itcl_class SCIRun_Visualization_RescaleColorMap {
     } 
   
     method set_defaults {} { 
-	setGlobal $this-main_frame ""
-	setGlobal $this-isFixed 0
-	setGlobal $this-min 0
-	setGlobal $this-max 1
-	setGlobal $this-makeSymmetric 0
+      setGlobal $this-main_frame ""
+      setGlobal $this-isFixed 0
+      setGlobal $this-min 0
+      setGlobal $this-max 1
+      setGlobal $this-makeSymmetric 0
     }   
 
     method ui {} { 
-	set w .ui[modname]
-	
-	if {[winfo exists $w]} { 
-	    return
-	} 
-	
-	toplevel $w 
+      set w .ui[modname]
+      
+      if {[winfo exists $w]} { 
+          return
+      } 
+      
+      sci_toplevel $w 
 
-	build_ui $w
+      build_ui $w
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
 
-	# Don't let the GUI be smaller than it originally starts as.
-	# (This works because moveToCursor forces the GUI to size
-	#  itself.  Without the "update idletasks" in moveToCursor
-        #  winfo would return 0.)
-	set guiWidth [winfo reqwidth $w]
-	set guiHeight [winfo reqheight $w]
-	wm minsize $w $guiWidth $guiHeight
+      # Don't let the GUI be smaller than it originally starts as.
+      # (This works because moveToCursor forces the GUI to size
+      #  itself.  Without the "update idletasks" in moveToCursor
+            #  winfo would return 0.)
+      set guiWidth [winfo reqwidth $w]
+      set guiHeight [winfo reqheight $w]
+      wm minsize $w $guiWidth $guiHeight
 
-	if { [set $this-isFixed] } {
-	    $w.bf.f3.fs select
-	    $this fixedScale
-	} else {
-	    $w.bf.f1.as select
-	    $this autoScale
-	}
+      if { [set $this-isFixed] } {
+          $w.bf.f3.fs select
+          $this fixedScale
+      } else {
+          $w.bf.f1.as select
+          $this autoScale
+      }
     }
 
     method build_ui { w } {
-	global $this-main_frame
-	set $this-main_frame $w
+      global $this-main_frame
+      set $this-main_frame $w
 
-	global $this-isFixed
-	global $this-min
-	global $this-max
-	global $this-makeSymmetric
+      global $this-isFixed
+      global $this-min
+      global $this-max
+      global $this-makeSymmetric
 
-	# Base Frame
-	frame $w.bf
-	pack $w.bf -padx 4 -pady 4 -fill both -expand y
+      # Base Frame
+      sci_frame $w.bf
+      pack $w.bf -padx 4 -pady 4 -fill both -expand y
 
-	# Auto Scale Frame
-	frame $w.bf.f1
-	radiobutton $w.bf.f1.as -text "Auto Scale" -variable $this-isFixed \
-	    -value 0 -command "$this autoScale"
-	checkbutton $w.bf.f1.sas -text "Symmetric Auto Scale" -variable $this-makeSymmetric
+      # Auto Scale Frame
+      sci_frame $w.bf.f1
+      sci_radiobutton $w.bf.f1.as -text "Auto Scale" -variable $this-isFixed \
+          -value 0 -command "$this autoScale"
+      sci_checkbutton $w.bf.f1.sas -text "Symmetric Auto Scale" -variable $this-makeSymmetric
 
-	TooltipMultiline $w.bf.f1.as \
-	    "Auto Scale uses the min/max values of the data (from the input field)\n" \
-	    "and maps the color map to that range."
-	TooltipMultiline $w.bf.f1.sas \
-	    "Symmetric auto scaling of the color map will make the median data value\n" \
-            "correspond to the the middle of the color map.  For example, if the maximum\n" \
-            "data value is 80 and minimum is -20, the min/max range will be set to +/- 80\n" \
-            "(and thus the median data value is set to 0)."
+      TooltipMultiline $w.bf.f1.as \
+          "Auto Scale uses the min/max values of the data (from the input field)\n" \
+          "and maps the color map to that range."
+      TooltipMultiline $w.bf.f1.sas \
+          "Symmetric auto scaling of the color map will make the median data value\n" \
+                "correspond to the the middle of the color map.  For example, if the maximum\n" \
+                "data value is 80 and minimum is -20, the min/max range will be set to +/- 80\n" \
+                "(and thus the median data value is set to 0)."
 
-	pack $w.bf.f1.as  -side top -anchor w -padx 2
-	pack $w.bf.f1.sas -side top -anchor w -padx 2
+      pack $w.bf.f1.as  -side top -anchor w -padx 2
+      pack $w.bf.f1.sas -side top -anchor w -padx 2
 
-	# Fixed Scale Frame
-	frame $w.bf.f3 -relief groove -borderwidth 2
+      # Fixed Scale Frame
+      sci_frame $w.bf.f3 -relief groove -borderwidth 2
 
-	radiobutton $w.bf.f3.fs -text "Fixed Scale"  -variable $this-isFixed \
-	    -value 1 -command "$this fixedScale"
+      sci_radiobutton $w.bf.f3.fs -text "Fixed Scale"  -variable $this-isFixed \
+          -value 1 -command "$this fixedScale"
 
-	TooltipMultiline $w.bf.f3.fs \
-	    "Fixed Scale allows the user to select the min and max\n" \
-	    "values of the data that will correspond to the color map."
+      TooltipMultiline $w.bf.f3.fs \
+          "Fixed Scale allows the user to select the min and max\n" \
+          "values of the data that will correspond to the color map."
 
-	frame $w.bf.f3.min
-	label $w.bf.f3.min.l1 -text " Min:"
-	entry $w.bf.f3.min.e1 -textvariable $this-min -width 10
+      sci_frame $w.bf.f3.min
+      sci_label $w.bf.f3.min.l1 -text " Min:"
+      sci_entry $w.bf.f3.min.e1 -textvariable $this-min -width 10
 
-	frame $w.bf.f3.max
-	label $w.bf.f3.max.l2 -text "Max:"
-	entry $w.bf.f3.max.e2 -textvariable $this-max -width 10
+      sci_frame $w.bf.f3.max
+      sci_label $w.bf.f3.max.l2 -text "Max:"
+      sci_entry $w.bf.f3.max.e2 -textvariable $this-max -width 10
 
-	pack $w.bf.f3.fs -anchor w -padx 2
-	pack $w.bf.f3.min.l1 -anchor e -side left
-	pack $w.bf.f3.min.e1 -expand yes -fill x -anchor e -side left
-	pack $w.bf.f3.max.l2 -anchor e -side left
-	pack $w.bf.f3.max.e2 -expand yes -fill x -anchor e -side left 
+      pack $w.bf.f3.fs -anchor w -padx 2
+      pack $w.bf.f3.min.l1 -anchor e -side left
+      pack $w.bf.f3.min.e1 -expand yes -fill x -anchor e -side left
+      pack $w.bf.f3.max.l2 -anchor e -side left
+      pack $w.bf.f3.max.e2 -expand yes -fill x -anchor e -side left 
 
-	pack $w.bf.f3.min -side top -anchor e -padx 2 -pady 2 -fill x 
-	pack $w.bf.f3.max -side top -anchor e -padx 2 -pady 2 -fill x
+      pack $w.bf.f3.min -side top -anchor e -padx 2 -pady 2 -fill x 
+      pack $w.bf.f3.max -side top -anchor e -padx 2 -pady 2 -fill x
 
-	# pack in the auto scale and the fixed scale frames
-	pack $w.bf.f1 -side left -anchor n
-	pack $w.bf.f3 -side left -expand yes -fill both -anchor n
+      # pack in the auto scale and the fixed scale frames
+      pack $w.bf.f1 -side left -anchor n
+      pack $w.bf.f3 -side left -expand yes -fill both -anchor n
 
-	bind $w.bf.f3.min.e1 <Return> "$this-c needexecute"
-	bind $w.bf.f3.max.e2 <Return> "$this-c needexecute"
+      bind $w.bf.f3.min.e1 <Return> "$this-c needexecute"
+      bind $w.bf.f3.max.e2 <Return> "$this-c needexecute"
     }
 
     method autoScale { } {
-	global $this-isFixed
-	global $this-main_frame
-	
-	set w [set $this-main_frame]
+      global $this-isFixed
+      global $this-main_frame
+      
+      set w [set $this-main_frame]
 
-	set lightgray "#444444"
+      set lightgray "#444444"
 
-	$w.bf.f1.sas    configure -state normal
-	$w.bf.f3.min.l1 configure -foreground $lightgray
-	$w.bf.f3.min.e1 configure -state disabled -foreground $lightgray
-	$w.bf.f3.max.l2 configure -foreground $lightgray
-	$w.bf.f3.max.e2 configure -state disabled -foreground $lightgray
-    }
+      $w.bf.f1.sas    configure -state normal
+      $w.bf.f3.min.l1 configure -foreground $lightgray
+      $w.bf.f3.min.e1 configure -state disabled -foreground $lightgray
+      $w.bf.f3.max.l2 configure -foreground $lightgray
+      $w.bf.f3.max.e2 configure -state disabled -foreground $lightgray
+        }
 
-    method fixedScale { } {
-	global $this-isFixed
-	global $this-main_frame
+        method fixedScale { } {
+      global $this-isFixed
+      global $this-main_frame
 
-	set w [set $this-main_frame]
+      set w [set $this-main_frame]
 
-	$w.bf.f1.sas     configure -state disabled
-	$w.bf.f3.min.l1  configure -foreground black
-	$w.bf.f3.min.e1  configure -state normal -foreground black
-	$w.bf.f3.max.l2  configure -foreground black
-	$w.bf.f3.max.e2  configure -state normal -foreground black
+      $w.bf.f1.sas     configure -state disabled
+      $w.bf.f3.min.l1  configure -foreground black
+      $w.bf.f3.min.e1  configure -state normal -foreground black
+      $w.bf.f3.max.l2  configure -foreground black
+      $w.bf.f3.max.e2  configure -state normal -foreground black
     }
 }

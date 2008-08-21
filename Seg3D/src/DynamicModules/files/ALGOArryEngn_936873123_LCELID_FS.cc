@@ -47,6 +47,6 @@ int cnt_ = 0;    for (int p_ = 0; p_ < size_; p_++)
 
 extern "C" {
 DataArrayMath::ArrayEngineAlgo* maker_ALGOArrayEngine_936873123_LCELID_FS () {
-  return scinew DataArrayMath::ALGOArrayEngine_936873123_LCELID_FS<double>;
+  return new DataArrayMath::ALGOArrayEngine_936873123_LCELID_FS<double>;
 }
 }

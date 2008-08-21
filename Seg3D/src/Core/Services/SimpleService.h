@@ -76,7 +76,7 @@ typedef LockingHandle<SimpleServiceOutputInfo> SimpleServiceOutputInfoHandle;
 
 inline SimpleServiceOutputInfo* SimpleServiceOutputInfo::clone()
 {
-	return(scinew SimpleServiceOutputInfo(socket_,log_));
+	return(new SimpleServiceOutputInfo(socket_,log_));
 }
 
 inline void SimpleServiceOutputInfo::signal_exit()
@@ -90,7 +90,7 @@ inline void SimpleServiceOutputInfo::signal_exit()
 inline void SimpleServiceOutputInfo::add_packet(IComPacketHandle &packet,bool atfront)
 {
     lock.lock();
-    if (packet_list_ == 0) packet_list_ = scinew std::list<IComPacketHandle>;
+    if (packet_list_ == 0) packet_list_ = new std::list<IComPacketHandle>;
     if (atfront)
     {
         packet_list_->push_front(packet);

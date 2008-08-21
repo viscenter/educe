@@ -61,15 +61,15 @@ set m9 [addModuleAtPosition "SCIRun" "Visualization" "RescaleColorMap" 233 625]
 set m10 [addModuleAtPosition "SCIRun" "Visualization" "ExtractIsosurface" 9 738]
 set m11 [addModuleAtPosition "SCIRun" "DataIO" "ReadField" 233 400]
 set m12 [addModuleAtPosition "SCIRun" "ChangeFieldData" "MapFieldDataFromSourceToDestination" 215 503]
-set m13 [addModuleAtPosition "SCIRun" "Visualization" "ShowFieldV1" 215 721]
+set m13 [addModuleAtPosition "SCIRun" "Visualization" "ShowField" 215 721]
 set m14 [addModuleAtPosition "SCIRun" "NewField" "GeneratePointSamplesFromFieldOrWidget" 658 560]
-set m15 [addModuleAtPosition "SCIRun" "Visualization" "ShowFieldV1" 622 745]
+set m15 [addModuleAtPosition "SCIRun" "Visualization" "ShowField" 622 745]
 set m16 [addModuleAtPosition "SCIRun" "Visualization" "GenerateStreamLines" 640 621]
 set m17 [addModuleAtPosition "SCIRun" "ChangeFieldData" "MapFieldDataFromSourceToDestination" 622 682]
 set m18 [addModuleAtPosition "SCIRun" "NewField" "GetFieldBoundary" 447 543]
-set m19 [addModuleAtPosition "SCIRun" "Visualization" "ShowFieldV1" 447 607]
+set m19 [addModuleAtPosition "SCIRun" "Visualization" "ShowField" 447 607]
 set m20 [addModuleAtPosition "SCIRun" "DataIO" "ReadField" 300 24]
-set m22 [addModuleAtPosition "SCIRun" "Visualization" "ShowFieldV1" 160 822]
+set m22 [addModuleAtPosition "SCIRun" "Visualization" "ShowField" 160 822]
 
 setProgressText "Creating BioFEM Connections..."
 addConnection $m0 0 $m1 0
@@ -154,21 +154,21 @@ if {[file exists $DATADIR/$DATASET/$DATASET-electrodes.pcd.fld]} {
 
 set $m12-exhaustive_search {1}
 
-set $m13-nodes-on {1}
-set $m13-edges-on {0}
-set $m13-faces-on {0}
-set $m13-text-on {0}
-set $m13-text-color-r {1.0}
-set $m13-text-color-g {1.0}
-set $m13-text-color-b {1.0}
-set $m13-text-fontsize {1}
-set $m13-text-precision {3}
-set $m13-text-render_locations {0}
-set $m13-text-show-data {1}
-set $m13-text-show-nodes {0}
-set $m13-text-show-edges {0}
-set $m13-text-show-faces {0}
-set $m13-text-show-cells {0}
+set $m13-nodes_on {1}
+set $m13-edges_on {0}
+set $m13-faces_on {0}
+set $m13-text_on {0}
+set $m13-text_color-r {1.0}
+set $m13-text_color-g {1.0}
+set $m13-text_color-b {1.0}
+set $m13-text_fontsize {1}
+set $m13-text_precision {3}
+set $m13-text_render_locations {0}
+set $m13-text_show_data {1}
+set $m13-text_show_nodes {0}
+set $m13-text_show_edges {0}
+set $m13-text_show_faces {0}
+set $m13-text_show_cells {0}
 set $m13-node_display_type {Spheres}
 set $m13-node_scale [expr 0.03 * ${global-scale}]
 set $m13-resolution {7}
@@ -176,13 +176,13 @@ set $m13-resolution {7}
 set $m14-maxseeds {50}
 set $m14-numseeds {35}
 
-set $m15-nodes-on {0}
-set $m15-edges-on {1}
-set $m15-faces-on {0}
+set $m15-nodes_on {0}
+set $m15-edges_on {1}
+set $m15-faces_on {0}
 set $m15-edge_display_type {Cylinders}
 set $m15-node_scale [expr 0.01 * ${global-scale}]
 set $m15-edge_scale [expr 0.01 * ${global-scale}]
-set $m15-edge-resolution {8}
+set $m15-edge_resolution {8}
 
 set $m16-stepsize [expr 0.004 * ${global-scale}]
 set $m16-tolerance [expr 0.004 * ${global-scale}]
@@ -192,14 +192,14 @@ set $m16-auto-parameterize {1}
 
 set $m17-exhaustive_search {0}
 
-set $m19-def-color-r {0.5}
-set $m19-def-color-g {0.5}
-set $m19-def-color-b {0.5}
-set $m19-def-color-a {0.85}
-set $m19-nodes-on {0}
-set $m19-edges-on {1}
-set $m19-faces-on {0}
-set $m19-edges-transparency {1}
+set $m19-def_color-r {0.5}
+set $m19-def_color-g {0.5}
+set $m19-def_color-b {0.5}
+set $m19-def_color-a {0.85}
+set $m19-nodes_on {0}
+set $m19-edges_on {1}
+set $m19-faces_on {0}
+set $m19-edges_transparency {1}
 set $m19-edge_display_type {Lines}
 set $m19-edge_scale {1.0}
 
@@ -209,10 +209,10 @@ if {[file exists $DATADIR/$DATASET/$DATASET-dipole.pcv.fld]} {
     set $m20-filename ""
 }
 
-set $m22-nodes-on {0}
-set $m22-edges-on {0}
-set $m22-faces-on {1}
-set $m22-use-normals {1}
+set $m22-nodes_on {0}
+set $m22-edges_on {0}
+set $m22-faces_on {1}
+set $m22-use_normals {1}
 
 ::netedit scheduleok
 
@@ -531,7 +531,7 @@ class BioFEMApp {
 	pack $f.probe -padx 5 -anchor w
 
 
-        global $mods(SolveMatrix)-target_error
+  global $mods(SolveMatrix)-target_error
 	set err [set $mods(SolveMatrix)-target_error]
 
 	iwidgets::labeledframe $f.graph -labelpos n -labeltext "Convergence" 
@@ -540,7 +540,7 @@ class BioFEMApp {
 	set g [$f.graph childsite]
 
 	blt::graph $g.graph -height 200 -plotbackground gray99
-	$g.graph yaxis configure -logscale true -title "Error (RMS)"  -min [expr $err/10] -max 1 -loose true
+	$g.graph yaxis configure -title "Error (RMS)"  -min [expr log($err/10)/log(10)] -max 1 -loose true
 	$g.graph xaxis configure -title "Iteration" \
 		-loose true
 	bind $g.graph <ButtonPress-1> "$mods(SolveMatrix) select_error $g.graph %x %y"

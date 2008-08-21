@@ -43,7 +43,7 @@
 
 #include <Core/Algorithms/Visualization/DataConversions.h>
 
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/Tensor.h>
 
@@ -84,6 +84,8 @@ public:
     USE_DEFAULT_COLOR = 0x0010,
     USE_COLORMAP      = 0x0020,
     USE_COLOR_CONVERT = 0x0040,
+  
+    SMALL_IS_DOT      = 0x0080,
 
     DIRTY             = 0x0800,
 

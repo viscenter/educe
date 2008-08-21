@@ -50,10 +50,10 @@ itcl_class BioPSE_Modeling_GetSingleSurfaceFromSepSurfs {
         set_defaults
     }
     method set_defaults {} {
-	global $this-surfid
-	global $this-data
-	set $this-surfid "0"
-	set $this-data "material"
+        global $this-surfid
+        global $this-data
+        set $this-surfid "0"
+        set $this-data "material"
     }
     method ui {} {
         set w .ui[modname]
@@ -62,27 +62,27 @@ itcl_class BioPSE_Modeling_GetSingleSurfaceFromSepSurfs {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 100 30
-        frame $w.f
+        sci_frame $w.f
         set n "$this-c needexecute "
-	global $this-surfid
-	frame $w.f.surf
-	label $w.f.surf.l -text "SurfId: "
-	entry $w.f.surf.e -relief sunken -width 10 -textvariable $this-surfid
-	bind $w.f.surf.e <Return> $n
-	pack $w.f.surf.l $w.f.surf.e -side left
-	pack $w.f.surf -side left -fill x
-	frame $w.data
-	label $w.data.label -text "Data values based on:"
-	radiobutton $w.data.material -text "Material" \
-		-variable $this-data -value material
-	radiobutton $w.data.cindex -text "Component index" \
-		-variable $this-data -value cindex
-	radiobutton $w.data.size -text "Size (voxels)" \
-		-variable $this-data -value size
-	pack $w.data.label $w.data.material $w.data.cindex $w.data.size \
-	    -side top -anchor w
+        global $this-surfid
+        sci_frame $w.f.surf
+        sci_label $w.f.surf.l -text "SurfId: "
+        sci_entry $w.f.surf.e -relief sunken -width 10 -textvariable $this-surfid
+        bind $w.f.surf.e <Return> $n
+        pack $w.f.surf.l $w.f.surf.e -side left
+        pack $w.f.surf -side left -fill x
+        sci_frame $w.data
+        sci_label $w.data.label -text "Data values based on:"
+        sci_radiobutton $w.data.material -text "Material" \
+          -variable $this-data -value material
+        sci_radiobutton $w.data.cindex -text "Component index" \
+          -variable $this-data -value cindex
+        sci_radiobutton $w.data.size -text "Size (voxels)" \
+          -variable $this-data -value size
+        pack $w.data.label $w.data.material $w.data.cindex $w.data.size \
+            -side top -anchor w
         pack $w.f $w.data -side top -expand yes
     }
 }

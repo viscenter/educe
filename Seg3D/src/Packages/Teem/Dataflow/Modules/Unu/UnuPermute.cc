@@ -40,7 +40,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -205,7 +205,7 @@ UnuPermute::execute()
 
   nrrdAxesPermute(nout, nin, axp);
 
-  last_nrrdH_ = scinew NrrdData(nout);
+  last_nrrdH_ = new NrrdData(nout);
 
   send_output_handle("Nrrd", last_nrrdH_, true);
 }

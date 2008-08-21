@@ -59,6 +59,7 @@ main(int argc, char **argv)
   ifstream vffFileStream(in, ios::binary);
   char *out = argv[2];
   ofstream nrrdHeader(out, ios::binary);
+  float spacing[3];
 
   if (argc < 3)
   {
@@ -76,6 +77,8 @@ main(int argc, char **argv)
     cout<<"could not create nrrd header file "<<out<<endl;
     return 1;
   }
+
+  spacing[0] = spacing[1] = spacing[2] = 1.0;
 
   int lineCount = 0;
   int foundFormFeed = 0;	
@@ -103,6 +106,12 @@ main(int argc, char **argv)
       bitsLine >> nbits;
     }
 	  
+    if (strncmp(temp,"spacing=",8) == 0)
+    {
+      istringstream spacingLine(&temp[8]);
+      spacingLine >> spacing[0] >> spacing[1] >> spacing[2];
+    }
+	  
     if (strncmp(temp,"size=",5) == 0)
     {
       istringstream sizeLine(&temp[5]);
@@ -124,10 +133,11 @@ main(int argc, char **argv)
     nrrdHeader << " " << size[i];
   }
   nrrdHeader << endl
-             << "spacings:";
+             << "spacings: ";
   for (i = 0; i < dim; i++)
   {
-    nrrdHeader << " 1";
+    nrrdHeader << spacing[0];
+    if (i < (dim-1)) nrrdHeader << " ";
   }
   nrrdHeader << endl
              << "data file: " << in << endl

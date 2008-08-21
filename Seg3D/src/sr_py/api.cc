@@ -46,10 +46,11 @@
 #include <Core/Events/OGLView/OpenGLViewer.h>
 #include <Core/Events/CM2View/CM2View.h>
 #include <Core/Datatypes/Field.h>
-#include <main/sci_version.h>
+#include <sci_defs/version_defs.h>
 #include <iostream>
 #include <sstream>
 
+#undef HAVE_TETGEN
 #if defined(HAVE_TETGEN)
 #include <Core/Basis/Constant.h>
 #include <Core/Basis/TetLinearLgn.h>
@@ -80,7 +81,7 @@ init_sr_py(char**environment)
     //! create the EventManager thread.
     static Thread* emt = 0;
     if (! emt) {
-      emt = scinew Thread(new EventManager(), "Event Manager Thread");
+      emt = new Thread(new EventManager(), "Event Manager Thread");
       emt->detach();
     }
 
@@ -155,8 +156,8 @@ tetgen_2surf(string f1, string f2, string outfile)
   //update_progress(.2);
   // Save files for later debugging.
   string filename = string(sci_getenv("SCIRUN_TMP_DIR")) + "/tgIN";
-  in.save_nodes((char*)filename.c_str());
-  in.save_poly((char*)filename.c_str());
+  //in.save_nodes((char*)filename.c_str());
+  //in.save_poly((char*)filename.c_str());
 
   string tg_cmmd = "pqa300.0AAz";
   // Create the new mesh.
@@ -250,7 +251,7 @@ run_viewer_thread(CallbackOpenGLContext *ogl, string id)
   OpenGLViewer *v = new OpenGLViewer(c, id);
   
   string tid = "Viewer Thread:" + id;
-  Thread *vt = scinew Thread(v, tid.c_str());
+  Thread *vt = new Thread(v, tid.c_str());
   vt->detach(); // runs until thread exits.
 }
 

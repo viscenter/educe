@@ -50,7 +50,7 @@
 #include <Core/Basis/Constant.h>
 #include <Core/Datatypes/PointCloudMesh.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <StandAlone/convert/FileUtils.h>
 #include <Core/Init/init.h>
 #include <iostream>
@@ -127,7 +127,7 @@ main(int argc, char **argv)
     return 2;
   }
 
-  ProgressReporter *pr = scinew ProgressReporter();
+  ProgressReporter *pr = new ProgressReporter();
   FieldHandle pcH(TextPointCloudString_reader(pr, ptsName));
   
   if (pcH.get_rep() == 0)

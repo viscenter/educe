@@ -85,7 +85,7 @@ est_closest_point_on_quad(Point &result, const Point &P,
 
 SCISHARE double
 RayPlaneIntersection(const Point &p,  const Vector &dir,
-		     const Point &p0, const Vector &pn, const double epsilon = 1e-12);
+		     const Point &p0, const Vector &pn, const double epsilon = 1e-6);
 
 
 SCISHARE bool
@@ -102,7 +102,7 @@ SCISHARE bool
 closest_line_to_line(double &s, double &t,
                      const Point &A0, const Point &A1,
                      const Point &B0, const Point &B1,
-                     const double epsilon = 1e-6);
+                     const double epsilon = 1e-12);
 
 
 SCISHARE void

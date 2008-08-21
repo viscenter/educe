@@ -47,6 +47,8 @@
 #ifndef DATAFLOW_NETWORK_NETWORK_H
 #define DATAFLOW_NETWORK_NETWORK_H 1
 
+#include <Dataflow/GuiInterface/GuiCallback.h>
+
 #include <Core/Thread/ConditionVariable.h>
 #include <Core/Thread/Mutex.h>
 #include <Core/Thread/RecursiveMutex.h>
@@ -98,6 +100,8 @@ private:
   int network_dynamic_compiles_;
 
   LogFileHandle log_file_;
+
+  GuiInterface*	gui_;
   
 public:
   Network();
@@ -157,9 +161,9 @@ public:
   void set_network_dynamic_compiles(int code) { network_dynamic_compiles_ =  code; }
   void incr_network_dynamic_compiles() { write_lock(); network_dynamic_compiles_++; write_unlock(); }
   
-  void add_log(std::string logtext)
-    { if(log_file_.get_rep()) log_file_->putmsg(logtext); }
-
+  void add_log(std::string logtext);
+  void set_gui(GuiInterface*	gui);
+  void network_progress(int i,int size);
 };
 
 } // End namespace SCIRun

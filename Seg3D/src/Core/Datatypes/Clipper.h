@@ -31,12 +31,13 @@
 //    Author : Michael Callahan
 //    Date   : September 2001
 
-#if !defined(Clipper_h)
-#define Clipper_h
+#ifndef CORE_DATATYPES_CLIPPER_H
+#define CORE_DATATYPES_CLIPPER_H 1
 
 #include <Core/Containers/LockingHandle.h>
 #include <Core/Datatypes/Datatype.h>
 #include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/VMesh.h>
 #include <Core/Geometry/Transform.h>
 #include <Core/Containers/LockingHandle.h>
 
@@ -123,22 +124,20 @@ public:
 };
 
 
-
-template <class MESH>
 class MeshClipper : public Clipper
 {
 private:
-  LockingHandle<MESH> mesh_;
+  VMesh* mesh_;
 
 public:
-  MeshClipper(LockingHandle<MESH> mesh) : mesh_(mesh) { 
+  MeshClipper(VMesh* mesh) : mesh_(mesh) { 
     mesh->synchronize(Mesh::LOCATE_E);
   }
 
   virtual bool inside_p(const Point &p)
   {
-    typename MESH::Elem::index_type indx;
-    return mesh_->locate(indx, p);
+    VMesh::Elem::index_type idx;
+    return mesh_->locate(idx, p);
   }
   virtual bool mesh_p() { return true; }
 

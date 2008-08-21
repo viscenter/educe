@@ -47,7 +47,6 @@
 #include <SCICore/Containers/Array2.h>
 #include <SCICore/Datatypes/ScalarFieldRGchar.h>
 #include <SCICore/Geometry/Point.h>
-#include <SCICore/Malloc/Allocator.h>
 #include <SCICore/TclInterface/TCLvar.h>
 #include <iostream>
 
@@ -350,8 +349,9 @@ PlanarContoursToSegVol::execute()
     ContourSetHandle contours;
     if (!incontour->get(contours)) return;
     int genTmp=contours->generation;
-    int newNx=atoi(nxTCL.get()());
-    int newNy=atoi(nyTCL.get()());
+    int newNx;
+    from_string(nxTCL.get(),newNx);
+    from_string(nyTCL.get(),newNy);
     if (execMsg=="" && genTmp==gen && (newNx==nx) && (newNy==ny)){
 	ofield->send(sfH);
 	return;

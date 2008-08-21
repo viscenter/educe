@@ -48,7 +48,7 @@
 
 #include <Core/Datatypes/ColumnMatrix.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 
@@ -127,7 +127,7 @@ main(int argc, char **argv) {
   }
   if (header) matstream >> nr;
   cerr << "nrows="<<nr<<"\n";
-  ColumnMatrix *cm = scinew ColumnMatrix(static_cast<Matrix::size_type>(nr));
+  ColumnMatrix *cm = new ColumnMatrix(static_cast<Matrix::size_type>(nr));
   Matrix::index_type r;
   for (r=0; r<nr; r++) {
     double d;

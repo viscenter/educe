@@ -41,7 +41,7 @@
 
 #include <Core/Basis/TriLinearLgn.h>
 #include <Core/Datatypes/TriSurfMesh.h>
-#include <Core/Basis/TetLinearLgn.h>
+#include <Core/Basis/Constant.h>
 #include <Core/Datatypes/TetVolMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
@@ -54,8 +54,8 @@ namespace BioPSE {
 using namespace SCIRun;
 
 class IntegrateCurrent : public Module {
-  typedef TetLinearLgn<Vector>                                  TFDVectorBasis;
-  typedef TetLinearLgn<int>                                     TFDintBasis;
+  typedef ConstantBasis<Vector>                                 TFDVectorBasis;
+  typedef ConstantBasis<int>                                    TFDintBasis;
   typedef TetVolMesh<TetLinearLgn<Point> >                      TVMesh;
   typedef GenericField<TVMesh, TFDVectorBasis, vector<Vector> > TVFieldV;
   typedef GenericField<TVMesh, TFDintBasis,    vector<int> >    TVFieldI;
@@ -116,7 +116,9 @@ IntegrateCurrent::execute()
     return;
   }
 
-  // for each face in tris, find its area, centroid, and normal
+  efield->mesh()->synchronize(Mesh::ELEM_LOCATE_E);
+
+  // For each face in tris, find its area, centroid, and normal
   // for that centroid, look up its sigma and efield in the tetvol fields
   // compute (sigma * efield * area) and dot it with the face normal
   // sum those up for all tris
@@ -126,6 +128,13 @@ IntegrateCurrent::execute()
   tris->end(fe);
   double current=0;
   TSMesh::Node::array_type nodes;
+
+  TSMesh::Face::size_type nfaces;
+  tris->size(nfaces);
+  size_t progress = 0;
+  size_t progress_max = (size_t)nfaces;
+  update_progress(0.0);
+
   double total_area=0;
   while (fi != fe) {
     Point center;
@@ -153,8 +162,13 @@ IntegrateCurrent::execute()
 	     s.mat_[1][0]*e.x()+s.mat_[1][1]*e.y()+s.mat_[1][2]*e.z(),
 	     s.mat_[2][0]*e.x()+s.mat_[2][1]*e.y()+s.mat_[2][2]*e.z());
     current += fabs(Dot(c,normal)) * area;
+
+    if ((progress++ & 0xff) == 0) { update_progress(progress, progress_max); }
+
     ++fi;
   }
+  update_progress(1.0);
+
   current_.set(current);
 }
 

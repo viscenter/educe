@@ -29,7 +29,7 @@
 #include <Core/Datatypes/String.h>
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCIRun {
 
@@ -69,7 +69,7 @@ CreateString::execute()
   // TCL HAS A TENDENCY TO ADD A LINEFEED AT THE END
   std::string str = inputstring_.get();
   if((str.size() > 0)&&(str[str.size()-1] == '\n')) str = str.substr(0,str.size()-1); 
-  StringHandle handle(scinew String(str));
+  StringHandle handle(new String(str));
 
   send_output_handle("Output", handle);
 }

@@ -37,7 +37,7 @@
 #include <Core/Containers/StringUtil.h>
 #include <Core/Datatypes/Color.h>
 #include <Core/Exceptions/InternalError.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h> // for SWAP
 #include <Core/Thread/Mutex.h>
 #include <Core/Thread/Thread.h>
@@ -207,7 +207,11 @@ OSXOpenGLContext::swap()
   X11Lock::unlock();
 }
 
-
+bool
+OSXOpenGLContext::has_shaders()
+{
+  return(SLIVR::ShaderProgramARB::shaders_supported());
+}
 
 }
 

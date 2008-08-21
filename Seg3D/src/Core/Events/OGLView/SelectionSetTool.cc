@@ -31,7 +31,6 @@
 
 #include <Core/Events/EventManager.h>
 #include <Core/Events/DataManager.h>
-#include <Core/Geom/ColorMap.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Core/Geom/GeomColorMap.h>
 #include <Core/Events/OGLView/SelectionSetTool.h>
@@ -229,7 +228,7 @@ SelectionSetTool::render_selection_set()
   case NODES_E:
     {
       DataManager::geom_info_t gi = dm->get_geom(gobjs[3]);
-      gmat = scinew GeomMaterial(gi.first, text_material_);
+      gmat = new GeomMaterial(gi.first, text_material_);
       geom = new GeomSwitch(new GeomColorMap(gmat, color_map_));
       name = params_->get_p_text_backface_cull() ? 
 	"Culled Text Data" : "Text Data";
@@ -238,8 +237,8 @@ SelectionSetTool::render_selection_set()
   case EDGES_E:
     {
       DataManager::geom_info_t gi = dm->get_geom(gobjs[1]);
-      gmat = scinew GeomMaterial(gi.first, def_material_);
-      geom = scinew GeomSwitch(new GeomColorMap(gmat, color_map_));
+      gmat = new GeomMaterial(gi.first, def_material_);
+      geom = new GeomSwitch(new GeomColorMap(gmat, color_map_));
       name = params_->get_p_edges_transparency() ? 
 	"Transparent Edges" : "Edges";
     }
@@ -248,8 +247,8 @@ SelectionSetTool::render_selection_set()
   case FACES_E:
     {
       DataManager::geom_info_t gi = dm->get_geom(gobjs[2]);
-      gmat = scinew GeomMaterial(gi.first, def_material_);
-      geom = scinew GeomSwitch(new GeomColorMap(gmat, color_map_));
+      gmat = new GeomMaterial(gi.first, def_material_);
+      geom = new GeomSwitch(new GeomColorMap(gmat, color_map_));
       name = params_->get_p_faces_transparency() ? 
 	"Transparent Faces" : "Faces";
     }

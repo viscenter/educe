@@ -49,7 +49,7 @@
 #include <Dataflow/Constraints/ConstraintSolver.h>
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/GeometryPort.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Thread/CrowdMonitor.h>
 #include <Core/Thread/Mutex.h>
 #include <Core/Containers/StringUtil.h>
@@ -66,32 +66,32 @@ namespace SCIRun {
 static const Index NumDefaultMaterials = 6;
 
 MaterialHandle
-BaseWidget::DefaultPointMaterial(scinew Material(Color(0,0,0),
+BaseWidget::DefaultPointMaterial(new Material(Color(0,0,0),
 						 Color(.54,.60,1),
 						 Color(.5,.5,.5),
 						 20));
 MaterialHandle
-BaseWidget::DefaultEdgeMaterial(scinew Material(Color(0,0,0),
+BaseWidget::DefaultEdgeMaterial(new Material(Color(0,0,0),
 						Color(.54,.60,.66),
 						Color(.5,.5,.5),
 						20));
 MaterialHandle
-BaseWidget::DefaultSliderMaterial(scinew Material(Color(0,0,0),
+BaseWidget::DefaultSliderMaterial(new Material(Color(0,0,0),
 						  Color(.66,.60,.40),
 						  Color(.5,.5,.5),
 						  20));
 MaterialHandle
-BaseWidget::DefaultResizeMaterial(scinew Material(Color(0,0,0),
+BaseWidget::DefaultResizeMaterial(new Material(Color(0,0,0),
 						  Color(.54,1,.60),
 						  Color(.5,.5,.5),
 						  20));
 MaterialHandle
-BaseWidget::DefaultSpecialMaterial(scinew Material(Color(0,0,0),
+BaseWidget::DefaultSpecialMaterial(new Material(Color(0,0,0),
 						   Color(1,.54,.60),
 						   Color(.5,.5,.5),
 						   20));
 MaterialHandle
-BaseWidget::DefaultHighlightMaterial(scinew Material(Color(0,0,0),
+BaseWidget::DefaultHighlightMaterial(new Material(Color(0,0,0),
 						     Color(.8,0,0),
 						     Color(.5,.5,.5),
 						     20));
@@ -130,7 +130,7 @@ BaseWidget::BaseWidget( Module* module, CrowdMonitor* lock,
     lock_(lock),
     name_(name),
     id_(make_id(name)),
-    solve(scinew ConstraintSolver), 
+    solve(new ConstraintSolver), 
     constraints(NumConstraints, NULL),
     variables(NumVariables, NULL),
     geometries(NumGeometries, NULL),
@@ -355,7 +355,7 @@ BaseWidget::tcl_command(GuiArgs& args, void*)
       return;
     }
     ctx->reset();
-    MaterialHandle mat(scinew Material(tclmat_.get()));
+    MaterialHandle mat(new Material(tclmat_.get()));
     pmat(mat);
     SetDefaultMaterial(mati, mat);
   }
@@ -377,7 +377,7 @@ BaseWidget::tcl_command(GuiArgs& args, void*)
       return;
     }
     ctx->reset();
-    MaterialHandle mat(scinew Material(tclmat_.get()));
+    MaterialHandle mat(new Material(tclmat_.get()));
     pmat(mat);
     SetMaterial(mati, mat);
   }
@@ -706,7 +706,7 @@ BaseWidget::CreateModeSwitch( const Index snum, GeomHandle o )
 {
   ASSERT(snum<mode_switches.size());
   ASSERT(mode_switches[snum]==NULL);
-  mode_switches[snum] = scinew GeomSwitch(o);
+  mode_switches[snum] = new GeomSwitch(o);
 }
 
 
@@ -755,7 +755,7 @@ BaseWidget::FinishWidget()
     ASSERT(materials[i] != NULL);
   }
    
-  GeomGroup* sg = scinew GeomGroup;
+  GeomGroup* sg = new GeomGroup;
   for (i=0; i<mode_switches.size(); i++)
   {
     if (modes[current_mode_]&(1<<i))
@@ -769,9 +769,9 @@ BaseWidget::FinishWidget()
     sg->add(mode_switches[i]);
   }
   if (stipple_occluded_) 
-    widget_ = scinew GeomStippleOccluded(sg);
+    widget_ = new GeomStippleOccluded(sg);
   else 
-    widget_ = scinew GeomSwitch(sg);
+    widget_ = new GeomSwitch(sg);
 
 
   // Init variables.

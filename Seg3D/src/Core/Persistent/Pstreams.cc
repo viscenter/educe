@@ -44,16 +44,17 @@
  */
 
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Containers/StringUtil.h>
 
 #include <teem/air.h>
 #include <teem/nrrd.h>
+#include <zlib.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include   <fstream>
 #include   <iostream>
-#include <sgi_stl_warnings_on.h>
+
 
 using namespace std;
 
@@ -820,7 +821,7 @@ TextPiostream::TextPiostream(const string& filename, Direction dir,
   else
   {
     istr=0;
-    ostr=scinew ofstream(filename.c_str());
+    ostr=new ofstream(filename.c_str());
     ostream& out=*ostr;
     if (!out)
     {

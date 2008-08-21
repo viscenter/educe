@@ -41,7 +41,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Util/sci_system.h>
@@ -120,11 +120,8 @@ ReadNrrd::read_nrrd()
 
   // If we haven't read yet, or if it's a new filename, 
   //  or if the datestamp has changed -- then read...
-#ifdef __sgi
-  time_t new_filemodification = buf.st_mtim.tv_sec;
-#else
   time_t new_filemodification = buf.st_mtime;
-#endif
+
   if(!read_handle_.get_rep() || 
      fn != old_filename_ || 
      new_filemodification != old_filemodification_)
@@ -196,7 +193,7 @@ bool
 ReadNrrd::read_file(string fn)
 {
 
-  NrrdData *n = scinew NrrdData;
+  NrrdData *n = new NrrdData;
   if (nrrdLoad(n->nrrd_, airStrdup(fn.c_str()), 0)) {
     char *err = biffGetDone(NRRD);
     error("Read error on '" + fn + "': " + err);

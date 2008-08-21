@@ -46,6 +46,12 @@ CalculateGradientsAlgo::run(FieldHandle input, FieldHandle& output)
   
   FieldInformation fi(input);
 
+  if (fi.is_pointcloudmesh())
+  {
+    error("Cannot calculate gradients for a point cloud");
+    algo_end(); return (false);    
+  }
+
   if (fi.is_nodata())
   {
     error("Input field does not have data associated with it");

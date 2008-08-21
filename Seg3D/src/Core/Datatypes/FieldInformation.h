@@ -86,19 +86,36 @@ class SCISHARE FieldTypeInformation {
     bool        is_structuredmesh();
     bool        is_unstructuredmesh();
     
-    bool        is_pointcloud();
-    bool        is_scanline();
-    bool        is_image();
-    bool        is_latvol();
-    bool        is_curve();
-    bool        is_trisurf();
-    bool        is_quadsurf();
-    bool        is_tetvol();
-    bool        is_prismvol();
-    bool        is_hexvol();
-    bool        is_structcurve();    
-    bool        is_structquadsurf();    
-    bool        is_structhexvol();
+    // These should go...
+    inline bool is_pointcloud() { return(is_pointcloudmesh()); }
+    inline bool is_scanline() { return(is_scanlinemesh()); }
+    inline bool is_image() { return(is_imagemesh()); }
+    inline bool is_latvol() { return(is_latvolmesh()); }
+    inline bool is_curve() { return(is_curvemesh()); }
+    inline bool is_trisurf() { return(is_trisurfmesh()); }
+    inline bool is_quadsurf() { return(is_quadsurfmesh()); }
+    inline bool is_tetvol() { return(is_tetvolmesh()); }
+    inline bool is_prismvol() { return(is_prismvolmesh()); }
+    inline bool is_hexvol() { return(is_hexvolmesh()); }
+    inline bool is_structcurve() { return(is_structcurvemesh()); }    
+    inline bool is_structquadsurf() { return(is_structquadsurfmesh()); }    
+    inline bool is_structhexvol() { return(is_structhexvolmesh()); }
+
+    // Naming that is more systematic
+    bool        is_pointcloudmesh();
+    bool        is_scanlinemesh();
+    bool        is_imagemesh();
+    bool        is_latvolmesh();
+    bool        is_curvemesh();
+    bool        is_trisurfmesh();
+    bool        is_quadsurfmesh();
+    bool        is_tetvolmesh();
+    bool        is_prismvolmesh();
+    bool        is_hexvolmesh();
+    bool        is_structcurvemesh();    
+    bool        is_structquadsurfmesh();    
+    bool        is_structhexvolmesh();
+
     
     bool        is_point();
     bool        is_line();
@@ -142,6 +159,9 @@ class SCISHARE FieldInformation : public FieldTypeInformation {
     FieldInformation(std::string meshtype,std::string meshbasis,
                                   std::string databasis, std::string datatype);
     FieldInformation(std::string meshtype,std::string basis, std::string datatype);
+
+    FieldInformation(std::string meshtype,int,int, std::string datatype);
+    FieldInformation(std::string meshtype,int, std::string datatype);
     
     FieldInformation(FieldHandle handle);
     FieldInformation(Field* field);
@@ -156,16 +176,19 @@ class SCISHARE FieldInformation : public FieldTypeInformation {
     
     std::string get_mesh_basis_type();
     void        set_mesh_basis_type(std::string);
+    void        set_mesh_basis_type(int);
 
     std::string get_point_type();
     void        set_point_type(std::string);
 
     std::string get_basis_type();
     void        set_basis_type(std::string);
+    void        set_basis_type(int);
 
     // alternative way of setting data_basis
     std::string get_data_basis_type() { return (get_basis_type()); }
     void        set_data_basis_type(std::string s) { set_basis_type(s); }
+    void        set_data_basis_type(int s) { set_basis_type(s); }
 
     std::string get_data_type();
     void        set_data_type(std::string);
@@ -221,12 +244,14 @@ class SCISHARE FieldInformation : public FieldTypeInformation {
     bool        make_hexvolmesh();
 
     bool        make_unstructuredmesh();
+    bool        make_irregularmesh();
     
     // This function tests whether the field and the mesh have a virtual interface
     // and whether the mesh can be instantiated by CreateField
     bool        has_virtual_interface();
     
     bool        operator==(const FieldInformation&) const;
+    bool        operator!=(const FieldInformation&) const;
 
 };
 

@@ -26,19 +26,14 @@
 //  DEALINGS IN THE SOFTWARE.
 //  
 //    File   : BrushFloodFill.cc
-//    Author : McKay Davis
-//    Date   : Tue Sep 26 18:44:34 2006
+//    Author : Michael Callahan
+//    Date   : March 2008
 
 #include <StandAlone/Apps/Seg3D/Painter.h>
-#include <Core/Util/Timer.h>
 
 #include <StandAlone/Apps/Seg3D/BrushFloodFill.h>
+#include <Core/Events/keysyms.h>
 #include <sci_gl.h>
-
-#include <itkImageToImageFilter.h>
-#include <itkCommand.h>
-#include <itkNeighborhoodConnectedImageFilter.h>
-#include <itkConnectedThresholdImageFilter.h>
 
 
 namespace SCIRun {
@@ -60,6 +55,21 @@ BrushFloodFill::run_filter()
   // This function should not be run directly.  We don't finish it,
   // rather it is called multiple times interactively while painting.
   cout << "BrushFloodFill should not be run directly.\n";
+}
+
+
+BaseTool::propagation_state_e 
+BrushFloodFill::process_event(event_handle_t event)
+{
+  KeyEvent *keyevent = dynamic_cast<KeyEvent *>(event.get_rep());
+  if (keyevent && keyevent->get_keyval() == SCIRun_f)
+  {
+    // TODO: Set the seed point at the current pointer position.
+    flood_fill_slice(false);
+    return CONTINUE_E;
+  }
+
+  return SeedTool::process_event(event);
 }
 
 
@@ -226,7 +236,7 @@ BrushFloodFill::flood_fill_slice(bool erase)
   VolumeSliceHandle mask_slice;
   unsigned int mlabel = 0;
   NrrdDataHandle mnrrd;
-  if (painter_->mask_volume_.get_rep())
+  if (painter_->check_for_valid_mask(erase?"Brush flood erase":"Brush flood fill"))
   {
     mask_slice = painter_->mask_volume_->get_volume_slice(plane);
     mnrrd = mask_slice->nrrd_handle_;
@@ -261,6 +271,11 @@ BrushFloodFill::flood_fill_slice(bool erase)
   }
 
   const vector<int> window_center = vol->world_to_index(window->center_);
+
+  NrrdDataHandle undoslice = new NrrdData();
+  nrrdSlice(undoslice->nrrd_, vol->nrrd_handle_->nrrd_,
+            axis, window_center[axis]);
+
   if (nrrdSplice(vol->nrrd_handle_->nrrd_,
                  vol->nrrd_handle_->nrrd_,
                  slice->nrrd_handle_->nrrd_,
@@ -280,6 +295,13 @@ BrushFloodFill::flood_fill_slice(bool erase)
     return QUIT_AND_STOP_E;
   }
   
+  UndoHandle undo =
+    new UndoReplaceSlice(painter_,
+                         erase?"Undo Erase Fill":"Undo Brush Fill",
+                         vol, undoslice,
+                         (int)axis, window_center[axis]);
+  painter_->push_undo(undo);
+
   // Clear the slice pointers.
   slice = 0;
   mask_slice = 0;
@@ -300,7 +322,7 @@ BrushFloodFill::flood_fill_volume(bool erase)
 {
   NrrdDataHandle mnrrd;
   unsigned int mlabel = 0;
-  if (painter_->mask_volume_.get_rep())
+  if (painter_->check_for_valid_mask("Flood fill volume"))
   {
     mnrrd = painter_->mask_volume_->nrrd_handle_;
     mlabel = painter_->mask_volume_->label_;

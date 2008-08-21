@@ -27,19 +27,20 @@
 */
 
 #include <Core/Datatypes/Matrix.h>
-#include <Core/Algorithms/Math/MathAlgo.h>
+#include <Core/Algorithms/Math/AppendMatrix/AppendMatrix.h>
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
 
 namespace SCIRun {
 
 class AppendMatrix : public Module {
-public:
-  AppendMatrix(GuiContext*);
-  virtual void execute();
-  
-private:
-  GuiString guiroc_;
+  public:
+    AppendMatrix(GuiContext*);
+    virtual void execute();
+    
+  private:
+    GuiString guiroc_;
+    SCIRunAlgo::AppendMatrixAlgo algo_;
 };
 
 
@@ -48,6 +49,7 @@ AppendMatrix::AppendMatrix(GuiContext* ctx)
   : Module("AppendMatrix", ctx, Source, "Math", "SCIRun"),
     guiroc_(ctx->subVar("row-or-column"))
 {
+  algo_.set_progress_reporter(this);
 }
 
 
@@ -63,26 +65,25 @@ AppendMatrix::execute()
   if (inputs_changed_ || guiroc_.changed() || !oport_cached("Matrix"))
   {
     std::string roc = guiroc_.get();
-    SCIRunAlgo::MathAlgo malgo(this);
     MatrixHandle matrix;
     
     if (roc == "column")
     {
-      std::vector<Matrix::index_type> dummy;
+      algo_.set_option("method","append_columns");
       matrix = base;
       for (size_t p=0; p<matrices.size();p++)
       { 
-        if (!(malgo.MatrixAppendColumns(matrix,matrix,matrices[p],dummy))) return;
+        if (!(algo_.run(matrix,matrix,matrices[p]))) return;
       }
     }
     else
     {
-      std::vector<Matrix::index_type> dummy;
+      algo_.set_option("method","append_rows");
       matrix = base;
       for (size_t p=0; p<matrices.size();p++)
       { 
-        if (!(malgo.MatrixAppendRows(matrix,matrix,matrices[p],dummy))) return;
-      }    
+        if (!(algo_.run(matrix,matrix,matrices[p]))) return;
+      }
     }
   
     send_output_handle("Matrix", matrix);

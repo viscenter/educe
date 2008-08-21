@@ -47,7 +47,7 @@
 #include <Core/Geom/GeomTorus.h>
 #include <Core/Geom/GeomSphere.h>
 #include <Core/Containers/StringUtil.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
@@ -81,56 +81,56 @@ CriticalPointWidget::CriticalPointWidget( Module* module, CrowdMonitor* lock, do
   : BaseWidget(module, lock, "CriticalPointWidget", NumVars, NumCons, NumGeoms, NumPcks, NumMatls, NumMdes, NumSwtchs, widget_scale),
     crittype(Regular), direction(0, 0, 1.0)
 {
-  variables[PointVar] = scinew PointVariable("Point", solve, Scheme1, Point(0, 0, 0));
+  variables[PointVar] = new PointVariable("Point", solve, Scheme1, Point(0, 0, 0));
 
-  GeomGroup* arr = scinew GeomGroup;
-  geometries[GeomPoint] = scinew GeomSphere;
-  materials[PointMaterial] = scinew GeomMaterial(geometries[GeomPoint], DefaultPointMaterial);
+  GeomGroup* arr = new GeomGroup;
+  geometries[GeomPoint] = new GeomSphere;
+  materials[PointMaterial] = new GeomMaterial(geometries[GeomPoint], DefaultPointMaterial);
   arr->add(materials[PointMaterial]);
-  geometries[GeomShaft] = scinew GeomCylinder;
-  materials[ShaftMaterial] = scinew GeomMaterial(geometries[GeomShaft], DefaultEdgeMaterial);
+  geometries[GeomShaft] = new GeomCylinder;
+  materials[ShaftMaterial] = new GeomMaterial(geometries[GeomShaft], DefaultEdgeMaterial);
   arr->add(materials[ShaftMaterial]);
-  geometries[GeomHead] = scinew GeomCappedCone;
-  materials[HeadMaterial] = scinew GeomMaterial(geometries[GeomHead], DefaultEdgeMaterial);
+  geometries[GeomHead] = new GeomCappedCone;
+  materials[HeadMaterial] = new GeomMaterial(geometries[GeomHead], DefaultEdgeMaterial);
   arr->add(materials[HeadMaterial]);
-  picks_[Pick] = scinew GeomPick(arr, module, this, Pick);
+  picks_[Pick] = new GeomPick(arr, module, this, Pick);
   picks(Pick)->set_highlight(DefaultHighlightMaterial);
   CreateModeSwitch(0, picks_[Pick]);
    
-  GeomGroup* cyls = scinew GeomGroup;
-  geometries[GeomCylinder1] = scinew GeomCappedCylinder;
+  GeomGroup* cyls = new GeomGroup;
+  geometries[GeomCylinder1] = new GeomCappedCylinder;
   cyls->add(geometries[GeomCylinder1]);
-  geometries[GeomCylinder2] = scinew GeomCappedCylinder;
+  geometries[GeomCylinder2] = new GeomCappedCylinder;
   cyls->add(geometries[GeomCylinder2]);
-  geometries[GeomCylinder3] = scinew GeomCappedCylinder;
+  geometries[GeomCylinder3] = new GeomCappedCylinder;
   cyls->add(geometries[GeomCylinder3]);
-  geometries[GeomCylinder4] = scinew GeomCappedCylinder;
+  geometries[GeomCylinder4] = new GeomCappedCylinder;
   cyls->add(geometries[GeomCylinder4]);
-  materials[CylinderMatl] = scinew GeomMaterial(cyls, DefaultSpecialMaterial);
+  materials[CylinderMatl] = new GeomMaterial(cyls, DefaultSpecialMaterial);
   CreateModeSwitch(1, materials[CylinderMatl]);
 
-  GeomGroup* torii = scinew GeomGroup;
-  geometries[GeomTorus1] = scinew GeomTorusArc;
+  GeomGroup* torii = new GeomGroup;
+  geometries[GeomTorus1] = new GeomTorusArc;
   torii->add(geometries[GeomTorus1]);
-  geometries[GeomTorus2] = scinew GeomTorusArc;
+  geometries[GeomTorus2] = new GeomTorusArc;
   torii->add(geometries[GeomTorus2]);
-  geometries[GeomTorus3] = scinew GeomTorusArc;
+  geometries[GeomTorus3] = new GeomTorusArc;
   torii->add(geometries[GeomTorus3]);
-  geometries[GeomTorus4] = scinew GeomTorusArc;
+  geometries[GeomTorus4] = new GeomTorusArc;
   torii->add(geometries[GeomTorus4]);
-  materials[TorusMatl] = scinew GeomMaterial(torii, DefaultSpecialMaterial);
+  materials[TorusMatl] = new GeomMaterial(torii, DefaultSpecialMaterial);
   CreateModeSwitch(2, materials[TorusMatl]);
 
-  GeomGroup* cones = scinew GeomGroup;
-  geometries[GeomCone1] = scinew GeomCappedCone;
+  GeomGroup* cones = new GeomGroup;
+  geometries[GeomCone1] = new GeomCappedCone;
   cones->add(geometries[GeomCone1]);
-  geometries[GeomCone2] = scinew GeomCappedCone;
+  geometries[GeomCone2] = new GeomCappedCone;
   cones->add(geometries[GeomCone2]);
-  geometries[GeomCone3] = scinew GeomCappedCone;
+  geometries[GeomCone3] = new GeomCappedCone;
   cones->add(geometries[GeomCone3]);
-  geometries[GeomCone4] = scinew GeomCappedCone;
+  geometries[GeomCone4] = new GeomCappedCone;
   cones->add(geometries[GeomCone4]);
-  materials[ConeMatl] = scinew GeomMaterial(cones, DefaultResizeMaterial);
+  materials[ConeMatl] = new GeomMaterial(cones, DefaultResizeMaterial);
   CreateModeSwitch(3, materials[ConeMatl]);
 
   SetMode(Mode0, Switch0);

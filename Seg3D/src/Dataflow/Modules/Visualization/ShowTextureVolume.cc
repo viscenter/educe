@@ -39,7 +39,7 @@
 #include <Core/Volume/CM2Widget.h>
 
 #include <Core/Containers/StringUtil.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 
 #include <Core/Thread/CrowdMonitor.h>
 
@@ -62,9 +62,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#ifdef __sgi
-#  include <ios>
-#endif
 #include <algorithm>
 
 
@@ -298,7 +295,7 @@ ShowTextureVolume::push_back_new_widget(const BBox &bbox)
   Point gp(gui_widget_state_[ib+4]->get(), gui_widget_state_[ib+5]->get(), 
 	   gui_widget_state_[ib+6]->get());
 
-  ArrowWidget *widget = scinew ArrowWidget(this, &widget_lock_, gscale, true);
+  ArrowWidget *widget = new ArrowWidget(this, &widget_lock_, gscale, true);
   widget_.push_back(widget);
   widget->Connect(geom_oport_);
   widget->SetCurrentMode(0);
@@ -608,7 +605,7 @@ ShowTextureVolume::execute()
   volren_->set_sampling_rate(sampling_rate_hi);
   volren_->set_interactive_rate(sampling_rate_lo);
   volren_->set_adaptive(adaptive);
-  volren_->set_colormap_size(colormap_size);
+  volren_->set_colormap2_width(colormap_size);
   volren_->set_slice_alpha(alpha_scale);
   volren_->set_stencil(use_stencil );
   volren_->invert_opacity(invert_opacity);

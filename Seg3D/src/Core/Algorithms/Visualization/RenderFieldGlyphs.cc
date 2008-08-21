@@ -42,46 +42,8 @@
 
 namespace SCIRun {
 
-
-// Data Rendering - Scalars
-RenderScalarFieldBase::RenderScalarFieldBase()
-{}
-
-RenderScalarFieldBase::~RenderScalarFieldBase()
-{}
-
-CompileInfoHandle
-RenderScalarFieldBase::get_compile_info(const TypeDescription *pftd,
-					const TypeDescription *sftd,
-					const TypeDescription *tftd,
-					const TypeDescription *ltd)
-{
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("RenderScalarField");
-  static const string base_class_name("RenderScalarFieldBase");
-
-  CompileInfo *rval = scinew CompileInfo(template_class_name + "." +
-					 pftd->get_filename() + "." +
-					 sftd->get_filename() + "." +
-					 tftd->get_filename() + "." +
-					 ltd->get_filename() + ".",
-					 base_class_name, 
-					 template_class_name, 
-					 pftd->get_name() + ", " +
-					 sftd->get_name() + ", " +
-					 tftd->get_name() + ", " +
-					 ltd->get_name());
-
-  rval->add_include(include_path);
-  pftd->fill_compile_info(rval);
-  sftd->fill_compile_info(rval);
-  tftd->fill_compile_info(rval);
-  return rval;
-}
-
-
 void
-RenderScalarFieldBase::add_axis(const Point &p0, double scale,
+RenderScalarField::add_axis(const Point &p0, double scale,
 				GeomLines *lines)
 {
   static const Vector x(1., 0., 0.);
@@ -103,7 +65,7 @@ RenderScalarFieldBase::add_axis(const Point &p0, double scale,
 
 
 void 
-RenderScalarFieldBase::add_axis(const Point &p0, double scale,
+RenderScalarField::add_axis(const Point &p0, double scale,
 				GeomLines *lines,
 				const MaterialHandle &vcol)
 {
@@ -126,7 +88,7 @@ RenderScalarFieldBase::add_axis(const Point &p0, double scale,
 
 
 void 
-RenderScalarFieldBase::add_axis(const Point &p0, double scale,
+RenderScalarField::add_axis(const Point &p0, double scale,
 				GeomLines *lines,
 				double cindex)
 {
@@ -149,7 +111,7 @@ RenderScalarFieldBase::add_axis(const Point &p0, double scale,
 
 
 void 
-RenderScalarFieldBase::add_axis(const Point &p0, double scale,
+RenderScalarField::add_axis(const Point &p0, double scale,
 				GeomLines *lines,
 				const MaterialHandle &vcol,
 				double cindex)
@@ -171,81 +133,8 @@ RenderScalarFieldBase::add_axis(const Point &p0, double scale,
   lines->add(p1, vcol, cindex, p2, vcol, cindex);
 }
 
-
-// Data Rendering - Vectors
-RenderVectorFieldBase::RenderVectorFieldBase()
-{}
-
-RenderVectorFieldBase::~RenderVectorFieldBase()
-{}
-
-CompileInfoHandle
-RenderVectorFieldBase::get_compile_info(const TypeDescription *pftd,
-					const TypeDescription *sftd,
-					const TypeDescription *tftd,
-					const TypeDescription *ltd)
-{
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("RenderVectorField");
-  static const string base_class_name("RenderVectorFieldBase");
-
-  CompileInfo *rval = scinew CompileInfo(template_class_name + "." +
-					 pftd->get_filename() + "." +
-					 sftd->get_filename() + "." +
-					 tftd->get_filename() + "." +
-					 ltd->get_filename() + ".",
-					 base_class_name, 
-					 template_class_name, 
-					 pftd->get_name() + ", " +
-					 sftd->get_name() + ", " +
-					 tftd->get_name() + ", " +
-					 ltd->get_name());
-
-  rval->add_include(include_path);
-  pftd->fill_compile_info(rval);
-  sftd->fill_compile_info(rval);
-  tftd->fill_compile_info(rval);
-  return rval;
-}
-
-// Data Rendering - Tensors
-RenderTensorFieldBase::RenderTensorFieldBase()
-{}
-
-RenderTensorFieldBase::~RenderTensorFieldBase()
-{}
-
-CompileInfoHandle
-RenderTensorFieldBase::get_compile_info(const TypeDescription *pftd,
-					const TypeDescription *sftd,
-					const TypeDescription *tftd,
-					const TypeDescription *ltd)
-{
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("RenderTensorField");
-  static const string base_class_name("RenderTensorFieldBase");
-
-  CompileInfo *rval = scinew CompileInfo(template_class_name + "." +
-					 pftd->get_filename() + "." +
-					 sftd->get_filename() + "." +
-					 tftd->get_filename() + "." +
-					 ltd->get_filename() + ".",
-					 base_class_name, 
-					 template_class_name, 
-					 pftd->get_name() + ", " +
-					 sftd->get_name() + ", " +
-					 tftd->get_name() + ", " +
-					 ltd->get_name());
-
-  rval->add_include(include_path);
-  pftd->fill_compile_info(rval);
-  sftd->fill_compile_info(rval);
-  tftd->fill_compile_info(rval);
-  return rval;
-}
-
 double
-RenderTensorFieldBase::map_emphasis(double old)
+RenderTensorField::map_emphasis(double old)
 {
   if (old < 0.0) old = 0.0;
   else if (old > 1.0) old = 1.0;
@@ -300,14 +189,14 @@ inline bool to_color(SVTvalue& val,Color &d)
   else return(to_color(val.tensor,d));
 }
 
-bool to_vector(SVTvalue& val,Vector &d)
+inline bool to_vector(SVTvalue& val,Vector &d)
 {
   if (val.type == 1) return(to_vector(val.scalar,d));
   else if (val.type == 2) return(to_vector(val.vector,d));
   else return(to_vector(val.tensor,d));
 }
 
-bool to_tensor(SVTvalue& val,Tensor &d)
+inline bool to_tensor(SVTvalue& val,Tensor &d)
 {
   if (val.type == 1) return(to_tensor(val.scalar,d));
   else if (val.type == 2) return(to_tensor(val.vector,d));
@@ -325,17 +214,18 @@ void value_to_color(unsigned int color_scheme, SVTvalue& val, double& scol, Mate
 // computed via 'tan(VAL * M_PI / 2 * 0.999)', where VAL is [0,1].
 
 GeomHandle 
-RenderScalarFieldV::render_data(FieldHandle pfld_handle,
-                                FieldHandle sfld_handle,
-                                FieldHandle tfld_handle,
-                                const string &display_mode,
-                                double scale,
-                                double sscale,
-                                double tscale,
-                                int resolution,
-                                unsigned int render_state,
-                                unsigned int secondary_render_state,
-                                unsigned int tertiary_render_state)
+RenderScalarField::render_data(FieldHandle pfld_handle,
+                               FieldHandle sfld_handle,
+                               FieldHandle tfld_handle,
+                               const string &display_mode,
+                               double scale,
+                               double sscale,
+                               double tscale,
+                               double threshold,
+                               int resolution,
+                               unsigned int render_state,
+                               unsigned int secondary_render_state,
+                               unsigned int tertiary_render_state)
 {
   VField *pfld = 0; if (pfld_handle.get_rep()) pfld = pfld_handle->vfield(); 
   VField *sfld = 0; if (sfld_handle.get_rep()) sfld = sfld_handle->vfield(); 
@@ -349,14 +239,14 @@ RenderScalarFieldV::render_data(FieldHandle pfld_handle,
   GeomPoints  *points = 0;
   GeomLines *lines = 0;
   GeomGlyphBase *glyphs = 0;
-  GeomGroup *grp = scinew GeomGroup();
-  GeomHandle data_switch = scinew GeomDL(grp);
+  GeomGroup *grp = new GeomGroup();
+  GeomHandle data_switch = new GeomDL(grp);
 
   // Points when too small or when requested
   if (get_flag(render_state, USE_TRANSPARENCY) )
-    points = scinew GeomTranspPoints();
+    points = new GeomTranspPoints();
   else
-    points = scinew GeomPoints();
+    points = new GeomPoints();
   
   grp->add(points);
 
@@ -367,9 +257,9 @@ RenderScalarFieldV::render_data(FieldHandle pfld_handle,
     scale /= 2.0;
 
     if (get_flag(render_state, USE_TRANSPARENCY))
-      lines = scinew GeomTranspLines();
+      lines = new GeomTranspLines();
     else
-      lines = scinew GeomLines();
+      lines = new GeomLines();
 
     grp->add(lines);
 
@@ -382,9 +272,9 @@ RenderScalarFieldV::render_data(FieldHandle pfld_handle,
       scale /= 2.0;
 
     if (get_flag(render_state, USE_TRANSPARENCY))
-      glyphs = scinew GeomTranspGlyph();
+      glyphs = new GeomTranspGlyph();
     else
-      glyphs = scinew GeomGlyph();
+      glyphs = new GeomGlyph();
 
     grp->add(glyphs->getObj());
   }
@@ -392,12 +282,14 @@ RenderScalarFieldV::render_data(FieldHandle pfld_handle,
   Vector box_vec(0,0,1); // Needed for the box orienation
 
   bool normalize = get_flag(render_state, NORMALIZE_DATA);
+  bool small_is_dot = get_flag(render_state,SMALL_IS_DOT);
   bool secondary_on    = get_flag(secondary_render_state, IS_ON);
   bool secondary_color = (get_flag(secondary_render_state, IS_ON|USE_COLORMAP) ||
 			  get_flag(secondary_render_state, IS_ON|USE_COLOR_CONVERT));
   bool secondary_alpha = get_flag(secondary_render_state, IS_ON|USE_ALPHA) &&
     get_flag(render_state, USE_TRANSPARENCY);
   bool secondary_value = get_flag(secondary_render_state, IS_ON|USE_VALUE);
+  //bool secondary_small_is_dot = get_flag(secondary_render_state,SMALL_IS_DOT);
 
 
   bool tertiary_on    = get_flag(tertiary_render_state, IS_ON);
@@ -406,6 +298,7 @@ RenderScalarFieldV::render_data(FieldHandle pfld_handle,
   bool tertiary_alpha = get_flag(tertiary_render_state, IS_ON|USE_ALPHA) &&
     get_flag(render_state, USE_TRANSPARENCY);
   bool tertiary_value = get_flag(tertiary_render_state, IS_ON|USE_VALUE);
+  //bool tertiary_small_is_dot = get_flag(tertiary_render_state,SMALL_IS_DOT);
 
 
   unsigned int color_scheme = 0;
@@ -436,7 +329,7 @@ RenderScalarFieldV::render_data(FieldHandle pfld_handle,
 
   if( color_scheme == 2 || secondary_alpha || tertiary_alpha )
   {
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
     if (get_flag(render_state, USE_TRANSPARENCY) )
       vcol->transparency = 0.75;
     else
@@ -495,7 +388,7 @@ RenderScalarFieldV::render_data(FieldHandle pfld_handle,
       if (normalize)
         val = 1.0;
 
-      if (fabs(val) > 1.0e-10 && !points_p)
+      if (fabs(val) > threshold && !points_p)
       {
         val *= scale;
 
@@ -576,16 +469,19 @@ RenderScalarFieldV::render_data(FieldHandle pfld_handle,
       }
       else // if (points_p)
       {
-        if (color_scheme == 0)
-          points->add(p);
-        else if (color_scheme == 2)
-          points->add(p, vcol);
-        else //if (color_scheme == 1)
+        if (small_is_dot)
         {
-          if( secondary_alpha )
-            points->add(p, vcol, scol);
-          else
-            points->add(p, scol);
+          if (color_scheme == 0)
+            points->add(p);
+          else if (color_scheme == 2)
+            points->add(p, vcol);
+          else //if (color_scheme == 1)
+          {
+            if( secondary_alpha )
+              points->add(p, vcol, scol);
+            else
+              points->add(p, scol);
+          }
         }
       }
     }
@@ -595,18 +491,19 @@ RenderScalarFieldV::render_data(FieldHandle pfld_handle,
 
 
 GeomHandle 
-RenderVectorFieldV::render_data(FieldHandle pfld_handle,
-				FieldHandle sfld_handle,
-				FieldHandle tfld_handle,
-				MaterialHandle default_material,
-				const string &display_mode,
-				double scale,
-				double sscale,
-				double tscale,
-				int resolution,
-				unsigned int render_state,
-				unsigned int secondary_render_state,
-				unsigned int tertiary_render_state)
+RenderVectorField::render_data(FieldHandle pfld_handle,
+                               FieldHandle sfld_handle,
+                               FieldHandle tfld_handle,
+                               MaterialHandle default_material,
+                               const string &display_mode,
+                               double scale,
+                               double sscale,
+                               double tscale,
+                               double threshold,
+                               int resolution,
+                               unsigned int render_state,
+                               unsigned int secondary_render_state,
+                               unsigned int tertiary_render_state)
 {
   VField* pfld = 0;
   VField* sfld = 0;
@@ -631,14 +528,14 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
   GeomPoints  *points = 0;
   GeomLines *lines = 0;
   GeomGlyphBase *glyphs = 0;
-  GeomGroup *grp = scinew GeomGroup();
-  GeomHandle data_switch = scinew GeomDL(grp);
+  GeomGroup *grp = new GeomGroup();
+  GeomHandle data_switch = new GeomDL(grp);
 
   // Points when too small
   if (get_flag(render_state, USE_TRANSPARENCY) )
-    points = scinew GeomTranspPoints();
+    points = new GeomTranspPoints();
   else
-    points = scinew GeomPoints();
+    points = new GeomPoints();
 
   grp->add(points);
 
@@ -649,9 +546,9 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
   if (lines_p || needles_p || comets_p || rings_p || springs_p)
   {
     if( needles_p || comets_p || get_flag(render_state, USE_TRANSPARENCY))
-      lines = scinew GeomTranspLines();
+      lines = new GeomTranspLines();
     else
-      lines = scinew GeomLines();
+      lines = new GeomLines();
 
     grp->add(lines);
 
@@ -661,9 +558,9 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
   if (arrows_p || cones_p || disks_p || comets_p || rings_p || springs_p)
   {
     if( get_flag(render_state, USE_TRANSPARENCY) )
-      glyphs = scinew GeomTranspGlyph();
+      glyphs = new GeomTranspGlyph();
     else 
-      glyphs = scinew GeomGlyph();
+      glyphs = new GeomGlyph();
 
     grp->add(glyphs->getObj());
   }
@@ -675,6 +572,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
 
   bool normalize       = get_flag(render_state, NORMALIZE_DATA);
   bool bidirectional   = get_flag(render_state, BIDIRECTIONAL);
+  bool small_is_dot    = get_flag(render_state,SMALL_IS_DOT);
 
   // Secondary
   bool secondary_on    = get_flag(secondary_render_state, IS_ON);
@@ -686,6 +584,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
   bool secondary_major = get_flag(secondary_render_state, IS_ON|USE_VALUE|USE_MAJOR_RADIUS);
   bool secondary_minor = get_flag(secondary_render_state, IS_ON|USE_VALUE|USE_MINOR_RADIUS);
   bool secondary_pitch = get_flag(secondary_render_state, IS_ON|USE_VALUE|USE_PITCH);
+  //  bool secondary_small_is_dot = get_flag(secondary_render_state,SMALL_IS_DOT);
 
   // Tertiary
   bool tertiary_on    = get_flag(tertiary_render_state, IS_ON);
@@ -697,6 +596,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
   bool tertiary_major = get_flag(tertiary_render_state, IS_ON|USE_VALUE|USE_MAJOR_RADIUS);
   bool tertiary_minor = get_flag(tertiary_render_state, IS_ON|USE_VALUE|USE_MINOR_RADIUS);
   bool tertiary_pitch = get_flag(tertiary_render_state, IS_ON|USE_VALUE|USE_PITCH);
+  //  bool tertiary_small_is_dot = get_flag(tertiary_render_state,SMALL_IS_DOT);
 
   double ratio = 6.0;
 
@@ -727,7 +627,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
 
   if( color_scheme == 2 || secondary_alpha || tertiary_alpha )
   {
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
     if (get_flag(render_state, USE_TRANSPARENCY) )
       vcol->transparency = 0.75;
     else
@@ -739,15 +639,15 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
   {
     if (color_scheme == 0)
     {
-      opaque = scinew Material(default_material->diffuse);
+      opaque = new Material(default_material->diffuse);
       opaque->transparency = default_material->transparency;
-      transparent = scinew Material(default_material->diffuse);
+      transparent = new Material(default_material->diffuse);
     }
     else
     {
-      opaque = scinew Material(Color(1.0, 1.0, 1.0));
+      opaque = new Material(Color(1.0, 1.0, 1.0));
       opaque->transparency = 1.0;
-      transparent = scinew Material(Color(1.0, 1.0, 1.0));
+      transparent = new Material(Color(1.0, 1.0, 1.0));
     }
 
     if (needles_p)
@@ -806,7 +706,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
       if (normalize)
         val.safe_normalize();
 
-      if (val.length() > 1.0e-10)
+      if (val.length() > threshold)
       {
         val *= scale;
 
@@ -836,7 +736,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
           tvalue = fabs(value / ratio / ratio);
         }
 
-        if (arrows_p && svalue > 1.0e-5)
+        if (arrows_p && svalue > 1e-5)
         {
           if (color_scheme == 0)
           {
@@ -907,7 +807,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
 
           }
         }
-        else if (cones_p && svalue> 1.0e-5)
+        else if (cones_p && svalue> 1e-5)
         {
           if (color_scheme == 0)
             glyphs->add_cylinder(p, val, svalue, 0.0, value,
@@ -944,7 +844,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
             }
           }
         }
-        else if (comets_p && svalue > 1.0e-5)
+        else if (comets_p && svalue > 1e-5)
         {
           if (color_scheme == 0)
           {
@@ -985,7 +885,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
             }
           }
         }
-        else  if (comets_p)
+        else if (comets_p)
         {
           transparent->transparency = 0.20;
 
@@ -1010,7 +910,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
           transparent->transparency = 0.33;
 
         }
-        else if (springs_p && (value > 1.0e-5 || svalue > 1.0e-5 || tvalue > 1.0e-5))
+        else if (springs_p && (value > 1e-5 || svalue > 1e-5|| tvalue > 1e-5))
         {
           double length   = value;
           double maj_rad1 = value/ratio;
@@ -1044,7 +944,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
             pitch = 1 + (unsigned int) tvalue;
 
 
-          if( length > 1.0e-5 && maj_rad1 > 1.0e-5 && min_rad > 1.0e-5 )
+          if( length > 1e-5 && maj_rad1 > 1e-5 && min_rad > 1e-5 )
           {
             if (color_scheme == 0)
               glyphs->add_helix(p, val,
@@ -1091,7 +991,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
           }
 
           // Wire frame - render as lines
-          else if( length > 1.0e-5 && maj_rad1 > 1.0e-5 )
+          else if( length > 1e-5 && maj_rad1 > 1e-5 )
           {
             //Bring nu to expected value for shape.
             unsigned int nu = resolution + 1;
@@ -1150,7 +1050,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
           }
 
           // No major radius - render as disks.
-          else if( length > 1.0e-5 && min_rad > 1.0e-5 )
+          else if( length > 1e-5 && min_rad > 1e-5 )
           {
             if (color_scheme == 0)
               glyphs->add_capped_cylinder(p, val, min_rad, min_rad, length,
@@ -1196,7 +1096,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
           }
 
           // No Length - render as rings
-          else if( maj_rad1 > 1.0e-5 && min_rad > 1.0e-5 )
+          else if( maj_rad1 > 1e-5 && min_rad > 1e-5 )
           {
             if (color_scheme == 0)
               glyphs->add_torus(p, val, maj_rad1, min_rad, resolution);
@@ -1212,14 +1112,14 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
           }
 
           // No major or minor radius - render as lines.
-          else if( length > 1.0e-5 )
+          else if( length > 1e-5 )
           {
             if (bidirectional)
             {
               if (color_scheme == 0)
-          lines->add(p - val, p + val);
+                lines->add(p - val, p + val);
               else if (color_scheme == 2)
-          lines->add(p - val, vcol, p + val, vcol);
+                lines->add(p - val, vcol, p + val, vcol);
               else //if (color_scheme == 1)
               {
           if( secondary_alpha )
@@ -1231,21 +1131,21 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
             else
             {
               if (color_scheme == 0)
-          lines->add(p, p + val);
+                lines->add(p, p + val);
               else if (color_scheme == 2)
-          lines->add(p, vcol, p + val, vcol);
+                lines->add(p, vcol, p + val, vcol);
               else //if (color_scheme == 1)
               {
-          if( secondary_alpha )
-            lines->add(p, vcol, scol, p + val, vcol, scol);
-          else
-            lines->add(p, scol, p + val, scol);
+                if( secondary_alpha )
+                  lines->add(p, vcol, scol, p + val, vcol, scol);
+                else
+                  lines->add(p, scol, p + val, scol);
               }
             }
           }
 
           // No Length or minor radius - render as wireframe rings
-          else if( maj_rad1 > 1.0e-5 )
+          else if( maj_rad1 > 1e-5 )
           {
             //Bring nu to expected value for shape.
             unsigned int nu = resolution + 1;
@@ -1285,7 +1185,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
           }
 
           // No Length or major radius - render as sphere
-          else if( min_rad > 1.0e-5 )
+          else if( min_rad > 1e-5 )
           {
             if (color_scheme == 0)
               glyphs->add_sphere(p, min_rad, resolution, resolution);
@@ -1318,10 +1218,10 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
                   resolution);
           }
         }
-        else if (rings_p && (value > 1.0e-5 || svalue > 1.0e-5))
+        else if (rings_p && (value > 1e-5 || svalue > 1e-5))
         {
           // Normal ring
-          if( value > 1.0e-5 && svalue > 1.0e-5 )
+          if( value > 1e-5 && svalue > 1e-5 )
           {
             if (color_scheme == 0)
               glyphs->add_torus(p, val, value, svalue, resolution);
@@ -1330,14 +1230,14 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
             else //if (color_scheme == 1)
             {
               if( secondary_alpha )
-          glyphs->add_torus(p, val, value, svalue, vcol, scol, resolution);
+                glyphs->add_torus(p, val, value, svalue, vcol, scol, resolution);
               else
-          glyphs->add_torus(p, val, value, svalue, scol, resolution);
+                glyphs->add_torus(p, val, value, svalue, scol, resolution);
             }
           }
 
           // Wire frame ring - render a series of lines.
-          else if( value > 1.0e-5 )
+          else if( value > 1e-5 )
           {
             //Bring nu to expected value for shape.
             unsigned int nu = resolution + 1;
@@ -1377,7 +1277,7 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
           }
 
           // No radius but thickness - render as a sphere.
-          else if( svalue > 1.0e-5 )
+          else if( svalue > 1e-5)
           {
             if (color_scheme == 0)
               glyphs->add_sphere(p, svalue, resolution, resolution);
@@ -1386,9 +1286,9 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
             else // if (color_scheme == 1)
             {
               if( secondary_alpha )
-          glyphs->add_sphere(p, svalue, vcol, scol, resolution, resolution);
+                glyphs->add_sphere(p, svalue, vcol, scol, resolution, resolution);
               else
-          glyphs->add_sphere(p, svalue, scol, resolution, resolution);
+                glyphs->add_sphere(p, svalue, scol, resolution, resolution);
             }
           }
         }
@@ -1407,9 +1307,9 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
             else //if (color_scheme == 1)
             {
               if( secondary_alpha )
-          lines->add(p - val, vcol, scol, p + val, vcol, scol);
+                lines->add(p - val, vcol, scol, p + val, vcol, scol);
               else
-          lines->add(p - val, scol, p + val, scol);
+                lines->add(p - val, scol, p + val, scol);
             }
           }
           else
@@ -1461,6 +1361,26 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
         }
         else // Too small render as a point
         {
+          if (small_is_dot)
+          {
+            if (color_scheme == 0)
+              points->add(p);
+            else if (color_scheme == 2)
+              points->add(p, vcol);
+            else // if (color_scheme == 1)
+            {
+              if( secondary_alpha )
+                points->add(p, vcol, scol);
+              else
+                points->add(p, scol);
+            }
+          }
+        }
+      }
+      else // Too small render as a point
+      {
+        if (small_is_dot)
+        {
           if (color_scheme == 0)
             points->add(p);
           else if (color_scheme == 2)
@@ -1474,20 +1394,6 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
           }
         }
       }
-      else // Too small render as a point
-      {
-        if (color_scheme == 0)
-          points->add(p);
-        else if (color_scheme == 2)
-          points->add(p, vcol);
-        else // if (color_scheme == 1)
-        {
-          if( secondary_alpha )
-            points->add(p, vcol, scol);
-          else
-            points->add(p, scol);
-        }
-      }
     }
   }
   return data_switch;
@@ -1495,17 +1401,19 @@ RenderVectorFieldV::render_data(FieldHandle pfld_handle,
 
 
 GeomHandle 
-RenderTensorFieldV::render_data(FieldHandle pfld_handle,
-				FieldHandle sfld_handle,
-				FieldHandle tfld_handle,
-				const string &display_mode,
-				double scale,
-				double pscale,
-				int resolution,
-				double emphasis,
-				unsigned int render_state,
-				unsigned int secondary_render_state,
-				unsigned int tertiary_render_state)
+RenderTensorField::render_data(FieldHandle pfld_handle,
+                               FieldHandle sfld_handle,
+                               FieldHandle tfld_handle,
+                               const string &display_mode,
+                               double pscale,
+                               double sscale,
+                               double tscale,
+                               double threshold,
+                               int resolution,
+                               double emphasis,
+                               unsigned int render_state,
+                               unsigned int secondary_render_state,
+                               unsigned int tertiary_render_state)
 {
   VField *pfld = 0; if (pfld_handle.get_rep()) pfld = pfld_handle->vfield(); 
   VField *sfld = 0; if (sfld_handle.get_rep()) sfld = sfld_handle->vfield(); 
@@ -1526,14 +1434,14 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
   GeomPoints *points = 0;
   GeomLines *lines = 0;
   GeomGlyphBase *glyphs = 0;
-  GeomGroup *grp = scinew GeomGroup();
-  GeomHandle data_switch = scinew GeomDL(grp);
+  GeomGroup *grp = new GeomGroup();
+  GeomHandle data_switch = new GeomDL(grp);
 
   // Points when too small
   if (get_flag(render_state, USE_TRANSPARENCY) )
-    points = scinew GeomTranspPoints();
+    points = new GeomTranspPoints();
   else
-    points = scinew GeomPoints();
+    points = new GeomPoints();
 
   grp->add(points);
 
@@ -1541,9 +1449,9 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
 
   // Lines when too small
   if( get_flag(render_state, USE_TRANSPARENCY))
-    lines = scinew GeomTranspLines();
+    lines = new GeomTranspLines();
   else
-    lines = scinew GeomLines();
+    lines = new GeomLines();
 
   grp->add(lines);
   
@@ -1551,9 +1459,9 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
 
   // Glyphs otherwise
   if( get_flag(render_state, USE_TRANSPARENCY) )
-    glyphs = scinew GeomTranspGlyph();
+    glyphs = new GeomTranspGlyph();
   else 
-    glyphs = scinew GeomGlyph();
+    glyphs = new GeomGlyph();
 
   grp->add(glyphs->getObj());
 
@@ -1561,18 +1469,22 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
     pscale *= 2.0;
 
   bool normalize       = get_flag(render_state, NORMALIZE_DATA);
+  bool small_is_dot    = get_flag(render_state,SMALL_IS_DOT);
+  
   bool secondary_on    = get_flag(secondary_render_state, IS_ON);
   bool secondary_color = (get_flag(secondary_render_state, IS_ON|USE_COLORMAP) ||
 			  get_flag(secondary_render_state, IS_ON|USE_COLOR_CONVERT));
   bool secondary_alpha = get_flag(secondary_render_state, IS_ON|USE_ALPHA) &&
     get_flag(render_state, USE_TRANSPARENCY);
+  //  bool secondary_small_is_dot = get_flag(secondary_render_state,SMALL_IS_DOT);
 
   bool tertiary_on    = get_flag(tertiary_render_state, IS_ON);
   bool tertiary_color = (get_flag(tertiary_render_state, IS_ON|USE_COLORMAP) ||
 			 get_flag(tertiary_render_state, IS_ON|USE_COLOR_CONVERT));
   bool tertiary_alpha = (get_flag(tertiary_render_state, IS_ON|USE_ALPHA) &&
 			 get_flag(render_state, USE_TRANSPARENCY));
-  //bool tertiary_value = get_flag(tertiary_render_state, IS_ON|USE_VALUE);
+  //  bool tertiary_value = get_flag(tertiary_render_state, IS_ON|USE_VALUE);
+  //  bool tertiary_small_is_dot = get_flag(tertiary_render_state,SMALL_IS_DOT);
 
   unsigned int color_scheme = 0;
   double scol;
@@ -1601,7 +1513,7 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
 
   if( color_scheme == 2 || secondary_alpha || tertiary_alpha )
   {
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
     if (get_flag(render_state, USE_TRANSPARENCY) )
       vcol->transparency = 0.75;
     else
@@ -1655,7 +1567,6 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
         to_double(sval, atmp);
         vcol->transparency = fabs(atmp);
       }
-
       // The color is done so the eigen values can be changed
       Vector e1, e2, e3;
       val.get_eigenvectors(e1, e2, e3);
@@ -1666,7 +1577,6 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
       double v1, v2, v3;
       val.get_eigenvalues(v1, v2, v3);
       Vector scales(fabs(v1), fabs(v2), fabs(v3));
-
       if (normalize)
         scales.safe_normalize();
 
@@ -1674,14 +1584,14 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
 
       // Do not render tensors that are too small - because surfaces
       // are not rendered at least two of the scales must be non zero.
-      if ((scales.x() > 1.0e-5 && scales.y() > 1.0e-5) ||
-        (scales.y() > 1.0e-5 && scales.z() > 1.0e-5) ||
-        (scales.z() > 1.0e-5 && scales.x() > 1.0e-5))
+      if ((scales.x() > threshold && scales.y() > threshold) ||
+        (scales.y() > threshold && scales.z() > threshold) ||
+        (scales.z() > threshold && scales.x() > threshold))
       {
         // This gives some thickness so there is no z fighting
-        if ( scales.x() < 1.0e-5 ) scales.x(1.0e-5);
-        if ( scales.y() < 1.0e-5 ) scales.y(1.0e-5);
-        if ( scales.z() < 1.0e-5 ) scales.z(1.0e-5);
+        if ( scales.x() < threshold ) scales.x(threshold);
+        if ( scales.y() < threshold ) scales.y(threshold);
+        if ( scales.z() < threshold ) scales.z(threshold);
 
         if( boxes_p || cboxes_p )
         {
@@ -1764,9 +1674,9 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
       }
 
       // Tensor as a line
-      else if ((scales.x() > 1.0e-5 && scales.y() < 1.0e-5 && scales.z() < 1.0e-5) ||
-	       (scales.x() < 1.0e-5 && scales.y() > 1.0e-5 && scales.z() < 1.0e-5) ||
-	       (scales.x() < 1.0e-5 && scales.y() < 1.0e-5 && scales.z() > 1.0e-5) )
+      else if ((scales.x() > threshold && scales.y() < threshold && scales.z() < threshold) ||
+	       (scales.x() < threshold && scales.y() > threshold && scales.z() < threshold) ||
+	       (scales.x() < threshold && scales.y() < threshold && scales.z() > threshold) )
       {
         Point p1 = p + trans *  scales/ ((cboxes_p || boxes_p) ? 4.0 : 2.0 );
         Point p2 = p + trans * -scales/ ((cboxes_p || boxes_p) ? 4.0 : 2.0 );
@@ -1777,7 +1687,7 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
           lines->add(p1, vcol, p2, vcol);
         else //if (color_scheme == 1)
         {
-          if( secondary_alpha )
+          if( secondary_alpha || tertiary_alpha )
             lines->add(p1, vcol, scol, p2, vcol, scol);
           else
             lines->add(p1, scol, p2, scol);
@@ -1786,12 +1696,15 @@ RenderTensorFieldV::render_data(FieldHandle pfld_handle,
 
       else // Too small render as a point
       {
-        if (color_scheme == 0)
-          points->add(p);
-        else if (color_scheme == 2)
-          points->add(p, vcol);
-        else if (color_scheme == 1)
-          points->add(p, scol);
+        if (small_is_dot)
+        {
+          if (color_scheme == 0)
+            points->add(p);
+          else if (color_scheme == 2)
+            points->add(p, vcol);
+          else if (color_scheme == 1)
+            points->add(p, scol);
+       }
       }
     }
   }

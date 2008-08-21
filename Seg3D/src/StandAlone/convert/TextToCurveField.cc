@@ -54,7 +54,7 @@
 #include <Core/Datatypes/CurveMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <StandAlone/convert/FileUtils.h>
 #include <Core/Init/init.h>
 #include <iostream>
@@ -191,7 +191,7 @@ main(int argc, char **argv) {
   typedef NoDataBasis<double>                DatBasis;
   typedef GenericField<CMesh, DatBasis, vector<double> > CField;
      
-  CField *cf = scinew CField(cm);
+  CField *cf = new CField(cm);
 
   FieldHandle cfH(cf);
   

@@ -26,11 +26,12 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
-#include <Dataflow/Network/Ports/BundlePort.h>
 #include <Core/Datatypes/Field.h>
-#include <Dataflow/Network/Ports/FieldPort.h>
+#include <Core/Datatypes/Bundle.h>
+
 #include <Dataflow/Network/Module.h>
+#include <Dataflow/Network/Ports/BundlePort.h>
+#include <Dataflow/Network/Ports/FieldPort.h>
 
 using namespace SCIRun;
 
@@ -73,7 +74,7 @@ DECLARE_MAKER(InsertFieldsIntoBundle)
       guireplace4_(get_ctx()->subVar("replace4"),1),
       guireplace5_(get_ctx()->subVar("replace5"),1),
       guireplace6_(get_ctx()->subVar("replace6"),1),
-      guibundlename_(get_ctx()->subVar("bundlename"), "")
+      guibundlename_(get_ctx()->subVar("bundlename",false), "")
 {
 }
 
@@ -100,6 +101,7 @@ void InsertFieldsIntoBundle::execute()
       guireplace5_.changed() || guireplace6_.changed() ||
       guibundlename_.changed() || !oport_cached("bundle"))
   {
+    update_state(Executing);
   
     std::string field1name = guifield1name_.get();
     std::string field2name = guifield2name_.get();
@@ -115,7 +117,7 @@ void InsertFieldsIntoBundle::execute()
     }
     else
     {
-      handle = scinew Bundle();
+      handle = new Bundle();
       if (handle.get_rep() == 0)
       {
         error("Could not allocate new bundle");

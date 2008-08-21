@@ -208,9 +208,9 @@ OptimizeDipole::send_and_get_data(int which_dipole, TVMesh::Cell::index_type ci)
   // each column is an interpolant vector or index/weight pairs
   // we just have one entry for each -- index=leadFieldColumn, weight=1
   
-  Matrix::index_type *rr = scinew Matrix::index_type[4];   rr[0] = 0; rr[1] = 1; rr[2] = 2; rr[3] =3;
-  Matrix::index_type *cc = scinew Matrix::index_type[3];
-  double *dd = scinew double[3];
+  Matrix::index_type *rr = new Matrix::index_type[4];   rr[0] = 0; rr[1] = 1; rr[2] = 2; rr[3] =3;
+  Matrix::index_type *cc = new Matrix::index_type[3];
+  double *dd = new double[3];
   
   for (int i=0;i<3;i++)
   {
@@ -224,19 +224,19 @@ OptimizeDipole::send_and_get_data(int which_dipole, TVMesh::Cell::index_type ci)
   matrix_size = matrix_size*3;
   
   
-  leadfield_selectH_ = scinew SparseRowMatrix(3,matrix_size,rr,cc,3,dd); 
+  leadfield_selectH_ = new SparseRowMatrix(3,matrix_size,rr,cc,3,dd); 
 
-  PCMesh::handle_type pcm = scinew PCMesh;
+  PCMesh::handle_type pcm = new PCMesh;
   for (j=0; j<NSEEDS_; j++)
     pcm->add_point(Point(dipoles_(j,0), dipoles_(j,1), dipoles_(j,2)));
-  PCFieldV *pcv = scinew PCFieldV(pcm);
+  PCFieldV *pcv = new PCFieldV(pcm);
   for (j=0; j<NSEEDS_; j++)
     pcv->fdata()[j] = Vector(dipoles_(j,3), dipoles_(j,4), dipoles_(j,5));
 
-  pcm = scinew PCMesh;
+  pcm = new PCMesh;
   pcm->add_point(Point(dipoles_(which_dipole, 0), dipoles_(which_dipole, 1),
 		       dipoles_(which_dipole, 2)));
-  PCFieldV *pcd = scinew PCFieldV(pcm);
+  PCFieldV *pcd = new PCFieldV(pcm);
 
   // send out data
   simplexH_ = pcv;
@@ -620,9 +620,9 @@ OptimizeDipole::organize_last_send()
     best_cell_idx << "\n    at position " << best_pt << 
     " with a misfit of " << bestMisfit << "\n";
 
-  Matrix::index_type *rr = scinew Matrix::index_type[4];   rr[0] = 0; rr[1] = 1; rr[2] = 2; rr[3] =3;
-  Matrix::index_type *cc = scinew Matrix::index_type[3];
-  double *dd = scinew double[3];
+  Matrix::index_type *rr = new Matrix::index_type[4];   rr[0] = 0; rr[1] = 1; rr[2] = 2; rr[3] =3;
+  Matrix::index_type *cc = new Matrix::index_type[3];
+  double *dd = new double[3];
   
   for (int i=0;i<3;i++)
   {
@@ -630,10 +630,10 @@ OptimizeDipole::organize_last_send()
     dd[i] = 1.0;
   }
 
-  leadfield_selectH_ = scinew SparseRowMatrix(3,matrix_size,rr,cc,3,dd);
-  PCMesh::handle_type pcm = scinew PCMesh;
+  leadfield_selectH_ = new SparseRowMatrix(3,matrix_size,rr,cc,3,dd);
+  PCMesh::handle_type pcm = new PCMesh;
   pcm->add_point(best_pt);
-  PCFieldV *pcd = scinew PCFieldV(pcm);
+  PCFieldV *pcd = new PCFieldV(pcm);
   pcd->fdata()[0]=Vector(dipoles_(bestIdx,3), dipoles_(bestIdx,4), dipoles_(bestIdx,5));
   dipoleH_ = pcd;
 }

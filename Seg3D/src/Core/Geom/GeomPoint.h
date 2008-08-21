@@ -45,10 +45,10 @@
 
 #include <Core/Geom/GeomObj.h>
 #include <Core/Datatypes/Color.h>
+#include <Core/Datatypes/Material.h>
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Geom/Material.h>
 
 #include <vector>
 

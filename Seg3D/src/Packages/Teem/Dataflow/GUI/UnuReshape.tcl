@@ -41,21 +41,21 @@ itcl_class Teem_UnuNtoZ_UnuReshape {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.sz -labeltext "New axes sizes:" -textvariable $this-sz
+        sci_entryfield $w.f.options.sz -labeltext "New axes sizes:" -textvariable $this-sz
         pack $w.f.options.sz -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

@@ -32,7 +32,7 @@
 -->
 
 
-<component name="ExtractIsosurfaceByFunction" category="NewField">
+<component name="ExtractIsosurfaceByFunction" category="NewField" version="2.0">
   <overview>
     <authors>
       <author>ARSanderson</author>
@@ -58,7 +58,10 @@ regular field by 1 dimension.
         <name>Output Field</name>
         <datatype>SCIRun::Field</datatype>
       </port>
-    </outputs>
+      <port>
+        <name>Mapping</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>    </outputs>
   </io>
   <nets>
     <net id="ExtractIsosurfaceByFunction">

@@ -63,13 +63,13 @@ public:
   virtual ~TextureRenderer();
 
   void set_texture(Texture* tex);
+
   void set_colormap1(ColorMap* cmap1);
+
   void set_colormap2(const vector<ColorMap2*> &cmap2);
   void set_colormap2_dirty() { cmap2_dirty_ = true; }
-  void set_colormap_size(int size);
+  void set_colormap2_width(int size);
   void set_slice_alpha(double alpha);
-  void set_sw_raster(bool b);
-  bool use_pbuffer() { return use_pbuffer_; }
   void set_blend_num_bits(int b);
   bool use_blend_buffer();
   void set_stencil(bool use){ use_stencil_ = use; }
@@ -77,9 +77,9 @@ public:
   inline void set_interp(bool i) { interp_ = i; }
  
   void draw(double time);
-  void get_bounds(BBox& bb) { tex_->get_bounds(bb); }
+  void get_bounds(BBox& bb) const { tex_->get_bounds(bb); }
 
-  int get_lighting() { return (lighting_); }
+  bool get_lighting() const { return lighting_; }
 
   void set_pending_delete_texture_callback(PendingDeleteTextureCallback_type callback) { pending_delete_texture_callback_ = callback; }
 
@@ -92,20 +92,18 @@ protected:
   bool alpha_dirty_;
   RenderMode mode_;
   bool interp_;
-  int lighting_;
+  bool lighting_;
   double sampling_rate_;
   double irate_;
   bool imode_;
   double slice_alpha_;
-  bool hardware_raster_;
 
-  int cmap2_size_;
+  int cmap2_width_;
   vector<float> cmap1_array_;
   unsigned int  cmap1_tex_;
   Nrrd* raster_array_;
   Nrrd* cmap2_array_;
   unsigned int cmap2_tex_;
-  bool use_pbuffer_;
   unsigned int tex_width_;
   GLuint            blend_framebuffer_;
   GLuint            blend_tex_id_;

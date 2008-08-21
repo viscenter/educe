@@ -39,18 +39,18 @@ itcl_class SCIRun_MiscField_BuildPointCloudToLatVolMappingMatrix {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.d
-	pack $w.d -side top -e y -f both -padx 5 -pady 5	
-	label $w.d.l -text "Epsilon: "
-	entry $w.d.e -textvariable $this-epsilon
-	bind $w.d.e <Return> "$this-c needexecute"
-	pack $w.d.l $w.d.e -side left
+        sci_frame $w.d
+        pack $w.d -side top -e y -f both -padx 5 -pady 5	
+        sci_label $w.d.l -text "Epsilon: "
+        sci_entry $w.d.e -textvariable $this-epsilon
+        bind $w.d.e <Return> "$this-c needexecute"
+        pack $w.d.l $w.d.e -side left
 
-	makeSciButtonPanel $w $w $this
+        makeSciButtonPanel $w $w $this
 
-	moveToCursor $w
+        moveToCursor $w
     }
 }
 

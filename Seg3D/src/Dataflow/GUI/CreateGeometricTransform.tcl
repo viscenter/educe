@@ -95,14 +95,14 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 	    return
 	}
 
-	toplevel $w
+	sci_toplevel $w
 	wm minsize $w 200 50
 
 	set mouseXLoc [winfo pointerx .]
 	set mouseYLoc [winfo pointery .]
 	wm geometry $w +$mouseXLoc+$mouseYLoc
 
-	frame $w.f
+	sci_frame $w.f
 	pack $w.f -side top -fill x -padx 2 -pady 2
 
 	global $this-translate_x
@@ -111,28 +111,28 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 	global $this-pre_transform
 	global $this-which_transform
     
-	frame $w.f.which
-	radiobutton $w.f.which.trans \
+	sci_frame $w.f.which
+	sci_radiobutton $w.f.which.trans \
 		-command "$this set_transform $w translate" \
 		-text Translate -variable $this-which_transform \
 		-value "translate"
-	radiobutton $w.f.which.scale \
+	sci_radiobutton $w.f.which.scale \
 		-command "$this set_transform $w scale" \
 		-text Scale -variable $this-which_transform \
 		-value "scale"
-	radiobutton $w.f.which.rot \
+	sci_radiobutton $w.f.which.rot \
 		-command "$this set_transform $w rotate" \
 		-text Rotate -variable $this-which_transform \
 		-value "rotate"
-	radiobutton $w.f.which.shear \
+	sci_radiobutton $w.f.which.shear \
 		-command "$this set_transform $w shear" \
 		-text Shear -variable $this-which_transform \
 		-value "shear"
-	radiobutton $w.f.which.permute \
+	sci_radiobutton $w.f.which.permute \
 		-command "$this set_transform $w permute" \
 		-text Permute -variable $this-which_transform \
 		-value "permute"
-	radiobutton $w.f.which.widget \
+	sci_radiobutton $w.f.which.widget \
 		-command "$this set_transform $w widget" \
 		-text Widget -variable $this-which_transform \
 		-value "widget"
@@ -140,20 +140,20 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 		$w.f.which.shear $w.f.which.permute $w.f.which.widget \
 		-side left -fill x -expand 1
 
-	frame $w.f.b 
-	button $w.f.b.doit -text "Apply Transform" \
+	sci_frame $w.f.b 
+	sci_button $w.f.b.doit -text "Apply Transform" \
 		-command "$this-c needexecute"
-	button $w.f.b.comp -text "Composite Transform" \
+	sci_button $w.f.b.comp -text "Composite Transform" \
 		-command "$this-c composite; $this set_transform $w translate; $this set_defaults"
-	button $w.f.b.reset -text "Reset" \
+	sci_button $w.f.b.reset -text "Reset" \
 		-command "$this-c reset; $this set_transform $w translate; $this set_defaults"
 	pack $w.f.b.doit $w.f.b.comp $w.f.b.reset \
 		-side left -fill x -padx 10 -pady 3
 
-	frame $w.f.prepost
-	radiobutton $w.f.prepost.pre -variable $this-pre_transform \
+	sci_frame $w.f.prepost
+	sci_radiobutton $w.f.prepost.pre -variable $this-pre_transform \
 		-text "Pre-multiply" -value 0
-	radiobutton $w.f.prepost.post -variable $this-pre_transform \
+	sci_radiobutton $w.f.prepost.post -variable $this-pre_transform \
 		-text "Post-multiply" -value 1
 	pack $w.f.prepost.pre $w.f.prepost.post -side left \
 		-fill x -expand 1
@@ -162,9 +162,9 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 	pack $w.f.b -side top
 	pack $w.f.prepost -side top -fill x -expand 1
 
-	frame $w.f.t -relief groove -borderwidth 2
-	label $w.f.t.l -text "Translate Vector"
-	frame $w.f.t.f
+	sci_frame $w.f.t -relief groove -borderwidth 2
+	sci_label $w.f.t.l -text "Translate Vector"
+	sci_frame $w.f.t.f
 	expscale $w.f.t.f.x -orient horizontal -variable $this-translate_x \
 		-label "X:"
 	expscale $w.f.t.f.y -orient horizontal -variable $this-translate_y \
@@ -179,17 +179,17 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 	global $this-rotate_y
 	global $this-rotate_z
 	global $this-rotate_theta
-	frame $w.f.r -relief groove -borderwidth 5
-	scale $w.f.r.x -orient horizontal -variable $this-rotate_x \
+	sci_frame $w.f.r -relief groove -borderwidth 5
+	sci_scale $w.f.r.x -orient horizontal -variable $this-rotate_x \
 		-label "Rotate Axis X:" -showvalue true -from -1.0 -to 1.0 \
 		-resolution .01
-	scale $w.f.r.y -orient horizontal -variable $this-rotate_y \
+	sci_scale $w.f.r.y -orient horizontal -variable $this-rotate_y \
 		-label "Rotate Axis Y:" -showvalue true -from -1.0 -to 1.0 \
 		-resolution .01
-	scale $w.f.r.z -orient horizontal -variable $this-rotate_z \
+	sci_scale $w.f.r.z -orient horizontal -variable $this-rotate_z \
 		-label "Rotate Axis Z:" -showvalue true -from -1.0 -to 1.0 \
 		-resolution .01
-	scale $w.f.r.th -orient horizontal -variable $this-rotate_theta \
+	sci_scale $w.f.r.th -orient horizontal -variable $this-rotate_theta \
 		-label "Rotate Theta (degrees):" -showvalue true -from -360.0 \
 		-to 360.0 -resolution 0.1
 	pack $w.f.r.x $w.f.r.y $w.f.r.z $w.f.r.th -fill x -expand 1 -side top
@@ -198,32 +198,32 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 	global $this-ystr
 	global $this-zstr
 	$this build_map_string
-	frame $w.f.p -relief groove -borderwidth 5
-	label $w.f.p.l -text "Field Map"
+	sci_frame $w.f.p -relief groove -borderwidth 5
+	sci_label $w.f.p.l -text "Field Map"
 	pack $w.f.p.l -side top -fill both -expand 1
-	frame $w.f.p.m -relief sunken -bd 2
-	frame $w.f.p.m.l
-	button $w.f.p.m.l.x -text "FlipX" -command "$this flip_x" -padx 8
-	button $w.f.p.m.l.y -text "FlipY" -command "$this flip_y" -padx 8
-	button $w.f.p.m.l.z -text "FlipZ" -command "$this flip_z" -padx 8
+	sci_frame $w.f.p.m -relief sunken -bd 2
+	sci_frame $w.f.p.m.l
+	sci_button $w.f.p.m.l.x -text "FlipX" -command "$this flip_x" -padx 8
+	sci_button $w.f.p.m.l.y -text "FlipY" -command "$this flip_y" -padx 8
+	sci_button $w.f.p.m.l.z -text "FlipZ" -command "$this flip_z" -padx 8
 	pack $w.f.p.m.l.x $w.f.p.m.l.y $w.f.p.m.l.z -side top
 	pack $w.f.p.m.l -side left -expand 1 -fill x
-	frame $w.f.p.m.r
-	label $w.f.p.m.r.x -textvariable $this-xstr
-	label $w.f.p.m.r.y -textvariable $this-ystr
-	label $w.f.p.m.r.z -textvariable $this-zstr
+	sci_frame $w.f.p.m.r
+	sci_label $w.f.p.m.r.x -textvariable $this-xstr
+	sci_label $w.f.p.m.r.y -textvariable $this-ystr
+	sci_label $w.f.p.m.r.z -textvariable $this-zstr
 	pack $w.f.p.m.r.x $w.f.p.m.r.y $w.f.p.m.r.z -side top
 	pack $w.f.p.m.r -side left -expand 1 -fill x
 	pack $w.f.p.m -side top -fill x -expand 1
-	frame $w.f.p.b -relief sunken -bd 2
-	frame $w.f.p.b.l
-	frame $w.f.p.b.r
-	button $w.f.p.b.l.cp -text "Cycle+" -command "$this cycle_pos"
-	button $w.f.p.b.l.cn -text "Cycle-" -command "$this cycle_neg"
-	button $w.f.p.b.l.res -text "Reset" -command "$this reset"
-	button $w.f.p.b.r.sxy -text "SwapXY" -command "$this swap_XY"
-	button $w.f.p.b.r.syz -text "SwapYZ" -command "$this swap_YZ"
-	button $w.f.p.b.r.sxz -text "SwapXZ" -command "$this swap_XZ"
+	sci_frame $w.f.p.b -relief sunken -bd 2
+	sci_frame $w.f.p.b.l
+	sci_frame $w.f.p.b.r
+	sci_button $w.f.p.b.l.cp -text "Cycle+" -command "$this cycle_pos"
+	sci_button $w.f.p.b.l.cn -text "Cycle-" -command "$this cycle_neg"
+	sci_button $w.f.p.b.l.res -text "Reset" -command "$this reset"
+	sci_button $w.f.p.b.r.sxy -text "SwapXY" -command "$this swap_XY"
+	sci_button $w.f.p.b.r.syz -text "SwapYZ" -command "$this swap_YZ"
+	sci_button $w.f.p.b.r.sxz -text "SwapXZ" -command "$this swap_XZ"
 	pack $w.f.p.b.l.cp $w.f.p.b.l.cn $w.f.p.b.l.res \
 		-side top -expand 1 -fill both
 	pack $w.f.p.b.r.sxy $w.f.p.b.r.syz $w.f.p.b.r.sxz \
@@ -235,22 +235,22 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 	global $this-scale_x
 	global $this-scale_y
 	global $this-scale_z
-	frame $w.f.s
-	frame $w.f.s.g -relief groove -borderwidth 5
-	label $w.f.s.g.l -text "Log Scale: "
-	scale $w.f.s.g.s -variable $this-scale_uniform -orient horizontal \
+	sci_frame $w.f.s
+	sci_frame $w.f.s.g -relief groove -borderwidth 5
+	sci_label $w.f.s.g.l -text "Log Scale: "
+	sci_scale $w.f.s.g.s -variable $this-scale_uniform -orient horizontal \
 		-from -3.000 -to 3.000 -resolution .001 -showvalue true
-	frame $w.f.s.sx -relief groove -borderwidth 5
-	label $w.f.s.sx.l -text "Log ScaleX: "
-	scale $w.f.s.sx.s -variable $this-scale_x -orient horizontal \
+	sci_frame $w.f.s.sx -relief groove -borderwidth 5
+	sci_label $w.f.s.sx.l -text "Log ScaleX: "
+	sci_scale $w.f.s.sx.s -variable $this-scale_x -orient horizontal \
 		-from -3.000 -to 3.000 -resolution .001 -showvalue true
-	frame $w.f.s.sy -relief groove -borderwidth 5
-	label $w.f.s.sy.l -text "Log ScaleY: "
-	scale $w.f.s.sy.s -variable $this-scale_y -orient horizontal \
+	sci_frame $w.f.s.sy -relief groove -borderwidth 5
+	sci_label $w.f.s.sy.l -text "Log ScaleY: "
+	sci_scale $w.f.s.sy.s -variable $this-scale_y -orient horizontal \
 		-from -3.000 -to 3.000 -resolution .001 -showvalue true
-	frame $w.f.s.sz -relief groove -borderwidth 5
-	label $w.f.s.sz.l -text "Log ScaleZ: "
-	scale $w.f.s.sz.s -variable $this-scale_z -orient horizontal \
+	sci_frame $w.f.s.sz -relief groove -borderwidth 5
+	sci_label $w.f.s.sz.l -text "Log ScaleZ: "
+	sci_scale $w.f.s.sz.s -variable $this-scale_z -orient horizontal \
 		-from -3.000 -to 3.000 -resolution .001 -showvalue true
 	pack $w.f.s.g.l -side left
 	pack $w.f.s.g.s -side left -expand 1 -fill x
@@ -260,14 +260,14 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 	pack $w.f.s.sy.s -side left -expand 1 -fill x
 	pack $w.f.s.sz.l -side left
 	pack $w.f.s.sz.s -side left -expand 1 -fill x
-	frame $w.f.s.e
-	label $w.f.s.e.l1 -text "Log Calculator: log("
+	sci_frame $w.f.s.e
+	sci_label $w.f.s.e.l1 -text "Log Calculator: log("
 	global $this-loginput
-	entry $w.f.s.e.e1 -textvariable $this-loginput -width 8
+	sci_entry $w.f.s.e.e1 -textvariable $this-loginput -width 8
 	bind $w.f.s.e.e1 <Return> "$this computelog"
-	label $w.f.s.e.l2 -text ") = "
+	sci_label $w.f.s.e.l2 -text ") = "
 	global $this-logoutput
-	label $w.f.s.e.l3 -textvariable $this-logoutput -width 12
+	sci_label $w.f.s.e.l3 -textvariable $this-logoutput -width 12
 	pack $w.f.s.e.l1 $w.f.s.e.e1 $w.f.s.e.l2 $w.f.s.e.l3 -side left
 	pack $w.f.s.g $w.f.s.sx $w.f.s.sy $w.f.s.sz -side top -fill x -expand 1
 	pack $w.f.s.e -side top
@@ -275,15 +275,15 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 	global $this-shear_plane_b
 	global $this-shear_plane_c
 	global $this-shear_plane_d
-	frame $w.f.sh -relief groove -borderwidth 5
-	label $w.f.sh.l -text "Shear Fixed Plane"
-	scale $w.f.sh.a -orient horizontal -variable $this-shear_plane_a \
+	sci_frame $w.f.sh -relief groove -borderwidth 5
+	sci_label $w.f.sh.l -text "Shear Fixed Plane"
+	sci_scale $w.f.sh.a -orient horizontal -variable $this-shear_plane_a \
 		-label "A:" -showvalue true -from -1.0 -to 1.0 \
 		-resolution .01
-	scale $w.f.sh.b -orient horizontal -variable $this-shear_plane_b \
+	sci_scale $w.f.sh.b -orient horizontal -variable $this-shear_plane_b \
 		-label "B:" -showvalue true -from -1.0 -to 1.0 \
 		-resolution .01
-	scale $w.f.sh.c -orient horizontal -variable $this-shear_plane_c \
+	sci_scale $w.f.sh.c -orient horizontal -variable $this-shear_plane_c \
 		-label "C:" -showvalue true -from -1.0 -to 1.0 \
 		-resolution .01
 	expscale $w.f.sh.d -orient horizontal -variable $this-shear_plane_d \
@@ -296,22 +296,22 @@ itcl_class SCIRun_Math_CreateGeometricTransform {
 	global $this-widget_scale
 	global $this-ignoring_widget_changes
 	global $this-widget_show_resize_handles
-	frame $w.f.w -relief groove -borderwidth 5
-	label $w.f.w.l -text "Widget"
+	sci_frame $w.f.w -relief groove -borderwidth 5
+	sci_label $w.f.w.l -text "Widget"
 	pack $w.f.w.l -side top
 	expscale $w.f.w.d -orient horizontal -variable $this-widget_scale \
 		-label "Uniform Scale"
-	frame $w.f.w.b 
+	sci_frame $w.f.w.b 
 
 	set $this-widget_scale 1
 	set $this-widgetShowResizeHandles 0
 
-	checkbutton $w.f.w.b.handles -text "Resize Separably" \
+	sci_checkbutton $w.f.w.b.handles -text "Resize Separably" \
 		-variable $this-widget_resizable \
 		-command "$this change_handles"
-	button $w.f.w.b.reset -text "Reset Widget" \
+	sci_button $w.f.w.b.reset -text "Reset Widget" \
 		-command "$this-c reset_widget"
-	checkbutton $w.f.w.b.ignore -text "Ignore Changes" \
+	sci_checkbutton $w.f.w.b.ignore -text "Ignore Changes" \
 		-variable $this-ignoring_widget_changes
 	pack $w.f.w.b.handles $w.f.w.b.reset $w.f.w.b.ignore -side left \
 		-fill x -expand 1 -pady 3 -padx 12

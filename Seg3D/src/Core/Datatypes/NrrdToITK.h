@@ -53,22 +53,20 @@ namespace SCIRun {
 SCISHARE ITKDatatypeHandle
 nrrd_to_itk_image(NrrdDataHandle &nrrd);
 
-
-template <class PixType>
+template <class PixType, int Dim>
 itk::Object::Pointer
 nrrd_to_itk_image(Nrrd *n)
 {
   ASSERT(n);
   ASSERT(n->type == get_nrrd_type<PixType>());
-  ASSERT(n->dim == 4);
+  ASSERT(n->dim == Dim+1);
   
-  const unsigned int dimension = 3;
-  typedef itk::ImportImageFilter < PixType , 3 > ImportFilterType;
+  typedef itk::ImportImageFilter < PixType , Dim > ImportFilterType;
   typename ImportFilterType::Pointer importFilter = ImportFilterType::New();
   typename ImportFilterType::SizeType size;
 
-  double origin[dimension];
-  double spacing[dimension];
+  double origin[Dim];
+  double spacing[Dim];
   
   unsigned int count = 1;
   for(unsigned int i=0; i < n->dim-1; i++) {
@@ -102,11 +100,10 @@ nrrd_to_itk_image(Nrrd *n)
 }
 
 
-
-template <class PixType>
+template <class PixType, int Dim>
 NrrdDataHandle
-itk_image_to_nrrd(ITKDatatypeHandle &img_handle) {
-  const unsigned int Dim = 3;
+itk_image_to_nrrd(ITKDatatypeHandle &img_handle)
+{
   typedef itk::Image<PixType, Dim> ImageType;
 
   ImageType *img = dynamic_cast<ImageType *>(img_handle->data_.GetPointer());
@@ -140,15 +137,19 @@ itk_image_to_nrrd(ITKDatatypeHandle &img_handle) {
   nrrd->axis[0].kind = nrrdKindStub;
 
   for(unsigned int i = 0; i < Dim; i++) {
-    nrrd->axis[i+1].spacing = img->GetSpacing()[i];
+    // TODO: We're only using one direction component here for the
+    // spacing multiplier with the assumption that the axes are
+    // orthagonal and not permuted.  Handle this more generally.
+    nrrd->axis[i+1].spacing = img->GetSpacing()[i] * img->GetDirection()[i][i];
 
     nrrd->axis[i+1].min = img->GetOrigin()[i];
-    nrrd->axis[i+1].max = ceil(img->GetOrigin()[i] + 
-      ((nrrd->axis[i+1].size-1) * nrrd->axis[i+1].spacing));
+    nrrd->axis[i+1].max = nrrd->axis[i+1].min +
+      (nrrd->axis[i+1].size-1) * nrrd->axis[i+1].spacing;
     nrrd->axis[i+1].kind = nrrdKindDomain;
   }
   return nrrd_data;
 }
+
 
 }
 #endif

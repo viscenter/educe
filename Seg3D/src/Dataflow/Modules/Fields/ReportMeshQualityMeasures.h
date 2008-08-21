@@ -34,7 +34,12 @@
 #if !defined(ReportMeshQualityMeasures_h)
 #define ReportMeshQualityMeasures_h
 
-#include <verdict.h>
+#include <vtkMeshQuality.h>
+#include <vtkPoints.h>
+#include <vtkTetra.h>
+#include <vtkQuad.h>
+#include <vtkHexahedron.h>
+#include <vtkTriangle.h>
 #include <Core/Datatypes/NrrdData.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Basis/Constant.h>
@@ -83,36 +88,10 @@ NrrdDataHandle
 ReportMeshQualityMeasuresAlgoTet<FIELD>::execute(ProgressReporter *mod, 
 						 FieldHandle fieldh)
 {
-//   enum tetMetrics {ASPECT_RATIO,   // this is aspect ratio 'beta'
-//                    ASPECT_RATIO_GAMMA, 
-//                    VOLUME, 
-//                    CONDITION_NUMBER,
-//                    JACOBIAN, NORM_JACOBIAN, 
-//                    SHAPE, RELSIZE, SHAPE_SIZE,DISTORTION,
-//                    ALLMETRICS, ALGEBRAIC, TRADITIONAL,                  
-//                    NUM_TET_METRICS};
-// // Note: if you want to add a new metric, do it immediately before 
-// //       "ALLMETRICS" so that grouping capability is not broken
-
-//   const int metricBitFlags[NUM_TET_METRICS] = 
-//       {
-//           V_TET_ASPECT_BETA,
-//           V_TET_ASPECT_GAMMA,
-//           V_TET_VOLUME,
-//           V_TET_CONDITION,
-//           V_TET_JACOBIAN,
-//           V_TET_SCALED_JACOBIAN,
-//           V_TET_SHAPE,
-//           V_TET_RELATIVE_SIZE_SQUARED,
-//           V_TET_SHAPE_AND_SIZE,
-//           V_TET_DISTORTION,
-//           V_TET_ALL,
-//           V_TET_ALGEBRAIC,
-//           V_TET_TRADITIONAL
-//       };
-
+  const int nmetrics = 10;
   FIELD *field = dynamic_cast<FIELD*>(fieldh.get_rep());
-  typename FIELD::mesh_type *mesh = dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
+  typename FIELD::mesh_type *mesh = 
+    dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
 
   double node_pos[4][3];
   vector<typename FIELD::mesh_type::Elem::index_type> elemmap;
@@ -124,7 +103,7 @@ ReportMeshQualityMeasuresAlgoTet<FIELD>::execute(ProgressReporter *mod,
   mesh->size(sz);
   const unsigned nelems = sz;
   Nrrd* onnrd = nrrdNew();
-  nrrdAlloc_va(onnrd, nrrdTypeDouble, 2, 9, nelems); //9 metrics per element
+  nrrdAlloc_va(onnrd, nrrdTypeDouble, 2, nmetrics, nelems); 
   nrrdAxisInfoSet_va(onnrd, nrrdAxisInfoLabel, "element", "metrics");
   NrrdDataHandle output = new NrrdData(onnrd);
   double *data = (double*)onnrd->data;
@@ -139,191 +118,124 @@ ReportMeshQualityMeasuresAlgoTet<FIELD>::execute(ProgressReporter *mod,
   nrrdKeyValueAdd(onnrd, "shape", "6");
   nrrdKeyValueAdd(onnrd, "shape_size", "7");
   nrrdKeyValueAdd(onnrd, "distortion", "8");
+  nrrdKeyValueAdd(onnrd, "radius_ratio", "9");
 
-  mesh->synchronize( Mesh::ALL_ELEMENTS_E );  
+  mesh->synchronize( Mesh::ALL_ELEMENTS_E );
   int total_elements = 0;
-  double aspect_high = 0, aspect_low = 0, aspect_ave = 0;
-  double aspect_gamma_high = 0, aspect_gamma_low = 0, aspect_gamma_ave = 0;
-  double volume_high = 0, volume_low = 0, volume_ave = 0;
-  double condition_high = 0, condition_low = 0, condition_ave = 0;
-  double jacobian_high = 0, jacobian_low = 0, jacobian_ave = 0;
-  double scaled_jacobian_high = 0, scaled_jacobian_low = 0, scaled_jacobian_ave = 0;
-  double shape_high = 0, shape_low = 0, shape_ave = 0;
-  double shape_size_high = 0, shape_size_low = 0, shape_size_ave = 0;
-  double distortion_high = 0, distortion_low = 0, distortion_ave = 0;
-  
+  // each metric will have per elem value, low and high and ave values...
+  double metrics[nmetrics][4];
   int inversions = 0;
-  int first_time_thru = 1;
+  bool first_time_thru = true;
 
   while (bi != ei)
   {
     typename FIELD::mesh_type::Node::array_type onodes;
     mesh->get_nodes(onodes, *bi);
 
+    vtkTetra *tetra = vtkTetra::New(); 
+
     int i;
     for( i = 0; i < 4; i++ )
     {
       Point p;
       mesh->get_center( p, onodes[i] );
-      node_pos[i][0] = p.x(); 
-      node_pos[i][1] = p.y(); 
-      node_pos[i][2] = p.z(); 
+      tetra->GetPoints()->SetPoint(i, p.x(), p.y(), p.z());
     }
+
+    metrics[0][0] = vtkMeshQuality::TetAspectBeta(tetra);     
+    metrics[1][0] = vtkMeshQuality::TetAspectGamma(tetra);    
+    metrics[2][0] = vtkMeshQuality::TetVolume(tetra);         
+    metrics[3][0] = vtkMeshQuality::TetCondition(tetra);      
+    metrics[4][0] = vtkMeshQuality::TetJacobian(tetra);       
+    metrics[5][0] = vtkMeshQuality::TetScaledJacobian(tetra); 
+    metrics[6][0] = vtkMeshQuality::TetShape(tetra);          
+    metrics[7][0] = vtkMeshQuality::TetShapeandSize(tetra);   
+    metrics[8][0] = vtkMeshQuality::TetDistortion(tetra);     
+    metrics[9][0] = 1.0L / metrics[0][0]; // inv radius ratio...
     
-    TetMetricVals values;
-//    int verdict_metric = metricBitFlags[V_TET_ALL];
-    int verdict_metric = V_TET_ALL;
-    v_tet_quality(4, node_pos, verdict_metric, &values);
-
-    double aspect = values.aspect_beta;
-    double aspect_gamma = values.aspect_gamma;
-    double volume = values.volume;
-    double condition = values.condition;
-    double jacobian = values.jacobian;
-    double scaled_jacobian = values.scaled_jacobian;
-    double shape = values.shape;
-    double shape_size = values.shape_and_size;
-    double distortion = values.distortion;
-
-    data[0] = values.aspect_beta;
-    data[1] = values.aspect_gamma;
-    data[2] = values.volume;
-    data[3] = values.condition;
-    data[4] = values.jacobian;
-    data[5] = values.scaled_jacobian;
-    data[6] = values.shape;
-    data[7] = values.shape_and_size;
-    data[8] = values.distortion;
-    data += 9;
+    tetra->Delete();
+    for(int i = 0; i < nmetrics; ++i)
+    {    
+      data[i] = metrics[i][0];
+    }
+    data += nmetrics;
 
     if( first_time_thru )
     {
-      aspect_high = aspect;
-      aspect_low = aspect;
-      aspect_gamma_high = aspect_gamma;
-      aspect_gamma_low = aspect_gamma;
-      volume_high = volume;
-      volume_low = volume;
-      condition_high = condition;
-      condition_low = condition;
-      jacobian_high = jacobian;
-      jacobian_low = jacobian;
-      scaled_jacobian_high = scaled_jacobian;
-      scaled_jacobian_low = scaled_jacobian;
-      shape_high = shape;
-      shape_low = shape;
-      shape_size_high = shape_size;
-      shape_size_low = shape_size;
-      distortion_high = distortion;
-      distortion_low = distortion;
-      first_time_thru = 0;
+      for (int j = 0; j < nmetrics; ++j) {
+        metrics[j][1] = metrics[j][0];
+        metrics[j][2] = metrics[j][0];
+        metrics[j][3] = 0.0L;
+      }
+      first_time_thru = false;
     }
 
-    if( aspect > aspect_high )
-        aspect_high = aspect;
-    else if( aspect < aspect_low )
-        aspect_low = aspect;
-    aspect_ave += aspect;
-
-    if( aspect_gamma > aspect_gamma_high )
-        aspect_gamma_high = aspect_gamma;
-    else if( aspect_gamma < aspect_gamma_low )
-        aspect_gamma_low = aspect_gamma;
-    aspect_gamma_ave += aspect_gamma;
-    
-    if( volume > volume_high )
-        volume_high = volume;
-    else if( volume < volume_low )
-        volume_low = volume;
-    volume_ave += volume;
-
-    if( condition > condition_high )
-        condition_high = condition;
-    else if( condition < condition_low )
-        condition_low = condition;
-    condition_ave += condition;
-
-    if( jacobian > jacobian_high )
-        jacobian_high = jacobian;
-    else if( jacobian < jacobian_low )
-        jacobian_low = jacobian;
-    jacobian_ave += jacobian;
-
-    if( scaled_jacobian > scaled_jacobian_high )
-        scaled_jacobian_high = scaled_jacobian;
-    else if( scaled_jacobian < scaled_jacobian_low )
-        scaled_jacobian_low = scaled_jacobian;
-    scaled_jacobian_ave += scaled_jacobian;
-
-    if( shape > shape_high )
-        shape_high = shape;
-    else if( shape < shape_low )
-        shape_low = shape;
-    shape_ave += shape;
-
-    if( shape_size > shape_size_high )
-        shape_size_high = shape_size;
-    else if( shape_size < shape_size_low )
-        shape_size_low = shape_size;
-    shape_size_ave += shape_size;
-
-    if( distortion > distortion_high )
-        distortion_high = distortion;
-    else if( distortion < distortion_low )
-        distortion_low = distortion;
-    distortion_ave += distortion;
- 
+    // check high, low, and total for the average;
+    for (int j = 0; j < nmetrics; ++j)
+    {
+      if( metrics[j][0] > metrics[j][2] )
+        metrics[j][2] = metrics[j][0];
+      else if(metrics[j][0] < metrics[j][1])
+        metrics[j][1] = metrics[j][0];
+      metrics[j][3] += metrics[j][0];
+    }
 
     typename FIELD::mesh_type::Elem::index_type elem_id = *bi;
-//     if( shape == 0.0 )
-//         cout << "WARNING: Tet " << elem_id << " has negative volume!" << endl;
-    if( scaled_jacobian <= 0.0 )
+    // 5 is the scaled jacobian...
+    if (metrics[5][0] <= 0.0)
     {
       inversions++;
       cout << "WARNING: Tet " << elem_id << " has negative volume!" << endl;
     }
-    
     total_elements++;
     ++bi;
   }
   
-  aspect_ave /= total_elements;
-  aspect_gamma_ave /= total_elements;
-  volume_ave /= total_elements;
-  condition_ave /= total_elements;
-  jacobian_ave /= total_elements;
-  scaled_jacobian_ave /= total_elements;
-  shape_ave /= total_elements;
-  shape_size_ave /= total_elements;
-  distortion_ave /= total_elements;
+
+  for (int j = 0; j < nmetrics; ++j) {
+    metrics[j][3] /= (double)total_elements;
+  }
+  
 
   typename FIELD::mesh_type::Node::size_type nodes;
   typename FIELD::mesh_type::Edge::size_type edges;
   typename FIELD::mesh_type::Face::size_type faces;
   typename FIELD::mesh_type::Cell::size_type tets;
-  mesh->size( nodes );
-  mesh->size( edges );
-  mesh->size( faces );
-  mesh->size( tets );
-  int holes = (tets-faces+edges-nodes+2)/2;
-
-//  cout << "Tets: " << tets << " Faces: " << faces << " Edges: " << edges << " Nodes: " << nodes << endl;
+  mesh->size(nodes);
+  mesh->size(edges);
+  mesh->size(faces);
+  mesh->size(tets);
+  int holes = (tets - faces + edges - nodes + 2) / 2;
 
   cout << endl << "Number of Tet elements checked = " << total_elements;
   if( inversions != 0 )
       cout << " (" << inversions << " Tets have negative jacobians!)";
-  cout << endl << "Euler characteristics for this mesh indicate " << holes << " holes in this block of elements." << endl << "    (Assumes a single contiguous block of elements.)" << endl;
-  cout << "Element counts: Tets: " << tets << " Faces: " << faces << " Edges: " << edges << " Nodes: " << nodes << endl;
-  cout << "Aspect Ratio: Low = " << aspect_low << ", Average = " << aspect_ave << ", High = " << aspect_high << endl;
-  cout << "Aspect Ratio (gamma): Low = " << aspect_gamma_low << ", Average = " << aspect_gamma_ave << ", High = " << aspect_gamma_high << endl;
-  cout << "Volume: Low = " << volume_low << ", Average = " << volume_ave << ", High = " << volume_high << endl;
-  cout << "Condition: Low = " << condition_low << ", Average = " << condition_ave << ", High = " << condition_high << endl;
-  cout << "Jacobian: Low = " << jacobian_low << ", Average = " << jacobian_ave << ", High = " << jacobian_high << endl;
-  cout << "Scaled_Jacobian: Low = " << scaled_jacobian_low << ", Average = " << scaled_jacobian_ave << ", High = " << scaled_jacobian_high << endl;
-  cout << "Shape: Low = " << shape_low << ", Average = " << shape_ave << ", High = " << shape_high << endl;
-  cout << "Shape_Size: Low = " << shape_size_low << ", Average = " << shape_size_ave << ", High = " << shape_size_high << endl;
-  cout << "Distortion: Low = " << distortion_low << ", Average = " << distortion_ave << ", High = " << distortion_high << endl;
- 
+  cout << endl << "Euler characteristics for this mesh indicate " << holes 
+       << " holes in this block of elements." << endl 
+       << "    (Assumes a single contiguous block of elements.)" << endl;
+  cout << "Element counts: Tets: " << tets << " Faces: " << faces 
+       << " Edges: " << edges << " Nodes: " << nodes << endl;
+  cout << "Aspect Ratio: Low = " << metrics[0][1] << ", Average = " 
+       << metrics[0][3] << ", High = " << metrics[0][2] << endl;
+  cout << "Aspect Ratio (gamma): Low = " << metrics[1][1] << ", Average = " 
+       << metrics[1][3] << ", High = " << metrics[1][2] << endl;
+  cout << "Volume: Low = " << metrics[2][1] << ", Average = " << metrics[2][3] 
+       << ", High = " << metrics[2][2] << endl;
+  cout << "Condition: Low = " << metrics[3][1] << ", Average = " 
+       << metrics[3][3] << ", High = " << metrics[3][2] << endl;
+  cout << "Jacobian: Low = " << metrics[4][1] << ", Average = " 
+       << metrics[4][3] << ", High = " << metrics[4][2] << endl;
+  cout << "Scaled_Jacobian: Low = " << metrics[5][1] << ", Average = " 
+       << metrics[5][3] << ", High = " << metrics[5][2] << endl;
+  cout << "Shape: Low = " << metrics[6][1] << ", Average = " << metrics[6][3] 
+       << ", High = " << metrics[6][2] << endl;
+  cout << "Shape_Size: Low = " << metrics[7][1] << ", Average = " 
+       << metrics[7][3] << ", High = " << metrics[7][2] << endl;
+  cout << "Distortion: Low = " << metrics[8][1] << ", Average = " 
+       << metrics[8][3] << ", High = " << metrics[8][2] << endl;
+  cout << "Radius Ratio: Low = " << metrics[9][1] << ", Average = " 
+       << metrics[9][3] << ", High = " << metrics[9][2] << endl;
+
   return output;
 }
 
@@ -343,38 +255,11 @@ NrrdDataHandle
 ReportMeshQualityMeasuresAlgoHex<FIELD>::execute(ProgressReporter *mod, 
 						 FieldHandle fieldh)
 {
-//   enum hexMetrics {ASPECT, SKEW, TAPER, VOLUME, STRETCH,
-//                    DIAGONALS, CHARDIM, CONDITION, JACOBIAN,
-//                    NORM_JACOBIAN, SHEAR, SHAPE, RELSIZE, SHEAR_SIZE, SHAPE_SIZE, 
-//                    DISTORTION, ALLMETRICS, ALGEBRAIC, ROBINSON, TRADITIONAL,
-//                    NUM_HEX_METRICS};
-
-//   const int metricBitFlags[NUM_HEX_METRICS] = 
-//       { 
-//           V_HEX_ASPECT,
-//           V_HEX_SKEW,
-//           V_HEX_TAPER,
-//           V_HEX_VOLUME,
-//           V_HEX_STRETCH,
-//           V_HEX_DIAGONAL,
-//           V_HEX_DIMENSION,
-//           V_HEX_CONDITION,
-//           V_HEX_JACOBIAN,
-//           V_HEX_SCALED_JACOBIAN,
-//           V_HEX_SHEAR,
-//           V_HEX_SHAPE,
-//           V_HEX_RELATIVE_SIZE_SQUARED,
-//           V_HEX_SHEAR_AND_SIZE,
-//           V_HEX_SHAPE_AND_SIZE,
-//           V_HEX_DISTORTION,
-//           V_HEX_ALL,
-//           V_HEX_ALGEBRAIC,
-//           V_HEX_ROBINSON,
-//           V_HEX_TRADITIONAL
-//       };
+  const int nmetrics = 15;
   
   FIELD *field = dynamic_cast<FIELD*>(fieldh.get_rep());
-  typename FIELD::mesh_type *mesh = dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
+  typename FIELD::mesh_type *mesh = 
+    dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
 
   double node_pos[8][3];
   vector<typename FIELD::mesh_type::Elem::index_type> elemmap;
@@ -386,7 +271,7 @@ ReportMeshQualityMeasuresAlgoHex<FIELD>::execute(ProgressReporter *mod,
   mesh->size(sz);
   const unsigned nelems = sz;
   Nrrd* onnrd = nrrdNew();
-  nrrdAlloc_va(onnrd, nrrdTypeDouble, 2, 15, nelems); //15 metrics per element
+  nrrdAlloc_va(onnrd, nrrdTypeDouble, 2, nmetrics, nelems); 
   nrrdAxisInfoSet_va(onnrd, nrrdAxisInfoLabel, "element", "metrics");
   NrrdDataHandle output = new NrrdData(onnrd);
   double *data = (double*)onnrd->data;
@@ -407,30 +292,16 @@ ReportMeshQualityMeasuresAlgoHex<FIELD>::execute(ProgressReporter *mod,
   nrrdKeyValueAdd(onnrd, "shape_size", "13");
   nrrdKeyValueAdd(onnrd, "distortion", "14");
 
-    //perform Euler checks for topology errors...
-    // 2-2g = -#hexes+#faces-#edges+#nodes
+  //perform Euler checks for topology errors...
+  // 2-2g = -#hexes+#faces-#edges+#nodes
   mesh->synchronize( Mesh::ALL_ELEMENTS_E );
 
-
   int total_elements = 0;
-  double aspect_high = 0, aspect_low = 0, aspect_ave = 0;
-  double skew_high = 0, skew_low = 0, skew_ave = 0;
-  double taper_high = 0, taper_low = 0, taper_ave = 0;
-  double volume_high = 0, volume_low = 0, volume_ave = 0;
-  double stretch_high = 0, stretch_low = 0, stretch_ave = 0;
-  double diagonal_high = 0, diagonal_low = 0, diagonal_ave = 0;
-  double dimension_high = 0, dimension_low = 0, dimension_ave = 0;
-  double condition_high = 0, condition_low = 0, condition_ave = 0;
-  double jacobian_high = 0, jacobian_low = 0, jacobian_ave = 0;
-  double scaled_jacobian_high = 0, scaled_jacobian_low = 0, scaled_jacobian_ave = 0;
-  double shear_high = 0, shear_low = 0, shear_ave = 0;
-  double shape_high = 0, shape_low = 0, shape_ave = 0;
-  double shear_size_high = 0, shear_size_low = 0, shear_size_ave = 0;
-  double shape_size_high = 0, shape_size_low = 0, shape_size_ave = 0;
-  double distortion_high = 0, distortion_low = 0, distortion_ave = 0;
+  // each metric will have per elem value, low and high and ave values...
+  double metrics[nmetrics][4];
   
   int inversions = 0;
-  int first_time_thru = 1;
+  bool first_time_thru = true;
   bool inverted_element_detected = false;
   
   while (bi != ei)
@@ -438,186 +309,64 @@ ReportMeshQualityMeasuresAlgoHex<FIELD>::execute(ProgressReporter *mod,
     typename FIELD::mesh_type::Node::array_type onodes;
     mesh->get_nodes(onodes, *bi);
 
-    int i;
-    for( i = 0; i < 8; i++ )
+    vtkHexahedron *hex = vtkHexahedron::New(); 
+
+
+    for(int i = 0; i < 8; ++i)
     {
       Point p;
       mesh->get_center( p, onodes[i] );
-      node_pos[i][0] = p.x(); 
-      node_pos[i][1] = p.y(); 
-      node_pos[i][2] = p.z(); 
+      hex->GetPoints()->SetPoint(i, p.x(), p.y(), p.z());
     }
-    
-    HexMetricVals values;
-//    int verdict_metric = metricBitFlags[V_HEX_ALL];
-    int verdict_metric = V_HEX_ALL;
-    
-    v_hex_quality(8, node_pos, verdict_metric, &values);
 
-    double aspect = values.aspect;
-    double skew = values.skew;
-    double taper = values.taper;
-    double volume = values.volume;
-    double stretch = values.stretch;
-    double diagonal = values.diagonal;
-    double dimension = values.dimension;
-    double condition = values.condition;
-    double jacobian = values.jacobian;
-    double scaled_jacobian = values.scaled_jacobian;
-    double shear = values.shear;
-    double shape = values.shape;
-    double shear_size = values.shear_and_size;
-    double shape_size = values.shape_and_size;
-    double distortion = values.distortion;
+    metrics[0][0] = vtkMeshQuality::HexMaxAspectFrobenius(hex);
+    metrics[1][0] = vtkMeshQuality::HexSkew(hex);
+    metrics[2][0] = vtkMeshQuality::HexTaper(hex);
+    metrics[3][0] = vtkMeshQuality::HexVolume(hex);
+    metrics[4][0] = vtkMeshQuality::HexStretch(hex);
+    metrics[5][0] = vtkMeshQuality::HexDiagonal(hex);
+    metrics[6][0] = vtkMeshQuality::HexDimension(hex);
+    metrics[7][0] = vtkMeshQuality::HexCondition(hex);
+    metrics[8][0] = vtkMeshQuality::HexJacobian(hex);
+    metrics[9][0] = vtkMeshQuality::HexScaledJacobian(hex);
+    metrics[10][0] = vtkMeshQuality::HexShear(hex);
+    metrics[11][0] = vtkMeshQuality::HexShape(hex);
+    metrics[12][0] = vtkMeshQuality::HexShearAndSize(hex);
+    metrics[13][0] = vtkMeshQuality::HexShapeAndSize(hex);
+    metrics[14][0] = vtkMeshQuality::HexDistortion(hex);
 
-    data[0] = values.aspect;
-    data[1] = values.skew;
-    data[2] = values.taper;
-    data[3] = values.volume;
-    data[4] = values.stretch;
-    data[5] = values.diagonal;
-    data[6] = values.dimension;
-    data[7] = values.condition;
-    data[8] = values.jacobian;
-    data[9] = values.scaled_jacobian;
-    data[10] = values.shear;
-    data[11] = values.shape;
-    data[12] = values.shear_and_size;
-    data[13] = values.shape_and_size;
-    data[14] = values.distortion;
-    data += 15;
+    hex->Delete();
+    for(int i = 0; i < nmetrics; ++i)
+    {    
+      data[i] = metrics[i][0];
+    }
+    data += nmetrics;
 
-    if( first_time_thru )
+    if(first_time_thru)
     {
-      aspect_high = aspect;
-      aspect_low = aspect;
-      skew_high = skew;
-      skew_low = skew;
-      taper_high = taper;
-      taper_low = taper;
-      volume_high = volume;
-      volume_low = volume;
-      stretch_high = stretch;
-      stretch_low = stretch;
-      diagonal_high = diagonal;
-      diagonal_low = diagonal;
-      condition_high = condition;
-      condition_low = condition;
-      jacobian_high = jacobian;
-      jacobian_low = jacobian;
-      scaled_jacobian_high = scaled_jacobian;
-      scaled_jacobian_low = scaled_jacobian;
-      shear_high = shear;
-      shear_low = shear;
-      shape_high = shape;
-      shape_low = shape;
-      shape_size_high = shape_size;
-      shape_size_low = shape_size;
-      shear_size_high = shear_size;
-      shear_size_low = shear_size;
-      distortion_high = distortion;
-      distortion_low = distortion;
-      first_time_thru = 0;
+      for (int j = 0; j < nmetrics; ++j) {
+        metrics[j][1] = metrics[j][0];
+        metrics[j][2] = metrics[j][0];
+        metrics[j][3] = 0.0L;
+      }
+      first_time_thru = false;
     }
 
-    if( aspect > aspect_high )
-        aspect_high = aspect;
-    else if( aspect < aspect_low )
-        aspect_low = aspect;
-    aspect_ave += aspect;
-
-    if( skew > skew_high )
-        skew_high = skew;
-    else if( skew < skew_low )
-        skew_low = skew;
-    skew_ave += skew;
-    
-    if( taper > taper_high )
-        taper_high = taper;
-    else if( taper < taper_low )
-        taper_low = taper;
-    taper_ave += taper;
-    
-    if( volume > volume_high )
-        volume_high = volume;
-    else if( volume < volume_low )
-        volume_low = volume;
-    volume_ave += volume;
-
-    if( stretch > stretch_high )
-        stretch_high = stretch;
-    else if( stretch < stretch_low )
-        stretch_low = stretch;
-    stretch_ave += stretch;
-
-    if( diagonal > diagonal_high )
-        diagonal_high = diagonal;
-    else if( diagonal < diagonal_low )
-        diagonal_low = diagonal;
-    diagonal_ave += diagonal;
-
-    if( dimension > dimension_high )
-        dimension_high = dimension;
-    else if( dimension < dimension_low )
-        dimension_low = dimension;
-    dimension_ave += dimension;
-
-    if( condition > condition_high )
-        condition_high = condition;
-    else if( condition < condition_low )
-        condition_low = condition;
-    condition_ave += condition;
-
-    if( jacobian > jacobian_high )
-        jacobian_high = jacobian;
-    else if( jacobian < jacobian_low )
-        jacobian_low = jacobian;
-    jacobian_ave += jacobian;
-
-    if( scaled_jacobian > scaled_jacobian_high )
-        scaled_jacobian_high = scaled_jacobian;
-    else if( scaled_jacobian < scaled_jacobian_low )
-        scaled_jacobian_low = scaled_jacobian;
-    scaled_jacobian_ave += scaled_jacobian;
-
-    if( shear > shear_high )
-        shear_high = shear;
-    else if( shear < shear_low )
-        shear_low = shear;
-    shear_ave += shear;
-
-    if( shape > shape_high )
-        shape_high = shape;
-    else if( shape < shape_low )
-        shape_low = shape;
-    shape_ave += shape;
-
-    if( shear_size > shear_size_high )
-        shear_size_high = shear_size;
-    else if( shear_size < shear_size_low )
-        shear_size_low = shear_size;
-    shear_size_ave += shear_size;
-
-    if( shape_size > shape_size_high )
-        shape_size_high = shape_size;
-    else if( shape_size < shape_size_low )
-        shape_size_low = shape_size;
-    shape_size_ave += shape_size;
-
-    if( distortion > distortion_high )
-        distortion_high = distortion;
-    else if( distortion < distortion_low )
-        distortion_low = distortion;
-    distortion_ave += distortion;
+    // check high, low, and total for the average;
+    for (int j = 0; j < nmetrics; ++j)
+    {
+      if( metrics[j][0] > metrics[j][2] )
+        metrics[j][2] = metrics[j][0];
+      else if(metrics[j][0] < metrics[j][1])
+        metrics[j][1] = metrics[j][0];
+      metrics[j][3] += metrics[j][0];
+    }
 
     typename FIELD::mesh_type::Elem::index_type elem_id = *bi;
-//     if( shape == 0.0 )
-//         cout << "WARNING: Hex " << elem_id << " has negative volume!" << endl;
-//     if( jacobian <= 0.0 )
-//        cout << "WARNING: Hex " << elem_id << " has negative volume!" << endl;
-    if( scaled_jacobian <= 0.0 )
+    // 9 is the scaled jacobian...
+    if (metrics[9][0] <= 0.0)
     {
-      if( inverted_element_detected == false )
+      if (inverted_element_detected == false)
       {
         cout << "WARNING: The following hexes have negative volume: ";
         inverted_element_detected = true;
@@ -630,21 +379,10 @@ ReportMeshQualityMeasuresAlgoHex<FIELD>::execute(ProgressReporter *mod,
     ++bi;
   }
 
-  aspect_ave /= total_elements;
-  skew_ave /= total_elements;
-  taper_ave /= total_elements;
-  volume_ave /= total_elements;
-  stretch_ave /= total_elements;
-  diagonal_ave /= total_elements;
-  dimension_ave /= total_elements;
-  condition_ave /= total_elements;
-  jacobian_ave /= total_elements;
-  scaled_jacobian_ave /= total_elements;
-  shear_ave /= total_elements;
-  shape_ave /= total_elements;
-  shear_size_ave /= total_elements;
-  shape_size_ave /= total_elements;
-  distortion_ave /= total_elements;
+
+  for (int j = 0; j < nmetrics; ++j) {
+    metrics[j][3] /= (double)total_elements;
+  }
 
   typename FIELD::mesh_type::Node::size_type nodes;
   typename FIELD::mesh_type::Edge::size_type edges;
@@ -654,32 +392,49 @@ ReportMeshQualityMeasuresAlgoHex<FIELD>::execute(ProgressReporter *mod,
   mesh->size( edges );
   mesh->size( faces );
   mesh->size( hexes );
-  signed int holes = (hexes-faces+edges-nodes+2)/2;
+  signed int holes = (hexes - faces + edges - nodes + 2) / 2;
   
   cout << endl << "Number of Hex elements checked = " << total_elements;
   if( inversions != 0 )
-      cout << " (" << inversions << " Hexes have negative jacobians!)";
-  cout << endl << "Euler characteristics for this mesh indicate " << holes << " holes in this block of elements." << endl << "    (Assumes a single contiguous block of elements.)" << endl;
-  cout << "Number of Elements = Hexes: " << hexes << " Faces: " << faces << " Edges: " << edges << " Nodes: " << nodes << endl;
-  cout << "Aspect Ratio: Low = " << aspect_low << ", Average = " << aspect_ave << ", High = " << aspect_high << endl;
-  cout << "Skew: Low = " << skew_low << ", Average = " << skew_ave << ", High = " << skew_high << endl;
-  cout << "Taper: Low = " << taper_low << ", Average = " << taper_ave << ", High = " << taper_high << endl;
-  cout << "Volume: Low = " << volume_low << ", Average = " << volume_ave << ", High = " << volume_high << endl;
-  cout << "Stretch: Low = " << stretch_low << ", Average = " << stretch_ave << ", High = " << stretch_high << endl;
-  cout << "Diagonal: Low = " << diagonal_low << ", Average = " << diagonal_ave << ", High = " << diagonal_high << endl;
-  cout << "Dimension: Low = " << dimension_low << ", Average = " << dimension_ave << ", High = " << dimension_high << endl;
-  cout << "Condition: Low = " << condition_low << ", Average = " << condition_ave << ", High = " << condition_high << endl;
-  cout << "Jacobian: Low = " << jacobian_low << ", Average = " << jacobian_ave << ", High = " << jacobian_high << endl;
-  cout << "Scaled_Jacobian: Low = " << scaled_jacobian_low << ", Average = " << scaled_jacobian_ave << ", High = " << scaled_jacobian_high << endl;
-  cout << "Shear: Low = " << shear_low << ", Average = " << shear_ave << ", High = " << shear_high << endl;
-  cout << "Shape: Low = " << shape_low << ", Average = " << shape_ave << ", High = " << shape_high << endl;
-  cout << "Shear_Size: Low = " << shear_size_low << ", Average = " << shear_size_ave << ", High = " << shear_size_high << endl;
-  cout << "Shape_Size: Low = " << shape_size_low << ", Average = " << shape_size_ave << ", High = " << shape_size_high << endl;
-  cout << "Distortion: Low = " << distortion_low << ", Average = " << distortion_ave << ", High = " << distortion_high << endl;
+    cout << " (" << inversions << " Hexes have negative jacobians!)";
+  cout << endl << "Euler characteristics for this mesh indicate " << holes 
+       << " holes in this block of elements." << endl 
+       << "    (Assumes a single contiguous block of elements.)" << endl;
+  cout << "Number of Elements = Hexes: " << hexes << " Faces: " << faces 
+       << " Edges: " << edges << " Nodes: " << nodes << endl;
+  cout << "Aspect Ratio: Low = " << metrics[0][1] << ", Average = " 
+       << metrics[0][3] << ", High = " << metrics[0][2] << endl;
+  cout << "Skew: Low = " << metrics[1][1] << ", Average = " 
+       << metrics[1][3] << ", High = " << metrics[1][2] << endl;
+  cout << "Taper: Low = " << metrics[2][1] << ", Average = " 
+       << metrics[2][3] << ", High = " << metrics[2][2] << endl;
+  cout << "Volume: Low = " << metrics[3][1] << ", Average = " 
+       << metrics[3][3] << ", High = " << metrics[3][2] << endl;
+  cout << "Stretch: Low = " << metrics[4][1] << ", Average = " 
+       << metrics[4][3] << ", High = " << metrics[4][2] << endl;
+  cout << "Diagonal: Low = " << metrics[5][1] << ", Average = " 
+       << metrics[5][3] << ", High = " << metrics[5][2] << endl;
+  cout << "Dimension: Low = " << metrics[6][1] << ", Average = " 
+       << metrics[6][3] << ", High = " << metrics[6][2] << endl;
+  cout << "Condition: Low = " << metrics[7][1] << ", Average = " 
+       << metrics[7][3] << ", High = " << metrics[7][2] << endl;
+  cout << "Jacobian: Low = " << metrics[8][1] << ", Average = " 
+       << metrics[8][3] << ", High = " << metrics[8][2] << endl;
+  cout << "Scaled_Jacobian: Low = " << metrics[9][1] << ", Average = " 
+       << metrics[9][3] << ", High = " << metrics[9][2] << endl;
+  cout << "Shear: Low = " << metrics[10][1] << ", Average = " 
+       << metrics[10][3] << ", High = " << metrics[10][2] << endl;
+  cout << "Shape: Low = " << metrics[11][1] << ", Average = " 
+       << metrics[11][3] << ", High = " << metrics[11][2] << endl;
+  cout << "Shear_Size: Low = " << metrics[12][1] << ", Average = " 
+       << metrics[12][3] << ", High = " << metrics[12][2] << endl;
+  cout << "Shape_Size: Low = " << metrics[13][1] << ", Average = " 
+       << metrics[13][3] << ", High = " << metrics[13][2] << endl;
+  cout << "Distortion: Low = " << metrics[14][1] << ", Average = " 
+       << metrics[14][3] << ", High = " << metrics[14][2] << endl;
  
   return output;
 }
-
 
 //For Tris...
 template <class FIELD>
@@ -691,35 +446,33 @@ public:
 				 FieldHandle fieldh);
 };
 
+double
+radius_ratio_tri(const Point &p1, const Point &p2, Point &p3) 
+{
+  // side lengths
+  double a = (p1 - p2).length();
+  double b = (p2 - p3).length();
+  double c = (p3 - p1).length();
+
+  double k = 0.5L * (a + b + c); 
+
+  // Area squared
+  double A2 = k * (k - a) * (k - b) * (k - c);
+
+  return (8.0L * A2) / (k * a * b * c);
+}
+
+
+
 template <class FIELD>
 NrrdDataHandle 
 ReportMeshQualityMeasuresAlgoTri<FIELD>::execute(ProgressReporter *mod, 
 						 FieldHandle fieldh)
 {
-//   enum triMetrics {AREA, ANGLE, MIN_ANGLE, CONDITION_NUMBER, 
-//                    MIN_SC_JAC, REL_SIZE, SHAPE, SHAPE_SIZE, DISTORTION,
-//                    ALLMETRICS, ALGEBRAIC, TRADITIONAL,  NUM_TRI_METRICS};
-// // Note: if you want to add a new metric, do it immediately before 
-// //       "ALLMETRICS" so that grouping capability is not broken
-  
-//   const int metricBitFlags[NUM_TRI_METRICS] = 
-//       {
-//           V_TRI_AREA,
-//           V_TRI_MAXIMUM_ANGLE,
-//           V_TRI_MINIMUM_ANGLE,
-//           V_TRI_CONDITION,
-//           V_TRI_SCALED_JACOBIAN,
-//           V_TRI_RELATIVE_SIZE_SQUARED,
-//           V_TRI_SHAPE,
-//           V_TRI_SHAPE_AND_SIZE,
-//           V_TRI_DISTORTION,
-//           V_TRI_ALL,
-//           V_TRI_ALGEBRAIC,
-//           V_TRI_TRADITIONAL
-//       };
-  
+  const int nmetrics = 9;
   FIELD *field = dynamic_cast<FIELD*>(fieldh.get_rep());
-  typename FIELD::mesh_type *mesh = dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
+  typename FIELD::mesh_type *mesh = 
+    dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
 
   double node_pos[3][3];
   vector<typename FIELD::mesh_type::Elem::index_type> elemmap;
@@ -730,7 +483,7 @@ ReportMeshQualityMeasuresAlgoTri<FIELD>::execute(ProgressReporter *mod,
   mesh->size(sz);
   const unsigned nelems = sz;
   Nrrd* onnrd = nrrdNew();
-  nrrdAlloc_va(onnrd, nrrdTypeDouble, 2, 8, nelems); //8 metrics per element
+  nrrdAlloc_va(onnrd, nrrdTypeDouble, 2, nmetrics, nelems);
   nrrdAxisInfoSet_va(onnrd, nrrdAxisInfoLabel, "element", "metrics");
   NrrdDataHandle output = new NrrdData(onnrd);
   double *data = (double*)onnrd->data;
@@ -744,20 +497,13 @@ ReportMeshQualityMeasuresAlgoTri<FIELD>::execute(ProgressReporter *mod,
   nrrdKeyValueAdd(onnrd, "shape", "5");
   nrrdKeyValueAdd(onnrd, "shape_size", "6");
   nrrdKeyValueAdd(onnrd, "distortion", "7");
-
+  nrrdKeyValueAdd(onnrd, "radius_ratio", "8");
 
   mesh->synchronize( Mesh::EDGES_E );
 
   int total_elements = 0;
-  double area_high = 0, area_low = 0, area_ave = 0;
-  double minimum_angle_high = 0, minimum_angle_low = 0, minimum_angle_ave = 0;
-  double maximum_angle_high = 0, maximum_angle_low = 0, maximum_angle_ave = 0;
-  double condition_high = 0, condition_low = 0, condition_ave = 0;
-//  double jacobian_high = 0, jacobian_low = 0, jacobian_ave = 0;
-  double scaled_jacobian_high = 0, scaled_jacobian_low = 0, scaled_jacobian_ave = 0;
-  double shape_high = 0, shape_low = 0, shape_ave = 0;
-  double shape_size_high = 0, shape_size_low = 0, shape_size_ave = 0;
-  double distortion_high = 0, distortion_low = 0, distortion_ave = 0;
+  // per elem value, low, high, ave...
+  double metrics[nmetrics][4];
   
   int inversions = 0;
   int first_time_thru = 1;
@@ -767,122 +513,63 @@ ReportMeshQualityMeasuresAlgoTri<FIELD>::execute(ProgressReporter *mod,
     typename FIELD::mesh_type::Node::array_type onodes;
     mesh->get_nodes(onodes, *bi);
 
-    int i;
-    for( i = 0; i < 3; i++ )
-    {
-      Point p;
-      mesh->get_center( p, onodes[i] );
-      node_pos[i][0] = p.x(); 
-      node_pos[i][1] = p.y(); 
-      node_pos[i][2] = p.z(); 
+    vtkTriangle *tri = vtkTriangle::New(); 
+
+
+    Point p1;
+    mesh->get_center(p1, onodes[0] );
+    tri->GetPoints()->SetPoint(0, p1.x(), p1.y(), p1.z());
+    
+    Point p2;
+    mesh->get_center(p2, onodes[1] );
+    tri->GetPoints()->SetPoint(1, p2.x(), p2.y(), p2.z());
+    
+    Point p3;
+    mesh->get_center(p3, onodes[2] );
+    tri->GetPoints()->SetPoint(2, p3.x(), p3.y(), p3.z());
+      
+
+    data[0] = vtkMeshQuality::TriangleArea(tri);
+    data[1] = vtkMeshQuality::TriangleMinAngle(tri);
+    data[2] = vtkMeshQuality::TriangleMaxAngle(tri);
+    data[3] = vtkMeshQuality::TriangleCondition(tri);
+    data[4] = vtkMeshQuality::TriangleScaledJacobian(tri);
+    data[5] = vtkMeshQuality::TriangleShape(tri);
+    data[6] = vtkMeshQuality::TriangleShapeAndSize(tri);
+    data[7] = vtkMeshQuality::TriangleDistortion(tri);
+    data[8] = radius_ratio_tri(p1, p2, p3);
+
+    tri->Delete();
+
+    for (int j = 0; j < nmetrics; ++j) {
+      metrics[j][0] = data[j];
     }
 
-    TriMetricVals values;
-//    int verdict_metric = metricBitFlags[V_TRI_ALL];
-    int verdict_metric = V_TRI_ALL;
-    v_tri_quality(3, node_pos, verdict_metric, &values);
-    
-    double area = values.area;
-    double minimum_angle = values.minimum_angle;
-    double maximum_angle = values.maximum_angle;
-    double condition = values.condition;
-//    double jacobian = values.jacobian;
-    double scaled_jacobian = values.scaled_jacobian;
-    double shape = values.shape;
-    double shape_size = values.shape_and_size;
-    double distortion = values.distortion;
-
-    data[0] = values.area;
-    data[1] = values.minimum_angle;
-    data[2] = values.maximum_angle;
-    data[3] = values.condition;
-    data[4] = values.scaled_jacobian;
-    data[5] = values.shape;
-    data[6] = values.shape_and_size;
-    data[7] = values.distortion;
-    data += 8;
+    data += nmetrics;
 
     if( first_time_thru )
     {
-      area_high = area;
-      area_low = area;
-      minimum_angle_high = minimum_angle;
-      minimum_angle_low = minimum_angle;
-      maximum_angle_high = maximum_angle;
-      maximum_angle_low = maximum_angle;
-      condition_high = condition;
-      condition_low = condition;
-//      jacobian_high = jacobian;
-//      jacobian_low = jacobian;
-      scaled_jacobian_high = scaled_jacobian;
-      scaled_jacobian_low = scaled_jacobian;
-      shape_high = shape;
-      shape_low = shape;
-      shape_size_high = shape_size;
-      shape_size_low = shape_size;
-      distortion_high = distortion;
-      distortion_low = distortion;
-      first_time_thru = 0;
+      for (int j = 0; j < nmetrics; ++j) {
+        metrics[j][1] = metrics[j][0];
+        metrics[j][2] = metrics[j][0];
+        metrics[j][3] = 0.0L;
+      }
+      first_time_thru = false;
     }
 
-    if( area > area_high )
-        area_high = area;
-    else if( area < area_low )
-        area_low = area;
-    area_ave += area;
-
-    if( minimum_angle > minimum_angle_high )
-        minimum_angle_high = minimum_angle;
-    else if( minimum_angle < minimum_angle_low )
-        minimum_angle_low = minimum_angle;
-    minimum_angle_ave += minimum_angle;
-    
-    if( maximum_angle > maximum_angle_high )
-        maximum_angle_high = maximum_angle;
-    else if( maximum_angle < maximum_angle_low )
-        maximum_angle_low = maximum_angle;
-    maximum_angle_ave += maximum_angle;
-    
-    if( condition > condition_high )
-        condition_high = condition;
-    else if( condition < condition_low )
-        condition_low = condition;
-    condition_ave += condition;
-
-//     if( jacobian > jacobian_high )
-//         jacobian_high = jacobian;
-//     else if( jacobian < jacobian_low )
-//         jacobian_low = jacobian;
-//     jacobian_ave += jacobian;
-
-    if( scaled_jacobian > scaled_jacobian_high )
-        scaled_jacobian_high = scaled_jacobian;
-    else if( scaled_jacobian < scaled_jacobian_low )
-        scaled_jacobian_low = scaled_jacobian;
-    scaled_jacobian_ave += scaled_jacobian;
-
-    if( shape > shape_high )
-        shape_high = shape;
-    else if( shape < shape_low )
-        shape_low = shape;
-    shape_ave += shape;
-
-    if( shape_size > shape_size_high )
-        shape_size_high = shape_size;
-    else if( shape_size < shape_size_low )
-        shape_size_low = shape_size;
-    shape_size_ave += shape_size;
-
-    if( distortion > distortion_high )
-        distortion_high = distortion;
-    else if( distortion < distortion_low )
-        distortion_low = distortion;
-    distortion_ave += distortion;
+    // check high, low, and total for the average;
+    for (int j = 0; j < nmetrics; ++j)
+    {
+      if( metrics[j][0] > metrics[j][2] )
+        metrics[j][2] = metrics[j][0];
+      else if(metrics[j][0] < metrics[j][1])
+        metrics[j][1] = metrics[j][0];
+      metrics[j][3] += metrics[j][0];
+    }
 
     typename FIELD::mesh_type::Elem::index_type elem_id = *bi;
-//     if( shape == 0.0 )
-//         cout << "WARNING: Tri " << elem_id << " has negative area!" << endl;
-    if( scaled_jacobian <= 0.0 )
+
+    if(metrics[4][0] <= 0.0 )
     {
       inversions++;
       cout << "WARNING: Tri " << elem_id << " has negative area!" << endl;
@@ -891,16 +578,10 @@ ReportMeshQualityMeasuresAlgoTri<FIELD>::execute(ProgressReporter *mod,
     total_elements++;
     ++bi;
   }
-  
-  area_ave /= total_elements;
-  minimum_angle_ave /= total_elements;
-  maximum_angle_ave /= total_elements;
-  condition_ave /= total_elements;
-//  jacobian_ave /= total_elements;
-  scaled_jacobian_ave /= total_elements;
-  shape_ave /= total_elements;
-  shape_size_ave /= total_elements;
-  distortion_ave /= total_elements;
+
+  for (int j = 0; j < nmetrics; ++j) {
+      metrics[j][3] /= (double)total_elements;
+  }
 
   typename FIELD::mesh_type::Node::size_type nodes;
   typename FIELD::mesh_type::Edge::size_type edges;
@@ -908,27 +589,38 @@ ReportMeshQualityMeasuresAlgoTri<FIELD>::execute(ProgressReporter *mod,
   mesh->size( nodes );
   mesh->size( edges );
   mesh->size( faces );
-  int holes = (faces-edges+nodes-2)/2;
+  int holes = (faces - edges + nodes - 2) / 2;
 //  
 
   cout << endl << "Number of Tri elements checked = " << total_elements;
   if( inversions != 0 )
       cout << " (" << inversions << " Tris have negative jacobians!)";
-  cout << endl << "Euler characteristics for this mesh indicate " << holes << " holes in this block of elements." << endl << "    (Assumes a single contiguous block of elements.)" << endl;
-  cout << " Tris: " << faces << " Edges: " << edges << " Nodes: " << nodes << endl;
-  cout << "Area: Low = " << area_low << ", Average = " << area_ave << ", High = " << area_high << endl;
-  cout << "Minimum_Angle: Low = " << minimum_angle_low << ", Average = " << minimum_angle_ave << ", High = " << minimum_angle_high << endl;
-  cout << "Maximum_Angle: Low = " << maximum_angle_low << ", Average = " << maximum_angle_ave << ", High = " << maximum_angle_high << endl;
-  cout << "Condition: Low = " << condition_low << ", Average = " << condition_ave << ", High = " << condition_high << endl;
-//  cout << "Jacobian: Low = " << jacobian_low << ", Average = " << jacobian_ave << ", High = " << jacobian_high << endl;
-  cout << "Scaled_Jacobian: Low = " << scaled_jacobian_low << ", Average = " << scaled_jacobian_ave << ", High = " << scaled_jacobian_high << endl;
-  cout << "Shape: Low = " << shape_low << ", Average = " << shape_ave << ", High = " << shape_high << endl;
-  cout << "Shape_Size: Low = " << shape_size_low << ", Average = " << shape_size_ave << ", High = " << shape_size_high << endl;
-  cout << "Distortion: Low = " << distortion_low << ", Average = " << distortion_ave << ", High = " << distortion_high << endl;
+  cout << endl << "Euler characteristics for this mesh indicate " << holes 
+       << " holes in this block of elements." << endl 
+       << "    (Assumes a single contiguous block of elements.)" << endl;
+  cout << " Tris: " << faces << " Edges: " << edges << " Nodes: " 
+       << nodes << endl;
 
+  cout << "Area: Low = " << metrics[0][1] << ", Average = " << metrics[0][3] 
+       << ", High = " << metrics[0][2] << endl;
+  cout << "Minimum_Angle: Low = " << metrics[1][1] << ", Average = " 
+       << metrics[1][3] << ", High = " << metrics[1][2] << endl;
+  cout << "Maximum_Angle: Low = " << metrics[2][1] << ", Average = " 
+       << metrics[2][3] << ", High = " << metrics[2][2] << endl;
+  cout << "Condition: Low = " << metrics[3][1] << ", Average = " 
+       << metrics[3][3] << ", High = " << metrics[3][2] << endl;
+  cout << "Scaled_Jacobian: Low = " << metrics[4][1] << ", Average = " 
+       << metrics[4][3] << ", High = " << metrics[4][2] << endl;
+  cout << "Shape: Low = " << metrics[5][1] << ", Average = " << metrics[5][3] 
+       << ", High = " << metrics[5][2] << endl;
+  cout << "Shape_Size: Low = " << metrics[6][1] << ", Average = " 
+       << metrics[6][3] << ", High = " << metrics[6][2] << endl;
+  cout << "Distortion: Low = " << metrics[7][1] << ", Average = " 
+       << metrics[7][3] << ", High = " << metrics[7][2] << endl;
+  cout << "Inv Radius Ratio: Low = " << metrics[8][1] << ", Average = " 
+       << metrics[8][3] << ", High = " << metrics[8][2] << endl;
    return output;
 }
-
 
 //For Quads...
 template <class FIELD>
@@ -945,40 +637,10 @@ NrrdDataHandle
 ReportMeshQualityMeasuresAlgoQuad<FIELD>::execute(ProgressReporter *mod, 
 						  FieldHandle fieldh)
 {
-//   enum quadMetrics {ASPECT, SKEW, TAPER, WARPAGE, AREA, STRETCH, 
-//                     ANGLE, MIN_ANGLE, MAX_COND, MIN_JAC, MIN_SC_JAC, 
-//                     SHEAR, SHAPE, RELSIZE, SHEAR_SIZE, SHAPE_SIZE, DISTORTION,
-//                     ALLMETRICS, ALGEBRAIC, ROBINSON, TRADITIONAL, NUM_QUAD_METRICS};
-// // Note: if you want to add a new metric, do it immediately before 
-// //       "ALLMETRICS" so that grouping capability is not broken
-
-//   const int metricBitFlags[NUM_QUAD_METRICS] =
-//       {
-//           V_QUAD_ASPECT,
-//           V_QUAD_SKEW,
-//           V_QUAD_TAPER,
-//           V_QUAD_WARPAGE,
-//           V_QUAD_AREA,
-//           V_QUAD_STRETCH,
-//           V_QUAD_MAXIMUM_ANGLE,
-//           V_QUAD_MINIMUM_ANGLE,
-//           V_QUAD_CONDITION,
-//           V_QUAD_JACOBIAN,
-//           V_QUAD_SCALED_JACOBIAN,
-//           V_QUAD_SHEAR,
-//           V_QUAD_SHAPE,
-//           V_QUAD_RELATIVE_SIZE_SQUARED,
-//           V_QUAD_SHEAR_AND_SIZE,
-//           V_QUAD_SHAPE_AND_SIZE,
-//           V_QUAD_DISTORTION,
-//           V_QUAD_ALL,
-//           V_QUAD_ALGEBRAIC,
-//           V_QUAD_ROBINSON,
-//           V_QUAD_TRADITIONAL
-//       };
-  
+  const int nmetrics = 16;
   FIELD *field = dynamic_cast<FIELD*>(fieldh.get_rep());
-  typename FIELD::mesh_type *mesh = dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
+  typename FIELD::mesh_type *mesh = 
+    dynamic_cast<typename FIELD::mesh_type *>(fieldh->mesh().get_rep());
 
   double node_pos[4][3];
   vector<typename FIELD::mesh_type::Elem::index_type> elemmap;
@@ -990,7 +652,7 @@ ReportMeshQualityMeasuresAlgoQuad<FIELD>::execute(ProgressReporter *mod,
   mesh->size(sz);
   const unsigned nelems = sz;
   Nrrd* onnrd = nrrdNew();
-  nrrdAlloc_va(onnrd, nrrdTypeDouble, 2, 16, nelems); //16 metrics per element
+  nrrdAlloc_va(onnrd, nrrdTypeDouble, 2, nmetrics, nelems);
   nrrdAxisInfoSet_va(onnrd, nrrdAxisInfoLabel, "element", "metrics");
   NrrdDataHandle output = new NrrdData(onnrd);
   double *data = (double*)onnrd->data;
@@ -1017,220 +679,72 @@ ReportMeshQualityMeasuresAlgoQuad<FIELD>::execute(ProgressReporter *mod,
   mesh->synchronize( Mesh::EDGES_E );
   
   int total_elements = 0;
-  double aspect_high = 0, aspect_low = 0, aspect_ave = 0;
-  double skew_high = 0, skew_low = 0, skew_ave = 0;
-  double taper_high = 0, taper_low = 0, taper_ave = 0;
-  double warpage_high = 0, warpage_low = 0, warpage_ave = 0;
-  double area_high = 0, area_low = 0, area_ave = 0;
-  double stretch_high = 0, stretch_low = 0, stretch_ave = 0;
-  double minimum_angle_high = 0, minimum_angle_low = 0, minimum_angle_ave = 0;
-  double maximum_angle_high = 0, maximum_angle_low = 0, maximum_angle_ave = 0;
-  double condition_high = 0, condition_low = 0, condition_ave = 0;
-  double jacobian_high = 0, jacobian_low = 0, jacobian_ave = 0;
-  double scaled_jacobian_high = 0, scaled_jacobian_low = 0, scaled_jacobian_ave = 0;
-  double shear_high = 0, shear_low = 0, shear_ave = 0;
-  double shape_high = 0, shape_low = 0, shape_ave = 0;
-  double shear_size_high = 0, shear_size_low = 0, shear_size_ave = 0;
-  double shape_size_high = 0, shape_size_low = 0, shape_size_ave = 0;
-  double distortion_high = 0, distortion_low = 0, distortion_ave = 0;
+  // each metric will have per elem value, low and high and ave values...
+  double metrics[nmetrics][4];
   
   int inversions = 0;
-  int first_time_thru;
+  bool first_time_thru = true;
   
   while (bi != ei)
   {
     typename FIELD::mesh_type::Node::array_type onodes;
     mesh->get_nodes(onodes, *bi);
 
-    int i;
-    for( i = 0; i < 4; i++ )
+    vtkQuad *quad = vtkQuad::New(); 
+    
+    for(int i = 0; i < 4; ++i)
     {
       Point p;
       mesh->get_center( p, onodes[i] );
-      node_pos[i][0] = p.x(); 
-      node_pos[i][1] = p.y(); 
-      node_pos[i][2] = p.z(); 
+      quad->GetPoints()->SetPoint(i, p.x(), p.y(), p.z());
     }
-    
-    QuadMetricVals values;
-//    int verdict_metric = metricBitFlags[V_QUAD_ALL];
-    int verdict_metric = V_QUAD_ALL;
-    v_quad_quality(4, node_pos, verdict_metric, &values);
-    
-    double aspect = values.aspect;
-    double skew = values.skew;
-    double taper = values.taper;
-    double warpage = values.warpage;
-    double area = values.area;
-    double stretch = values.stretch;
-    double minimum_angle = values.minimum_angle;
-    double maximum_angle = values.maximum_angle;
-    double condition = values.condition;
-    double jacobian = values.jacobian;
-    double scaled_jacobian = values.scaled_jacobian;
-    double shear = values.shear;
-    double shape = values.shape;
-    double shear_size = values.shear_and_size;
-    double shape_size = values.shape_and_size;
-    double distortion = values.distortion;
+    metrics[0][0] = vtkMeshQuality::QuadMaxAspectFrobenius(quad);     
+    metrics[1][0] = vtkMeshQuality::QuadSkew(quad);    
+    metrics[2][0] = vtkMeshQuality::QuadTaper(quad);         
+    metrics[3][0] = vtkMeshQuality::QuadWarpage(quad);      
+    metrics[4][0] = vtkMeshQuality::QuadArea(quad);       
+    metrics[5][0] = vtkMeshQuality::QuadStretch(quad); 
+    metrics[6][0] = vtkMeshQuality::QuadMinAngle(quad);          
+    metrics[7][0] = vtkMeshQuality::QuadMaxAngle(quad);   
+    metrics[8][0] = vtkMeshQuality::QuadCondition(quad);
+    metrics[9][0] = vtkMeshQuality::QuadJacobian(quad);
+    metrics[10][0] = vtkMeshQuality::QuadScaledJacobian(quad);
+    metrics[11][0] = vtkMeshQuality::QuadShear(quad);
+    metrics[12][0] = vtkMeshQuality::QuadShape(quad);
+    metrics[13][0] = vtkMeshQuality::QuadShearAndSize(quad);
+    metrics[14][0] = vtkMeshQuality::QuadShapeAndSize(quad);
+    metrics[15][0] = vtkMeshQuality::QuadDistortion(quad);
+     
+    quad->Delete();
+    for(int i = 0; i < nmetrics; ++i)
+    {    
+      data[i] = metrics[i][0];
+    }
+    data += nmetrics;
 
-    data[0] = values.aspect;
-    data[1] = values.skew;
-    data[2] = values.taper;
-    data[3] = values.warpage;
-    data[4] = values.area;
-    data[5] = values.stretch;
-    data[6] = values.minimum_angle;
-    data[7] = values.maximum_angle;
-    data[8] = values.condition;
-    data[9] = values.jacobian;
-    data[10] = values.scaled_jacobian;
-    data[11] = values.shear;
-    data[12] = values.shape;
-    data[13] = values.shear_and_size;
-    data[14] = values.shape_and_size;
-    data[15] = values.distortion;
-    data += 16;
-
-    if( first_time_thru )
+    if (first_time_thru)
     {
-      aspect_high = aspect;
-      aspect_low = aspect;
-      skew_high = skew;
-      skew_low = skew;
-      taper_high = taper;
-      taper_low = taper;
-      warpage_high = warpage;
-      warpage_low = warpage;
-      area_high = area;
-      area_low = area;
-      stretch_high = stretch;
-      stretch_low = stretch;
-      minimum_angle_high = minimum_angle;
-      minimum_angle_low = minimum_angle;
-      maximum_angle_high = maximum_angle;
-      maximum_angle_low = maximum_angle;
-      condition_high = condition;
-      condition_low = condition;
-      jacobian_high = jacobian;
-      jacobian_low = jacobian;
-      scaled_jacobian_high = scaled_jacobian;
-      scaled_jacobian_low = scaled_jacobian;
-      shear_high = shear;
-      shear_low = shear;
-      shape_high = shape;
-      shape_low = shape;
-      shape_size_high = shape_size;
-      shape_size_low = shape_size;
-      shear_size_high = shear_size;
-      shear_size_low = shear_size;
-      distortion_high = distortion;
-      distortion_low = distortion;
-      first_time_thru = 0;
+      for (int j = 0; j < nmetrics; ++j) {
+        metrics[j][1] = metrics[j][0];
+        metrics[j][2] = metrics[j][0];
+        metrics[j][3] = 0.0L;
+      }
+      first_time_thru = false;
     }
 
-    if( aspect > aspect_high )
-        aspect_high = aspect;
-    else if( aspect < aspect_low )
-        aspect_low = aspect;
-    aspect_ave += aspect;
-
-    if( skew > skew_high )
-        skew_high = skew;
-    else if( skew < skew_low )
-        skew_low = skew;
-    skew_ave += skew;
-    
-    if( taper > taper_high )
-        taper_high = taper;
-    else if( taper < taper_low )
-        taper_low = taper;
-    taper_ave += taper;
-    
-    if( warpage > warpage_high )
-        warpage_high = warpage;
-    else if( warpage < warpage_low )
-        warpage_low = warpage;
-    warpage_ave += warpage;
-
-    if( area > area_high )
-        area_high = area;
-    else if( area < area_low )
-        area_low = area;
-    area_ave += area;
-
-    if( stretch > stretch_high )
-        stretch_high = stretch;
-    else if( stretch < stretch_low )
-        stretch_low = stretch;
-    stretch_ave += stretch;
-
-    if( minimum_angle > minimum_angle_high )
-        minimum_angle_high = minimum_angle;
-    else if( minimum_angle < minimum_angle_low )
-        minimum_angle_low = minimum_angle;
-    minimum_angle_ave += minimum_angle;
-
-    if( maximum_angle > maximum_angle_high )
-        maximum_angle_high = maximum_angle;
-    else if( maximum_angle < maximum_angle_low )
-        maximum_angle_low = maximum_angle;
-    maximum_angle_ave += maximum_angle;
-
-    if( condition > condition_high )
-        condition_high = condition;
-    else if( condition < condition_low )
-        condition_low = condition;
-    condition_ave += condition;
-
-    if( jacobian > jacobian_high )
-        jacobian_high = jacobian;
-    else if( jacobian < jacobian_low )
-        jacobian_low = jacobian;
-    jacobian_ave += jacobian;
-
-    if( scaled_jacobian > scaled_jacobian_high )
-        scaled_jacobian_high = scaled_jacobian;
-    else if( scaled_jacobian < scaled_jacobian_low )
-        scaled_jacobian_low = scaled_jacobian;
-    scaled_jacobian_ave += scaled_jacobian;
-
-    if( shear > shear_high )
-        shear_high = shear;
-    else if( shear < shear_low )
-        shear_low = shear;
-    shear_ave += shear;
-
-    if( shape > shape_high )
-        shape_high = shape;
-    else if( shape < shape_low )
-        shape_low = shape;
-    shape_ave += shape;
-
-    if( shear_size > shear_size_high )
-        shear_size_high = shear_size;
-    else if( shear_size < shear_size_low )
-        shear_size_low = shear_size;
-    shear_size_ave += shear_size;
-
-    if( shape_size > shape_size_high )
-        shape_size_high = shape_size;
-    else if( shape_size < shape_size_low )
-        shape_size_low = shape_size;
-    shape_size_ave += shape_size;
-
-    if( distortion > distortion_high )
-        distortion_high = distortion;
-    else if( distortion < distortion_low )
-        distortion_low = distortion;
-    distortion_ave += distortion;
+    // check high, low, and total for the average;
+    for (int j = 0; j < nmetrics; ++j)
+    {
+      if( metrics[j][0] > metrics[j][2] )
+        metrics[j][2] = metrics[j][0];
+      else if(metrics[j][0] < metrics[j][1])
+        metrics[j][1] = metrics[j][0];
+      metrics[j][3] += metrics[j][0];
+    }
 
     typename FIELD::mesh_type::Elem::index_type elem_id = *bi;
-//     if( shape == 0.0 )
-//         cout << "WARNING: Quad " << elem_id << " has negative area!" << endl;
-//     if( area <= 0.0 )
-//        cout << "WARNING: Quad " << elem_id << " has negative area!" << endl;
-    if( scaled_jacobian <= 0.0 )
+    // 10 is the scaled jacobian...
+    if (metrics[10][0] <= 0.0 )
     {
       inversions++;
       cout << "WARNING: Quad " << elem_id << " has negative area!" << endl;
@@ -1240,22 +754,9 @@ ReportMeshQualityMeasuresAlgoQuad<FIELD>::execute(ProgressReporter *mod,
     ++bi;
   }
   
-  aspect_ave /= total_elements;
-  skew_ave /= total_elements;
-  taper_ave /= total_elements;
-  warpage_ave /= total_elements;
-  area_ave /= total_elements;
-  stretch_ave /= total_elements;
-  minimum_angle_ave /= total_elements;
-  maximum_angle_ave /= total_elements;
-  condition_ave /= total_elements;
-  jacobian_ave /= total_elements;
-  scaled_jacobian_ave /= total_elements;
-  shear_ave /= total_elements;
-  shape_ave /= total_elements;
-  shear_size_ave /= total_elements;
-  shape_size_ave /= total_elements;
-  distortion_ave /= total_elements;
+  for (int j = 0; j < nmetrics; ++j) {
+    metrics[j][3] /= (double)total_elements;
+  }
 
   typename FIELD::mesh_type::Node::size_type nodes;
   typename FIELD::mesh_type::Edge::size_type edges;
@@ -1263,34 +764,51 @@ ReportMeshQualityMeasuresAlgoQuad<FIELD>::execute(ProgressReporter *mod,
   mesh->size( nodes );
   mesh->size( edges );
   mesh->size( faces );
-  int holes = (faces-edges+nodes-2)/2;
-//  cout << "Quads: " << faces << " Edges: " << edges << " Nodes: " << nodes << endl;
+  int holes = (faces - edges + nodes - 2) / 2;
 
   cout << endl << "Number of Quad elements checked = " << total_elements;
   if( inversions != 0 )
-      cout << " (" << inversions << " Quads have negative jacobians!)";
-  cout << endl << "Euler characteristics for this mesh indicate " << holes << " holes in this block of elements." << endl << "    (Assumes a single contiguous block of elements.)" << endl;
-  cout << "Quads: " << faces << " Edges: " << edges << " Nodes: " << nodes << endl;
-  cout << "Aspect Ratio: Low = " << aspect_low << ", Average = " << aspect_ave << ", High = " << aspect_high << endl;
-  cout << "Skew: Low = " << skew_low << ", Average = " << skew_ave << ", High = " << skew_high << endl;
-  cout << "Taper: Low = " << taper_low << ", Average = " << taper_ave << ", High = " << taper_high << endl;
-  cout << "Warpage: Low = " << warpage_low << ", Average = " << warpage_ave << ", High = " << warpage_high << endl;
-  cout << "Area: Low = " << area_low << ", Average = " << area_ave << ", High = " << area_high << endl;
-  cout << "Stretch: Low = " << stretch_low << ", Average = " << stretch_ave << ", High = " << stretch_high << endl;
-  cout << "Minimum_Angle: Low = " << minimum_angle_low << ", Average = " << minimum_angle_ave << ", High = " << minimum_angle_high << endl;
-  cout << "Maximum_Angle: Low = " << maximum_angle_low << ", Average = " << maximum_angle_ave << ", High = " << maximum_angle_high << endl;
-  cout << "Condition: Low = " << condition_low << ", Average = " << condition_ave << ", High = " << condition_high << endl;
-  cout << "Jacobian: Low = " << jacobian_low << ", Average = " << jacobian_ave << ", High = " << jacobian_high << endl;
-  cout << "Scaled_Jacobian: Low = " << scaled_jacobian_low << ", Average = " << scaled_jacobian_ave << ", High = " << scaled_jacobian_high << endl;
-  cout << "Shear: Low = " << shear_low << ", Average = " << shear_ave << ", High = " << shear_high << endl;
-  cout << "Shape: Low = " << shape_low << ", Average = " << shape_ave << ", High = " << shape_high << endl;
-  cout << "Shear_Size: Low = " << shear_size_low << ", Average = " << shear_size_ave << ", High = " << shear_size_high << endl;
-  cout << "Shape_Size: Low = " << shape_size_low << ", Average = " << shape_size_ave << ", High = " << shape_size_high << endl;
-  cout << "Distortion: Low = " << distortion_low << ", Average = " << distortion_ave << ", High = " << distortion_high << endl;
+    cout << " (" << inversions << " Quads have negative jacobians!)";
+  cout << endl << "Euler characteristics for this mesh indicate " << holes 
+       << " holes in this block of elements." << endl 
+       << "    (Assumes a single contiguous block of elements.)" << endl;
+  cout << "Quads: " << faces << " Edges: " << edges << " Nodes: " << nodes 
+       << endl;
+  cout << "Aspect Ratio: Low = " << metrics[0][1] << ", Average = " 
+       << metrics[0][3] << ", High = " << metrics[0][2] << endl;
+  cout << "Skew: Low = " << metrics[1][1] << ", Average = " 
+       << metrics[1][3] << ", High = " << metrics[1][2] << endl;
+  cout << "Taper: Low = " << metrics[2][1] << ", Average = " 
+       << metrics[2][3] << ", High = " << metrics[2][2] << endl;
+  cout << "Warpage: Low = " << metrics[3][1] << ", Average = " 
+       << metrics[3][3] << ", High = " << metrics[3][2] << endl;
+  cout << "Area: Low = " << metrics[4][1] << ", Average = " 
+       << metrics[4][3] << ", High = " << metrics[4][2] << endl;
+  cout << "Stretch: Low = " << metrics[5][1] << ", Average = " 
+       << metrics[5][3] << ", High = " << metrics[5][2] << endl;
+  cout << "Minimum_Angle: Low = " << metrics[6][1] << ", Average = " 
+       << metrics[6][3] << ", High = " << metrics[6][2] << endl;
+  cout << "Maximum_Angle: Low = " << metrics[7][1] << ", Average = " 
+       << metrics[7][3] << ", High = " << metrics[7][2] << endl;
+  cout << "Condition: Low = " << metrics[8][1] << ", Average = " 
+       << metrics[8][3] << ", High = " << metrics[8][2] << endl;
+  cout << "Jacobian: Low = " << metrics[9][1] << ", Average = " 
+       << metrics[9][3] << ", High = " << metrics[9][2] << endl;
+  cout << "Scaled_Jacobian: Low = " << metrics[10][1] << ", Average = " 
+       << metrics[10][3] << ", High = " << metrics[10][2] << endl;
+  cout << "Shear: Low = " << metrics[11][1] << ", Average = " 
+       << metrics[11][3] << ", High = " << metrics[11][2] << endl;
+  cout << "Shape: Low = " << metrics[12][1] << ", Average = " 
+       << metrics[12][3] << ", High = " << metrics[12][2] << endl;
+  cout << "Shear_Size: Low = " << metrics[13][1] << ", Average = " 
+       << metrics[13][3] << ", High = " << metrics[13][2] << endl;
+  cout << "Shape_Size: Low = " << metrics[14][1] << ", Average = " 
+       << metrics[14][3] << ", High = " << metrics[14][2] << endl;
+  cout << "Distortion: Low = " << metrics[15][1] << ", Average = " 
+       << metrics[15][3] << ", High = " << metrics[15][2] << endl;
 
    return output;
 }
-
 
 } // end namespace SCIRun
 

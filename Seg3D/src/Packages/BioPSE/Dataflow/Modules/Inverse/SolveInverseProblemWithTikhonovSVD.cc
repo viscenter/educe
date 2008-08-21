@@ -33,7 +33,7 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <stdio.h>
 #include <math.h>
@@ -157,7 +157,7 @@ SolveInverseProblemWithTikhonovSVD::tikhonov_fun(ColumnMatrix& X_reg, DenseMatri
     }
 		
     //Finding Regularized Inverse Matrix
-    Mat_temp = scinew  DenseMatrix(V.nrows(),V.ncols());
+    Mat_temp = new  DenseMatrix(V.nrows(),V.ncols());
     for(i=0; i < rank; i++)
     {
       temp = S[i][0] / (lam*lam + S[i][0] * S[i][0]);
@@ -193,7 +193,7 @@ SolveInverseProblemWithTikhonovSVD::tikhonov_fun(ColumnMatrix& X_reg, DenseMatri
     }
 		
     //Finding Regularized Inverse Matrix
-    Mat_temp = scinew DenseMatrix(X.nrows(),X.ncols());
+    Mat_temp = new DenseMatrix(X.nrows(),X.ncols());
     (*Mat_temp)=X;
     for(i=0; i < rank; i++)
     {
@@ -218,14 +218,14 @@ SolveInverseProblemWithTikhonovSVD::prep_lcurve_data(double *rho, double *eta, C
                               DenseMatrix& X, ColumnMatrix& y, double lam)
 {
   int i,j;
-  ColumnMatrix *AX_reg = scinew ColumnMatrix(U.nrows());
-  ColumnMatrix *RX_reg = scinew ColumnMatrix(V.nrows());
+  ColumnMatrix *AX_reg = new ColumnMatrix(U.nrows());
+  ColumnMatrix *RX_reg = new ColumnMatrix(V.nrows());
   ColumnMatrix *X_reg; 
   int rank=S.nrows();
   double temp, temp1;
   if(S.ncols() == 1)
   {
-    X_reg = scinew ColumnMatrix(V.nrows());		
+    X_reg = new ColumnMatrix(V.nrows());		
     temp = S[0][0]/(lam*lam + S[0][0] * S[0][0]) * Uy[0];
     for(j=0;j<V.nrows();j++)
     {
@@ -267,7 +267,7 @@ SolveInverseProblemWithTikhonovSVD::prep_lcurve_data(double *rho, double *eta, C
   }
   else
   {
-    X_reg = scinew ColumnMatrix(X.nrows());
+    X_reg = new ColumnMatrix(X.nrows());
     temp = S[0][0]/(lam*lam*S[0][1] * S[0][1] + S[0][0] * S[0][0]) * Uy[0];
 
     for(j=0;j<U.nrows();j++)
@@ -446,9 +446,9 @@ SolveInverseProblemWithTikhonovSVD::execute()
       return;
     }
   }
-  ColumnMatrix *Uy=scinew ColumnMatrix(matrixU->ncols());
-  DenseMatrix  *InverseMat = scinew DenseMatrix(N, M);
-  ColumnMatrix *solution = scinew ColumnMatrix(N);
+  ColumnMatrix *Uy=new ColumnMatrix(matrixU->ncols());
+  DenseMatrix  *InverseMat = new DenseMatrix(N, M);
+  ColumnMatrix *solution = new ColumnMatrix(N);
 	
 	
   for(i=0;i<matrixU->ncols();i++)
@@ -484,7 +484,7 @@ SolveInverseProblemWithTikhonovSVD::execute()
 		
 
     nLambda=lambda_num_.get();
-    ColumnMatrix *kapa = scinew ColumnMatrix(nLambda);
+    ColumnMatrix *kapa = new ColumnMatrix(nLambda);
     lambdaArray.setsize(nLambda); 
     rho.setsize(nLambda);
     eta.setsize(nLambda);   
@@ -524,7 +524,7 @@ SolveInverseProblemWithTikhonovSVD::execute()
 
   } // END  else if (reg_method_.get() == "lcurve")
   lambda2 = lambda*lambda;
-  ColumnMatrix  *RegParameter =scinew ColumnMatrix(1);
+  ColumnMatrix  *RegParameter =new ColumnMatrix(1);
   (*RegParameter)[0]=lambda;
 
   tikhonov_fun(*solution, *InverseMat, *matrixU, *Uy, *matrixS, *matrixV, *matrixX, lambda);

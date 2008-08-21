@@ -32,11 +32,11 @@
 
 #include <Core/Algorithms/Util/AlgoLibrary.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <list>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Algorithms/Fields/share.h>
 
@@ -221,13 +221,6 @@ public:
   bool GetFieldBoundary(FieldHandle input, FieldHandle& output, 
 			MatrixHandle &interpolant);
  
-  // GatherFields: 
-  // Gather a set of fields of the same type together into one
-  // new output field. This function will not do any merging.
-  // NOTE: in SCIRun the module GatherFields was misnamed as it actually
-  // does merge fields.
-  bool GatherFields(std::list<FieldHandle> inputs, FieldHandle& output);
-
   // IndicesToData:
   // Transform indexed data into to data. Using a matrix as a lookup table.
   bool ConvertIndicesToFieldData(FieldHandle input, FieldHandle& output, 
@@ -246,47 +239,7 @@ public:
 				 std::vector<FieldHandle> objectfields, 
 				 std::string output_type = "double", 
 				 double outval = 0.0);
-  
-  // LinkFieldBoundary:
-  // Compute the node-to-node link and the edge-element-to-edge-element matrix.
-  // This function assumes that the field uses Cartesian coordinates and that it is 
-  // a piece of a jigsaw puzzle. And that the field can serve as a tile in the
-  // x,y, and z direction. The function will automatically detect the size of the
-  // tile (border do not need to be flat planes but just need to mirror each other).
-  // tol: tolerance for detection of connecting nodes
-  // linkx, linky, linkz: switch on borders on which we want to have linkage information
-  // NodeLink: Sparse matrix which denotes which nodes are connected to which nodes
-  //            Note: one node can be connected to multiple nodes (e.g. corner of a cube)
-  // ElemLink: Sparse matrix which describes how the faces/edges in the mesh are connected
-  //            to the opposite edges/faces. Note: this is a pure one to one mapping
-  bool CalculateLinkBetweenOppositeFieldBoundaries(FieldHandle input, 
-						   MatrixHandle& NodeLink, 
-						   MatrixHandle& ElemLink, 
-						   double tol, 
-						   bool linkx = true, 
-						   bool linky = true, 
-						   bool linkz = true);
     
-  // LinkToCompGrid:
-  // Compute the mapping to merge nodes over the outer boundary of the mesh into a computational grid.
-  // GeomToComp and CompToGeom: These are the mapping matrices that map geometrical space into
-  //  computational space and vice versa.
-  bool CreateLinkBetweenMeshAndCompGrid(MatrixHandle NodeLink,
-					MatrixHandle& GeomToComp, 
-					MatrixHandle& CompToGeom);
-
-  // LinkToCompGrid:
-  // Compute the mapping to merge nodes over the outer boundary of the mesh for elements of the same domain type.
-  // We assume that there is only a link if the elemets are of the same type. The types of elements
-  // need to be defined in the input field. Hence this function will only work for data on the
-  // elements.
-  // GeomToComp and CompToGeom: These are the mapping matrices that map geometrical space into
-  //  computational space and vice versa.       
-  bool CreateLinkBetweenMeshAndCompGridByDomain(FieldHandle input, 
-						MatrixHandle NodeLink, 
-						MatrixHandle& GeomToComp, 
-						MatrixHandle& CompToGeom);
-
   // MappingMatrixToField:
   // This function will assign to each node the value of the original node.
   // Hence by selecting areas in this field one can obtain all nodes located
@@ -470,15 +423,6 @@ public:
 			       FieldHandle& output,
 			       bool datalocation = false);
     
-  // TransformField: 
-  // Transform a field and rotate vectors and tensors accordingly.
-  // The version in SCIRun's core does not allow for rotating the data
-  // when transforming the data. 
-  bool TransformField(FieldHandle input,
-		      FieldHandle& output,
-		      Transform& transform,
-		      bool rotatedata = true);
-    
   // ConvertMeshToUnstructuredMesh:
   // Convert a structured mesh that may be regular or irregular into
   // an unstructured mesh. This is often needed to make a mesh editable
@@ -539,13 +483,6 @@ public:
 			   string QuadOrTet,
 			   string StructOrUnstruct);
 
-
-  // CreateFieldFromMesh
-  bool CreateFieldFromMesh(MeshHandle mHandle,
-			   const TypeDescription *btd,
-			   const TypeDescription *dtd,
-			   FieldHandle& fhandle);
-         
   // CollectPointClouds
   bool CollectPointClouds(FieldHandle& field_input_handle,
 			  FieldHandle& field_output_handle,

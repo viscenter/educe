@@ -52,7 +52,7 @@
 // SCIRun includes
 #include <Core/Util/FileUtils.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/FileUtils.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
@@ -69,7 +69,7 @@
 
 // Standard includes
 #ifdef _WIN32
-#include <Core/OS/Dir.h>
+#include <Core/Util/Dir.h>
 #else
 #include <dirent.h>
 #endif
@@ -1179,7 +1179,7 @@ NrrdData * ImportNrrdFromDicom::join_nrrds( vector<Nrrd*> arr )
   }
 
   if (arr.size() > 1) {
-    sciNrrd = scinew NrrdData();
+    sciNrrd = new NrrdData();
     sciNrrd->nrrd_ = nrrdNew();
 
     if( nrrdJoin(sciNrrd->nrrd_, &arr[0], num_nrrds, position, incr) ) 
@@ -1190,7 +1190,7 @@ NrrdData * ImportNrrdFromDicom::join_nrrds( vector<Nrrd*> arr )
 	return 0;
       }
   } else {
-    sciNrrd = scinew NrrdData(arr[0]);
+    sciNrrd = new NrrdData(arr[0]);
   }
 
   unsigned int *centers = (unsigned int *)malloc(sizeof(unsigned int) * 

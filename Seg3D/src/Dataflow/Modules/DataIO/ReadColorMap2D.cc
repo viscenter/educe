@@ -47,17 +47,17 @@ namespace SCIRun {
 template class GenericReader<ColorMap2Handle>;
 
 class ReadColorMap2D : public GenericReader<ColorMap2Handle> {
-protected:
-  GuiString gui_types_;
-  GuiString gui_filetype_;
+  protected:
+    GuiString gui_types_;
+    GuiString gui_filetype_;
 
-  virtual bool call_importer(const string &filename);
+    virtual bool call_importer(const string &filename);
 
-public:
-  ReadColorMap2D(GuiContext* ctx);
-  virtual ~ReadColorMap2D();
+  public:
+    ReadColorMap2D(GuiContext* ctx);
+    virtual ~ReadColorMap2D() {}
 
-  virtual void execute();
+    virtual void execute();
 };
 
 DECLARE_MAKER(ReadColorMap2D)
@@ -75,18 +75,11 @@ ReadColorMap2D::ReadColorMap2D(GuiContext* ctx)
   gui_types_.set(importtypes);
 }
 
-
-ReadColorMap2D::~ReadColorMap2D()
-{
-}
-
-
 bool
 ReadColorMap2D::call_importer(const string &/*filename*/)
 {
   return false;
 }
-
 
 void
 ReadColorMap2D::execute()
@@ -94,6 +87,5 @@ ReadColorMap2D::execute()
   importing_ = false;
   GenericReader<ColorMap2Handle>::execute();
 }
-
 
 } // End namespace SCIRun

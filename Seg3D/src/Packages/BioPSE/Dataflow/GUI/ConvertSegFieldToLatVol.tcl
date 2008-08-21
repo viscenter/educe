@@ -35,8 +35,8 @@ itcl_class BioPSE_Modeling_ConvertSegFieldToLatVol {
     }
 
     method set_defaults {} {
-	global $this-lat_vol_data
-	set $this-lat_vol_data componentMatl
+        global $this-lat_vol_data
+        set $this-lat_vol_data componentMatl
     }
 
     method ui {} {
@@ -45,18 +45,18 @@ itcl_class BioPSE_Modeling_ConvertSegFieldToLatVol {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.f
-	label $w.f.l -text "Data values for output field"
-	radiobutton $w.f.sv -text "Material" \
-	    -variable $this-lat_vol_data -value componentMatl
-	radiobutton $w.f.ci -text "Component Index" \
-	    -variable $this-lat_vol_data -value componentIdx
-	radiobutton $w.f.cs -text "Component Size" \
-	    -variable $this-lat_vol_data -value componentSize
-	pack $w.f.l -side top
-	pack $w.f.sv $w.f.ci $w.f.cs -side top -anchor w
-	pack $w.f -side top
+        sci_frame $w.f
+        sci_label $w.f.l -text "Data values for output field"
+        sci_radiobutton $w.f.sv -text "Material" \
+            -variable $this-lat_vol_data -value componentMatl
+        sci_radiobutton $w.f.ci -text "Component Index" \
+            -variable $this-lat_vol_data -value componentIdx
+        sci_radiobutton $w.f.cs -text "Component Size" \
+            -variable $this-lat_vol_data -value componentSize
+        pack $w.f.l -side top
+        pack $w.f.sv $w.f.ci $w.f.cs -side top -anchor w
+        pack $w.f -side top
     }
 }

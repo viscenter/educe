@@ -36,7 +36,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Core/Datatypes/ColumnMatrix.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
@@ -108,7 +108,7 @@ CreateTrigCurrentPattern::execute()
   MatrixHandle  hElectrodeParams;
   if (!get_input_handle("Electrode Parameters", hElectrodeParams)) return;
 
-  ColumnMatrix* electrodeParams = scinew ColumnMatrix(numParams);
+  ColumnMatrix* electrodeParams = new ColumnMatrix(numParams);
   electrodeParams=dynamic_cast<ColumnMatrix*>(hElectrodeParams.get_rep());
 
   int L           = (int) ( (*electrodeParams)[1]);
@@ -120,7 +120,7 @@ CreateTrigCurrentPattern::execute()
   // Allocate space for the output current pattern vector
   ColumnMatrix* currentPattern;
   
-  currentPattern = scinew ColumnMatrix(L);
+  currentPattern = new ColumnMatrix(L);
 
   for (int i=0; i<L; i++) 
   {

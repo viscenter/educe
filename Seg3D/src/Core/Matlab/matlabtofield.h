@@ -51,12 +51,12 @@
 
 
 // STL STUFF
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
 #include <string>
 #include <algorithm>
 #include <cctype>
-#include <sgi_stl_warnings_on.h>
+
 
 // Class for reading matlab files
 #include <Core/Matlab/matlabfile.h>
@@ -86,17 +86,18 @@
 
 namespace MatlabIO {
 
-class SCISHARE MatlabToFieldAlgo : public SCIRun::DynamicAlgoBase, public matfilebase
+class SCISHARE MatlabToFieldAlgo : public matfilebase
 {
   public:
+    int ref_cnt;
 
     //////// CONSTRUCTOR ///////////////////////////////////
     inline MatlabToFieldAlgo();
+    virtual ~MatlabToFieldAlgo();
 
     //////// DYNAMIC ALGO ENTRY POINT /////////////////////
 
     virtual bool execute(SCIRun::FieldHandle& fieldhandle, matlabarray& mlarray);
-    static SCIRun::CompileInfoHandle get_compile_info(std::string fielddesc);
 
     //////// ANALYZE INPUT FUNCTIONS //////////////////////
 
@@ -192,7 +193,7 @@ class SCISHARE MatlabToFieldAlgo : public SCIRun::DynamicAlgoBase, public matfil
 };
 
 inline MatlabToFieldAlgo::MatlabToFieldAlgo() :
-  pr_(0)
+  ref_cnt(0), pr_(0)
 {
 }
 

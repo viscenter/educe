@@ -31,10 +31,10 @@
 
 // Define a set of useful includes which every dynamic algorithm can use
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <sci_hash_map.h>
 

@@ -41,7 +41,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/NrrdData.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
@@ -84,7 +84,7 @@ ConvertMappingMatrixToMaskVector::execute()
   size_t dim[NRRD_DIM_MAX];
   dim[0] = matrix->ncols();
 
-  NrrdDataHandle nrrdH = scinew NrrdData;
+  NrrdDataHandle nrrdH = new NrrdData;
   Nrrd *nrrd = nrrdH->nrrd_;
   nrrdAlloc_nva(nrrd, nrrdTypeUChar, 1, dim);
   unsigned char *mask = (unsigned char *)nrrd->data;

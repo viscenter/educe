@@ -32,14 +32,14 @@
 #include <sci_gl.h>
 
 #include <Core/Volume/Texture.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/NotFinished.h>
 
 namespace SCIRun {
 
 static Persistent* maker()
 {
-  return scinew Texture;
+  return new Texture;
 }
 
 PersistentTypeID Texture::type_id("Texture", "Datatype", maker);

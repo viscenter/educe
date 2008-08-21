@@ -53,7 +53,7 @@
 #define AnalyzeImage_h
 
 // SCIRun includes
-#include <Core/Malloc/Allocator.h>
+
 
 // Itk includes
 #include "itkAnalyzeImageIOFactory.h"

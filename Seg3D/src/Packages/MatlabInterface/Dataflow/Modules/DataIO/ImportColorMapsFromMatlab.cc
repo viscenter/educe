@@ -25,35 +25,28 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
- 
-/*
- * FILE: ImportColorMapsFromMatlab.cc
- * AUTH: Jeroen G Stinstra
- * DATE: 30 MAR 2004
- */
  
 /* 
  * This module reads a matlab file and converts it to a SCIRun colormap
  *
  */
 
-#include <sgi_stl_warnings_off.h>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
+#include <Core/Datatypes/String.h>
+#include <Core/Datatypes/ColorMap.h>
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Geom/ColorMap.h>
 #include <Dataflow/Network/Ports/ColorMapPort.h>
+#include <Dataflow/Network/Ports/StringPort.h>
+
 #include <Core/Matlab/matlabfile.h>
 #include <Core/Matlab/matlabarray.h>
 #include <Core/Matlab/matlabconverter.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Datatypes/String.h>
-#include <Dataflow/Network/Ports/StringPort.h>
 
 namespace MatlabIO {
 
@@ -128,9 +121,9 @@ DECLARE_MAKER(ImportColorMapsFromMatlab)
 ImportColorMapsFromMatlab::ImportColorMapsFromMatlab(GuiContext* ctx)
   : Module("ImportColorMapsFromMatlab", ctx, Source, "DataIO", "MatlabInterface"),
     guifilename_(get_ctx()->subVar("filename")),
-    guifilenameset_(get_ctx()->subVar("filename-set")),
-    guicolormapinfotexts_(get_ctx()->subVar("colormapinfotexts")),     
-    guicolormapnames_(get_ctx()->subVar("colormapnames")),    
+    guifilenameset_(get_ctx()->subVar("filename-set",false)),
+    guicolormapinfotexts_(get_ctx()->subVar("colormapinfotexts",false)),     
+    guicolormapnames_(get_ctx()->subVar("colormapnames",false)),    
     guicolormapname_(get_ctx()->subVar("colormapname")),
     guidisabletranspose_(get_ctx()->subVar("disable-transpose"))
 {
@@ -206,7 +199,7 @@ void ImportColorMapsFromMatlab::execute()
       send_output_handle(p,mh,true);
     }
 
-    SCIRun::StringHandle filenameH = scinew String(filename);
+    SCIRun::StringHandle filenameH = new String(filename);
     send_output_handle("Filename",filenameH,true);
     
   }

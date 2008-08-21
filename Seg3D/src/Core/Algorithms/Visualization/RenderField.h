@@ -48,8 +48,8 @@
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/ImageMesh.h>
 #include <Core/Datatypes/TetVolMesh.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomGroup.h>
-#include <Core/Geom/Material.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Core/Geom/GeomGlyph.h>
 #include <Core/Geom/GeomLine.h>
@@ -60,7 +60,6 @@
 #include <Core/Geom/GeomDL.h>
 #include <Core/Geom/GeomColorMap.h>
 #include <Core/Geom/GeomTexRectangle.h>
-#include <Core/Geom/ColorMap.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/Tensor.h>
 #include <Core/Math/MiscMath.h>
@@ -625,22 +624,22 @@ RenderField<FIELD, Loc>::render_nodes(FieldHandle field_handle,
   if (points_p) // Points
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
-      points = scinew GeomTranspPoints();
+      points = new GeomTranspPoints();
     else
-      points = scinew GeomPoints();
+      points = new GeomPoints();
 
-    data_switch = scinew GeomDL(points);
+    data_switch = new GeomDL(points);
 
     points->setPointSize(resolution/5.0);
   }
   else if (spheres_p) // Spheres
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
-      glyphs = scinew GeomTranspGlyph();
+      glyphs = new GeomTranspGlyph();
     else
-      glyphs = scinew GeomGlyph();
+      glyphs = new GeomGlyph();
 
-    data_switch = scinew GeomDL(glyphs->getObj());
+    data_switch = new GeomDL(glyphs->getObj());
   }
 
   unsigned int color_scheme = 0;
@@ -662,7 +661,7 @@ RenderField<FIELD, Loc>::render_nodes(FieldHandle field_handle,
   else // if (fld->basis_order() >= 1)
   {
     color_scheme = 2; // Value become RGB
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
     if (get_flag(render_state, USE_TRANSPARENCY))
       vcol->transparency = 0.75;
     else
@@ -792,22 +791,22 @@ RenderField<FIELD, Loc>::render_edges(FieldHandle field_handle,
   if (lines_p) // Lines
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
-      lines = scinew GeomTranspLines;
+      lines = new GeomTranspLines;
     else
-      lines = scinew GeomLines;
+      lines = new GeomLines;
 
-    data_switch = scinew GeomDL(lines);
+    data_switch = new GeomDL(lines);
 
     lines->setLineWidth(resolution/5.0);
   }
   else if (cylinders_p) // Cylinders
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
-      glyphs = scinew GeomTranspGlyph();
+      glyphs = new GeomTranspGlyph();
     else
-      glyphs = scinew GeomGlyph();
+      glyphs = new GeomGlyph();
 
-    data_switch = scinew GeomDL(glyphs->getObj());
+    data_switch = new GeomDL(glyphs->getObj());
   }
 
   unsigned int color_scheme = 0;
@@ -830,8 +829,8 @@ RenderField<FIELD, Loc>::render_edges(FieldHandle field_handle,
   else // if (fld->basis_order() >= 1)
   {
     color_scheme = 2; // Values become RGB
-    vcol0 = scinew Material(Color(1.0, 1.0, 1.0));
-    vcol1 = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol0 = new Material(Color(1.0, 1.0, 1.0));
+    vcol1 = new Material(Color(1.0, 1.0, 1.0));
     if (get_flag(render_state, USE_TRANSPARENCY))
       vcol0->transparency = vcol1->transparency = 0.75;
     else
@@ -946,13 +945,13 @@ RenderField<FIELD, Loc>::render_edges_linear(FieldHandle field_handle,
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
     {
-      lines = scinew GeomTranspLines;
+      lines = new GeomTranspLines;
       data_switch = lines;
     }
     else
     {
-      lines = scinew GeomLines;
-      data_switch = scinew GeomDL(lines);
+      lines = new GeomLines;
+      data_switch = new GeomDL(lines);
     }
 
     lines->setLineWidth(resolution/5.0);
@@ -961,13 +960,13 @@ RenderField<FIELD, Loc>::render_edges_linear(FieldHandle field_handle,
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
     {
-      glyphs = scinew GeomTranspGlyph();
+      glyphs = new GeomTranspGlyph();
       data_switch = glyphs->getObj();
     }
     else
     {
-      glyphs = scinew GeomGlyph();
-      data_switch = scinew GeomDL(glyphs->getObj());
+      glyphs = new GeomGlyph();
+      data_switch = new GeomDL(glyphs->getObj());
     }
   }
 
@@ -991,8 +990,8 @@ RenderField<FIELD, Loc>::render_edges_linear(FieldHandle field_handle,
   else //if (fld->basis_order() >= 0)
   {
     color_scheme = 2; // Vector values become RGB
-    vcol0 = scinew Material(Color(1.0, 1.0, 1.0));
-    vcol1 = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol0 = new Material(Color(1.0, 1.0, 1.0));
+    vcol1 = new Material(Color(1.0, 1.0, 1.0));
     if (get_flag(render_state, USE_TRANSPARENCY))
       vcol0->transparency = vcol1->transparency = 0.75;
     else
@@ -1180,18 +1179,18 @@ RenderField<FIELD, Loc>::render_faces(FieldHandle field_handle,
 
   GeomFastTriangles* tfaces;
   GeomFastQuads* qfaces;
-  GeomGroup *grp = scinew GeomGroup();
-  GeomHandle face_switch = scinew GeomDL(grp);
+  GeomGroup *grp = new GeomGroup();
+  GeomHandle face_switch = new GeomDL(grp);
 
   if (get_flag(render_state, USE_TRANSPARENCY))
   {
-    tfaces = scinew GeomTranspTriangles;
-    qfaces = scinew GeomTranspQuads;
+    tfaces = new GeomTranspTriangles;
+    qfaces = new GeomTranspQuads;
   }
   else
   {
-    tfaces = scinew GeomFastTriangles;
-    qfaces = scinew GeomFastQuads;
+    tfaces = new GeomFastTriangles;
+    qfaces = new GeomFastQuads;
   }
 
   grp->add(tfaces);
@@ -1222,7 +1221,7 @@ RenderField<FIELD, Loc>::render_faces(FieldHandle field_handle,
   {
     for (unsigned int i=0; i<20; i++)
     {
-      vcols[i] = scinew Material(Color(1.0, 1.0, 1.0));
+      vcols[i] = new Material(Color(1.0, 1.0, 1.0));
 
       if (get_flag(render_state, USE_TRANSPARENCY))
         vcols[i]->transparency = 0.75;
@@ -1413,23 +1412,23 @@ RenderField<FIELD, Loc>::render_faces_linear(FieldHandle field_handle,
   GeomFastTrianglesTwoSided* ttfaces = 0;
   GeomFastQuadsTwoSided* tqfaces =0 ;
 
-  GeomGroup *grp = scinew GeomGroup();
-  GeomHandle face_switch = scinew GeomDL(grp);
+  GeomGroup *grp = new GeomGroup();
+  GeomHandle face_switch = new GeomDL(grp);
 
   // Special case for cell centered data
   if ((fld->basis_order() == 0) && (mesh->dimensionality() == 3))
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
     {
-      ttfaces = scinew GeomTranspTrianglesTwoSided;
-      tqfaces = scinew GeomTranspQuadsTwoSided;
+      ttfaces = new GeomTranspTrianglesTwoSided;
+      tqfaces = new GeomTranspQuadsTwoSided;
       grp->add(ttfaces);
       grp->add(tqfaces);
     }
     else
     {
-      ttfaces = scinew GeomFastTrianglesTwoSided;
-      tqfaces = scinew GeomFastQuadsTwoSided;
+      ttfaces = new GeomFastTrianglesTwoSided;
+      tqfaces = new GeomFastQuadsTwoSided;
       grp->add(ttfaces);
       grp->add(tqfaces);
     }
@@ -1438,16 +1437,16 @@ RenderField<FIELD, Loc>::render_faces_linear(FieldHandle field_handle,
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
     {
-      tfaces = scinew GeomTranspTriangles;
-      qfaces = scinew GeomTranspQuads;
+      tfaces = new GeomTranspTriangles;
+      qfaces = new GeomTranspQuads;
       
       grp->add(tfaces);
       grp->add(qfaces);
     }
     else
     {
-      tfaces = scinew GeomFastTriangles;
-      qfaces = scinew GeomFastQuads;
+      tfaces = new GeomFastTriangles;
+      qfaces = new GeomFastQuads;
     
       grp->add(tfaces);
       grp->add(qfaces);
@@ -1476,7 +1475,7 @@ RenderField<FIELD, Loc>::render_faces_linear(FieldHandle field_handle,
 
     for (unsigned int i=0; i<20; i++)
     {
-      vcols[i] = scinew Material(Color(1.0, 1.0, 1.0));
+      vcols[i] = new Material(Color(1.0, 1.0, 1.0));
 
       if (get_flag(render_state, USE_TRANSPARENCY))
         vcols[i]->transparency = 0.75;
@@ -1821,7 +1820,7 @@ RenderFieldImage<FIELD, Loc>::render_faces_texture(FieldHandle field_handle,
   float pos_coords[12];
   const int colorbytes = 4;
 
-  GeomTexRectangle *tr = scinew GeomTexRectangle();
+  GeomTexRectangle *tr = new GeomTexRectangle();
   texture_face = tr;
 
   IMesh *im = dynamic_cast<IMesh *> (mesh.get_rep());
@@ -1992,8 +1991,8 @@ RenderField<FIELD, Loc>::render_text(FieldHandle field_handle,
 				     bool render_cells,
 				     bool always_visible)
 {
-  GeomGroup *texts = scinew GeomGroup;
-  GeomHandle text_switch = scinew GeomSwitch(texts);
+  GeomGroup *texts = new GeomGroup;
+  GeomHandle text_switch = new GeomSwitch(texts);
 
   if (render_data)
   {
@@ -2064,9 +2063,9 @@ RenderField<FIELD, Loc>::render_text_data(FieldHandle field_handle,
 
   typename FIELD::mesh_handle_type mesh = fld->get_typed_mesh();
 
-  GeomTexts *texts = scinew GeomTexts();
+  GeomTexts *texts = new GeomTexts();
   if (always_visible) texts->set_always_visible();
-  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  GeomHandle text_switch = new GeomSwitch(new GeomDL(texts));
   texts->set_font_index(fontsize);
 
   std::ostringstream buffer;
@@ -2152,15 +2151,15 @@ RenderField<FIELD, Loc>::render_text_data_nodes(FieldHandle field_handle,
   if (culling_p)
   {
     mesh->synchronize(Mesh::NORMALS_E);
-    ctexts = scinew GeomTextsCulled();
-    text_switch = scinew GeomSwitch(ctexts);
+    ctexts = new GeomTextsCulled();
+    text_switch = new GeomSwitch(ctexts);
     ctexts->set_font_index(fontsize);
   }
   else
   {
-    texts = scinew GeomTexts();
+    texts = new GeomTexts();
     if (always_visible) texts->set_always_visible();
-    text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+    text_switch = new GeomSwitch(new GeomDL(texts));
     texts->set_font_index(fontsize);
   }
 
@@ -2273,15 +2272,15 @@ RenderField<FIELD, Loc>::render_text_nodes(FieldHandle field_handle,
   if (culling_p)
   {
     mesh->synchronize(Mesh::NORMALS_E);
-    ctexts = scinew GeomTextsCulled();
-    text_switch = scinew GeomSwitch(ctexts);
+    ctexts = new GeomTextsCulled();
+    text_switch = new GeomSwitch(ctexts);
     ctexts->set_font_index(fontsize);
   }
   else
   {
-    texts = scinew GeomTexts();
+    texts = new GeomTexts();
     if (always_visible) texts->set_always_visible();
-    text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+    text_switch = new GeomSwitch(new GeomDL(texts));
     texts->set_font_index(fontsize);
   }
 
@@ -2393,9 +2392,9 @@ RenderField<FIELD, Loc>::render_text_edges(FieldHandle field_handle,
   typename FIELD::mesh_handle_type mesh = fld->get_typed_mesh();
   mesh->synchronize(Mesh::EDGES_E);
 
-  GeomTexts *texts = scinew GeomTexts;
+  GeomTexts *texts = new GeomTexts;
   if (always_visible) texts->set_always_visible();
-  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  GeomHandle text_switch = new GeomSwitch(new GeomDL(texts));
   texts->set_font_index(fontsize);
 
   ostringstream buffer;
@@ -2481,9 +2480,9 @@ RenderField<FIELD, Loc>::render_text_faces(FieldHandle field_handle,
   typename FIELD::mesh_handle_type mesh = fld->get_typed_mesh();
   mesh->synchronize(Mesh::FACES_E);
 
-  GeomTexts *texts = scinew GeomTexts;
+  GeomTexts *texts = new GeomTexts;
   if (always_visible) texts->set_always_visible();
-  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  GeomHandle text_switch = new GeomSwitch(new GeomDL(texts));
   texts->set_font_index(fontsize);
 
   ostringstream buffer;
@@ -2570,9 +2569,9 @@ RenderField<FIELD, Loc>::render_text_cells(FieldHandle field_handle,
   typename FIELD::mesh_handle_type mesh = fld->get_typed_mesh();
   mesh->synchronize(Mesh::CELLS_E);
 
-  GeomTexts *texts = scinew GeomTexts;
+  GeomTexts *texts = new GeomTexts;
   if (always_visible) texts->set_always_visible();
-  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  GeomHandle text_switch = new GeomSwitch(new GeomDL(texts));
   texts->set_font_index(fontsize);
 
   ostringstream buffer;

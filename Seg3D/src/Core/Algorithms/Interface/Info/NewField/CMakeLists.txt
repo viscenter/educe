@@ -46,6 +46,7 @@ SET(Algo_SRCS
   GeneratePointSamplesFromField
   GeneratePointSamplesFromFieldOrWidget
   GenerateSinglePointProbeFromField
+  GenRayCastMA
   GetAllSegmentationBoundaries
   GetCentroidsFromMesh
   GetDomainBoundary
@@ -62,6 +63,8 @@ SET(Algo_SRCS
   RefineMeshByIsovalue
   RefineMesh
   RemoveHexVolSheet
+  SetMatIndex
+  SeedIntersections
   SplitNodesByDomain
   SubsampleStructuredFieldByIndices
 )

@@ -38,7 +38,7 @@
 #include <Dataflow/Network/GenFiles.h>
 #include <Core/Util/FileUtils.h>
 #include <Core/Util/Environment.h>
-#include <Core/OS/Dir.h> // for MKDIR
+#include <Core/Util/Dir.h> // for MKDIR
 
 #define PERM S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH
 

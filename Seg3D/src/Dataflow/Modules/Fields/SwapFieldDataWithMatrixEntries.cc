@@ -51,12 +51,13 @@ namespace SCIRun {
 
 class SwapFieldDataWithMatrixEntries : public Module
 {
-public:
-  SwapFieldDataWithMatrixEntries(GuiContext*);
-  virtual void execute();
+  public:
+    SwapFieldDataWithMatrixEntries(GuiContext*);
+    virtual ~SwapFieldDataWithMatrixEntries() {}
+    virtual void execute();
 
-private:
-  GuiInt gui_keepscalartype_;
+  private:
+    GuiInt gui_keepscalartype_;
 };
 
 
@@ -77,43 +78,42 @@ SwapFieldDataWithMatrixEntries::execute()
 
   get_input_handle("Input Matrix",matrix_input_handle,false);
   
+  bool need_field  = oport_connected("Output Field");
+  bool need_matrix = oport_connected("Output Matrix");
+  
   if (inputs_changed_ ||
       gui_keepscalartype_.changed() || 
-      (get_oport("Output Field")->nconnections() &&
-       !oport_cached("Output Field")) ||
-      (get_oport("Output Matrix")->nconnections() &&
-       !oport_cached("Output Matrix")))
+      (need_field && !oport_cached("Output Field")) ||
+      (need_matrix && !oport_cached("Output Matrix")))
   {
     SCIRunAlgo::FieldsAlgo algo(this);
 
     // Get the data.
-    if( get_oport("Output Matrix")->nconnections() )
+    if( need_matrix )
     {
       MatrixHandle matrix_output_handle;
-  
       if(!(algo.GetFieldData(field_input_handle,matrix_output_handle))) return;
       send_output_handle("Output Matrix", matrix_output_handle);  
     }
 
     // Set the data.
-    if( get_oport("Output Field")->nconnections() )
+    if( need_field )
     {
       FieldHandle field_output_handle;
 
       if (matrix_input_handle.get_rep()) 
       {
-	if(!(algo.SetFieldData(field_input_handle,
+        if(!(algo.SetFieldData(field_input_handle,
 			       field_output_handle,
 			       matrix_input_handle,
 			       (bool)gui_keepscalartype_.get()))) return;
 
-	field_output_handle->copy_properties(field_input_handle.get_rep());
+        field_output_handle->copy_properties(field_input_handle.get_rep());
       }
       else 
       {
-	warning("No input matrix passing the field through");
-
-	field_output_handle = field_input_handle;
+        warning("No input matrix passing the field through");
+        field_output_handle = field_input_handle;
       }	
 
       send_output_handle("Output Field", field_output_handle);

@@ -46,31 +46,31 @@ itcl_class ManageSeriesModule {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-###### Save the num-ports because the iwidget resets it
-	global $this-num-ports
-	set quantity [set $this-num-ports]
+        ###### Save the num-ports because the iwidget resets it
+        global $this-num-ports
+        set quantity [set $this-num-ports]
 
-	iwidgets::spinint $w.ports -labeltext "Number of Ports to Manage: " \
-	    -range {1 4} -step 1 \
-	    -textvariable $this-num-ports \
-	    -width 10 -fixed 10 -justify right
-	
-	$w.ports delete 0 end
-	$w.ports insert 0 $quantity
+        sci_spinint $w.ports -labeltext "Number of Ports to Manage: " \
+            -range {1 4} -step 1 \
+            -textvariable $this-num-ports \
+            -width 10 -fixed 10 -justify right
+        
+        $w.ports delete 0 end
+        $w.ports insert 0 $quantity
 
-	button $w.clear -text "Clear Ports" \
-	    -command "$this clear"
+        sci_button $w.clear -text "Clear Ports" \
+            -command "$this clear"
 
-	pack $w.ports $w.clear -pady 5 -side top
+        pack $w.ports $w.clear -pady 5 -side top
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 
     method clear {} {
-	$this-c clear
-	$this-c needexecute
+      $this-c clear
+      $this-c needexecute
     }
 }

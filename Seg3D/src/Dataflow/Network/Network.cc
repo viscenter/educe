@@ -34,7 +34,7 @@
 #include <Dataflow/Network/PackageDB.h>
 #include <Dataflow/Network/Connection.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Containers/StringUtil.h>
 #include <Core/Util/Environment.h>
 
@@ -57,12 +57,13 @@ Network::Network() :
   wait_delete_("Signal module deletion"),
   sched(0),
   network_error_code_(0),
-  network_dynamic_compiles_(0)
+  network_dynamic_compiles_(0),
+  gui_(0)
 {
   if (sci_getenv("SCIRUN_LOGFILE"))
   {
     std::string logfile = sci_getenv("SCIRUN_LOGFILE");
-    log_file_ = scinew LogFile(logfile);
+    log_file_ = new LogFile(logfile);
     log_file_->putmsg("SCIRUN: CREATED NEW NETWORK");
   }
 }
@@ -70,6 +71,12 @@ Network::Network() :
  
 Network::~Network()
 {
+}
+
+void 
+Network::set_gui(GuiInterface*	gui)
+{
+  gui_ = gui;
 }
 
 
@@ -164,7 +171,7 @@ Network::connect(ModuleHandle m1, int p1, ModuleHandle m2, int p2)
   ids << m1->id_ << "_p" << p1 << "_to_" << m2->id_ << "_p" << p2;
   
 
-  ConnectionHandle conn = scinew Connection(m1, p1, m2, p2, ids.str());
+  ConnectionHandle conn = new Connection(m1, p1, m2, p2, ids.str());
   
   lock.lock();
 
@@ -260,19 +267,26 @@ Network::add_module_maybe_replace(const string& oldPackageName,
 
   lock.lock();
 
-  while (!packageDB->haveModule(packageName, categoryName, moduleName))
-  {
-    if (!packageDB->replaceDeprecatedModule(packageName, categoryName,
-                                            moduleName,
+  packageDB->replaceDeprecatedModule(packageName, categoryName,
+                                            moduleName, versionName,
                                             packageName, categoryName,
-                                            moduleName))
-    {
-      break;
-    }
-  }
+                                            moduleName, versionName);
+
   lock.unlock();
 
-  return add_module(packageName, categoryName, moduleName);
+  ModuleHandle mod = add_module(packageName, categoryName, moduleName);
+  if (mod.get_rep())
+  {
+    // Add the name of the original module for post read conversion of 
+    // parameters. The name of the module in an older version is often
+    // a good clue.
+    mod->set_old_modulename(oldModuleName);
+    mod->set_old_categoryname(oldCategoryName);
+    mod->set_old_packagename(oldPackageName);
+    mod->set_old_version(oldVersionName);
+  }
+  
+  return (mod);
 }
   
 
@@ -368,6 +382,13 @@ Network::add_instantiated_module(ModuleHandle handle)
 }
 
 
+void
+Network::network_progress(int i,int size)
+{
+  if(gui_) gui_->eval("UpdateNetworkProgress "+to_string(i)+" "+to_string(size));
+}
+
+
 ModuleHandle
 Network::get_module_by_id(const string& id)
 {
@@ -444,9 +465,9 @@ Network::delete_module(const string& id)
   ModuleHandle handle = get_module_by_id(id);
   if (!handle.get_rep()) return 0;
     
-  DeleteModuleThread * dm = scinew DeleteModuleThread(this,handle);
+  DeleteModuleThread * dm = new DeleteModuleThread(this,handle);
   const string tname("Delete module: " + id);
-  Thread *mod_deleter = scinew Thread(dm, tname.c_str());
+  Thread *mod_deleter = new Thread(dm, tname.c_str());
   mod_deleter->detach();
 
   return 1;
@@ -509,6 +530,14 @@ Scheduler*
 Network::get_scheduler()
 {
   return sched;
+}
+
+
+void 
+Network::add_log(std::string logtext)
+{ 
+  if(log_file_.get_rep()) log_file_->putmsg(logtext); 
+  if(gui_) gui_->eval("AddToLog \""+to_string(logtext)+"\\n\"");
 }
 
 }

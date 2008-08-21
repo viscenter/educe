@@ -70,7 +70,7 @@ ClipBySelectionMaskAlgo::ClipBySelectionMask(ProgressReporter *pr,
   }
   
   CompileInfoHandle ci = 
-    scinew CompileInfo("ALGOClipBySelectionMask." + fi.get_field_filename() + "." + fo.get_field_filename() + ".",
+    new CompileInfo("ALGOClipBySelectionMask." + fi.get_field_filename() + "." + fo.get_field_filename() + ".",
                        "ClipBySelectionMaskAlgo","ClipBySelectionMaskAlgoT",
                        fi.get_field_name()+","+fo.get_field_name());
 

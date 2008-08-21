@@ -26,32 +26,18 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/DenseMatrix.h>
+#include <Core/Datatypes/Matrix.h>
 
-
-/*
- *  GenerateSinglePointProbeFromField.cc:  Rotate and flip field to get it into "standard" view
- *
- *  Written by:
- *   Michael Callahan
- *   Department of Computer Science
- *   University of Utah
- *   March 2001
- *
- *  Copyright (C) 2001 SCI Group
- */
-
-#include <Dataflow/Modules/Fields/GenerateSinglePointProbeFromField.h>
-#include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/GeometryPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Datatypes/ColumnMatrix.h>
-#include <Core/Thread/CrowdMonitor.h>
+#include <Dataflow/Network/Module.h>
+
 #include <Dataflow/Widgets/PointWidget.h>
 
-#include <Core/Datatypes/GenericField.h>
-
-#include <Core/Datatypes/Clipper.h>
 #include <iostream>
 #include <stack>
 
@@ -61,49 +47,46 @@ using std::stack;
 
 class GenerateSinglePointProbeFromField : public Module
 {
-private:
-  PointWidget *widget_;
-  CrowdMonitor widget_lock_;
-  int  last_input_generation_;
-  BBox last_bounds_;
+  public:
+    GenerateSinglePointProbeFromField(GuiContext* ctx);
+    virtual ~GenerateSinglePointProbeFromField();
 
-  GuiString gui_frame_;
-  GuiDouble gui_locx_;
-  GuiDouble gui_locy_;
-  GuiDouble gui_locz_;
-  GuiString gui_value_;
-  GuiString gui_node_;
-  GuiString gui_edge_;
-  GuiString gui_face_;
-  GuiString gui_cell_;
-  GuiInt gui_show_value_;
-  GuiInt gui_show_node_;
-  GuiInt gui_show_edge_;
-  GuiInt gui_show_face_;
-  GuiInt gui_show_cell_;
-  GuiString gui_moveto_;
-  GuiDouble gui_probe_scale_;
-  GuiString gui_label_;
-  GuiDouble gui_color_r_;
-  GuiDouble gui_color_g_;
-  GuiDouble gui_color_b_;
+    virtual void execute();
+    virtual void widget_moved(bool, BaseWidget*);
+    
+    virtual void tcl_command(GuiArgs& args, void* userdata);
+  private:
+    PointWidget *widget_;
+    CrowdMonitor widget_lock_;
+    int  last_input_generation_;
+    BBox last_bounds_;
 
-  int widgetid_;
+    GuiString gui_frame_;
+    GuiDouble gui_locx_;
+    GuiDouble gui_locy_;
+    GuiDouble gui_locz_;
+    
+    GuiString gui_value_;
+    GuiString gui_node_;
+    GuiString gui_elem_;
+    
+    GuiInt gui_show_value_;
+    GuiInt gui_show_node_;
+    GuiInt gui_show_elem_;
+    GuiString gui_moveto_;
+    GuiDouble gui_probe_scale_;
 
-  bool bbox_similar_to(const BBox &a, const BBox &b);
-  double l2norm_;
+    GuiString gui_label_;
+    GuiDouble gui_color_r_;
+    GuiDouble gui_color_g_;
+    GuiDouble gui_color_b_;
 
-  bool color_changed_;
+    int widgetid_;
 
-public:
-  typedef PointCloudMesh<ConstantBasis<Point> > PCMesh;
-  GenerateSinglePointProbeFromField(GuiContext* ctx);
-  virtual ~GenerateSinglePointProbeFromField();
+    bool bbox_similar_to(const BBox &a, const BBox &b);
+    double l2norm_;
 
-  virtual void execute();
-  virtual void widget_moved(bool, BaseWidget*);
-  
-  virtual void tcl_command(GuiArgs& args, void* userdata);
+    bool color_changed_;
 };
 
 
@@ -119,14 +102,10 @@ GenerateSinglePointProbeFromField::GenerateSinglePointProbeFromField(GuiContext*
     gui_locz_(get_ctx()->subVar("locz"), 0.0),
     gui_value_(get_ctx()->subVar("value"), ""),
     gui_node_(get_ctx()->subVar("node"), ""),
-    gui_edge_(get_ctx()->subVar("edge"), ""),
-    gui_face_(get_ctx()->subVar("face"), ""),
-    gui_cell_(get_ctx()->subVar("cell"), ""),
+    gui_elem_(get_ctx()->subVar("elem"), ""),
     gui_show_value_(get_ctx()->subVar("show-value"), 1),
     gui_show_node_(get_ctx()->subVar("show-node"), 1),
-    gui_show_edge_(get_ctx()->subVar("show-edge"), 0),
-    gui_show_face_(get_ctx()->subVar("show-face"), 0),
-    gui_show_cell_(get_ctx()->subVar("show-cell"), 1),
+    gui_show_elem_(get_ctx()->subVar("show-elem"), 1),
     gui_moveto_(get_ctx()->subVar("moveto", false), ""),
     gui_probe_scale_(get_ctx()->subVar("probe_scale"), 5.0),
     gui_label_(get_ctx()->subVar("label"),""),
@@ -136,8 +115,10 @@ GenerateSinglePointProbeFromField::GenerateSinglePointProbeFromField(GuiContext*
     widgetid_(0),
     color_changed_(false)
 {
-  widget_ = scinew PointWidget(this, &widget_lock_, 1.0);
-  widget_->Connect((GeometryOPort*)get_oport("GenerateSinglePointProbeFromField Widget"));
+  widget_ = new PointWidget(this, &widget_lock_, 1.0);
+  GeometryOPortHandle ogport;
+  get_oport_handle("GenerateSinglePointProbeFromField Widget",ogport);
+  widget_->Connect(ogport.get_rep());
 }
 
 
@@ -246,10 +227,11 @@ GenerateSinglePointProbeFromField::execute()
     
     widget_->SetPosition(center);
     
-    GeomGroup *widget_group = scinew GeomGroup;
+    GeomGroup *widget_group = new GeomGroup;
     widget_group->add(widget_->GetWidget());
 
-    GeometryOPort *ogport = (GeometryOPort*)get_oport("GenerateSinglePointProbeFromField Widget");
+    GeometryOPortHandle ogport;
+    get_oport_handle("GenerateSinglePointProbeFromField Widget",ogport);
     widgetid_ = ogport->addObj(widget_group, "GenerateSinglePointProbeFromField Selection Widget",
 			       &widget_lock_);
     ogport->flushViews();
@@ -301,140 +283,139 @@ GenerateSinglePointProbeFromField::execute()
   }
   else if (moveto != "" && input_field_p)
   {
-    const TypeDescription *mtd = ifieldhandle->mesh()->get_type_description();
-    CompileInfoHandle ci = GenerateSinglePointProbeFromFieldCenterAlgo::get_compile_info(mtd);
-    Handle<GenerateSinglePointProbeFromFieldCenterAlgo> algo;
-    if (!module_dynamic_compile(ci, algo)) return;
-
     if (moveto == "node")
     {
-      Point newloc = widget_->GetPosition();
-      if (algo->get_node(ifieldhandle->mesh(), gui_node_.get(), newloc))
+      VMesh::index_type idx;
+      std::string sval = gui_node_.get();
+      from_string(sval,idx);
+      if (idx >=0 && idx < ifieldhandle->vmesh()->num_nodes())
       {
-        widget_->SetPosition(newloc);
-        moved_p = true;
+        Point p;
+        ifieldhandle->vmesh()->get_center(p,VMesh::Node::index_type(idx));
+        widget_->SetPosition(p);
+        moved_p = true;        
       }
     }
-    else if (moveto == "edge")
+    else if (moveto == "elem")
     {
-      Point newloc = widget_->GetPosition();
-      if (algo->get_edge(ifieldhandle->mesh(), gui_edge_.get(), newloc))
+      VMesh::index_type idx;
+      std::string sval = gui_elem_.get();
+      from_string(sval,idx);
+      if (idx >=0 && idx < ifieldhandle->vmesh()->num_elems())
       {
-        widget_->SetPosition(newloc);
-        moved_p = true;
-      }
-    }
-    else if (moveto == "face")
-    {
-      Point newloc = widget_->GetPosition();
-      if (algo->get_face(ifieldhandle->mesh(), gui_face_.get(), newloc))
-      {
-        widget_->SetPosition(newloc);
-        moved_p = true;
-      }
-    }
-    else if (moveto == "cell")
-    {
-      Point newloc = widget_->GetPosition();
-      if (algo->get_cell(ifieldhandle->mesh(), gui_cell_.get(), newloc))
-      {
-        widget_->SetPosition(newloc);
-        moved_p = true;
+        Point p;
+        ifieldhandle->vmesh()->get_center(p,VMesh::Elem::index_type(idx));
+        widget_->SetPosition(p);
+        moved_p = true;        
       }
     }
   }
   if (moved_p)
   {
-    GeometryOPort *ogport = (GeometryOPort*)get_oport("GenerateSinglePointProbeFromField Widget");
+    GeometryOPortHandle ogport;
+    get_oport_handle("GenerateSinglePointProbeFromField Widget",ogport);
     ogport->flushViews();
     gui_moveto_.set("");
   }
 
   const Point location = widget_->GetPosition();
-  PCMesh *mesh = scinew PCMesh();
-  PCMesh::Node::index_type pcindex = mesh->add_point(location);
+  
+  FieldInformation fi("PointCloudMesh",0,"double");
+  MeshHandle mesh = CreateMesh(fi);
+  mesh->vmesh()->add_point(location);
+  
   FieldHandle ofield;
 
-  string nodestr, edgestr, facestr, cellstr;
+  string nodestr, elemstr;
   if (input_field_p)
   {
-    const TypeDescription *mtd = ifieldhandle->mesh()->get_type_description();
-    CompileInfoHandle ci = GenerateSinglePointProbeFromFieldLocateAlgo::get_compile_info(mtd);
-    Handle<GenerateSinglePointProbeFromFieldLocateAlgo> algo;
-    if (!module_dynamic_compile(ci, algo)) return;
+    if (gui_show_node_.get())
+    {
+      ifieldhandle->vmesh()->synchronize(Mesh::FIND_CLOSEST_NODE_E);
+      Point r;
+      VMesh::Node::index_type idx;
+      ifieldhandle->vmesh()->find_closest_node(r,idx,location);
+      gui_node_.set(to_string(idx));
+    }
 
-    algo->execute(ifieldhandle->mesh(), location,
-		  gui_show_node_.get(), nodestr,
-		  gui_show_edge_.get(), edgestr,
-		  gui_show_face_.get(), facestr,
-		  gui_show_cell_.get(), cellstr);
-
-    if (gui_show_node_.get()) { gui_node_.set(nodestr); }
-    if (gui_show_edge_.get()) { gui_edge_.set(edgestr); }
-    if (gui_show_face_.get()) { gui_face_.set(facestr); }
-    if (gui_show_cell_.get()) { gui_cell_.set(cellstr); }
+    if (gui_show_node_.get())
+    {
+      ifieldhandle->vmesh()->synchronize(Mesh::FIND_CLOSEST_ELEM_E);
+      Point r;
+      VMesh::Elem::index_type idx;
+      ifieldhandle->vmesh()->find_closest_elem(r,idx,location);
+      gui_elem_.set(to_string(idx));
+    }
   }
-  typedef ConstantBasis<double>                             DatBasis;
-  typedef ConstantBasis<Tensor>                             DatTBasis;
-  typedef ConstantBasis<Vector>                             DatVBasis;
-  typedef GenericField<PCMesh, DatBasis, vector<double> >   PCField; 
-  typedef GenericField<PCMesh, DatTBasis, vector<Tensor> >  PCFieldT;
-  typedef GenericField<PCMesh, DatVBasis, vector<Vector> >  PCFieldV;
-
 
   std::ostringstream valstr;
+  VField* vfield = 0;
+  VMesh* vmesh = 0;
+  if (ifieldhandle.get_rep())
+  {
+    vfield = ifieldhandle->vfield();
+    vmesh = ifieldhandle->vmesh();    
+  }
   
-  ScalarFieldInterfaceHandle sfi = 0;
-  VectorFieldInterfaceHandle vfi = 0;
-  TensorFieldInterfaceHandle tfi = 0;
   if (!input_field_p ||
       ifieldhandle->basis_order() == -1 ||
       !gui_show_value_.get())
   {
+    fi.make_double();
+    ofield = CreateField(fi,mesh);
+    ofield->vfield()->resize_values();
     valstr << 0;
-    PCField *field = scinew PCField(mesh);
-    field->set_value(0.0, pcindex);
-    ofield = field;
+    ofield->vfield()->set_value(0.0, VMesh::index_type(0));
   }
-  else if ((sfi = ifieldhandle->query_scalar_interface(this)).get_rep())
+  else if (vfield->is_scalar())
   {
-    double result;
-    if (!sfi->interpolate(result, location))
+    double result = 0.0;
+    if (!vfield->interpolate(result, location))
     {
-      sfi->find_closest(result, location);
+      Point closest;
+      VMesh::Node::index_type node_idx;
+      if(vmesh->find_closest_node(closest,node_idx,location))
+        vfield->get_value(result,node_idx);
     }
     valstr << result;
 
-    PCField *field = scinew PCField(mesh);
-    field->set_value(result, pcindex);
-    ofield = field;
+    fi.make_double();
+    ofield = CreateField(fi,mesh);
+    ofield->vfield()->set_value(result, VMesh::index_type(0));
   }
-  else if ((vfi = ifieldhandle->query_vector_interface(this)).get_rep())
+  else if (vfield->is_vector())
   {
-    Vector result;
-    if (!vfi->interpolate(result, location))
+    Vector result(0.0,0.0,0.0);
+    if (!vfield->interpolate(result, location))
     {
-      vfi->find_closest(result, location);
+      Point closest;
+      VMesh::Node::index_type node_idx;
+      if (vmesh->find_closest_node(closest,node_idx,location))
+        vfield->get_value(result,node_idx);
     }
     valstr << result;
 
-    PCFieldV *field = scinew PCFieldV(mesh);
-    field->set_value(result, pcindex);
-    ofield = field;
+    fi.make_vector();
+    ofield = CreateField(fi,mesh);
+    ofield->vfield()->set_value(result, VMesh::index_type(0));
   }
-  else if ((tfi = ifieldhandle->query_tensor_interface(this)).get_rep())
+  else if (vfield->is_tensor())
   {
-    Tensor result;
-    if (!tfi->interpolate(result, location))
+    Tensor result(0.0);
+    if (!vfield->interpolate(result, location))
     {
-      tfi->find_closest(result, location);
+      Point closest;
+      VMesh::Node::index_type node_idx;
+      if(vmesh->find_closest_node(closest,node_idx,location))
+        vfield->get_value(result,node_idx);
     }
     valstr << result;
 
-    PCFieldT *field = scinew PCFieldT(mesh);
-    field->set_value(result, pcindex);
-    ofield = field;
+    fi.make_tensor();
+    ofield = CreateField(fi,mesh);
+    ofield->vfield()->set_value(result, VMesh::index_type(0));
   }
+  
   gui_locx_.set(location.x());
   gui_locy_.set(location.y());
   gui_locz_.set(location.z());
@@ -444,38 +425,21 @@ GenerateSinglePointProbeFromField::execute()
 
   if (input_field_p)
   {
-    unsigned int index = 0;
+    Field::index_type index = 0;
     switch (ifieldhandle->basis_order())
     {
-    case 1:
-      index = atoi(nodestr.c_str());
-      break;
-    case 0:
-      {
-				if (ifieldhandle->mesh()->dimensionality() == 0) 
-				{
-					index = atoi(nodestr.c_str());
-				} 
-				else if (ifieldhandle->mesh()->dimensionality() == 1) 
-				{
-					index = atoi(edgestr.c_str());
-				} 
-				else if (ifieldhandle->mesh()->dimensionality() == 2) 
-				{
-					index = atoi(facestr.c_str());
-				} 
-				else if (ifieldhandle->mesh()->dimensionality() == 3) 
-				{
-					index = atoi(cellstr.c_str());
-				}
-      }
-      break;
-    case -1:
-      index = atoi(nodestr.c_str());
-      break;
+      case 1:
+        from_string(nodestr,index);
+        break;
+      case 0:
+        from_string(elemstr,index);
+        break;
+      case -1:
+        from_string(nodestr,index);
+        break;
     }
-    MatrixHandle cm = scinew ColumnMatrix(1);
-    cm->put(0, 0, static_cast<double>(index));
+    
+    MatrixHandle cm = new DenseMatrix(static_cast<double>(index));
     send_output_handle("Element Index", cm);
   }
 }
@@ -509,404 +473,6 @@ GenerateSinglePointProbeFromField::tcl_command(GuiArgs& args, void* userdata)
   {
     Module::tcl_command(args, userdata);
   }
-}
-
-
-
-CompileInfoHandle
-GenerateSinglePointProbeFromFieldLocateAlgo::get_compile_info(const TypeDescription *msrc)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("GenerateSinglePointProbeFromFieldLocateAlgoT");
-  static const string base_class_name("GenerateSinglePointProbeFromFieldLocateAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       msrc->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       msrc->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  msrc->fill_compile_info(rval);
-  return rval;
-}
-
-
-CompileInfoHandle
-GenerateSinglePointProbeFromFieldCenterAlgo::get_compile_info(const TypeDescription *msrc)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("GenerateSinglePointProbeFromFieldCenterAlgoT");
-  static const string base_class_name("GenerateSinglePointProbeFromFieldCenterAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       msrc->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       msrc->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  msrc->fill_compile_info(rval);
-  return rval;
-}
-
-
-template <>
-bool
-probe_center_compute_index(LVMesh::Node::index_type &index,
-			   LVMesh::Node::size_type &size,
-			   const LVMesh *mesh, const string &indexstr)
-{
-  string tempstr;
-  for (unsigned int pos = 0; pos < indexstr.size(); pos++)
-    if ((int)indexstr[pos] >= (int)'0' &&
-	(int)indexstr[pos] <= (int)'9') {
-      tempstr += indexstr[pos];
-    } else {
-      tempstr += " ";
-    }
-
-  istringstream istr(tempstr);
-
-  int i;
-  Field::index_type idx[3];
-  for (i = 0; i < 3 && !istr.eof() && !istr.fail(); i++)
-  {
-    istr >> idx[i];
-  }
-  if (i == 1)
-  {
-    const int mij = (mesh->get_ni() * mesh->get_nj());
-    idx[2] = idx[0] / mij;
-    idx[1] = idx[0] % mij;
-    idx[0] = idx[1] % mesh->get_ni();
-    idx[1] = idx[1] / mesh->get_ni();
-  }
-  else if (i != 3)
-  {
-    return false;
-  }
-  mesh->size(size);
-  if (idx[0] < size.i_ && idx[1] < size.j_ && idx[2] < size.k_)
-  {
-    index = LVMesh::Node::index_type(mesh, idx[0], idx[1], idx[2]);
-    return true;
-  }
-  return false;
-}
-
-template <>
-bool
-probe_center_compute_index(LVMesh::Cell::index_type &index,
-			   LVMesh::Cell::size_type &size,
-			   const LVMesh *mesh, const string &indexstr)
-{
-  string tempstr;
-  for (size_t pos = 0; pos < indexstr.size(); pos++)
-    if ((int)indexstr[pos] >= (int)'0' &&
-	(int)indexstr[pos] <= (int)'9') {
-      tempstr += indexstr[pos];
-    } else {
-      tempstr += " ";
-    }
-
-  istringstream istr(tempstr);
-
-  int i;
-  Field::index_type idx[3];
-  for (i = 0; i < 3 && !istr.eof() && !istr.fail(); i++)
-  {
-    istr >> idx[i];
-  }
-  if (i == 1)
-  {
-    const Field::index_type mij = ((mesh->get_ni()-1) * (mesh->get_nj()-1));
-    idx[2] = idx[0] / mij;
-    idx[1] = idx[0] % mij;
-    idx[0] = idx[1] % (mesh->get_ni()-1);
-    idx[1] = idx[1] / (mesh->get_ni()-1);
-  }
-  else if (i != 3)
-  {
-    return false;
-  }
-  mesh->size(size);
-  if (idx[0] < size.i_ && idx[1] < size.j_ && idx[2] < size.k_)
-  {
-    index = LVMesh::Cell::index_type(mesh, idx[0], idx[1], idx[2]);
-    return true;
-  }
-  return false;
-}
-
-
-template <>
-bool
-probe_center_compute_index(SHVMesh::Node::index_type &index,
-			   SHVMesh::Node::size_type &size,
-			   const SHVMesh *mesh,
-			   const string &indexstr)
-{
-  string tempstr;
-  for (size_t pos = 0; pos < indexstr.size(); pos++)
-    if ((int)indexstr[pos] >= (int)'0' &&
-	(int)indexstr[pos] <= (int)'9') {
-      tempstr += indexstr[pos];
-    } else {
-      tempstr += " ";
-    }
-
-  istringstream istr(tempstr);
-
-
-  int i;
-  Field::index_type idx[3];
-  for (i = 0; i < 3 && !istr.eof() && !istr.fail(); i++)
-  {
-    istr >> idx[i];
-  }
-  if (i == 1)
-  {
-    const Field::index_type mij = (mesh->get_ni() * mesh->get_nj());
-    idx[2] = idx[0] / mij;
-    idx[1] = idx[0] % mij;
-    idx[0] = idx[1] % mesh->get_ni();
-    idx[1] = idx[1] / mesh->get_ni();
-  }
-  else if (i != 3)
-  {
-    return false;
-  }
-  mesh->size(size);
-  if (idx[0] < size.i_ && idx[1] < size.j_ && idx[2] < size.k_)
-  {
-    index = SHVMesh::Node::index_type(mesh, idx[0], idx[1], idx[2]);
-    return true;
-  }
-  return false;
-}
-
-
-template <>
-bool
-probe_center_compute_index(SHVMesh::Cell::index_type &index,
-			   SHVMesh::Cell::size_type &size,
-			   const SHVMesh *mesh,
-			   const string &indexstr)
-{
-  string tempstr;
-  for (size_t pos = 0; pos < indexstr.size(); pos++)
-    if ((int)indexstr[pos] >= (int)'0' &&
-	(int)indexstr[pos] <= (int)'9') {
-      tempstr += indexstr[pos];
-    } else {
-      tempstr += " ";
-    }
-
-  istringstream istr(tempstr);
- 
-  int i;
-  Field::index_type idx[3];
-  for (i = 0; i < 3 && !istr.eof() && !istr.fail(); i++)
-  {
-    istr >> idx[i];
-  }
-  if (i == 1)
-  {
-    const Field::index_type mij = ((mesh->get_ni()-1) * (mesh->get_nj()-1));
-    idx[2] = idx[0] / mij;
-    idx[1] = idx[0] % mij;
-    idx[0] = idx[1] % (mesh->get_ni()-1);
-    idx[1] = idx[1] / (mesh->get_ni()-1);
-  }
-  else if (i != 3)
-  {
-    return false;
-  }
-  mesh->size(size);
-  if (idx[0] < size.i_ && idx[1] < size.j_ && idx[2] < size.k_)
-  {
-    index = SHVMesh::Cell::index_type(mesh, idx[0], idx[1], idx[2]);
-    return true;
-  }
-  return false;
-}
-
-
-
-template <>
-bool
-probe_center_compute_index(IMesh::Node::index_type &index,
-			   IMesh::Node::size_type &size,
-			   const IMesh *mesh, const string &indexstr)
-{
-  string tempstr;
-  for (size_t pos = 0; pos < indexstr.size(); pos++)
-    if ((int)indexstr[pos] >= (int)'0' &&
-	(int)indexstr[pos] <= (int)'9') {
-      tempstr += indexstr[pos];
-    } else {
-      tempstr += " ";
-    }
-
-  istringstream istr(tempstr);
-
-  int i;
-  Field::index_type idx[2];
-  for (i = 0; i < 2 && !istr.eof() && !istr.fail(); i++)
-  {
-    istr >> idx[i];
-  }
-  if (i == 1)
-  {
-    idx[1] = idx[0] / mesh->get_ni();
-    idx[0] = idx[0] % mesh->get_ni();
-  }
-  else if (i != 2)
-  {
-    return false;
-  }
-  mesh->size(size);
-  if (idx[0] < size.i_ && idx[1] < size.j_)
-  {
-    index = IMesh::Node::index_type(mesh, idx[0], idx[1]);
-    return true;
-  }
-  return false;
-}
-
-
-template <>
-bool
-probe_center_compute_index(IMesh::Face::index_type &index,
-			   IMesh::Face::size_type &size,
-			   const IMesh *mesh, const string &indexstr)
-{
-  string tempstr;
-  for (size_t pos = 0; pos < indexstr.size(); pos++)
-    if ((int)indexstr[pos] >= (int)'0' &&
-	(int)indexstr[pos] <= (int)'9') {
-      tempstr += indexstr[pos];
-    } else {
-      tempstr += " ";
-    }
-
-  istringstream istr(tempstr);
-
-  int i;
-  Field::index_type idx[2];
-  for (i = 0; i < 2 && !istr.eof() && !istr.fail(); i++)
-  {
-    istr >> idx[i];
-  }
-  if (i == 1)
-  {
-    idx[1] = idx[0] / (mesh->get_ni()-1);
-    idx[0] = idx[0] % (mesh->get_ni()-1);
-  }
-  else if (i != 2)
-  {
-    return false;
-  }
-  mesh->size(size);
-  if (idx[0] < size.i_ && idx[1] < size.j_)
-  {
-    index = IMesh::Face::index_type(mesh, idx[0], idx[1]);
-    return true;
-  }
-  return false;
-}
-
-
-template <>
-bool
-probe_center_compute_index(SQSMesh::Node::index_type &index,
-			   SQSMesh::Node::size_type &size,
-			   const SQSMesh *mesh,
-			   const string &indexstr)
-{
-  string tempstr;
-  for (size_t pos = 0; pos < indexstr.size(); pos++)
-    if ((int)indexstr[pos] >= (int)'0' &&
-	(int)indexstr[pos] <= (int)'9') {
-      tempstr += indexstr[pos];
-    } else {
-      tempstr += " ";
-    }
-
-  istringstream istr(tempstr);
-
-  int i;
-  Field::index_type idx[2];
-  for (i = 0; i < 2 && !istr.eof() && !istr.fail(); i++)
-  {
-    istr >> idx[i];
-  }
-  if (i == 1)
-  {
-    idx[1] = idx[0] / mesh->get_ni();
-    idx[0] = idx[0] % mesh->get_ni();
-  }
-  else if (i != 2)
-  {
-    return false;
-  }
-  mesh->size(size);
-  if (idx[0] < size.i_ && idx[1] < size.j_)
-  {
-    index = SQSMesh::Node::index_type(mesh, idx[0], idx[1]);
-    return true;
-  }
-  return false;
-}
-
-
-template <>
-bool
-probe_center_compute_index(SQSMesh::Face::index_type &index,
-			   SQSMesh::Face::size_type &size,
-			   const SQSMesh *mesh,
-			   const string &indexstr)
-{
-  string tempstr;
-  for (size_t pos = 0; pos < indexstr.size(); pos++)
-    if ((int)indexstr[pos] >= (int)'0' &&
-	(int)indexstr[pos] <= (int)'9') {
-      tempstr += indexstr[pos];
-    } else {
-      tempstr += " ";
-    }
-
-  istringstream istr(tempstr);
-
-  int i;
-  Field::index_type idx[2];
-  for (i = 0; i < 2 && !istr.eof() && !istr.fail(); i++)
-  {
-    istr >> idx[i];
-  }
-  if (i == 1)
-  {
-    idx[1] = idx[0] / (mesh->get_ni()-1);
-    idx[0] = idx[0] % (mesh->get_ni()-1);
-  }
-  else if (i != 2)
-  {
-    return false;
-  }
-  mesh->size(size);
-  if (idx[0] < size.i_ && idx[1] < size.j_)
-  {
-    index = SQSMesh::Face::index_type(mesh, idx[0], idx[1]);
-    return true;
-  }
-  return false;
 }
 
 

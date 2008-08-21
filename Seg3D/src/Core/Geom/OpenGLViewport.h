@@ -38,10 +38,10 @@
 #ifndef SCIRun_Core_Geom_OpenGLViewport_h
 #define SCIRun_Core_Geom_OpenGLViewport_h
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 using std::string;
 

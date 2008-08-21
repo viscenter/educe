@@ -31,5 +31,6 @@
 #define SCI_BITS_DEFS_H
 
 #define SCI_@NBITS@BITS
+@DEF_SCIRUN_64BITS_INDEX@
 
 #endif

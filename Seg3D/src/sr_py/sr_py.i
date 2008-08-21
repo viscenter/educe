@@ -77,6 +77,7 @@
 #include <Core/Algorithms/Interface/ChangeMesh/TransformMeshWithTransformAlg.h>
 #include <Core/Algorithms/Interface/ChangeMesh/TransformPlanarMeshAlg.h>
 #include <Core/Algorithms/Interface/Converters/ConvertMatrixToFieldAlg.h>
+#include <Core/Algorithms/Interface/Converters/ConvertNrrdToFieldAlg.h>
 #include <Core/Algorithms/Interface/Converters/ConvertMatrixToStringAlg.h>
 #include <Core/Algorithms/Interface/DataArrayMath/AppendDataArraysAlg.h>
 #include <Core/Algorithms/Interface/DataArrayMath/CalculateDataArrayAlg.h>
@@ -160,6 +161,7 @@
 #include <Core/Algorithms/Interface/NewField/ExtractIsosurfaceByFunctionAlg.h>
 #include <Core/Algorithms/Interface/NewField/FairMeshAlg.h>
 #include <Core/Algorithms/Interface/NewField/GeneratePointSamplesFromFieldOrWidgetAlg.h>
+#include <Core/Algorithms/Interface/NewField/GenRayCastMAAlg.h>
 #include <Core/Algorithms/Interface/NewField/GeneratePointSamplesFromFieldAlg.h>
 #include <Core/Algorithms/Interface/NewField/GenerateSinglePointProbeFromFieldAlg.h>
 #include <Core/Algorithms/Interface/NewField/GetAllSegmentationBoundariesAlg.h>
@@ -180,6 +182,7 @@
 #include <Core/Algorithms/Interface/NewField/RemoveHexVolSheetAlg.h>
 #include <Core/Algorithms/Interface/NewField/SplitNodesByDomainAlg.h>
 #include <Core/Algorithms/Interface/NewField/SubsampleStructuredFieldByIndicesAlg.h>
+#include <Core/Algorithms/Interface/NewField/SeedIntersectionsAlg.h>
 #include <Core/Algorithms/Interface/String/CreateStringAlg.h>
 #include <Core/Algorithms/Interface/String/GetFileNameAlg.h>
 #include <Core/Algorithms/Interface/String/GetNetworkFileNameAlg.h>
@@ -405,6 +408,7 @@ namespace std {
 %include <Core/Algorithms/Interface/ChangeMesh/TransformMeshWithTransformAlg.h>
 %include <Core/Algorithms/Interface/ChangeMesh/TransformPlanarMeshAlg.h>
 %include <Core/Algorithms/Interface/Converters/ConvertMatrixToFieldAlg.h>
+%include <Core/Algorithms/Interface/Converters/ConvertNrrdToFieldAlg.h>
 %include <Core/Algorithms/Interface/Converters/ConvertMatrixToStringAlg.h>
 %include <Core/Algorithms/Interface/DataArrayMath/AppendDataArraysAlg.h>
 %include <Core/Algorithms/Interface/DataArrayMath/CalculateDataArrayAlg.h>
@@ -488,6 +492,7 @@ namespace std {
 %include <Core/Algorithms/Interface/NewField/ExtractIsosurfaceByFunctionAlg.h>
 %include <Core/Algorithms/Interface/NewField/FairMeshAlg.h>
 %include <Core/Algorithms/Interface/NewField/GeneratePointSamplesFromFieldOrWidgetAlg.h>
+%include <Core/Algorithms/Interface/NewField/GenRayCastMAAlg.h>
 %include <Core/Algorithms/Interface/NewField/GeneratePointSamplesFromFieldAlg.h>
 %include <Core/Algorithms/Interface/NewField/GenerateSinglePointProbeFromFieldAlg.h>
 %include <Core/Algorithms/Interface/NewField/GetAllSegmentationBoundariesAlg.h>
@@ -508,6 +513,7 @@ namespace std {
 %include <Core/Algorithms/Interface/NewField/RemoveHexVolSheetAlg.h>
 %include <Core/Algorithms/Interface/NewField/SplitNodesByDomainAlg.h>
 %include <Core/Algorithms/Interface/NewField/SubsampleStructuredFieldByIndicesAlg.h>
+%include <Core/Algorithms/Interface/NewField/SeedIntersectionsAlg.h>
 %include <Core/Algorithms/Interface/String/CreateStringAlg.h>
 %include <Core/Algorithms/Interface/String/GetFileNameAlg.h>
 %include <Core/Algorithms/Interface/String/GetNetworkFileNameAlg.h>

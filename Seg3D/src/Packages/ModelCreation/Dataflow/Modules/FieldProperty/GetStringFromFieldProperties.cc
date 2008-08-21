@@ -38,7 +38,7 @@
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Core/Datatypes/String.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace ModelCreation {
 
@@ -112,7 +112,7 @@ GetStringFromFieldProperties::execute()
   {
     if (handle->get_property(string1name, fstring))
     {
-      fhandle = scinew String(fstring);
+      fhandle = new String(fstring);
     }
     else
     {
@@ -125,7 +125,7 @@ GetStringFromFieldProperties::execute()
   {
     if (handle->get_property(string2name, fstring))
     {
-      fhandle = scinew String(fstring);
+      fhandle = new String(fstring);
     }
     else
     {
@@ -138,7 +138,7 @@ GetStringFromFieldProperties::execute()
   {
     if (handle->get_property(string3name,fstring))
     {
-      fhandle = scinew String(fstring);
+      fhandle = new String(fstring);
     }
     else
     {

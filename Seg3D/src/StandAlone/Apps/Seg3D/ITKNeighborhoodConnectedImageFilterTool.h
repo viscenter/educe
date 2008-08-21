@@ -25,7 +25,7 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 //  
-//    File   : ITKConfidenceConnectedImageFilterTool.h
+//    File   : ITKNeighborhoodConnectedImageFilterTool.h
 //    Author : McKay Davis
 //    Date   : Sat Oct 14 15:51:56 2006
 
@@ -50,8 +50,12 @@ class ITKNeighborhoodConnectedImageFilterTool : public SeedTool
 {
 public:
   ITKNeighborhoodConnectedImageFilterTool(Painter *painter);
+  virtual ~ITKNeighborhoodConnectedImageFilterTool();
 
   virtual void          run_filter();
+
+private:
+  static seeds_t seed_cache_;
 };
   
   

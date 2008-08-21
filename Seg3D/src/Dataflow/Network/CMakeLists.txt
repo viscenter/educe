@@ -46,14 +46,12 @@ SET(Dataflow_Network_SRCS
   Ports/ColorMap2Port.cc
   Ports/FieldPort.cc
   Ports/GeometryPort.cc
-  Ports/ImagePort.cc
   Ports/MatrixPort.cc
   Ports/NrrdPort.cc
   Ports/Port.cc
   Ports/PathPort.cc
   Ports/StringPort.cc
   Ports/TexturePort.cc
-  Ports/TimePort.cc
 )
 
 IF(ITK_FOUND)
@@ -77,7 +75,6 @@ TARGET_LINK_LIBRARIES(Dataflow_Network
   Core_Thread
   Core_Volume
   Core_XMLUtil
-  Core_OS
   StaticHelper
   ${TCL_LIBRARY}
   ${XML2_LIBRARY}

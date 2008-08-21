@@ -37,59 +37,59 @@ itcl_class Teem_DataIO_ExportImage {
     inherit Module
 
     constructor {config} {
-	set name ExportImage
+      set name ExportImage
     }
 
     method ui {} {
-	global env
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    return
-	}
-	
-	toplevel $w -class TkFDialog
-	set initdir ""
+      global env
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          return
+      }
+      
+      sci_toplevel $w -class TkFDialog
+      set initdir ""
 
-	# place to put preferred data directory
-	# it's used if $this-filename is empty
-	
-	if {[info exists env(SCIRUN_DATA)]} {
-	    set initdir $env(SCIRUN_DATA)
-	} elseif {[info exists env(SCI_DATA)]} {
-	    set initdir $env(SCI_DATA)
-	} elseif {[info exists env(PSE_DATA)]} {
-	    set initdir $env(PSE_DATA)
-	}
+      # place to put preferred data directory
+      # it's used if $this-filename is empty
+      
+      if {[info exists env(SCIRUN_DATA)]} {
+          set initdir $env(SCIRUN_DATA)
+      } elseif {[info exists env(SCI_DATA)]} {
+          set initdir $env(SCI_DATA)
+      } elseif {[info exists env(PSE_DATA)]} {
+          set initdir $env(PSE_DATA)
+      }
 
-	#######################################################
-	# to be modified for particular reader
+      #######################################################
+      # to be modified for particular reader
 
-	# extansion to append if no extension supplied by user
-	set defext ".*"
-	
-	# name to appear initially
-	set defname "MyImage"
-	set title "Save image file"
+      # extansion to append if no extension supplied by user
+      set defext ".*"
+      
+      # name to appear initially
+      set defname "MyImage"
+      set title "Save image file"
 
-	# file types to appers in filter box
-	set types {
-	    {{All Files}       {.*}   }
-	}
-	
-	######################################################
-	
-	makeSaveFilebox \
-		-parent $w \
-		-filevar $this-filename \
-	        -setcmd "wm withdraw $w" \
-		-command "$this-c needexecute; wm withdraw $w" \
-		-cancel "wm withdraw $w" \
-		-title $title \
-		-filetypes $types \
-	        -initialfile $defname \
-		-initialdir $initdir \
-		-defaultextension $defext \
-		-formatvar $this-filetype 
-		#-splitvar $this-split
-    }
+      # file types to appers in filter box
+      set types {
+          {{All Files}       {.*}   }
+      }
+      
+      ######################################################
+      
+      makeSaveFilebox \
+        -parent $w \
+        -filevar $this-filename \
+              -setcmd "wm withdraw $w" \
+        -command "$this-c needexecute; wm withdraw $w" \
+        -cancel "wm withdraw $w" \
+        -title $title \
+        -filetypes $types \
+              -initialfile $defname \
+        -initialdir $initdir \
+        -defaultextension $defext \
+        -formatvar $this-filetype 
+        #-splitvar $this-split
+        }
 }

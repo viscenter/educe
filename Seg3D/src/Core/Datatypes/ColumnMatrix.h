@@ -93,6 +93,7 @@ public:
   
   virtual double min();
   virtual double max();
+  virtual int compute_checksum();
     
   virtual void getRowNonzeros(index_type r, 
                               Array1<index_type>& idx, 
@@ -103,11 +104,11 @@ public:
 
   virtual Matrix *transpose() const;
   virtual void mult(const ColumnMatrix& x, ColumnMatrix& b,
-		    int& flops, int& memrefs, index_type beg=-1, index_type end=-1, 
-		    int spVec=0) const;
+                    index_type beg=-1, index_type end=-1, 
+                    int spVec=0) const;
   virtual void mult_transpose(const ColumnMatrix& x, ColumnMatrix& b,
-			      int& flops, int& memrefs,
-			      index_type beg=-1, index_type end=-1, int spVec=0) const;
+                              index_type beg=-1, index_type end=-1, 
+                              int spVec=0) const;
   virtual void scalar_multiply(double s);
   virtual MatrixHandle submatrix(index_type r1, index_type c1, 
                                  index_type r2, index_type c2);
@@ -119,9 +120,7 @@ public:
 
   DenseMatrix exterior(const ColumnMatrix &) const;
   double vector_norm() const;
-  double vector_norm(int& flops, int& memrefs) const;
-  double vector_norm(int& flops, int& memrefs, 
-                     index_type beg, index_type end) const;
+  double vector_norm(index_type beg, index_type end) const;
 
   virtual void print();
   virtual void print() const;
@@ -134,32 +133,27 @@ public:
 
 
   SCISHARE friend void Mult(ColumnMatrix&, const ColumnMatrix&, double s);
-  SCISHARE friend void Mult(ColumnMatrix&, const ColumnMatrix&, const ColumnMatrix&);
-  SCISHARE friend void Mult(ColumnMatrix&, const ColumnMatrix&, const ColumnMatrix&,
-                            int& flops, int& memrefs);
-  SCISHARE friend void Mult(ColumnMatrix&, const ColumnMatrix&, const ColumnMatrix&,
-				int& flops, int& memrefs, index_type beg, index_type end);
-  SCISHARE friend void Sub(ColumnMatrix&, const ColumnMatrix&, const ColumnMatrix&);
-  SCISHARE friend void Sub(ColumnMatrix&, const ColumnMatrix&, const ColumnMatrix&,
-			       int& flops, int& memrefs);
+  SCISHARE friend void Mult(ColumnMatrix&, const ColumnMatrix&, 
+                            const ColumnMatrix&);
+  SCISHARE friend void Mult(ColumnMatrix&, const ColumnMatrix&, 
+                            const ColumnMatrix&,
+                            index_type beg, index_type end);
+  SCISHARE friend void Sub(ColumnMatrix&, const ColumnMatrix&, 
+                           const ColumnMatrix&);
+  SCISHARE friend void Sub(ColumnMatrix&, const ColumnMatrix&, 
+                           const ColumnMatrix&,
+                           index_type beg, index_type end);
   SCISHARE friend double Dot(const ColumnMatrix&, const ColumnMatrix&);
   SCISHARE friend double Dot(const ColumnMatrix&, const ColumnMatrix&,
-				 int& flops, int& memrefs);
-  SCISHARE friend double Dot(const ColumnMatrix&, const ColumnMatrix&,
-				 int& flops, int& memrefs, index_type beg, index_type end);
+                            index_type beg, index_type end);
   SCISHARE friend void ScMult_Add(ColumnMatrix&, double s, const ColumnMatrix&,
-				      const ColumnMatrix&);
+                                  const ColumnMatrix&);
   SCISHARE friend void ScMult_Add(ColumnMatrix&, double s, const ColumnMatrix&,
-				      const ColumnMatrix&, int& flops, int& memrefs);
-  SCISHARE friend void ScMult_Add(ColumnMatrix&, double s, const ColumnMatrix&,
-				      const ColumnMatrix&, int& flops, int& memrefs,
-				      index_type beg, index_type end);
+                                  const ColumnMatrix&, 
+                                  index_type beg, index_type end);
   
   SCISHARE friend void Copy(ColumnMatrix&, const ColumnMatrix&);
   SCISHARE friend void Copy(ColumnMatrix&, const ColumnMatrix&, 
-				int& flops, int& refs);
-  SCISHARE friend void Copy(ColumnMatrix&, const ColumnMatrix&, 
-                            int& flops, int& refs,
                             index_type beg, index_type end);
   SCISHARE friend void AddScMult(ColumnMatrix&, const ColumnMatrix&, 
                                  double s, const ColumnMatrix&);

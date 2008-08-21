@@ -41,33 +41,33 @@ itcl_class Teem_Tend_TendSten {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.diffscale \
-	    -labeltext "Difference Scale:" \
-	    -textvariable $this-diffscale
+        sci_entryfield $w.f.options.diffscale \
+          -labeltext "Difference Scale:" \
+          -textvariable $this-diffscale
         pack $w.f.options.diffscale -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.intscale \
-	    -labeltext "Integration Scale:" \
-	    -textvariable $this-intscale
+        sci_entryfield $w.f.options.intscale \
+          -labeltext "Integration Scale:" \
+          -textvariable $this-intscale
         pack $w.f.options.intscale -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.factor \
-	    -labeltext "Downsample Factor:" \
-	    -textvariable $this-factor
+        sci_entryfield $w.f.options.factor \
+          -labeltext "Downsample Factor:" \
+          -textvariable $this-factor
         pack $w.f.options.factor -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w.f $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }
 

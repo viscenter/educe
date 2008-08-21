@@ -39,24 +39,22 @@
 namespace SCIRun {
 
 class ReportDataArrayInfo : public Module {
-public:
-  ReportDataArrayInfo(GuiContext*);
+  public:
+    ReportDataArrayInfo(GuiContext*);
+    virtual ~ReportDataArrayInfo() {};
 
-  virtual ~ReportDataArrayInfo();
+    virtual void execute();
 
-  virtual void execute();
+  private:
+    GuiString gui_matrixname_;
+    GuiString gui_generation_;
+    GuiString gui_typename_;
+    GuiString gui_elements_;
 
-private:
-  GuiString gui_matrixname_;
-  GuiString gui_generation_;
-  GuiString gui_typename_;
-  GuiString gui_elements_;
+    int generation_;
 
-  int generation_;
-
-  void clear_vals();
-  void update_input_attributes(MatrixHandle);
-
+    void clear_vals();
+    void update_input_attributes(MatrixHandle);
 };
 
 
@@ -75,10 +73,6 @@ ReportDataArrayInfo::ReportDataArrayInfo(GuiContext* ctx)
   gui_elements_.set("---");
 }
 
-
-ReportDataArrayInfo::~ReportDataArrayInfo()
-{
-}
 
 
 void
@@ -99,7 +93,7 @@ ReportDataArrayInfo::execute()
     update_input_attributes(mh);
   }
   
-  MatrixHandle nrows = scinew DenseMatrix(1, 1);
+  MatrixHandle nrows = new DenseMatrix(1, 1);
   double* dataptr = nrows->get_data_pointer();
   dataptr[0] = mh->nrows();
   send_output_handle("NumElements", nrows);

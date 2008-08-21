@@ -100,7 +100,7 @@ ConvertColorMap2ToNrrd::execute()
     }
 
     // Create the nrrd.
-    NrrdData *nd = scinew NrrdData();
+    NrrdData *nd = new NrrdData();
     size_t size[NRRD_DIM_MAX];
     size[0] = 4; size[1] = 512; size[2] = 256;
     nrrdAlloc_nva(nd->nrrd_, nrrdTypeFloat, 3, size);

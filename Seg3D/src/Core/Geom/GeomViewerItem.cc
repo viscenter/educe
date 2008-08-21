@@ -40,7 +40,7 @@
 #include <sci_gl.h>
 #include <sci_glx.h>
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Thread/CrowdMonitor.h>
 #include <Core/Geom/GeomViewerItem.h>
 #include <Core/Geom/DrawInfoOpenGL.h>
@@ -55,7 +55,7 @@ namespace SCIRun {
 Persistent*
 GeomViewerItem::maker()
 {
-  return scinew GeomViewerItem;
+  return new GeomViewerItem;
 }
 
 PersistentTypeID GeomViewerItem::type_id("GeomViewerItem", "GeomContainer",
@@ -75,7 +75,7 @@ GeomViewerItem::GeomViewerItem(GeomHandle obj,const string& nm,
 {
   if (!crowd_lock_)
   {
-    child_ = scinew GeomBBoxCache(obj);
+    child_ = new GeomBBoxCache(obj);
   }
 }
 
@@ -83,7 +83,7 @@ GeomObj*
 GeomViewerItem::clone()
 {
   // Untested.
-  return scinew GeomViewerItem(child_, name_, 0);//crowd_lock_);
+  return new GeomViewerItem(child_, name_, 0);//crowd_lock_);
 }
 
 #define GeomViewerITEM_VERSION 1
@@ -98,7 +98,7 @@ GeomViewerItem::io(Piostream& stream)
   Pio(stream, have_lock);
   if(stream.reading())
     if(have_lock)
-      crowd_lock_ = scinew CrowdMonitor("GeomViewerItem crowd monitor");
+      crowd_lock_ = new CrowdMonitor("GeomViewerItem crowd monitor");
     else
       crowd_lock_ = 0;
   Pio(stream, name_);

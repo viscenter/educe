@@ -39,7 +39,7 @@
  */
 
 #include <Core/Containers/StringUtil.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Util/Assert.h>
 
@@ -96,7 +96,7 @@ GuiContext*
 GuiContext::subVar(const string& subname, bool saveChild)
 {
   dontSave(); // Do not save intermediate nodes
-  GuiContext* child = scinew GuiContext(gui_, name_+"-"+subname, saveChild, this);
+  GuiContext* child = new GuiContext(gui_, name_+"-"+subname, saveChild, this);
   children_.push_back(child);
   return child;
 }
@@ -153,7 +153,7 @@ GuiContext::get(double& value)
   if(!getString(name_, result))
     return false;
   
-  value = atof(result.c_str());    
+  from_string(result,value);
 
   if (result.size() > 2)
   {
@@ -225,7 +225,7 @@ GuiContext::get(int& value)
 //  s >> value;
 //  if(!s) return false;
   
-  value = atoi(result.c_str());
+  from_string(result,value);
   context_state_ |= CACHED_E;
   return true;
 }

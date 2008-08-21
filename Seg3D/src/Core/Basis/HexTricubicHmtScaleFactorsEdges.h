@@ -572,7 +572,7 @@ public:
   template <class ElemData>
     double get_volume(const ElemData & cd) const  
   {
-    return get_volume(this, cd);
+    return get_volume3(this, cd);
   }
   
   static  const std::string type_name(int n = -1);
@@ -606,9 +606,9 @@ get_type_description(HexTricubicHmtScaleFactorsEdges<T> *)
   static TypeDescription* td = 0;
   if(!td){
     const TypeDescription *sub = get_type_description((T*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("HexTricubicHmtScaleFactorsEdges", 
+    td = new TypeDescription("HexTricubicHmtScaleFactorsEdges", 
 				subs, 
 				std::string(__FILE__),
 				"SCIRun", 

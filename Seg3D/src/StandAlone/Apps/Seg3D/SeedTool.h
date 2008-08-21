@@ -25,9 +25,9 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 //  
-//    File   : ITKConfidenceConnectedImageFilterTool.h
-//    Author : McKay Davis
-//    Date   : Sat Oct 14 15:51:56 2006
+//    File   : SeedTool.h
+//    Author : Michael Callahan
+//    Date   : March 2008
 
 #ifndef SEG3D_SeedTool_h
 #define SEG3D_SeedTool_h
@@ -42,7 +42,8 @@ namespace SCIRun {
 class SeedTool : public virtual BaseTool, public PointerTool
 {
 public:
-  SeedTool(const string &, Painter *painter);
+  SeedTool(const string &name, Painter *painter);
+  virtual ~SeedTool();
 
   propagation_state_e   pointer_down(int, int, int, unsigned int, int);
   propagation_state_e   pointer_up(int, int, int, unsigned int, int);
@@ -56,6 +57,10 @@ public:
   void set_button(int b) { button_ = b; }
 
 protected:
+  virtual void          seed_change_callback();
+
+  void                  recreate_seed_geom();
+
   typedef vector<Point> seeds_t;
 
   virtual void          run_filter() = 0;

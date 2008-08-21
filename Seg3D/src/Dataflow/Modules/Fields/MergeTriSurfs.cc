@@ -54,7 +54,7 @@ namespace SCIRun {
 class MergeTriSurfs : public Module {
 public:
   MergeTriSurfs(GuiContext* ctx);
-  virtual ~MergeTriSurfs();
+  virtual ~MergeTriSurfs() {}
   virtual void execute();
 };
 
@@ -63,12 +63,6 @@ MergeTriSurfs::MergeTriSurfs(GuiContext* ctx)
   : Module("MergeTriSurfs", ctx, Filter, "NewField", "SCIRun")
 {
 }
-
-
-MergeTriSurfs::~MergeTriSurfs()
-{
-}
-
 
 void
 MergeTriSurfs::execute()
@@ -103,7 +97,7 @@ MergeTriSurfsAlgo::get_compile_info(const TypeDescription *field_td)
   static const string base_class_name("MergeTriSurfsAlgo");
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
+    new CompileInfo(template_class_name + "." +
 		       field_td->get_filename() + ".",
                        base_class_name, 
                        template_class_name, 

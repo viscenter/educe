@@ -41,21 +41,91 @@
  *  Copyright (C) 2002 SCI Group
  */
 
-#include <Dataflow/Network/Ports/FieldPort.h>
-#include <Packages/BioPSE/Dataflow/Modules/Forward/ConvertFieldDataFromTensorsToIndices.h>
+
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/FieldInformation.h>
 #include <Core/Geometry/Tensor.h>
-#include <iostream>
-#include <sstream>
+
+#include <Dataflow/Network/Ports/FieldPort.h>
+#include <Dataflow/Network/Module.h>
+
+
+#include <vector>
 
 namespace BioPSE {
 
 using namespace SCIRun;
 
 class ConvertFieldDataFromTensorsToIndices : public Module {
+
 public:
   ConvertFieldDataFromTensorsToIndices(GuiContext *context);
-  virtual ~ConvertFieldDataFromTensorsToIndices();
+  virtual ~ConvertFieldDataFromTensorsToIndices() {}
   virtual void execute();
+
+#ifdef HAVE_HASH_MAP
+  struct tensorhash
+  {
+    unsigned int operator()(const Tensor &t) const
+    {
+      unsigned char *s = (unsigned char *)(t.mat_);
+      unsigned int tmp = 0;
+#if defined(__ECC) || defined(_MSC_VER)
+      hash_compare<unsigned int> h;
+#else
+      hash<unsigned int> h;
+#endif // defined(__ECC) || defined(_MSC_VER)
+      for (unsigned int i = 0; i < sizeof(double)*9; i++)
+      {
+        tmp = ( tmp << 5 ) - tmp + s[i];
+      }
+      return h(tmp);
+    }
+
+#if defined(__ECC) || defined(_MSC_VER)
+    // These are particularly needed by ICC's hash stuff
+    static const size_t bucket_size = 4;
+    static const size_t min_buckets = 8;
+
+    bool operator()(const Tensor &a, const Tensor &b) const
+    {
+      return (a < b);
+    }
+#endif // defined(__ECC) || defined(_MSC_VER)
+  };
+  struct tensorequal
+  {
+    //bool operator()(const Tensor &a, const Tensor &b) const
+    bool operator()(const Tensor &a, const Tensor &b) const
+    {
+      return (a == b);
+    }
+  };
+#if defined(__ECC) || defined(_MSC_VER)
+  typedef hash_map<Tensor, int, tensorhash> tensor_map_type;
+#else
+  typedef hash_map<Tensor, int, tensorhash, tensorequal> tensor_map_type;
+#endif // defined(__ECC) || defined(_MSC_VER)
+
+#else
+  // TODO: map is not a replacement for hash_map.  It's not-found
+  // semantics are different.  No equal test.  Just implement our own
+  // hash_map class if it's not there.
+  struct tensorless
+  {
+    bool operator()(const Tensor &a, const Tensor &b) const
+    {
+      for(int i=0;i<3;i++)
+        for(int j=0;j<3;j++)
+          if( a.mat_[i][j] >= b.mat_[i][j])
+            return false;
+      return true;
+    }
+  };
+  typedef map<Tensor, int, tensorless> tensor_map_type;
+#endif
+
 };
 
 
@@ -67,59 +137,54 @@ ConvertFieldDataFromTensorsToIndices::ConvertFieldDataFromTensorsToIndices(GuiCo
 {
 }
 
-ConvertFieldDataFromTensorsToIndices::~ConvertFieldDataFromTensorsToIndices()
-{
-}
-
 void
 ConvertFieldDataFromTensorsToIndices::execute()
 {
   FieldHandle ifieldH;
-  if (!get_input_handle("TensorField", ifieldH)) return;
+  get_input_handle("TensorField", ifieldH);
 
-  const TypeDescription *field_src_td = ifieldH->get_type_description();
-  const string field_dst_name = 
-    ifieldH->get_type_description(Field::FIELD_NAME_ONLY_E)->get_name() + "<" +
-    ifieldH->get_type_description(Field::MESH_TD_E)->get_name() + ", " +
-    ifieldH->get_type_description(Field::BASIS_TD_E)->get_similar_name("int", 
-                                                       0, "<", " >, ") +
-    ifieldH->get_type_description(Field::FDATA_TD_E)->get_similar_name("int",
-                                                       0, "<", " >") + " >";
-  
-  CompileInfoHandle ci =
-    ConvertFieldDataFromTensorsToIndicesAlgo::get_compile_info(field_src_td, field_dst_name);
-  Handle<ConvertFieldDataFromTensorsToIndicesAlgo> algo;
-  if (!module_dynamic_compile(ci, algo)) return;
+  if (!(ifieldH->has_virtual_interface()))
+  {
+    error("This module only needs a field with a virtual interface");
+    return;
+  }
 
-  FieldHandle ofieldH = algo->execute(ifieldH);
+  FieldInformation fi(ifieldH);
+  fi.make_int();
+  FieldHandle ofieldH = CreateField(fi,ifieldH->mesh());
   
+  VField* src = ifieldH->vfield();
+  VField* dst = ofieldH->vfield();
+  dst->resize_values();
+  
+  vector<pair<string, Tensor> > conds;
+  tensor_map_type tmap;
+    
+  Field::size_type num_values = src->num_values();
+  for (Field::index_type idx=0; idx< num_values; idx++)
+  {
+    Tensor tensor;
+    int    index;
+    
+    src->get_value(tensor,idx);
+    const tensor_map_type::iterator loc = tmap.find(tensor);
+    if (loc != tmap.end())
+    {
+      index = (*loc).second;
+    }
+    else
+    {
+      conds.push_back(pair<string, Tensor>("unknown", tensor));
+      tmap[tensor] = static_cast<int>(conds.size() - 1);
+      index = static_cast<int>(conds.size() - 1);
+    }
+  
+    dst->set_value(index,idx);
+  }
+  
+  dst->set_property("conductivity_table", conds, false);
+
   send_output_handle("IndexField", ofieldH);
 }
 
-
 } // End namespace BioPSE
-
-namespace SCIRun {
-CompileInfoHandle
-ConvertFieldDataFromTensorsToIndicesAlgo::get_compile_info(const TypeDescription *field_src_td,
-				       const string &field_dst_name)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("ConvertFieldDataFromTensorsToIndicesAlgoT");
-  static const string base_class_name("ConvertFieldDataFromTensorsToIndicesAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       field_src_td->get_filename() + "." +
-		       to_filename(field_dst_name) + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       field_src_td->get_name() + "," + field_dst_name + " ");
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  field_src_td->fill_compile_info(rval);
-  return rval;
-}
-} // End namespace SCIRun

@@ -38,7 +38,7 @@
 #ifndef JGS_SCI_CORE_ICOM_ADDRESS_H
 #define JGS_SCI_CORE_ICOM_ADDRESS_H 1
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/ICom/IComBase.h>
 #include <Core/Thread/Thread.h>
 #include <Core/Thread/Mutex.h>
@@ -77,12 +77,12 @@
 
 #endif
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <vector>
 #include <iostream>
 #include <sstream>
-#include <sgi_stl_warnings_on.h>
+
 
 #ifndef INET6_ADDRSTRLEN
 #define INET6_ADDRSTRLEN 46
@@ -92,7 +92,7 @@
 #define INET_ADDRSTRLEN 16
 #endif
 
-#if defined(__sgi)||(defined(__APPLE__))
+#if (defined(__APPLE__))
     // No simulation of getaddrinfo needed
     // On OSX and IRIX the function in the clib
     // works just fine
@@ -100,7 +100,7 @@
     // Some LINUX Systems have buggy versions of this
     // function. If so we use a simulation of that function
     // whose functionality is pretty limitted.
-#   define HAVE_BAD_GETADDRINFO    1
+#define HAVE_BAD_GETADDRINFO    1
 
     struct ga_search {
       const char	*host;	/* hostname or address string */

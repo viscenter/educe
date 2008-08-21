@@ -169,17 +169,17 @@ main(int argc, char **argv)
   if (output_format == "Binary")
   {
     out_stream =
-      scinew BinaryPiostream(argv[2], Piostream::Write, output_version);
+      new BinaryPiostream(argv[2], Piostream::Write, output_version);
   }
   else if (output_format == "Text")
   {
     out_stream =
-      scinew TextPiostream(argv[2], Piostream::Write, output_version);
+      new TextPiostream(argv[2], Piostream::Write, output_version);
   }
   else if (output_format == "Fast")
   {
     out_stream =
-      scinew FastPiostream(argv[2], Piostream::Write, output_version);
+      new FastPiostream(argv[2], Piostream::Write, output_version);
   }
 
   if (!out_stream)

@@ -37,15 +37,15 @@ using namespace SCIRun;
 using namespace SCIRunAlgo;
 
 class ApplyFilterToFieldData : public Module {
-public:
-  ApplyFilterToFieldData(GuiContext*);
+  public:
+    ApplyFilterToFieldData(GuiContext*);
+    virtual ~ApplyFilterToFieldData() {}
+    virtual void execute();
 
-  virtual void execute();
-
-private:
-  GuiString method_;
-  GuiString edmethod_;
-  GuiInt edniter_;
+  private:
+    GuiString method_;
+    GuiString edmethod_;
+    GuiInt edniter_;
 };
 
 

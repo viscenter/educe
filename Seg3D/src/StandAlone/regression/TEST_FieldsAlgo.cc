@@ -99,7 +99,7 @@ int main(int argc, char *argv[], char **environment)
 
   std::string testresult_dir = std::string(regressiondir) + "/test_fieldsalgo/";
   
-  RegressionReporter *rr = scinew RegressionReporter("regression_fieldsalgo.log");
+  RegressionReporter *rr = new RegressionReporter("regression_fieldsalgo.log");
   
   SCIRunAlgo::RegressionAlgo ralgo(rr);
   SCIRunAlgo::FieldsAlgo     falgo(rr);

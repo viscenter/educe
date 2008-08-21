@@ -39,7 +39,7 @@
 
 #include <Core/Geom/tGrid.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <iostream>
 
@@ -61,7 +61,7 @@ namespace SCIRun {
 
 Persistent* make_TexGeomGrid()
 {
-  return scinew TexGeomGrid(0,0,Point(0,0,0), Vector(1,0,0), Vector(0,0,1));
+  return new TexGeomGrid(0,0,Point(0,0,0), Vector(1,0,0), Vector(0,0,1));
 }
 
 PersistentTypeID TexGeomGrid::type_id("TexGeomGrid", "GeomObj", make_TexGeomGrid);
@@ -82,7 +82,7 @@ TexGeomGrid::TexGeomGrid(int nu, int nv, const Point& corner,
     pwr2 *= 2;
   }
   tmap_size = pwr2+delt;
-  tmapdata = scinew unsigned short[(pwr2+delt)*(pwr2+delt)*num_chan];
+  tmapdata = new unsigned short[(pwr2+delt)*(pwr2+delt)*num_chan];
 
 
   if (delt)
@@ -151,7 +151,7 @@ void TexGeomGrid::get_bounds(BBox& bb)
 
 GeomObj* TexGeomGrid::clone()
 {
-    return scinew TexGeomGrid(*this);
+    return new TexGeomGrid(*this);
 }
 
 #define TexGeomGrid_VERSION 1

@@ -37,7 +37,6 @@
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Containers/StringUtil.h>
-#include <Core/Datatypes/DenseMatrix.h>
 #include <Core/Datatypes/NrrdData.h>
 #include <Core/Skinner/Parent.h>
 #include <Core/Skinner/Variables.h>
@@ -69,6 +68,7 @@ public:
   CatcherFunction_t     copy_current_slice_up;
   CatcherFunction_t     copy_current_slice_down;
   CatcherFunction_t     punch_current_slice;
+  CatcherFunction_t     erase_current_slice;
 
   void                  setup_gl_view();
   void                  move_slice(int amount);
@@ -80,8 +80,6 @@ public:
   int                   x_axis();
   int                   y_axis();
 
-  void                  render_text();
-  void                  render_orientation_text();
   void                  render_grid();
   void                  render_guide_lines(Point);
   void                  render_slice_lines(SliceWindows &);
@@ -110,6 +108,10 @@ public:
   int                   show_guidelines_;
   unsigned int          pdown_;
 
+  // TODO: These are used but uninitialized in windows that are not
+  // visible as they are set up during redraw but not-visible windows
+  // are not redrawn.  Autoview for instance computes invalid results
+  // for non-visible windows.
   GLdouble		gl_modelview_matrix_[16];
   GLdouble		gl_projection_matrix_[16];
   GLint                 gl_viewport_[4];

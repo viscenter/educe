@@ -42,7 +42,7 @@
 #include <Core/Util/Environment.h>
 #include <Core/Util/soloader.h>
 #include <Core/Util/FileUtils.h>
-#include <Core/OS/Dir.h> // for LSTAT
+#include <Core/Util/Dir.h> // for LSTAT
 #include <StaticHelper/Loader.h>
 
 #include <stdio.h>
@@ -51,6 +51,7 @@
 #include <ctype.h>
 #include <string>
 #include <vector>
+#include <map>
 
 #include <libxml/xmlreader.h>
 #include <libxml/catalog.h>
@@ -268,8 +269,8 @@ PackageDB::loadPackage(bool resolve)
       
       finalPath = pathElt+"/"+packageElt+"/Dataflow";
       if (validDir(finalPath)) {
-	tmpPath = "found";
-	break;
+        tmpPath = "found";
+        break;
       }
       // external Package - do Package/src/Dataflow
       finalPath = pathElt+"/"+packageElt+"/src/Dataflow";
@@ -329,9 +330,9 @@ PackageDB::loadPackage(bool resolve)
       if (! read_component_file(*new_module, 
 				(xmldir+"/"+(*i).second).c_str())) 
       {
-	printMessage("Unable to read or validate " + 
-		     xmldir+"/"+(*i).second + "\n  Module not loaded.\n");
-	continue;
+        printMessage("Unable to read or validate " + 
+		    xmldir+"/"+(*i).second + "\n  Module not loaded.\n");
+        continue;
       }
 
       string cat_name = new_module->category_name_;
@@ -341,18 +342,18 @@ PackageDB::loadPackage(bool resolve)
       ci = new_package->categories.find(cat_name);
       if (ci==new_package->categories.end()) 
       {
-	new_category = new category;
-	new_category->name = cat_name;
-	new_package->categories.insert(std::pair<string,
+        new_category = new category;
+        new_category->name = cat_name;
+        new_package->categories.insert(std::pair<string,
 				       category*>(cat_name, 
 						  new_category));
-	ci = new_package->categories.find(string(new_category->name));
+        ci = new_package->categories.find(string(new_category->name));
       }
       
       mi = (*ci).second->modules.find(new_module->module_name_);
       if (mi==(*ci).second->modules.end()) 
       {
-	(*ci).second->modules.insert(std::pair<string,
+        (*ci).second->modules.insert(std::pair<string,
 				     ModuleInfo*>(new_module->module_name_,
 						  new_module));
       }
@@ -369,7 +370,8 @@ PackageDB::loadPackage(bool resolve)
   
   for (pi = packages.begin();
        pi!=packages.end();
-       pi++) {
+       pi++) 
+  {
 
     numreg = 0;
     
@@ -379,27 +381,35 @@ PackageDB::loadPackage(bool resolve)
     gui_exec("setProgressText {Loading package: " + pname + " }");
 
     for (ci = (*pi).second->categories.begin();
-	 ci!=(*pi).second->categories.end();
-	 ci++) {
+          ci!=(*pi).second->categories.end();
+          ci++) 
+    {
       for (mi = (*ci).second->modules.begin();
-	   mi!=(*ci).second->modules.end();
-	   mi++) {
-	if(resolve){
-	  if(findMaker((*mi).second)){
-	    registerModule((*mi).second);
-	    numreg++;
-	  } else {
-	    string mname = (*mi).second->module_name_;
-	    if (! ((*mi).second)->optional_) {
-	      printMessage("Unable to load module '" + mname +
-			   "' :\n - can't find symbol 'make_" + mname + "'");
-	    }
-	  }
-	} else {
-	  numreg++;
-	  registerModule((*mi).second);
-	}
-	gui_exec("incrProgress");
+           mi!=(*ci).second->modules.end();
+           mi++) 
+      {
+        if(resolve)
+        {
+          if(findMaker((*mi).second))
+          {
+            registerModule((*mi).second);
+            numreg++;
+          } 
+          else  
+          {
+            string mname = (*mi).second->module_name_;
+            if (! ((*mi).second)->optional_) {
+              printMessage("Unable to load module '" + mname +
+               "' :\n - can't find symbol 'make_" + mname + "'");
+            }
+          }
+        } 
+        else 
+        {
+          numreg++;
+          registerModule((*mi).second);
+        }
+        gui_exec("incrProgress");
       }
     }
     
@@ -448,23 +458,26 @@ PackageDB::instantiateModule(const string& packageName,
                              const string& instanceName)
 {
   Package* package;
-  if(!db_->lookup(packageName,package)) {
+  if(!db_->lookup(packageName,package)) 
+  {
     cerr << "ERROR: Instantiating from nonexistant package " << packageName 
-	 << "\n";
+         << "\n";
     return 0;
   }
   
   Category* category;
-  if(!package->lookup(categoryName,category)) {
+  if(!package->lookup(categoryName,category)) 
+  {
     cerr << "ERROR: Instantiating from nonexistant category " << packageName
-	 << "." << categoryName << "\n";
+         << "." << categoryName << "\n";
     return 0;
   }
   
   ModuleInfo* moduleInfo;
-  if(!category->lookup(moduleName,moduleInfo)) {
+  if(!category->lookup(moduleName,moduleInfo)) 
+  {
     cerr << "ERROR: Instantiating nonexistant module " << packageName 
-	 << "." << categoryName << "." << moduleName << "\n";
+         << "." << categoryName << "." << moduleName << "\n";
     return 0;
   }
 
@@ -481,6 +494,8 @@ PackageDB::instantiateModule(const string& packageName,
   Module *module = (moduleInfo->maker_)(module_context);
   if(!module)
     return 0;
+  
+  module->set_version(moduleInfo->module_version_);
   
   // Some modules may already know their package and category.
   // If this module doesn't, then set it's package and category here.
@@ -517,55 +532,131 @@ PackageDB::haveModule(const string& packageName,
 }
 
 
+class ModuleEntry {
+  public:
+
+    std::string full_module_name_;
+    double      low_version_;
+    double      high_version_;
+
+    std::string replacement_module_;
+    double      replacement_version_;
+};
+
+
 bool
-PackageDB::replaceDeprecatedModule(const string &pname,
-                                   const string &cname,
-                                   const string &mname,
-                                   string &npname,
-                                   string &ncname,
-                                   string &nmname) const
+PackageDB::replaceDeprecatedModule(const std::string &pname,
+                                   const std::string &cname,
+                                   const std::string &mname,
+                                   const std::string &vname,
+                                   std::string &npname,
+                                   std::string &ncname,
+                                   std::string &nmname,
+                                   std::string &nvname) const
 {
-  string full_module_name = pname + "::" + cname + "::" + mname;
+  std::string full_module_name = pname + "::" + cname + "::" + mname;
+  double version;
+  from_string(vname,version);
+
   static bool loaded = false;
-  static map<string, string, less<string> > replacement_map;
+  static std::multimap<std::string, ModuleEntry > replacement_map;
+
   if (!loaded)
   {
     string rmfname = string(sci_getenv("SCIRUN_SRCDIR"))
       + "/scripts/module-remapping.txt";
-    ifstream ifile(rmfname.c_str());
+    std::ifstream ifile(rmfname.c_str());
     char buffer[4096];
     while (ifile)
     {
       ifile.getline(buffer, 4096);
-      string line(buffer);
+      std::string line(buffer);
       if (line.size() < 10) break;
-      string before = line.substr(0, line.find_first_of(" \t\n"));
-      string after = line.substr(line.find_last_of(" \t\n", line.size()-1)+1);
-      replacement_map[before] = after;
+      std::string before = line.substr(0, line.find_first_of(" \t\n"));
+      std::string after = line.substr(line.find_last_of(" \t\n", line.size()-1)+1);
+      
+      ModuleEntry me;
+      double low = 0.0; 
+      double high = 1.0;
+      double repver = 1.0;
+      
+      std::string::size_type verloc = before.find("#");
+      if (verloc != std::string::npos)
+      {
+        std::string version = before.substr(verloc+1);
+        before = before.substr(0,verloc);
+        
+        std::string::size_type dashloc = version.find("-");
+        if (dashloc != std::string::npos)
+        {
+          std::string lowver = version.substr(0,dashloc);
+          std::string highver = version.substr(dashloc+1);
+          from_string(lowver,low);
+          from_string(highver,high);
+        }
+        else
+        {
+          from_string(version,low);
+          high = low;
+        }
+      }      
+      
+
+      verloc = after.find("#");
+      if (verloc != std::string::npos)
+      {
+        std::string version = after.substr(verloc+1);
+        after = after.substr(0,verloc);
+        from_string(version,repver);
+      } 
+      
+      me.full_module_name_ = before;
+      me.low_version_ =  low;
+      me.high_version_ = high;
+      me.replacement_module_ = after;
+      me.replacement_version_ = repver;
+            
+      replacement_map.insert(std::pair<std::string, ModuleEntry >(before,me));
     }
     ifile.close();
+    loaded = true;
   }
-  map<string, string, less<string> >::iterator loc =
-    replacement_map.find(full_module_name);
-  if (loc != replacement_map.end())
-  {
-    const string &replacement = (*loc).second;
-    size_t l0 = replacement.find_first_of(':', 0);
-    size_t l1 = replacement.find_first_of(':', l0+2);
-    npname = replacement.substr(0, l0);
-    ncname = replacement.substr(l0+2, l1-l0-2);
-    nmname = replacement.substr(l1+2);
+  
+  std::pair<std::multimap<std::string, ModuleEntry>::iterator,std::multimap<std::string, ModuleEntry>::iterator> range;
 
-    // cout << "REPLACING MODULE " << full_module_name << "\n";
-    // cout << " newpac = " << npname << "\n";
-    // cout << " newcat = " << ncname << "\n";
-    // cout << " newmod = " << nmname << "\n";
-    return true;
-  }
-  else
+  range = replacement_map.equal_range(full_module_name);
+  double oldver;
+  from_string(vname,oldver);
+
+  while (range.first != range.second)
   {
-    return false;
+    if ((((*(range.first)).second).low_version_ <= oldver) && (((*(range.first)).second).high_version_ >= oldver))
+    {
+      const string &replacement = ((*(range.first)).second).replacement_module_;
+      size_t l0 = replacement.find_first_of(':', 0);
+      size_t l1 = replacement.find_first_of(':', l0+2);
+      npname = replacement.substr(0, l0);
+      ncname = replacement.substr(l0+2, l1-l0-2);
+      nmname = replacement.substr(l1+2);
+      nvname = to_string(((*(range.first)).second).replacement_version_);
+      
+//      std::cout << "REPLACING MODULE " << full_module_name << "\n";
+//      std::cout << " newpac = " << npname << "\n";
+//      std::cout << " newcat = " << ncname << "\n";
+//      std::cout << " newmod = " << nmname << "\n";
+//      std::cout << " newver = " << nvname << "\n";
+
+      return (true);
+    }
+    range.first++;
   }
+  
+  npname = pname;
+  ncname = cname;
+  nmname = mname;
+  nvname = vname;
+  
+  return (false);
 }
 
 

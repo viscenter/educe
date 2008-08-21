@@ -57,7 +57,7 @@ public:
 		vector<ColorMap2*> &cmap2,
                 int tex_mem);
   SliceRenderer(const SliceRenderer&);
-  ~SliceRenderer();
+  virtual ~SliceRenderer();
 
   inline void set_control_point(const Point& point) { control_point_ = point; }
 
@@ -82,7 +82,7 @@ public:
   double phi0() const { return phi0_; }
   double phi1() const { return phi1_; }
   bool draw_cyl() const { return draw_cyl_; }
-  bool draw_level_outline () { return draw_level_outline_; }
+  bool draw_level_outline () const { return draw_level_outline_; }
   void set_cylindrical(bool cyl_active, bool draw_phi0, double phi0, 
 		       bool draw_phi1, double phi1) {
     draw_cyl_ = cyl_active;
@@ -97,7 +97,7 @@ public:
   virtual void draw_wireframe();
   void multi_level_draw();
 
-  void set_draw_level( int i, bool b){ draw_level_[i] = b; }
+  void set_draw_level( int i, bool b) { draw_level_[i] = b; }
 
 protected:
 

@@ -46,38 +46,38 @@ itcl_class SetPropertyModule {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-	iwidgets::scrolledframe $w.entries -hscrollmode none
+        sci_scrolledframe $w.entries -hscrollmode none
 
-	frame $w.title
-	label $w.title.check    -text ""         -width  3 -relief groove
-	label $w.title.property -text "Property" -width 16 -relief groove
-	label $w.title.type     -text "Type"     -width 19 -relief groove
-	label $w.title.value    -text "Value"    -width 16 -relief groove
-	label $w.title.empty    -text ""         -width  3 -relief groove
+        sci_frame $w.title
+        sci_label $w.title.check    -text ""         -width  3 -relief groove
+        sci_label $w.title.property -text "Property" -width 16 -relief groove
+        sci_label $w.title.type     -text "Type"     -width 19 -relief groove
+        sci_label $w.title.value    -text "Value"    -width 16 -relief groove
+        sci_label $w.title.empty    -text ""         -width  3 -relief groove
 
-	pack $w.title.check $w.title.property $w.title.type \
-	    $w.title.value $w.title.empty \
-	    -side left 
+        pack $w.title.check $w.title.property $w.title.type \
+            $w.title.value $w.title.empty \
+            -side left 
 
-	pack $w.title  -fill x
-	pack $w.entries -side top -fill both -expand yes
+        pack $w.title  -fill x
+        pack $w.entries -side top -fill both -expand yes
 
-	create_entries
+        create_entries
 
-	frame $w.controls
-	button $w.controls.add -text "Add Entry" \
-	    -command "$this addEntry"
-	button $w.controls.delete -text "Delete Entry" \
-	    -command "$this deleteEntry"
-	pack $w.controls.add $w.controls.delete \
-	    -side left -fill x -expand y
+        sci_frame $w.controls
+        sci_button $w.controls.add -text "Add Entry" \
+            -command "$this addEntry"
+        sci_button $w.controls.delete -text "Delete Entry" \
+            -command "$this deleteEntry"
+        pack $w.controls.add $w.controls.delete \
+            -side left -fill x -expand y
 
-	pack $w.controls -side top -fill both -expand yes -pady 10
+        pack $w.controls -side top -fill both -expand yes -pady 10
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w	
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w	
      }
 
     method create_entries {} {
@@ -113,10 +113,10 @@ itcl_class SetPropertyModule {
 			set state "normal"
 		    }
 
-		    frame $entries.e-$i
-		    checkbutton $entries.e-$i.check -variable $this-check-$i \
+		    sci_frame $entries.e-$i
+		    sci_checkbutton $entries.e-$i.check -variable $this-check-$i \
 			-state $state
-		    entry $entries.e-$i.property \
+		    sci_entry $entries.e-$i.property \
 			-textvariable $this-property-$i -width 16 \
 			-state $state
 		    labelcombo $entries.e-$i.type \
@@ -127,7 +127,7 @@ itcl_class SetPropertyModule {
 			    float double string other} \
 			$this-type-$i \
 			$state
-		    entry $entries.e-$i.value \
+		    sci_entry $entries.e-$i.value \
 			-textvariable $this-value-$i -width 16 \
 			-state $state
 
@@ -149,13 +149,13 @@ itcl_class SetPropertyModule {
     }
 
     method labelcombo { win arglist var state} {
-	frame $win 
-	iwidgets::optionmenu $win.c -foreground darkred \
-	    -command "$this comboget $win.c $var" \
-	    -state $state
+      sci_frame $win 
+      sci_optionmenu $win.c -foreground darkred \
+          -command "$this comboget $win.c $var" \
+          -state $state
 
-	foreach elem $arglist {
-	    $win.c insert end $elem
+      foreach elem $arglist {
+          $win.c insert end $elem
 	}
 
 	# hack to associate optionmenus with a textvariable
@@ -171,47 +171,47 @@ itcl_class SetPropertyModule {
     }
 
     method addEntry {} {
-	global $this-num-entries
+      global $this-num-entries
 
-# Save the defaults for the next new entry.
-	if { [set $this-num-entries] > 0 } {
-	    set i [expr [set $this-num-entries] - 1]
-	}
+    # Save the defaults for the next new entry.
+      if { [set $this-num-entries] > 0 } {
+          set i [expr [set $this-num-entries] - 1]
+      }
 
-	set i [set $this-num-entries]
+      set i [set $this-num-entries]
 
-# Add in the new entry using the defaults.
+    # Add in the new entry using the defaults.
 
-	set $this-check-$i 0
-	set $this-property-$i [set $this-property]
-	set $this-type-$i     [set $this-type]
-	set $this-value-$i    [set $this-value]
+      set $this-check-$i 0
+      set $this-property-$i [set $this-property]
+      set $this-type-$i     [set $this-type]
+      set $this-value-$i    [set $this-value]
 
-	incr $this-num-entries
+      incr $this-num-entries
 
-	create_entries
+      create_entries
     }
 
     method deleteEntry {} {
-	global $this-num-entries
+      global $this-num-entries
 
-	set j 0
+      set j 0
 
-	for {set i 0} {$i < [set $this-num-entries]} {incr i} {
+      for {set i 0} {$i < [set $this-num-entries]} {incr i} {
 
-# Shift the enties in the list. 
-	    if { [set $this-check-$i] == 0 } {
-		set $this-check-$j 0
-		set $this-property-$j [set $this-property-$i]
-		set $this-type-$j     [set $this-type-$i]
-		set $this-value-$j    [set $this-value-$i]
-		incr j
-	    }
-	}
+    # Shift the enties in the list. 
+        if { [set $this-check-$i] == 0 } {
+          set $this-check-$j 0
+          set $this-property-$j [set $this-property-$i]
+          set $this-type-$j     [set $this-type-$i]
+          set $this-value-$j    [set $this-value-$i]
+          incr j
+        }
+      }
 
-	set $this-num-entries $j
-	
-	create_entries
+      set $this-num-entries $j
+    
+      create_entries
     }
 
     method setEntry { property type value readonly } {

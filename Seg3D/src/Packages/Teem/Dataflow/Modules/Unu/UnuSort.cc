@@ -39,23 +39,93 @@
  *  Copyright (C) 2007 SCI Group
  */
 
-#include <Packages/Teem/Dataflow/Modules/Unu/UnuSort.h>
+#include <Core/Datatypes/NrrdData.h>
 
-#include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
+#include <Dataflow/Network/Module.h>
 
+#include <algorithm>
 
 namespace SCITeem {
 
 using namespace SCIRun;
 
+template< class NTYPE>
+class UnuSortAlgoT
+{
+  public:
+    class UnuSortAsc : public std::binary_function<size_t,size_t,bool>
+    {
+      public:
+        UnuSortAsc(NrrdDataHandle nrrd, size_t index)
+        {
+          size_ = nrrd->nrrd_->axis[0].size;
+          num_elems_ = nrrd->nrrd_->axis[1].size;
+          index_ = index;
+          data_ = reinterpret_cast<NTYPE*>(nrrd->nrrd_->data);
+        }
+        
+        bool operator()(size_t i1, size_t i2)
+        {
+          NTYPE val1 = data_[size_*i1+index_];
+          NTYPE val2 = data_[size_*i2+index_];
+          return (val1 < val2);
+        }
+
+      private:
+        size_t size_;
+        size_t num_elems_;
+        size_t index_;
+        NTYPE* data_;
+    };  
+  
+  
+    UnuSortAlgoT(unsigned int index) : index_(index) {}
+  
+    virtual bool run(NrrdDataHandle nrrd_input_handle, 
+                     NrrdDataHandle& nrrd_output_handle);
+    
+  private:
+    unsigned int index_;
+};
+
+ 
+
+template< class NTYPE>
+bool UnuSortAlgoT< NTYPE>::
+run(NrrdDataHandle nrrd_input_handle, NrrdDataHandle& nrrd_output_handle)
+{
+  nrrd_output_handle = nrrd_input_handle->clone();
+  std::vector<size_t> order;
+
+  size_t size = nrrd_input_handle->nrrd_->axis[0].size;
+  size_t numelems = nrrd_input_handle->nrrd_->axis[1].size;
+
+  order.resize(size);
+  for (size_t p=0; p< size; p++) order[p] = p;
+
+  std::sort(order.begin(),order.end(),UnuSortAsc(nrrd_input_handle,index_));
+
+  NTYPE* data_in = reinterpret_cast<NTYPE*>(nrrd_input_handle->nrrd_->data);
+  NTYPE* data_out = reinterpret_cast<NTYPE*>(nrrd_output_handle->nrrd_->data);
+
+  for(size_t i=0; i<numelems; i++)
+  {
+    size_t oidx = order[i];
+    for (size_t j=0; j<size;j++)
+    {
+      data_out[oidx*size+j] = data_in[i*size+j];
+    }
+  }
+
+  return (true);
+}
+
 class UnuSort : public Module {
 
 public:
   UnuSort(SCIRun::GuiContext *ctx);
-  virtual ~UnuSort();
+  virtual ~UnuSort() {}
   virtual void execute();
 
 protected:
@@ -75,18 +145,12 @@ UnuSort::UnuSort(SCIRun::GuiContext *ctx) :
 {
 }
 
-
-UnuSort::~UnuSort()
-{
-}
-
-
 void 
 UnuSort::execute()
 {
   NrrdDataHandle nrrd_input_handle;
 
-  if (!get_input_handle("Nrrd", nrrd_input_handle)) return;
+  get_input_handle("Nrrd", nrrd_input_handle);
 
   if( nrrd_input_handle->nrrd_->axis[0].size != (unsigned int)gui_max_.get() )
   {
@@ -99,7 +163,8 @@ UnuSort::execute()
   }
 
   // Must be a 2D nrrd for sorting.
-  if( nrrd_input_handle->nrrd_->dim != 2 ) {
+  if( nrrd_input_handle->nrrd_->dim != 2 ) 
+  {
     error( "Must be a 2D for sorting." );
     return;
   }
@@ -109,54 +174,68 @@ UnuSort::execute()
       gui_index_.changed( true ) ||
       !oport_cached("Nrrd") )
   {
-    CompileInfoHandle ci =
-      UnuSortAlgo::get_compile_info(nrrd_input_handle->nrrd_->type,
-				    gui_index_.get());
- 
-    Handle<UnuSortAlgo> algo;
-    
-    if(!(SCIRun::DynamicCompilation::compile(ci,algo))) {
-//      pr->compile_error(ci->filename_);
-//      SCIRun::DynamicLoader::scirun_loader().cleanup_failed_compile(ci);  
-//      return(false);
-      return;
+    NrrdDataHandle nrrd_output_handle;
+    switch (nrrd_input_handle->nrrd_->type)
+    {
+      case nrrdTypeChar:
+      {
+        UnuSortAlgoT<char> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      case nrrdTypeUChar:
+      {
+        UnuSortAlgoT<unsigned char> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      case nrrdTypeShort:
+      {
+        UnuSortAlgoT<short> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      case nrrdTypeUShort:
+      {
+        UnuSortAlgoT<unsigned short> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      case nrrdTypeInt:
+      {
+        UnuSortAlgoT<int> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      case nrrdTypeUInt:
+      {
+        UnuSortAlgoT<unsigned int> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      case nrrdTypeLLong:
+      {
+        UnuSortAlgoT<long long> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      case nrrdTypeULLong:
+      {
+        UnuSortAlgoT<unsigned long long> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      case nrrdTypeFloat:
+      {
+        UnuSortAlgoT<float> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      case nrrdTypeDouble:
+      {
+        UnuSortAlgoT<double> algo(gui_index_.get());
+        algo.run(nrrd_input_handle,nrrd_output_handle); break;
+      }
+      default:
+      {
+        error("Unnown nrrd type encountered");
+        return;
+      }
     }
 
-    algo->execute(nrrd_input_handle);
-
-    send_output_handle("Nrrd", nrrd_input_handle, true);
+    send_output_handle("Nrrd", nrrd_output_handle);
   }
-}
-
-CompileInfoHandle
-UnuSortAlgo::get_compile_info( const unsigned int ntype,
-			       const unsigned int index)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  const string base_class_name("UnuSortAlgo");
-  const string template_class_name("UnuSortAlgoT");
-
-  string nTypeStr, nTypeName;
-
-  get_nrrd_compile_type( ntype, nTypeStr, nTypeName );
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       to_string( index ) + "." +
-		       nTypeName + ".",
-                       base_class_name, 
-                       template_class_name,
-                       nTypeStr + ", " + to_string( index ) );
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-
-  rval->add_data_include("Core/Geometry/Vector.h");
-  rval->add_data_include("Core/Geometry/Tensor.h");
-  rval->add_namespace( "SCIRun" );
-  rval->add_namespace( "SCITeem" );
-  return rval;
 }
 
 } // End namespace SCITeem

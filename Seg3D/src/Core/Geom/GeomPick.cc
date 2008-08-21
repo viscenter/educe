@@ -41,7 +41,7 @@
 
 #include <Core/Geom/GeomPick.h>
 #include <Core/GeomInterface/Pickable.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::ostream;
 
@@ -49,7 +49,7 @@ namespace SCIRun {
 
 Persistent* make_GeomPick()
 {
-  return scinew GeomPick(0,0);
+  return new GeomPick(0,0);
 }
 
 
@@ -96,7 +96,6 @@ GeomPick::GeomPick(GeomHandle obj, ModulePickable* module,
   directions_[4]=Vector(0,0,1);
   directions_[5]=Vector(0,0,-1);
 }
-
 
 GeomPick::GeomPick(GeomHandle obj, ModulePickable* module, const Vector& v1)
   : GeomContainer(obj),
@@ -171,7 +170,7 @@ GeomPick::GeomPick(const GeomPick& copy)
 
 GeomObj* GeomPick::clone()
 {
-  return scinew GeomPick(*this);
+  return new GeomPick(*this);
 }
 
 
@@ -270,6 +269,12 @@ const Vector &GeomPick::principal(int i)
   return directions_[i];
 }
 
+
+void
+GeomPick::set_principal()
+{
+  directions_.clear();
+}
 
 void
 GeomPick::set_principal(const Vector& v1)

@@ -53,7 +53,7 @@
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Basis/HexTrilinearLgn.h>
 #include <Core/Datatypes/HexVolMesh.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <Core/Persistent/Pstreams.h>
 

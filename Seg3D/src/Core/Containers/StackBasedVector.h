@@ -61,7 +61,7 @@ public:
 
   ~StackBasedVector() 
   {
-    if(data_ != &fixed_[0])
+    if(data_ != &(fixed_[0]))
       delete[] data_;
   }
 
@@ -83,27 +83,27 @@ public:
   { 
     curalloc_=CAPACITY; 
     cursize_=0; 
-    data_=&fixed_[0]; 
+    data_=&(fixed_[0]); 
   }
 
   inline iterator begin() 
   { 
-    return &data_[0]; 
+    return data_; 
   }
   
   inline const_iterator begin() const 
   { 
-    return &data_[0]; 
+    return data_; 
   }
   
   inline iterator end() 
   { 
-    return &data_[cursize_]; 
+    return data_+cursize_; 
   }
   
   inline const_iterator end() const 
   { 
-    return &data_[cursize_];
+    return data_+cursize_;
   }
 
   inline void reserve(size_type s) 
@@ -156,21 +156,28 @@ public:
   {
     if (new_size == 0)
     {
-      curalloc_+=(curalloc_>>1);
+      curalloc_=(curalloc_<<1);
     }
     else 
     {
-      while (curalloc_ < new_size)
-        curalloc_+=(curalloc_>>1);
+      if (curalloc_ < new_size) curalloc_ = new_size;
     }
-    T* newdata = new T[curalloc_];
-    for(size_type i=0;i<cursize_;i++)
+    
+    if (curalloc_ > CAPACITY)
     {
-      newdata[i]=data_[i];
+      T* newdata = new T[curalloc_];
+      for(size_type i=0;i<cursize_;i++)
+      {
+        newdata[i]=data_[i];
+      }
+      if(data_ != &(fixed_[0]))
+        delete[] data_;
+      data_=newdata;
     }
-    if(data_ != &fixed_[0])
-      delete[] data_;
-    data_=newdata;
+    else
+    {
+      data_ = &(fixed_[0]);
+    }
   }
 
   inline size_type size() const 
@@ -196,14 +203,16 @@ public:
   
   StackBasedVector(const StackBasedVector<T,CAPACITY>& copy)
   { 
-    initialize(); 
-    insert(begin(), copy.begin(), copy.end()); 
+    initialize();
+    resize(copy.cursize_);
+    for (size_type j=0; j<cursize_; j++) data_[j] = copy.data_[j];
   }
   
   StackBasedVector<T,CAPACITY>& operator=(const StackBasedVector<T,CAPACITY>& copy)
   { 
     clear(); 
-    insert(begin(), copy.begin(), copy.end()); 
+    resize(copy.cursize_);
+    for (size_type j=0; j<cursize_; j++) data_[j] = copy.data_[j];
     return *this; 
   }
 

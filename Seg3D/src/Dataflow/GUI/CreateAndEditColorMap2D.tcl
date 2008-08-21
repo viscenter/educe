@@ -35,20 +35,20 @@ itcl_class SCIRun_Visualization_CreateAndEditColorMap2D {
     protected swatches
     protected swatchpath
     constructor {config} {
-        set name CreateAndEditColorMap2D
-	set highlighted -1
-	set frames ""
-        set_defaults
-	set pix [netedit getenv SCIRUN_SRCDIR]/pixmaps/powerapp-close.ppm
-	set close [image create photo -file $pix]
-	set swatches 0
-        set swatchpath "[netedit getenv HOME]/SCIRun/Colormaps"
-	if { ![validDir $swatchpath] } {
-	    file mkdir $swatchpath
-	}
-	if { ![validDir $swatchpath] } {
-	    set swatchpath ""
-	}
+      set name CreateAndEditColorMap2D
+      set highlighted -1
+      set frames ""
+            set_defaults
+      set pix [netedit getenv SCIRUN_SRCDIR]/pixmaps/powerapp-close.ppm
+      set close [image create photo -file $pix]
+      set swatches 0
+            set swatchpath "[netedit getenv HOME]/SCIRun/Colormaps"
+      if { ![validDir $swatchpath] } {
+          file mkdir $swatchpath
+      }
+      if { ![validDir $swatchpath] } {
+          set swatchpath ""
+      }
     }
     
     method set_defaults {} {
@@ -154,39 +154,39 @@ itcl_class SCIRun_Visualization_CreateAndEditColorMap2D {
 
 	    set e $frame.e-$i
 	    if { ![winfo exists $e] } {
-		set force 1
-		frame $e -width 500 -relief sunken -bd 1
-		button $e.x -image $close -anchor nw -relief flat \
-		    -command "$this select_widget $i; $this-c deletewidget"
+        set force 1
+        sci_frame $e -width 500 -relief sunken -bd 1
+        sci_button $e.x -image $close -anchor nw -relief flat \
+            -command "$this select_widget $i; $this-c deletewidget"
 
-		entry $e.name -textvariable $this-name-$i -width 13 -bd 0
-		bind $e.name <ButtonPress> "+$this select_widget $i"
-		button $e.color -width 4 \
-		    -command "$this select_widget $i; $this raise_color $frame.e-$i.color $this-$i-color \"color $i\""
+        sci_entry $e.name -textvariable $this-name-$i -width 13 -bd 0
+        bind $e.name <ButtonPress> "+$this select_widget $i"
+        sci_button $e.color -width 4 \
+            -command "$this select_widget $i; $this raise_color $frame.e-$i.color $this-$i-color \"color $i\""
 
-		checkbutton $e.shade -text "" -padx 15 -justify center \
-		    -relief flat -variable $this-shadeType-$i \
-		    -onvalue 1 -offvalue 0 -anchor w \
-		    -command "$this-c shade_toggle $i; "
+        sci_checkbutton $e.shade -text "" -padx 15 -justify center \
+            -relief flat -variable $this-shadeType-$i \
+            -onvalue 1 -offvalue 0 -anchor w \
+            -command "$this-c shade_toggle $i; "
 
-		checkbutton $e.on -text "" -padx 15 -justify center \
-		    -relief flat -variable $this-on-$i -onvalue 1 -offvalue 0 \
-		    -anchor w -command "$this-c toggle $i"
-		frame $e.fill -width 500
-		bind $e.fill <ButtonPress> "$this select_widget $i"
-		pack $e.x $e.name $e.color $e.shade $e.on $e.fill -side left \
-		    -ipadx 0 -ipady 0 -padx 0 -pady 0 -fill y
-		pack $e
+        sci_checkbutton $e.on -text "" -padx 15 -justify center \
+            -relief flat -variable $this-on-$i -onvalue 1 -offvalue 0 \
+            -anchor w -command "$this-c toggle $i"
+        sci_frame $e.fill -width 500
+        bind $e.fill <ButtonPress> "$this select_widget $i"
+        pack $e.x $e.name $e.color $e.shade $e.on $e.fill -side left \
+            -ipadx 0 -ipady 0 -padx 0 -pady 0 -fill y
+        pack $e
 	    }
 	    set_color $e.color $this-$i-color
-	}
-	
-	# Destroy all the left over entries from prior runs.
-	while {[winfo exists $frame.e-$i]} {
-	    destroy $frame.e-$i
-	    incr i
-	}
-	highlight_entry $force
+      }
+      
+      # Destroy all the left over entries from prior runs.
+      while {[winfo exists $frame.e-$i]} {
+          destroy $frame.e-$i
+          incr i
+      }
+      highlight_entry $force
     }
 
     method file_save {} {
@@ -215,64 +215,64 @@ itcl_class SCIRun_Visualization_CreateAndEditColorMap2D {
     method file_load {} {
         set wl .ui[modname]-fbl
         if {[winfo exists $wl]} {
-	    SciRaise $wl
-            return
+            SciRaise $wl
+                  return
+              }
+              # file types to appers in filter box
+              set types { 
+            { {SCIRun 2D Transfer Function} {.cmap .cmap2} }
+            { {All Files} {.*} }
         }
-        # file types to appers in filter box
-        set types { 
-	    { {SCIRun 2D Transfer Function} {.cmap .cmap2} }
-	    { {All Files} {.*} }
-	}
         makeOpenFilebox \
-	    -parent [toplevel $wl -class TkFDialog] \
-	    -filevar $this-filename \
-	    -command "$this-c load;  wm withdraw $wl" \
-	    -cancel "wm withdraw $wl" \
-	    -title "Open SCIRun 2D Transfer Function" \
-	    -filetypes $types \
-	    -initialdir ~/ \
-	    -defaultextension .cmap2
+          -parent [toplevel $wl -class TkFDialog] \
+          -filevar $this-filename \
+          -command "$this-c load;  wm withdraw $wl" \
+          -cancel "wm withdraw $wl" \
+          -title "Open SCIRun 2D Transfer Function" \
+          -filetypes $types \
+          -initialdir ~/ \
+          -defaultextension .cmap2
         moveToCursor $wl
-	SciRaise $wl
+        SciRaise $wl
     }
 
     method create_swatches {} {
         set swatches 0
-	foreach file [glob -nocomplain ${swatchpath}/*.cmap2] {
-	    $this add_swatch $file
-	}
+        foreach file [glob -nocomplain ${swatchpath}/*.cmap2] {
+          $this add_swatch $file
+        }
     }
 
     method add_swatch { filename } {
-	if { ![validFile $filename] || ![validFile ${filename}.ppm] } return
-        set w .ui[modname].swatchpicker
-        if {![winfo exists $w]} return
-	set col [expr $swatches % 4]
-	set row [expr $swatches / 4]
-	set f [$w childsite].swatchFrame$row
-	if {$col == 0} {
-	    frame $f
-	    pack $f -side top -anchor nw
-	}
-	#Load in the image to diplay on the button
-	image create photo img-$swatches -format ppm -file ${filename}.ppm
-	button $f.swatch$swatches -image img-$swatches \
-	    -command "$this swatch_load $filename"
-	grid configure $f.swatch$swatches -row $row -col $col -sticky nw
-	incr swatches
+      if { ![validFile $filename] || ![validFile ${filename}.ppm] } return
+            set w .ui[modname].swatchpicker
+            if {![winfo exists $w]} return
+      set col [expr $swatches % 4]
+      set row [expr $swatches / 4]
+      set f [$w childsite].swatchFrame$row
+      if {$col == 0} {
+          frame $f
+          pack $f -side top -anchor nw
+      }
+      #Load in the image to diplay on the button
+      image create photo img-$swatches -format ppm -file ${filename}.ppm
+      sci_button $f.swatch$swatches -image img-$swatches \
+          -command "$this swatch_load $filename"
+      grid configure $f.swatch$swatches -row $row -col $col -sticky nw
+      incr swatches
     }
 
     method swatch_delete {} {
-	upvar \#0 $this-deleteSwatch delete
-	if { ![file writable $delete] } return
-        file delete $delete
-	file delete ${delete}.ppm
-        set f .ui[modname].swatchpicker
-        if {![winfo exists $f]} return
-	foreach element [winfo children [$f childsite]] {
-	    destroy $element
-	}
-	create_swatches
+      upvar \#0 $this-deleteSwatch delete
+      if { ![file writable $delete] } return
+            file delete $delete
+      file delete ${delete}.ppm
+            set f .ui[modname].swatchpicker
+            if {![winfo exists $f]} return
+      foreach element [winfo children [$f childsite]] {
+          destroy $element
+      }
+      create_swatches
     }
 
     method swatch_load { filename } {
@@ -282,29 +282,29 @@ itcl_class SCIRun_Visualization_CreateAndEditColorMap2D {
     }
 
     method swatch_save {} {
-	if { $swatchpath == "" } return
-        set basename [clock format [clock seconds] -format {%Y%m%d_%H%M%S}]
-        setGlobal $this-filename "${swatchpath}/${basename}.cmap2"
-        $this-c save true
-	global swatch_modid
-	set swatch_modid $this
-	global swatch_fn
-	set swatch_fn "${swatchpath}/${basename}.cmap2"
-	#{[set $this] add_swatch [set $this-filename]}
-	after 200 {$swatch_modid  add_swatch $swatch_fn}
+      if { $swatchpath == "" } return
+            set basename [clock format [clock seconds] -format {%Y%m%d_%H%M%S}]
+            setGlobal $this-filename "${swatchpath}/${basename}.cmap2"
+            $this-c save true
+      global swatch_modid
+      set swatch_modid $this
+      global swatch_fn
+      set swatch_fn "${swatchpath}/${basename}.cmap2"
+      #{[set $this] add_swatch [set $this-filename]}
+      after 200 {$swatch_modid  add_swatch $swatch_fn}
     }
 
     method label_widget_columns { frame } {
-        frame $frame
-        frame $frame.empty0 -width 21 -bd 0
-        label $frame.name -text "Name" -width 13 -relief groove
-        label $frame.color -text "Color" -width 4 -relief groove
-        label $frame.shade -text "Solid" -width 7 -relief groove
-        label $frame.onoff -text "On" -width 7 -relief groove
-        label $frame.empty -text "" -width 3
-        pack $frame.empty0 $frame.name $frame.color $frame.shade \
+      sci_frame $frame
+      sci_frame $frame.empty0 -width 21 -bd 0
+      sci_label $frame.name -text "Name" -width 13 -relief groove
+      sci_label $frame.color -text "Color" -width 4 -relief groove
+      sci_label $frame.shade -text "Solid" -width 7 -relief groove
+      sci_label $frame.onoff -text "On" -width 7 -relief groove
+      sci_label $frame.empty -text "" -width 3
+      pack $frame.empty0 $frame.name $frame.color $frame.shade \
 	    $frame.onoff $frame.empty -side left 
-	return $frame
+      return $frame
     }
 
     method set_cursor { cur } {
@@ -324,81 +324,81 @@ itcl_class SCIRun_Visualization_CreateAndEditColorMap2D {
 
         set w .ui[modname]
         if {[winfo exists $w]} {
-	    SciRaise $w
-            return
+          SciRaise $w
+          return
         }
-        toplevel $w
+        sci_toplevel $w
 
 
-	# create an OpenGL widget
-	frame $w.glf -bd 2 -relief groove
-	$this-c setgl $w.glf.gl
-	bind_events $w.glf.gl
-	pack $w.glf -side top -padx 0 -pady 0 -expand yes -fill both
-	pack $w.glf.gl -side top -padx 0 -pady 0 -expand yes -fill both
+        # create an OpenGL widget
+        sci_frame $w.glf -bd 2 -relief groove
+        $this-c setgl $w.glf.gl
+        bind_events $w.glf.gl
+        pack $w.glf -side top -padx 0 -pady 0 -expand yes -fill both
+        pack $w.glf.gl -side top -padx 0 -pady 0 -expand yes -fill both
 
-	set_cursor "crosshair"
+        set_cursor "crosshair"
 
-	set frame $w.topframe
-	frame $frame
-	pack $frame -padx 2 -pady 2 -fill x
+        set frame $w.topframe
+        sci_frame $frame
+        pack $frame -padx 2 -pady 2 -fill x
 
-	# histogram opacity
-	scale $frame.shisto -variable $this-histo \
-	    -from 0.0 -to 1.0 -label "Histogram Opacity" \
-	    -showvalue true -resolution 0.001 \
-	    -orient horizontal -command "$this-c redraw-histo"
-	pack $frame.shisto -side top -fill x -padx 4
+        # histogram opacity
+        sci_scale $frame.shisto -variable $this-histo \
+            -from 0.0 -to 1.0 -label "Histogram Opacity" \
+            -showvalue true -resolution 0.001 \
+            -orient horizontal -command "$this-c redraw-histo"
+        pack $frame.shisto -side top -fill x -padx 4
 
-	# Scrollable frame areas for widget controls and swatches
-        iwidgets::scrolledframe $w.widgets -hscrollmode none \
-	    -vscrollmode static
-        iwidgets::scrolledframe $w.swatchpicker -hscrollmode none \
-	    -vscrollmode dynamic
+        # Scrollable frame areas for widget controls and swatches
+        sci_scrolledframe $w.widgets -hscrollmode none \
+            -vscrollmode static
+        sci_scrolledframe $w.swatchpicker -hscrollmode none \
+            -vscrollmode dynamic
 
-	# W Controls
-	set f $w.controls
-        frame $f
-        button $f.addtriangle -text "Add Triangle" \
+        # W Controls
+        set f $w.controls
+        sci_frame $f
+        sci_button $f.addtriangle -text "Add Triangle" \
             -command "$this-c addtriangle" -width 12
-        button $f.addrectangle -text "Add Rectangle" \
+        sci_button $f.addrectangle -text "Add Rectangle" \
             -command "$this-c addrectangle" -width 14
-	button $f.addellipsoid -text "Add Ellipsoid" \
-	    -command "$this-c addellipsoid" -width 12
-	button $f.addparaboloid -text "Add Paraboloid" \
-	    -command "$this-c addparaboloid" -width 14
+        sci_button $f.addellipsoid -text "Add Ellipsoid" \
+            -command "$this-c addellipsoid" -width 12
+        sci_button $f.addparaboloid -text "Add Paraboloid" \
+            -command "$this-c addparaboloid" -width 14
         pack $f.addtriangle $f.addrectangle $f.addellipsoid $f.addparaboloid \
-            -padx 8 -pady 4 -fill x -side left
+                  -padx 8 -pady 4 -fill x -side left
 
-	# W create/delete
-	set f $w.alter
-	frame $f
-        button $f.delete -text Delete -command "$this-c deletewidget" -width 6
-        button $f.undo -text Undo -command "$this-c undowidget" -width 6
-        button $f.load -text Load -command "$this file_load" -width 6
-        button $f.save -text Save -command "$this file_save" -width 6
-	pack $f.delete $f.undo $f.load $f.save -padx 8 -pady 4 \
-	    -fill x -side left
+        # W create/delete
+        set f $w.alter
+        sci_frame $f
+        sci_button $f.delete -text Delete -command "$this-c deletewidget" -width 6
+        sci_button $f.undo -text Undo -command "$this-c undowidget" -width 6
+        sci_button $f.load -text Load -command "$this file_load" -width 6
+        sci_button $f.save -text Save -command "$this file_save" -width 6
+        pack $f.delete $f.undo $f.load $f.save -padx 8 -pady 4 \
+            -fill x -side left
 
-	# Swatch Controls
-	set f $w.swatchcontrol
-	frame $f
-	button $f.save -text QuickSave -command "$this swatch_save" -width 20
-	button $f.del -text "Delete Swatch" \
-	    -command "$this swatch_delete" -width 20
-	pack $f.save $f.del -padx 8 -pady 4 -side left -fill x -expand 1
-	
-	# Pack 'em all up...
+        # Swatch Controls
+        set f $w.swatchcontrol
+        sci_frame $f
+        sci_button $f.save -text QuickSave -command "$this swatch_save" -width 20
+        sci_button $f.del -text "Delete Swatch" \
+            -command "$this swatch_delete" -width 20
+        pack $f.save $f.del -padx 8 -pady 4 -side left -fill x -expand 1
+        
+        # Pack 'em all up...
         pack [label_widget_columns $w.title]  -fill x -padx 2 -pady 2
         pack $w.widgets -side top -fill both -expand yes -padx 2
         pack $w.controls -side top     
-	pack $w.alter -side top
-	pack $w.swatchpicker -side top -fill both -expand yes -padx 2
-	pack $w.swatchcontrol -side top
-	
-	add_frame [$w.widgets childsite]
-        create_entries
-	create_swatches
+        pack $w.alter -side top
+        pack $w.swatchpicker -side top -fill both -expand yes -padx 2
+        pack $w.swatchcontrol -side top
+        
+        add_frame [$w.widgets childsite]
+              create_entries
+        create_swatches
 
         makeSciButtonPanel $w $w $this
         moveToCursor $w

@@ -30,35 +30,22 @@ else
 fi
 
 if test "$BITS" = "64"; then 
-    if test "$OSNAME" = "IRIX64"; then
-        CFLAGS="'-LANG:std -64'"
-        CXXFLAGS=$CFLAGS
-        LDFLAGS=$CFLAGS
-    elif test "$OSNAME" = "AIX"; then
-        CFLAGS="-q64"
-        CXXFLAGS=$CFLAGS
-        LDFLAGS=$CFLAGS
-    else
-        CFLAGS="-fPIC"
-        CXXFLAGS=$CFLAGS
-    fi
+    CFLAGS="-fPIC"
+    CXXFLAGS=$CFLAGS
 else
-    if test "$OSNAME" = "IRIX64"; then
-        CFLAGS="'-LANG:std -n32'"
-        CXXFLAGS=$CFLAGS
-        LDFLAGS=$CFLAGS
-    elif test "$OSNAME" = "AIX"; then
-        CFLAGS="-q32"
-        CXXFLAGS=$CFLAGS
-        LDFLAGS=$CFLAGS
-    else
-        CFLAGS="-fPIC"
-        CXXFLAGS=$CFLAGS
-    fi
+    CFLAGS="-fPIC"
+    CXXFLAGS=$CFLAGS
 fi
 
 if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then 
-  CFLAGS="'-m64'"
+  CFLAGS="'-m64  -arch ppc64 -arch x86_64 '"
+  CXXFLAGS="'-m64  -arch ppc64 -arch x86_64 '"
+  LDFLAGS=$CFLAGS
+fi
+
+if test "$BITS" = "32" && test "$OSNAME" = "Darwin"; then 
+  CFLAGS="'-arch ppc -arch i386 '"
+  CXXFLAGS="'-arch ppc -arch i386 '"
   LDFLAGS=$CFLAGS
 fi
 
@@ -109,6 +96,25 @@ GNUMAKE=$MAKE ./configure $SHARED_LIBS_FLAG --prefix=$DIR $BITS_FLAG \
 
 ############
 # Make
+
+
+if test "$OSNAME" = "Darwin"; then
+  if test "$BITS" = "64"; then
+    mv $DIR/src/freetype-2.1.10/builds/unix/libtool $DIR/src/freetype-2.1.10/builds/unix/libtool.old
+    sed 's:dynamiclib:dynamiclib -arch ppc64 -arch x86_64:g' $DIR/src/freetype-2.1.10/builds/unix/libtool.old >$DIR/src/freetype-2.1.10/builds/unix/libtool
+    chmod 0777 $DIR/src/freetype-2.1.10/builds/unix/libtool
+    mv $DIR/src/freetype-2.1.10/builds/unix/unix-cc.mk $DIR/src/freetype-2.1.10/builds/unix/unix-cc.mk.old
+    sed 's:gcc:gcc -arch ppc64 -arch x86_64:g' $DIR/src/freetype-2.1.10/builds/unix/unix-cc.mk.old >$DIR/src/freetype-2.1.10/builds/unix/unix-cc.mk
+  fi
+
+  if test "$BITS" = "32"; then
+    mv $DIR/src/freetype-2.1.10/builds/unix/libtool $DIR/src/freetype-2.1.10/builds/unix/libtool.old
+    sed 's:dynamiclib:dynamiclib -arch ppc -arch i386:g' $DIR/src/freetype-2.1.10/builds/unix/libtool.old >$DIR/src/freetype-2.1.10/builds/unix/libtool
+    chmod 0777 $DIR/src/freetype-2.1.10/builds/unix/libtool
+    mv $DIR/src/freetype-2.1.10/builds/unix/unix-cc.mk $DIR/src/freetype-2.1.10/builds/unix/unix-cc.mk.old
+    sed 's:gcc:gcc -arch ppc -arch i386:g' $DIR/src/freetype-2.1.10/builds/unix/unix-cc.mk.old >$DIR/src/freetype-2.1.10/builds/unix/unix-cc.mk
+  fi
+fi  
 
 $MAKE $MAKE_FLAGS
 $MAKE install

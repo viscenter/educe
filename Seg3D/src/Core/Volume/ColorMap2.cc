@@ -34,13 +34,13 @@
 #include <Core/Persistent/PersistentSTL.h>
 #include <Core/Volume/ColorMap2.h>
 #include <Core/Volume/CM2Widget.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCIRun {
 
 static Persistent* maker()
 {
-  return scinew ColorMap2;
+  return new ColorMap2;
 }
 
 PersistentTypeID ColorMap2::type_id("ColorMap2", "Datatype", maker);

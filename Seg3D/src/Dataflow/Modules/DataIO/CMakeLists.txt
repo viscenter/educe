@@ -44,6 +44,7 @@ SET(Dataflow_Modules_DataIO_SRCS
   ReadString.cc
   WriteString.cc
   StreamMatrixFromDisk.cc
+  StreamACQFileFromDisk.cc
   ReadHDF5File.cc
   WriteHDF5DumpFile.cc
 )
@@ -52,8 +53,12 @@ SCIRUN_ADD_LIBRARY(Dataflow_Modules_DataIO ${Dataflow_Modules_DataIO_SRCS})
 
 TARGET_LINK_LIBRARIES(Dataflow_Modules_DataIO
   Dataflow_Network
+  Dataflow_GuiInterface
+  Dataflow_TkExtensions
+  Core_Algorithms_Util
+  Core_Algorithms_DataIO  
+  Core_Algorithms_DataStreaming
   Core_Basis
-  Core_Bundle
   Core_Datatypes
   Core_Exceptions
   Core_ImportExport
@@ -61,17 +66,15 @@ TARGET_LINK_LIBRARIES(Dataflow_Modules_DataIO
   Core_Geom
   Core_GeomInterface
   Core_Geometry
-  Dataflow_GuiInterface
   Core_Persistent
   Core_Thread
-  Dataflow_TkExtensions
   Core_Util
   Core_Volume
-  Core_OS
-  Core_Algorithms_DataStreaming
   ${TK_LIBRARY}
   ${GL_LIBRARY}
   ${M_LIBRARY}
+  ${TEEM_LIBRARY}
+  ${SLIVRG_LIBRARY}
 )
 
 IF (HAVE_HDF5)

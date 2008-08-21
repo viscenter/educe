@@ -44,20 +44,21 @@ itcl_class Teem_UnuAtoM_UnuAxmerge {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.axis -labeltext "Axis (or axes) to merge:" -textvariable $this-axes
+        sci_entryfield $w.f.options.axis -labeltext "Axis (or axes) to merge:" -textvariable $this-axes
         pack $w.f.options.axis -side top -expand yes -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+
     }
 }

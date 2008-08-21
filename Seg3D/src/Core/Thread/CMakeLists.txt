@@ -29,6 +29,8 @@
 # Sources of Core/Thread classes
 
 SET(Core_Thread_SRCS
+  AtomicCounter_default.cc
+  Barrier_default.cc
   CleanupManager.cc 
   Guard.cc 
   MutexPool.cc 
@@ -43,11 +45,6 @@ SET(Core_Thread_SRCS
   ThreadPool.cc 
   WorkQueue.cc 
 )
-
-# DV Fix for all cases
-IF(${CMAKE_SYSTEM_NAME} MATCHES IRIX)
-  SET(Core_Thread_SRCS ${Core_Thread_SRCS} Thread_irix.cc Time_irix.cc)
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES IRIX)
 
 IF(CMAKE_USE_PTHREADS)
   SET(Core_Thread_SRCS ${Core_Thread_SRCS} Thread_pthreads.cc Time_unix.cc)

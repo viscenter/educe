@@ -60,7 +60,9 @@ public:
                           VMesh::Elem::index_type i) const;
   virtual void get_enodes(VMesh::ENode::array_type& edges,
                           VMesh::DElem::index_type i) const;
-                                            
+
+  virtual void get_edges(VMesh::Edge::array_type& edges, 
+                         VMesh::Node::index_type i) const;                                            
   virtual void get_edges(VMesh::Edge::array_type& edges, 
                          VMesh::Face::index_type i) const;
   virtual void get_edges(VMesh::Edge::array_type& edges,
@@ -86,19 +88,16 @@ public:
   virtual void get_elems(VMesh::Elem::array_type& elems,
                          VMesh::DElem::index_type i) const;
 
+  virtual void get_delems(VMesh::DElem::array_type& delems,
+                          VMesh::Node::index_type i) const;
+  virtual void get_delems(VMesh::DElem::array_type& delems,
+                          VMesh::Edge::index_type i) const;
   virtual void get_delems(VMesh::DElem::array_type& delems, 
                           VMesh::Face::index_type i) const;
   virtual void get_delems(VMesh::DElem::array_type& delems,
                           VMesh::Elem::index_type i) const;
 
-  virtual double find_closest_elem(Point& result, 
-                                   VMesh::Elem::index_type &i, 
-                                   const Point &point) const;
-
-  virtual double find_closest_elems(Point& result, 
-                                   VMesh::Elem::array_type &i, 
-                                   const Point &point) const;
-
+  virtual VMesh::index_type* get_elems_pointer() const;                          
 };
 
 
@@ -115,7 +114,7 @@ public:
 //! Create virtual interface 
 VMesh* CreateVQuadSurfMesh(QuadSurfMesh<QuadBilinearLgn<Point> >* mesh)
 {
-  return scinew VQuadSurfMesh<QuadSurfMesh<QuadBilinearLgn<Point> > >(mesh);
+  return new VQuadSurfMesh<QuadSurfMesh<QuadBilinearLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -129,7 +128,7 @@ static MeshTypeID QuadSurfMesh_MeshID1(QuadSurfMesh<QuadBilinearLgn<Point> >::ty
 //! Create virtual interface 
 VMesh* CreateVQuadSurfMesh(QuadSurfMesh<QuadBiquadraticLgn<Point> >* mesh)
 {
-  return scinew VQuadSurfMesh<QuadSurfMesh<QuadBiquadraticLgn<Point> > >(mesh);
+  return new VQuadSurfMesh<QuadSurfMesh<QuadBiquadraticLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -144,7 +143,7 @@ static MeshTypeID QuadSurfMesh_MeshID2(QuadSurfMesh<QuadBiquadraticLgn<Point> >:
 //! Create virtual interface 
 VMesh* CreateVQuadSurfMesh(QuadSurfMesh<QuadBicubicHmt<Point> >* mesh)
 {
-  return scinew VQuadSurfMesh<QuadSurfMesh<QuadBicubicHmt<Point> > >(mesh);
+  return new VQuadSurfMesh<QuadSurfMesh<QuadBicubicHmt<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -210,7 +209,13 @@ VQuadSurfMesh<MESH>::get_enodes(VMesh::ENode::array_type& enodes,
   enodes.resize(1); enodes[0] = static_cast<VMesh::ENode::index_type>(i);
 }
 
-
+template <class MESH>
+void 
+VQuadSurfMesh<MESH>::get_edges(VMesh::Edge::array_type& edges, 
+                              VMesh::Node::index_type i) const
+{
+  this->mesh_->get_edges_from_node(edges,i);
+}
 
 template <class MESH>
 void 
@@ -303,6 +308,22 @@ VQuadSurfMesh<MESH>::get_elems(VMesh::Elem::array_type& elems,
 template <class MESH>
 void 
 VQuadSurfMesh<MESH>::get_delems(VMesh::DElem::array_type& delems, 
+                                VMesh::Node::index_type i) const
+{
+  this->mesh_->get_edges_from_node(delems,i);
+}
+
+template <class MESH>
+void 
+VQuadSurfMesh<MESH>::get_delems(VMesh::DElem::array_type& delems, 
+                                VMesh::Edge::index_type i) const
+{
+  delems.resize(1); delems[0] = static_cast<VMesh::DElem::index_type>(i);
+}
+
+template <class MESH>
+void 
+VQuadSurfMesh<MESH>::get_delems(VMesh::DElem::array_type& delems, 
                                 VMesh::Face::index_type i) const
 {
   this->mesh_->get_edges_from_face(delems,i);
@@ -317,22 +338,13 @@ VQuadSurfMesh<MESH>::get_delems(VMesh::DElem::array_type& delems,
 }
 
 template <class MESH>
-double 
-VQuadSurfMesh<MESH>::find_closest_elem(Point& result,
-                                       VMesh::Elem::index_type &i, 
-                                       const Point &point) const
+VMesh::index_type*
+VQuadSurfMesh<MESH>::
+get_elems_pointer() const
 {
-  return(this->mesh_->find_closest_elem(result,i,point));
-} 
-
-template <class MESH>
-double 
-VQuadSurfMesh<MESH>::find_closest_elems(Point& result,
-                                        VMesh::Elem::array_type &i, 
-                                        const Point &point) const
-{
-  return(this->mesh_->find_closest_elems(result,i,point));
-} 
+  if (this->mesh_->faces_.size() == 0) return (0);
+   return (&(this->mesh_->faces_[0]));
+}
 
 
 } // namespace SCIRun

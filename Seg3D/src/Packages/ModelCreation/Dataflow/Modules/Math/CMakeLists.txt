@@ -29,12 +29,7 @@
 # CMakeLists.txt for Packages/ModelCreation/Dataflow/Modules/Math
 
 SET(Packages_ModelCreation_Dataflow_Modules_Math_SRCS
-  AppendMatrix.cc
   GetSubMatrix.cc
-  ReorderMatrixByCuthillMcKee.cc
-  ReorderMatrixByReverseCuthillMcKee.cc
-  ReportMatrixColumnMeasure.cc
-  ReportMatrixRowMeasure.cc
   ResizeMatrix.cc
 )
 
@@ -54,6 +49,7 @@ TARGET_LINK_LIBRARIES(Packages_ModelCreation_Dataflow_Modules_Math
   Core_Geometry
   Core_GeomInterface
   Dataflow_TkExtensions
+  Core_Algorithms_Util
   Core_Algorithms_Math
   Core_Algorithms_Converter
   ${TK_LIBRARY}

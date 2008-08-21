@@ -40,14 +40,14 @@ itcl_class SCIRun_ChangeFieldData_SwapFieldDataWithMatrixEntries {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-	checkbutton $w.preserve -text "Preserve Scalar Field Type" \
-	    -variable $this-preserve-scalar-type -command "$this-c needexecute"
+        sci_checkbutton $w.preserve -text "Preserve Scalar Field Type" \
+            -variable $this-preserve-scalar-type -command "$this-c needexecute"
 
-	pack $w.preserve
+        pack $w.preserve
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
      }
 }

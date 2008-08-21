@@ -90,7 +90,7 @@ MapFieldDataFromNodeToElemT(MapFieldDataFromNodeToElemAlgo* algo,
         ifield->get_value(tval,nodearray[p]);
         val += tval;
       }
-      val = val * static_cast<double>((1.0/static_cast<double>(nsize)));
+      val = static_cast<DATA>(val * static_cast<double>((1.0/static_cast<double>(nsize))));
       ofield->set_value(val,*it);
       ++it;
       cnt++; 
@@ -226,7 +226,7 @@ MapFieldDataFromNodeToElemT(MapFieldDataFromNodeToElemAlgo* algo,
 
 bool 
 MapFieldDataFromNodeToElemAlgo::
-run(FieldHandle input, FieldHandle& output)
+run(FieldHandle& input, FieldHandle& output)
 {
   algo_start("MapFieldData",true);
   

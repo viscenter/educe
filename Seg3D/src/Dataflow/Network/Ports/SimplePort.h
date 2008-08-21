@@ -228,7 +228,7 @@ SimpleOPort<T>::finish()
     for (int i = 0; i < nconnections(); i++)
     {
       ConnectionHandle conn = connections[i].get_rep();
-      SimplePortComm<T>* msg = scinew SimplePortComm<T>(handle_);
+      SimplePortComm<T>* msg = new SimplePortComm<T>(handle_);
       ((SimpleIPort<T>*)conn->iport.get_rep())->mailbox.send(msg);
     }
     turn_off_light();
@@ -244,7 +244,7 @@ SimpleOPort<T>::detach(Connection* conn, bool blocked)
 {
   if (!sent_something_)
   {
-    SimplePortComm<T>* msg = scinew SimplePortComm<T>(0);
+    SimplePortComm<T>* msg = new SimplePortComm<T>(0);
     ((SimpleIPort<T>*)conn->iport.get_rep())->mailbox.send(msg);
   }
   //sent_something_ = true;  // Only sent something on the one port.
@@ -311,7 +311,7 @@ SimpleOPort<T>::do_send(const T& data, SendType type, DerefType deref)
   {
     // Add the new message.
     ConnectionHandle conn = connections[i];
-    SimplePortComm<T>* msg = scinew SimplePortComm<T>(data);
+    SimplePortComm<T>* msg = new SimplePortComm<T>(data);
     if (i == nconnections()-1 &&
         (deref == DEREF_ALWAYS ||
          deref == DEREF_NOCACHE && !handle_.get_rep()))
@@ -346,7 +346,7 @@ SimpleIPort<T>::deactivate()
   // free any waiting thread by sending
   // a dummy message.
   
-  SimplePortComm<T>* msg = scinew SimplePortComm<T>(); 
+  SimplePortComm<T>* msg = new SimplePortComm<T>(); 
   mailbox.send(msg);
 }
 
@@ -414,7 +414,7 @@ SimpleOPort<T>::resend(ConnectionHandle conn)
     ConnectionHandle c = connections[i];
     if (c == conn)
     {
-      SimplePortComm<T>* msg = scinew SimplePortComm<T>(handle_);
+      SimplePortComm<T>* msg = new SimplePortComm<T>(handle_);
       ((SimpleIPort<T>*)c->iport.get_rep())->mailbox.send(msg);
     }
   }

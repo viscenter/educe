@@ -91,14 +91,27 @@ if test -f "$PATCH_FILE"; then
     echo
 fi
 
-if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then
-  mv $DIR/src/mpeg_encode/Makefile $DIR/src/mpeg_encode/Makefile.old
-  sed 's:CC = gcc:CC = gcc -m64:g' $DIR/src/mpeg_encode/Makefile.old >$DIR/src/mpeg_encode/Makefile 
-  chmod 0667 $DIR/src/mpeg_encode/Makefile.lib
-  mv $DIR/src/mpeg_encode/Makefile.lib $DIR/src/mpeg_encode/Makefile.lib.old
-  sed 's:gcc:gcc -m64:g' $DIR/src/mpeg_encode/Makefile.lib.old >$DIR/src/mpeg_encode/Makefile.lib 
-  mv $DIR/src/mpeg_encode/Makefile.lib $DIR/src/mpeg_encode/Makefile.lib.old
-  sed 's:gcc -m64-:gcc-:g' $DIR/src/mpeg_encode/Makefile.lib.old >$DIR/src/mpeg_encode/Makefile.lib 
+if test "$OSNAME" = "Darwin"; then
+  if test "$BITS" = "64"; then
+    mv $DIR/src/mpeg_encode/Makefile $DIR/src/mpeg_encode/Makefile.old
+    sed 's:CC = gcc:CC = gcc -arch ppc64 -arch x86_64:g' $DIR/src/mpeg_encode/Makefile.old >$DIR/src/mpeg_encode/Makefile 
+    chmod 0667 $DIR/src/mpeg_encode/Makefile.lib
+    mv $DIR/src/mpeg_encode/Makefile.lib $DIR/src/mpeg_encode/Makefile.lib.old
+    sed 's:gcc:gcc -arch ppc64 -arch x86_64:g' $DIR/src/mpeg_encode/Makefile.lib.old >$DIR/src/mpeg_encode/Makefile.lib 
+    mv $DIR/src/mpeg_encode/Makefile.lib $DIR/src/mpeg_encode/Makefile.lib.old
+    sed 's:gcc -arch ppc64 -arch x86_64-:gcc-:g' $DIR/src/mpeg_encode/Makefile.lib.old >$DIR/src/mpeg_encode/Makefile.lib 
+  fi
+
+  if test "$BITS" = "32"; then
+    mv $DIR/src/mpeg_encode/Makefile $DIR/src/mpeg_encode/Makefile.old
+    sed 's:CC = gcc:CC = gcc -arch ppc -arch i386:g' $DIR/src/mpeg_encode/Makefile.old >$DIR/src/mpeg_encode/Makefile 
+    chmod 0667 $DIR/src/mpeg_encode/Makefile.lib
+    mv $DIR/src/mpeg_encode/Makefile.lib $DIR/src/mpeg_encode/Makefile.lib.old
+    sed 's:gcc:gcc -arch ppc -arch i386:g' $DIR/src/mpeg_encode/Makefile.lib.old >$DIR/src/mpeg_encode/Makefile.lib 
+    mv $DIR/src/mpeg_encode/Makefile.lib $DIR/src/mpeg_encode/Makefile.lib.old
+    sed 's:gcc -arch ppc -arch i386-:gcc-:g' $DIR/src/mpeg_encode/Makefile.lib.old >$DIR/src/mpeg_encode/Makefile.lib 
+  fi
+
 fi
 
 ############

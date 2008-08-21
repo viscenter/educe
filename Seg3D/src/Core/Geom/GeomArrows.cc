@@ -44,7 +44,7 @@
 
 #include <Core/Geom/GeomSave.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Persistent/Persistent.h>
 #include <iostream>
 using std::ostream;
@@ -55,7 +55,7 @@ namespace SCIRun {
 
 Persistent* make_GeomArrows()
 {
-    return scinew GeomArrows(0,0,0);
+    return new GeomArrows(0,0,0);
 }
 
 PersistentTypeID GeomArrows::type_id("GeomArrows", "GeomObj", make_GeomArrows);
@@ -133,7 +133,7 @@ void GeomArrows::get_bounds(BBox& bb)
 
 GeomObj* GeomArrows::clone()
 {
-    return scinew GeomArrows(*this);
+    return new GeomArrows(*this);
 }
 
 #define GEOMARROWS_VERSION 1

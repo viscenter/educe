@@ -40,19 +40,18 @@
  *  Manage dynamic properties of persistent objects.
  */
 
-#ifndef PropertyManager_h
-#define PropertyManager_h 
+#ifndef CORE_DATATYPES_PROPERTYMANAGER_H
+#define CORE_DATATYPES_PROPERTYMANAGER_H 1 
 
 #include <Core/Util/Assert.h>
-#include <Core/Malloc/Allocator.h>
 #include <Core/Datatypes/TypeName.h>
 #include <Core/Datatypes/builtin.h>
 #include <Core/Datatypes/Datatype.h>
 #include <Core/Persistent/PersistentSTL.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <iostream>
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Datatypes/share.h>
 
@@ -99,7 +98,7 @@ public:
   }
   //Property(const Property &p) :  PropertyBase(p), obj_(p.obj_) {}
   virtual PropertyBase *clone() const 
-  { return scinew Property(obj_, transient()); }
+  { return new Property(obj_, transient()); }
 
   static const string type_name(int n = -1);
   virtual void io(Piostream &stream);
@@ -150,11 +149,11 @@ template<class T>
 const string Property<T>::type_name(int n)
 {
   if ( n == -1 ) {
-    static const string name = type_name(0) + FTNS + type_name(1) + FTNE;
+    const string name = type_name(0) + FTNS + type_name(1) + FTNE;
     return name;
   }
   else if ( n == 0 ) {
-    static const string nm("Property");
+    const string nm("Property");
     return nm;
   }
   else
@@ -170,7 +169,7 @@ Persistent*
 Property<T>::maker()
 {
   // Properties in a file start out to be non-transient.
-  return scinew Property<T>();
+  return new Property<T>();
 }
 
 template<class T>
@@ -268,7 +267,7 @@ PropertyManager::set_property(const string &name,  const T& obj,
   {
     delete loc->second;
   }
-  properties_[name] = scinew Property<T>(obj, is_transient);
+  properties_[name] = new Property<T>(obj, is_transient);
   pmlock_.unlock();
 }
 

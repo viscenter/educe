@@ -76,10 +76,10 @@ public:
 		      vector<string>& pathhList,
 		      vector<string>& datasethList );
 
-  unsigned int parseAnimateDatasets( vector<string>& pathhList,
-				     vector<string>& datasethList,
-				     vector< vector<string> >& frame_paths,
-				     vector< vector<string> >& frame_datasets );
+  unsigned int parseTimeSeriesDatasets( vector<string>& pathhList,
+					vector<string>& datasethList,
+					vector< vector<string> >& frame_paths,
+					vector< vector<string> >& frame_datasets );
 
   string getTimeRoot( vector<string>& nameList, 
 		      vector<string>& times,
@@ -99,14 +99,16 @@ public:
   virtual void tcl_command(GuiArgs&, void*);
 
 protected:
-  void animate_execute( string new_filename,
-			vector< vector<string> >& frame_paths,
-			vector< vector<string> >& frame_datasets );
+  void getTtimeSeriesSlice( string new_filename,
+			    vector< vector<string> >& frame_paths,
+			    vector< vector<string> >& frame_datasets );
 			
 
   int increment(int which, int lower, int upper);
 
   bool is_mergeable(NrrdDataHandle h1, NrrdDataHandle h2);
+
+  void joinNrrds( vector<NrrdDataHandle> &vec, unsigned int merge_type );
 
 protected:
   GuiInt         gui_have_hdf5_;
@@ -122,10 +124,10 @@ protected:
 
   GuiInt         gui_merge_data_;
   GuiInt         gui_assume_svt_;
-  GuiInt         gui_animate_;
+  GuiInt         gui_time_series_;
 
-  GuiString      gui_animate_gui_frame_;
-  GuiString	 gui_animate_tab_;
+  GuiString      gui_time_series_gui_frame_;
+  GuiString	 gui_time_series_tab_;
   GuiString	 gui_basic_tab_;
   GuiString	 gui_extended_tab_;
   GuiString	 gui_playmode_tab_;
@@ -159,7 +161,7 @@ protected:
   GuiString gui_allow_selection_;
   GuiInt    gui_read_error_;
 
-  GuiInt         gui_max_dims_;
+  GuiInt    gui_max_dims_;
 
   vector< GuiInt* > gui_dims_;
   vector< GuiInt* > gui_starts_;
@@ -176,11 +178,6 @@ protected:
   string sel_filename_;
   string sel_datasets_;
   time_t sel_filemodification_;
-
-  int dims_[MAX_DIMS];
-  int starts_[MAX_DIMS];
-  int counts_[MAX_DIMS];
-  int strides_[MAX_DIMS];
 
   bool loop_;
 };

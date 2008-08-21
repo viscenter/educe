@@ -31,7 +31,7 @@
 //    Date   : Mon Sep  8 09:46:49 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Containers/StringUtil.h>
@@ -150,7 +150,7 @@ BuildNrrdGradient::execute()
   nrrdResampleInfoNix(infoD);
 
   // Create SCIRun data structure wrapped around nout
-  NrrdDataHandle nout_handle(scinew NrrdData(nout));
+  NrrdDataHandle nout_handle(new NrrdData(nout));
 
   // Copy the properties
   nout_handle->copy_properties(nin_handle.get_rep());

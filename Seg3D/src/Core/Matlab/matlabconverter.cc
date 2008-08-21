@@ -35,11 +35,6 @@
 #include <math.h>
 #include <Core/Matlab/matlabconverter.h>
 
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 3201
-#endif
-
 namespace MatlabIO {
 
 using namespace SCIRun;
@@ -546,7 +541,7 @@ void matlabconverter::mlArrayTOsciString(matlabarray &ma, StringHandle &handle)
   {
     case matlabarray::mlSTRING:
       {                   
-        handle = dynamic_cast<String *>(scinew String(ma.getstring()));
+        handle = dynamic_cast<String *>(new String(ma.getstring()));
         if (handle.get_rep() == 0) throw matlabconverter_error();
       }
       break;
@@ -595,7 +590,7 @@ void matlabconverter::mlArrayTOsciColorMap(matlabarray &ma,ColorMapHandle &handl
     v += step;
   }
   
-  handle = dynamic_cast<SCIRun::ColorMap *>(scinew SCIRun::ColorMap(rgb,rgbT,alph,rgbT,static_cast<unsigned int>(n)));
+  handle = dynamic_cast<SCIRun::ColorMap *>(new SCIRun::ColorMap(rgb,rgbT,alph,rgbT,static_cast<unsigned int>(n)));
 }
 
 
@@ -615,7 +610,7 @@ void matlabconverter::mlArrayTOsciMatrix(matlabarray &ma,MatrixHandle &handle)
           int m = static_cast<int>(ma.getm());
           int n = static_cast<int>(ma.getn());
                       
-          dmptr = scinew DenseMatrix(n,m);   // create dense matrix
+          dmptr = new DenseMatrix(n,m);   // create dense matrix
           // copy and cast elements:
           // getnumericarray is a templated function that casts the data to the supplied pointer
           // type. It needs the dimensions of the memory block (in elements) to make sure
@@ -664,15 +659,15 @@ void matlabconverter::mlArrayTOsciMatrix(matlabarray &ma,MatrixHandle &handle)
           Matrix::size_type m = static_cast<Matrix::size_type>(ma.getm());
           Matrix::size_type n = static_cast<Matrix::size_type>(ma.getn()); 
                       
-          double *values = scinew double[nnz];
-          Matrix::index_type *rows   = scinew Matrix::index_type[nnz];
-          Matrix::index_type *cols   = scinew Matrix::index_type[n+1];
+          double *values = new double[nnz];
+          Matrix::index_type *rows   = new Matrix::index_type[nnz];
+          Matrix::index_type *cols   = new Matrix::index_type[n+1];
                       
           ma.getnumericarray(values,nnz);
           ma.getrowsarray(rows,nnz); // automatically casts longs to ints
           ma.getcolsarray(cols,(n+1));
                       
-          smptr = scinew SparseRowMatrix(n,m,cols,rows,nnz,values);
+          smptr = new SparseRowMatrix(n,m,cols,rows,nnz,values);
                       
           handle = static_cast<Matrix *>(smptr); // cast it to a general matrix pointer
         }
@@ -691,9 +686,9 @@ void matlabconverter::mlArrayTOsciMatrix(matlabarray &ma,MatrixHandle &handle)
           Matrix::size_type m = static_cast<Matrix::size_type>(ma.getm());
           Matrix::size_type n = static_cast<Matrix::size_type>(ma.getn()); 
                       
-          double *values = scinew double[nnz];
-          Matrix::index_type *rows   = scinew Matrix::index_type[nnz];
-          Matrix::index_type *cols   = scinew Matrix::index_type[n+1];
+          double *values = new double[nnz];
+          Matrix::index_type *rows   = new Matrix::index_type[nnz];
+          Matrix::index_type *cols   = new Matrix::index_type[n+1];
                       
           ma.getnumericarray(values,nnz);
           ma.getrowsarray(rows,nnz); // automatically casts longs to ints
@@ -988,7 +983,7 @@ void matlabconverter::mlArrayTOsciNrrdData(matlabarray &mlarray,NrrdDataHandle &
         try
         {
           // new nrrd data handle
-          nrrddataptr = scinew NrrdData(); // nrrd is owned by the object
+          nrrddataptr = new NrrdData(); // nrrd is owned by the object
           nrrddataptr->nrrd_ = nrrdNew();
                   
           // obtain the type of the new nrrd
@@ -1605,7 +1600,7 @@ void matlabconverter::mlArrayTOsciField(matlabarray mlarray,FieldHandle &scifiel
 {
   scifield = 0;
   
-  Handle<MatlabToFieldAlgo> algo = scinew MatlabToFieldAlgo();  
+  Handle<MatlabToFieldAlgo> algo = new MatlabToFieldAlgo();  
   
   if (algo.get_rep() == 0)
   {
@@ -1809,7 +1804,7 @@ void matlabconverter::mlArrayTOsciBundle(matlabarray &mlarray,BundleHandle &scib
   }
   int numfields = mlarray.getnumfields();
   
-  scibundle = scinew Bundle;
+  scibundle = new Bundle;
   if (scibundle.get_rep() == 0)
   {
     error("Could not allocate bundle (not enough memory).");
@@ -1977,7 +1972,3 @@ void matlabconverter::sciBundleTOmlArray(BundleHandle &scibundle, matlabarray &m
 }
 
 }
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 3201
-#endif

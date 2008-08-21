@@ -36,8 +36,6 @@ SET(Dataflow_Modules_Bundle_SRCS
   InsertMatricesIntoBundle.cc
   InsertNrrdsIntoBundle.cc
   InsertColorMapsIntoBundle.cc
-  InsertColorMap2sIntoBundle.cc
-  InsertPathsIntoBundle.cc
   InsertStringsIntoBundle.cc
   ReportBundleInfo.cc
   GetBundlesFromBundle.cc
@@ -45,8 +43,6 @@ SET(Dataflow_Modules_Bundle_SRCS
   GetMatricesFromBundle.cc
   GetNrrdsFromBundle.cc
   GetColorMapsFromBundle.cc
-  GetColorMap2sFromBundle.cc
-  GetPathsFromBundle.cc
   GetStringsFromBundle.cc
   JoinBundles.cc
 )
@@ -54,26 +50,30 @@ SET(Dataflow_Modules_Bundle_SRCS
 SCIRUN_ADD_LIBRARY(Dataflow_Modules_Bundle ${Dataflow_Modules_Bundle_SRCS})
 
 TARGET_LINK_LIBRARIES(Dataflow_Modules_Bundle
-  Core_Datatypes
   Dataflow_Network
+  Dataflow_GuiInterface
+  Dataflow_TkExtensions
+  Core_Algorithms_Util
+  Core_Algorithms_Regression
+  Core_Basis
+  Core_Datatypes
+  Core_Exceptions
   Core_Persistent
   Core_Containers
   Core_Util
   Core_Exceptions
   Core_Thread
-  Dataflow_GuiInterface
   Core_Geom
   Core_Datatypes
   Core_Geometry
   Core_GeomInterface
-  Dataflow_TkExtensions
-  Core_Volume
-  Core_Bundle
-  Core_Algorithms_Regression
   ${TK_LIBRARY}
   ${GL_LIBRARY}
   ${M_LIBRARY}
+  ${TEEM_LIBRARY}
+  ${SLIVRG_LIBRARY}
 )
+# Removed - Core_Volume
 
 IF(BUILD_SHARED_LIBS)
   ADD_DEFINITIONS(-DBUILD_Dataflow_Modules_Bundle)

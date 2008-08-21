@@ -47,7 +47,7 @@
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/Port.h>
 #include <Core/Geom/View.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Thread/FutureValue.h>
 #include <Core/Util/Assert.h>
 
@@ -65,10 +65,10 @@ namespace SCIRun {
 
 extern "C" {
   SCISHARE IPort* make_GeometryIPort(Module* module, const string& name) {
-    return scinew GeometryIPort(module,name);
+    return new GeometryIPort(module,name);
   }
   SCISHARE OPort* make_GeometryOPort(Module* module, const string& name) {
-    return scinew GeometryOPort(module,name);
+    return new GeometryOPort(module,name);
   }
 }
 
@@ -127,11 +127,11 @@ GeometryOPort::flush()
   //! Send a message to every connected module
   for (unsigned int i=0; i<modules_.size(); i++)
   {
-    GeometryComm* msg = scinew GeometryComm(MessageTypes::GeometryFlush,portid_[i]);
+    GeometryComm* msg = new GeometryComm(MessageTypes::GeometryFlush,portid_[i]);
     modules_[i]->mailbox_.send(msg);
   }
   //! Store the message for modules that will be connected in the future
-  GeometryComm* msg = scinew GeometryComm(MessageTypes::GeometryFlush, 0);
+  GeometryComm* msg = new GeometryComm(MessageTypes::GeometryFlush, 0);
   save_msg(msg);
 }
   
@@ -156,7 +156,7 @@ GeometryOPort::synchronize()
   for (unsigned int i=0; i<modules_.size(); i++)
   {
     GeometryComm* msg =
-      scinew GeometryComm(MessageTypes::GeometrySynchronize, portid_[i]);
+      new GeometryComm(MessageTypes::GeometrySynchronize, portid_[i]);
     modules_[i]->mailbox_.send(msg);
   }
 }
@@ -169,11 +169,11 @@ GeometryOPort::addObj(GeomHandle obj, const string& name, CrowdMonitor* lock)
   GeomID id = serial_++;
   for (unsigned int i = 0; i < modules_.size(); i++)
   {
-    GeometryComm* msg = scinew GeometryComm(portid_[i], id, obj, name, lock);
+    GeometryComm* msg = new GeometryComm(portid_[i], id, obj, name, lock);
     modules_[i]->mailbox_.send(msg);
   }
   
-  GeometryComm* msg = scinew GeometryComm(0, id, obj, name, lock);
+  GeometryComm* msg = new GeometryComm(0, id, obj, name, lock);
   save_msg(msg);
   dirty_ = true;
   turn_off_light();
@@ -189,11 +189,11 @@ GeometryOPort::addLight(LightHandle obj,
 
   for (unsigned int i = 0; i < modules_.size(); i++)
   {
-    GeometryComm* msg = scinew GeometryComm(portid_[i], id, obj, name, lock);
+    GeometryComm* msg = new GeometryComm(portid_[i], id, obj, name, lock);
     modules_[i]->mailbox_.send(msg);
   }
   
-  GeometryComm* msg = scinew GeometryComm(0, id, obj, name, lock);
+  GeometryComm* msg = new GeometryComm(0, id, obj, name, lock);
   save_msg(msg);
   dirty_ = true;
   turn_off_light();
@@ -212,7 +212,7 @@ GeometryOPort::direct_forward(GeometryComm* msg)
   unsigned int i;
   for (i = 0; i < modules_.size()-1; i++)
   {
-    GeometryComm *cpy = scinew GeometryComm(*msg);
+    GeometryComm *cpy = new GeometryComm(*msg);
     modules_[i]->mailbox_.send(cpy);
   }
   modules_[i]->mailbox_.send(msg);
@@ -227,7 +227,7 @@ GeometryOPort::forward(GeometryComm* msg0)
 {
   for (unsigned int i = 0; i < modules_.size(); i++)
   {
-    GeometryComm *msg = scinew GeometryComm(*msg0);
+    GeometryComm *msg = new GeometryComm(*msg0);
     msg->portno = portid_[i];
     modules_[i]->mailbox_.send(msg);
   }
@@ -243,10 +243,10 @@ GeometryOPort::delObj(GeomID id, int del)
 
   for (unsigned int i=0; i < modules_.size(); i++)
   {
-    GeometryComm* msg = scinew GeometryComm(portid_[i], id);
+    GeometryComm* msg = new GeometryComm(portid_[i], id);
     modules_[i]->mailbox_.send(msg);
   }
-  GeometryComm* msg = scinew GeometryComm(0, id);
+  GeometryComm* msg = new GeometryComm(0, id);
   save_msg(msg);
   dirty_ = true;
   turn_off_light();
@@ -259,10 +259,10 @@ GeometryOPort::delLight(LightID id, int del)
 
   for (unsigned int i=0; i < modules_.size(); i++)
   {
-    GeometryComm* msg = scinew GeometryComm(portid_[i], id);
+    GeometryComm* msg = new GeometryComm(portid_[i], id);
     modules_[i]->mailbox_.send(msg);
   }
-  GeometryComm* msg = scinew GeometryComm(0, id);
+  GeometryComm* msg = new GeometryComm(0, id);
   save_msg(msg);
   dirty_ = true;
   turn_off_light();
@@ -276,11 +276,11 @@ GeometryOPort::delAll()
   turn_on_light();
   for (unsigned int i = 0; i < modules_.size(); i++)
   {
-    GeometryComm* msg = scinew GeometryComm(MessageTypes::GeometryDelAll,
+    GeometryComm* msg = new GeometryComm(MessageTypes::GeometryDelAll,
 					    portid_[i]);
     modules_[i]->mailbox_.send(msg);
   }
-  GeometryComm* msg = scinew GeometryComm(MessageTypes::GeometryDelAll, 0);
+  GeometryComm* msg = new GeometryComm(MessageTypes::GeometryDelAll, 0);
   save_msg(msg);
   dirty_ = true;
   turn_off_light();
@@ -294,11 +294,11 @@ GeometryOPort::flushViews()
   turn_on_light();
   for (unsigned int i = 0; i < modules_.size(); i++)
   {
-    GeometryComm* msg = scinew GeometryComm(MessageTypes::GeometryFlushViews,
+    GeometryComm* msg = new GeometryComm(MessageTypes::GeometryFlushViews,
 					    portid_[i], (Semaphore*)0);
     modules_[i]->mailbox_.send(msg);
   }
-  GeometryComm* msg = scinew GeometryComm(MessageTypes::GeometryFlushViews,
+  GeometryComm* msg = new GeometryComm(MessageTypes::GeometryFlushViews,
 					  0, (Semaphore*)0);
   save_msg(msg);
   dirty_ = false;
@@ -326,11 +326,11 @@ GeometryOPort::flushViewsAndWait()
   Semaphore waiter("flushViewsAndWait wait semaphore", 0);
   for (unsigned int i = 0; i < modules_.size(); i++)
   {
-    GeometryComm* msg = scinew GeometryComm(MessageTypes::GeometryFlushViews,
+    GeometryComm* msg = new GeometryComm(MessageTypes::GeometryFlushViews,
 					    portid_[i], &waiter);
     modules_[i]->mailbox_.send(msg);
   }
-  GeometryComm* msg = scinew GeometryComm(MessageTypes::GeometryFlushViews,
+  GeometryComm* msg = new GeometryComm(MessageTypes::GeometryFlushViews,
 					  0, &waiter);
   save_msg(msg); // TODO:  Should a synchronized primitive be queued?
 
@@ -520,7 +520,7 @@ GeometryOPort::attach(Connection* c)
   //! Send the registration message.
   //! This piece of code sends a pointer to a mailbox
   //! to receive the portid
-  modules_[which]->mailbox_.send(scinew GeometryComm(&reply_mailbox_));
+  modules_[which]->mailbox_.send(new GeometryComm(&reply_mailbox_));
   GeomReply reply = reply_mailbox_.receive();
 
   portid_.push_back(reply.portid);
@@ -533,7 +533,7 @@ GeometryOPort::attach(Connection* c)
   list<GeometryComm *>::iterator itr = saved_msgs_.begin();
   while (itr != saved_msgs_.end())
   {
-    GeometryComm *msg = scinew GeometryComm(**itr);
+    GeometryComm *msg = new GeometryComm(**itr);
     msg->portno = portid_[which];
     modules_[which]->mailbox_.send(msg);
     ++itr;
@@ -561,7 +561,7 @@ GeometryOPort::detach(Connection* c, bool blocked)
   {
     // Let the Viewer know that the port is shutting down.
     GeometryComm *msg =
-      scinew GeometryComm(MessageTypes::GeometryDetach, portid_[i]);
+      new GeometryComm(MessageTypes::GeometryDetach, portid_[i]);
     
     modules_[i]->mailbox_.send(msg);
 
@@ -608,7 +608,7 @@ GeometryOPort::getNViewWindows(int viewer)
 
   FutureValue<int> reply("Geometry getNViewWindows reply");
   GeometryComm *msg =
-    scinew GeometryComm(MessageTypes::GeometryGetNViewWindows,
+    new GeometryComm(MessageTypes::GeometryGetNViewWindows,
 			portid_[viewer], &reply);
 
   //! Send a request for the value
@@ -626,7 +626,7 @@ GeometryOPort::getData(int which_viewer, int which_viewwindow, int datamask)
   if (which_viewer >= (int)modules_.size() || which_viewer < 0) return 0;
 
   FutureValue<GeometryData*> reply("Geometry getData reply");
-  GeometryComm *msg = scinew GeometryComm(MessageTypes::GeometryGetData,
+  GeometryComm *msg = new GeometryComm(MessageTypes::GeometryGetData,
 					  portid_[which_viewer],
 					  &reply, which_viewwindow,
 					  datamask);
@@ -644,7 +644,7 @@ GeometryOPort::setView(int which_viewer, int which_viewwindow, View view)
   //! Check whether we are in range
   if (which_viewer >= (int)modules_.size() || which_viewer < 0) return;
 
-  GeometryComm* msg = scinew GeometryComm(MessageTypes::GeometrySetView,
+  GeometryComm* msg = new GeometryComm(MessageTypes::GeometrySetView,
 					  portid_[which_viewer],
 					  which_viewwindow,
 					  view);

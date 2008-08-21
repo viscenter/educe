@@ -33,7 +33,7 @@
 #include <Core/Util/TypeDescription.h>
 #include <Core/Util/DynamicLoader.h>
 #include <Core/Util/FileUtils.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Exceptions/InternalError.h>
 #include <Core/Util/Assert.h>
 #include <Core/Thread/Mutex.h>
@@ -89,8 +89,8 @@ TypeDescription::register_type()
     // and typelist.
     if (!types)
     {
-      types = scinew map<string, const TypeDescription*>;
-      typelist = scinew vector<const TypeDescription*>;
+      types = new map<string, const TypeDescription*>;
+      typelist = new vector<const TypeDescription*>;
     }
   }
 
@@ -258,7 +258,7 @@ TypeDescription::lookup_type(const std::string& t)
   if(!types) {
     typelist_lock.lock();
     if (!types) {
-      types=scinew map<string, const TypeDescription*>;
+      types=new map<string, const TypeDescription*>;
       typelist=new vector<const TypeDescription*>;
     }
     typelist_lock.unlock();
@@ -315,7 +315,7 @@ const TypeDescription* get_type_description(double*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("double", "builtin", "builtin");
+    td = new TypeDescription("double", "builtin", "builtin");
   }
   return td;
 }
@@ -324,7 +324,7 @@ const TypeDescription* get_type_description(long*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("long", "builtin", "builtin");
+    td = new TypeDescription("long", "builtin", "builtin");
   }
   return td;
 }
@@ -333,7 +333,7 @@ const TypeDescription* get_type_description(long long*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("long long", "builtin", "builtin");
+    td = new TypeDescription("long long", "builtin", "builtin");
   }
   return td;
 }
@@ -342,7 +342,7 @@ const TypeDescription* get_type_description(unsigned long long*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("unsigned long long", "builtin", "builtin");
+    td = new TypeDescription("unsigned long long", "builtin", "builtin");
   }
   return td;
 }
@@ -351,7 +351,7 @@ const TypeDescription* get_type_description(float*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("float", "builtin", "builtin");
+    td = new TypeDescription("float", "builtin", "builtin");
   }
   return td;
 }
@@ -360,7 +360,7 @@ const TypeDescription* get_type_description(short*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("short", "builtin", "builtin");
+    td = new TypeDescription("short", "builtin", "builtin");
   }
   return td;
 }
@@ -369,7 +369,7 @@ const TypeDescription* get_type_description(unsigned short*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("unsigned short", "builtin", "builtin");
+    td = new TypeDescription("unsigned short", "builtin", "builtin");
   }
   return td;
 }
@@ -378,7 +378,7 @@ const TypeDescription* get_type_description(int*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("int", "builtin", "builtin");
+    td = new TypeDescription("int", "builtin", "builtin");
   }
   return td;
 }
@@ -387,7 +387,7 @@ const TypeDescription* get_type_description(unsigned int*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("unsigned int", "builtin", "builtin");
+    td = new TypeDescription("unsigned int", "builtin", "builtin");
   }
   return td;
 }
@@ -396,7 +396,7 @@ const TypeDescription* get_type_description(char*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("char", "builtin", "builtin");
+    td = new TypeDescription("char", "builtin", "builtin");
   }
   return td;
 }
@@ -405,7 +405,7 @@ const TypeDescription* get_type_description(unsigned char*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("unsigned char", "builtin", "builtin");
+    td = new TypeDescription("unsigned char", "builtin", "builtin");
   }
   return td;
 }
@@ -414,7 +414,7 @@ const TypeDescription* get_type_description(string*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("string", "std::string", "std");
+    td = new TypeDescription("string", "std::string", "std");
   }
   return td;
 }
@@ -423,7 +423,7 @@ const TypeDescription* get_type_description(unsigned long*)
 {
   static TypeDescription* td = 0;
   if(!td){
-    td = scinew TypeDescription("unsigned long", "builtin", "builtin");
+    td = new TypeDescription("unsigned long", "builtin", "builtin");
   }
   return td;
 }

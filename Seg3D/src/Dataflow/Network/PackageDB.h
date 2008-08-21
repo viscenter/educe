@@ -58,8 +58,10 @@ struct ModuleInfo
   string                       package_name_;
   string                       category_name_;
   string                       module_name_;
+  string                       module_version_;
   bool                         optional_;
   bool                         hide_;
+  bool                         dynamic_;
   vector<string>               authors_;
   string                       summary_;
   ModuleMaker                  maker_;
@@ -95,9 +97,11 @@ public:
   bool          replaceDeprecatedModule(const string &packageName,
                                         const string &categoryName,
                                         const string &moduleName,
+                                        const string &moduleVersion,
                                         string &newPackage,
                                         string &newCategory,
-                                        string &newModule) const;
+                                        string &newModule,
+                                        string &newVersion) const;
 
   vector<string>	packageNames () const;
   vector<string>	categoryNames(const string& packageName) const;

@@ -30,16 +30,28 @@
 
 SET(Core_Algorithms_Math_SRCS
   MathAlgo.cc
-  SelectMatrixRows.cc
-  SelectMatrixColumns.cc
-  FindMatrixRows.cc
-  FindMatrixColumns.cc
-  SortMatrixRows.cc
-  SortMatrixColumns.cc
-  ConvertMappingMatrix.cc
-  BasicIntegrators.cc
-  BuildFEMatrix.cc
-  CreateFEDirichletBC.cc
+  AppendMatrix/AppendMatrices.cc
+  AppendMatrix/AppendMatrix.cc
+  FindMatrix/FindNonZeroMatrixRows.cc
+  FindMatrix/FindNonZeroMatrixColumns.cc
+  FindMatrix/FindZeroMatrixRows.cc
+  FindMatrix/FindZeroMatrixColumns.cc
+  FindMatrix/FindMatrix.cc
+  LinearSystem/AddKnownsToLinearSystem.cc
+  LinearSystem/SolveLinearSystem.cc
+  MappingMatrix/ConvertMappingMatrixIntoMappingOrder.cc
+  MappingMatrix/ConvertMappingOrderIntoMappingMatrix.cc
+  ParallelAlgebra/ParallelLinearAlgebra.cc
+  ReorderMatrix/CutHillMcKee.cc
+  ReorderMatrix/ReverseCutHillMcKee.cc
+  ReorderMatrix/ReorderMatrix.cc
+  SelectMatrix/SelectSubMatrix.cc
+  SelectMatrix/SelectMatrixRows.cc
+  SelectMatrix/SelectMatrixColumns.cc
+  SelectMatrix/SelectMatrix.cc
+  SortMatrix/SortMatrixRows.cc
+  SortMatrix/SortMatrixColumns.cc
+  SortMatrix/SortMatrix.cc
 )
 
 SCIRUN_ADD_LIBRARY(Core_Algorithms_Math ${Core_Algorithms_Math_SRCS})
@@ -54,7 +66,7 @@ TARGET_LINK_LIBRARIES(Core_Algorithms_Math
   Core_Geometry
   Core_Persistent
   Core_Basis
-  Core_Bundle
+  Core_Algorithms_Util
   ${TEEM_LIBRARY}
 )
 

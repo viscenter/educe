@@ -33,7 +33,6 @@
 //! Datatypes that the algorithm uses
 #include <Core/Datatypes/Mesh.h>
 #include <Core/Datatypes/Field.h>
-#include <Core/Datatypes/Matrix.h>
 
 //! Base class for algorithm
 #include <Core/Algorithms/Util/AlgoBase.h>
@@ -55,6 +54,7 @@ class SCISHARE GetCentroidsAlgo : public AlgoBase
       add_option("centroid","elem","node|edge|face|cell|elem|delem");
     }
   
+    //! run the algorithm
     bool run(FieldHandle input, FieldHandle& output);
 };
 

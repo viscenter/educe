@@ -27,8 +27,7 @@
 #
 PROJECT(SCIRUN_STANDALONE_CONVERT)
 
-SET (EXECUTABLE_OUTPUT_PATH ${SCIRUN_CORE_BINARY_DIR}/convert CACHE INTERNAL "Single output directory for building all executables.")
-MARK_AS_ADVANCED(EXECUTABLE_OUTPUT_PATH)
+FILE(MAKE_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/convert")
 
 SET(StandAlone_Convert_Libs
   Core_Exceptions
@@ -58,7 +57,6 @@ SET(ConvertApps
   HexVolFieldToExotxt
   HexVolToVtk
   PointCloudFieldToText
-  PointCloudFieldToText
   StructCurveFieldToText
   StructHexVolFieldToText
   StructQuadSurfFieldToText
@@ -81,6 +79,7 @@ SET(ConvertApps
   TextToTetVolField
   TextToTriSurfField
   MtoTriSurfField
+  MA2PointCloudVectors
   VTKtoTriSurfField
   VTKtoHexVolField
   TextToColumnMatrix
@@ -103,16 +102,20 @@ SET(ConvertApps
 )
 
 FOREACH( convert ${ConvertApps})
-  ADD_EXECUTABLE(${convert} ${SCIRUN_CORE_SOURCE_DIR}/StandAlone/convert/${convert}.cc)
-  TARGET_LINK_LIBRARIES(${convert} ${StandAlone_Convert_Libs})
+  IF(WIN32)
+    LINK_DIRECTORIES("${EXECUTABLE_OUTPUT_PATH}/lib/${BUILD_TYPE}")
+    #LINK_DIRECTORIES("../../../lib/${BUILD_TYPE}")
+  ENDIF(WIN32)
+  ADD_EXECUTABLE(convert/${convert} ${SCIRUN_CORE_SOURCE_DIR}/StandAlone/convert/${convert}.cc)
+  TARGET_LINK_LIBRARIES(convert/${convert} ${StandAlone_Convert_Libs})
   IF(WIN32)
     # copy from <dir>/convert/debug-or-release to <dir>/convert
-    ADD_CUSTOM_COMMAND(TARGET ${convert} POST_BUILD COMMAND ${CMAKE_COMMAND}
-                      ARGS  -E copy ${EXECUTABLE_OUTPUT_PATH}/${BUILD_TYPE}/${convert}.exe
+    ADD_CUSTOM_COMMAND(TARGET convert/${convert} POST_BUILD COMMAND ${CMAKE_COMMAND}
+                      ARGS  -E copy ${EXECUTABLE_OUTPUT_PATH}/${BUILD_TYPE}/convert/${convert}.exe
                       ${EXECUTABLE_OUTPUT_PATH}/${convert}.exe)
 
   ENDIF(WIN32)
-  INSTALL(TARGETS ${convert}
+  INSTALL(TARGETS convert/${convert}
     RUNTIME DESTINATION bin/convert
     )
 ENDFOREACH( convert)

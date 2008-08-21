@@ -55,21 +55,21 @@ namespace SCIRun {
 
 class CoregisterPointClouds : public Module
 {
-private:
-  GuiInt allowScale_;
-  GuiInt allowRotate_;
-  GuiInt allowTranslate_;
-  GuiInt seed_;
-  GuiInt iters_;
-  GuiDouble misfitTol_;
-  GuiString method_;
-  int abort_;
-  MusilRNG *mr_;
-public:
-  CoregisterPointClouds(GuiContext* ctx);
-  virtual ~CoregisterPointClouds();
-  virtual void execute();
-  void tcl_command( GuiArgs&, void * );
+  public:
+    CoregisterPointClouds(GuiContext* ctx);
+    virtual ~CoregisterPointClouds();
+    virtual void execute();
+    void tcl_command( GuiArgs&, void * );
+  private:
+    GuiInt allowScale_;
+    GuiInt allowRotate_;
+    GuiInt allowTranslate_;
+    GuiInt seed_;
+    GuiInt iters_;
+    GuiDouble misfitTol_;
+    GuiString method_;
+    int abort_;
+    MusilRNG *mr_;
 };
 
 
@@ -155,9 +155,9 @@ CoregisterPointClouds::execute()
   
   CoregPts* coreg = 0;
   if (method == "Analytic") {
-    coreg = scinew CoregPtsAnalytic(allowScale, allowRotate, allowTranslate);
+    coreg = new CoregPtsAnalytic(allowScale, allowRotate, allowTranslate);
   } else if (method == "Procrustes") {
-    coreg = scinew CoregPtsProcrustes(allowScale, allowRotate, allowTranslate);
+    coreg = new CoregPtsProcrustes(allowScale, allowRotate, allowTranslate);
   } else { // method == "Simplex"
     FieldHandle dfieldH;
     if (!get_input_handle("DistanceField From Fixed", dfieldH))
@@ -165,18 +165,22 @@ CoregisterPointClouds::execute()
       error("Simplex needs a distance field.");
       return;
     }
-    ScalarFieldInterfaceHandle dfieldP = dfieldH->query_scalar_interface(this);
-    if (!dfieldP.get_rep()) {
+    
+    VField* dfieldP = dfieldH->vfield();
+
+    if (!dfieldP->is_scalar()) 
+    {
       error("Simplex needs a distance field.");
       return;
     }
+    
     int seed = seed_.get();
     seed_.set(seed+1);
     if (mr_) { delete mr_; }
-    mr_ = scinew MusilRNG(seed);
+    mr_ = new MusilRNG(seed);
     (*mr_)();
     abort_=0;
-    coreg = scinew 
+    coreg = new 
       CoregPtsSimplexSearch(iters_.get(), misfitTol_.get(), abort_, dfieldP, 
 			    *mr_, allowScale, allowRotate, allowTranslate);
   }
@@ -186,7 +190,7 @@ CoregisterPointClouds::execute()
   double misfit;
   coreg->getMisfit(misfit);
 
-  MatrixHandle dm(scinew DenseMatrix(trans));
+  MatrixHandle dm(new DenseMatrix(trans));
   send_output_handle("Transform", dm);
 }
 

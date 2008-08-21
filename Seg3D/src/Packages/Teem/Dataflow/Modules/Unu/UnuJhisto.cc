@@ -37,11 +37,10 @@
  */
 
 
-#include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Containers/StringUtil.h>
+
+#include <Dataflow/Network/Ports/NrrdPort.h>
+#include <Dataflow/Network/Module.h>
 
 namespace SCITeem {
 
@@ -239,8 +238,8 @@ UnuJhisto::execute()
       i++;
     }
 
-    Nrrd **nrrds_array = scinew Nrrd *[nrrds.size()];
-    NrrdRange **range = scinew NrrdRange *[nrrds.size()];
+    Nrrd **nrrds_array = new Nrrd *[nrrds.size()];
+    NrrdRange **range = new NrrdRange *[nrrds.size()];
     for (unsigned int d = 0; d< nrrds.size(); d++)
     {
       nrrds_array[d] = nrrds[d]->nrrd_;
@@ -291,33 +290,33 @@ UnuJhisto::execute()
     {
       ch = mins[i];
       if(isspace(ch))
-      {
-	if (inword)
+      { 
+        if (inword)
         {
-	  end = i;
-	  if (mins.substr(start,end-start) == "nan")
-	    min[counter] = AIR_NAN;
-	  else
-	    min[counter] = (atoi(mins.substr(start,end-start).c_str()));
-	  which++;
-	  counter++;
-	  inword = false;
-	}
+          end = i;
+          if (mins.substr(start,end-start) == "nan")
+            min[counter] = AIR_NAN;
+          else
+            from_string(mins.substr(start,end-start),min[counter]);
+          which++;
+          counter++;
+          inword = false;
+        }
       }
       else if (i == (int)mins.length()-1)
       {
-	if (!inword)
+        if (!inword)
         {
-	  start = i;
-	}
-	end = i+1;
-	if (mins.substr(start,end-start) == "nan")
-	  min[counter] = AIR_NAN;
-	else
-	  min[counter] = (atoi(mins.substr(start,end-start).c_str()));
-	which++;
-	counter++;
-	inword = false;
+          start = i;
+        }
+        end = i+1;
+        if (mins.substr(start,end-start) == "nan")
+          min[counter] = AIR_NAN;
+        else
+          from_string(mins.substr(start,end-start),min[counter]);
+        which++;
+        counter++;
+        inword = false;
       }
       else
       {
@@ -379,56 +378,60 @@ UnuJhisto::execute()
       ch = maxs[i];
       if(isspace(ch))
       {
-	if (inword)
-        {
-	  end = i;
-	  if (maxs.substr(start,end-start) == "nan")
-	    max[counter] = AIR_NAN;
-	  else
-	    max[counter] = (atof(maxs.substr(start,end-start).c_str()));
-	  which++;
-	  counter++;
-	  inword = false;
-	}
+        if (inword)
+              {
+          end = i;
+          if (maxs.substr(start,end-start) == "nan")
+            max[counter] = AIR_NAN;
+          else
+            from_string(maxs.substr(start,end-start),max[counter]);
+          which++;
+          counter++;
+          inword = false;
+        }
       }
       else if (i == (int)maxs.length()-1)
       {
-	if (!inword)
-        {
-	  start = i;
-	}
-	end = i+1;
-	if (maxs.substr(start,end-start) == "nan")
-	  max[counter] = AIR_NAN;
-	else
-	  max[counter] = (atof(maxs.substr(start,end-start).c_str()));
-	which++;
-	counter++;
-	inword = false;
+        if (!inword)
+              {
+          start = i;
+        }
+        end = i+1;
+        if (maxs.substr(start,end-start) == "nan")
+          max[counter] = AIR_NAN;
+        else
+          from_string(maxs.substr(start,end-start),max[counter]);
+        which++;
+        counter++;
+        inword = false;
       }
       else
       {
-	if(!inword)
+        if(!inword)
         {
-	  start = i;
-	  inword = true;
-	}
+          start = i;
+          inword = true;
+        }
       }
       i++;
     }
     
-    for (int d=0; d<(int)nrrds.size(); d++) {
+    for (int d=0; d<(int)nrrds.size(); d++) 
+    {
       range[d]->max = max[d];
     }
     
     int clamp[NRRD_DIM_MAX];
-    for (int d=0; d<(int)nrrds.size(); d++) {
+    for (int d=0; d<(int)nrrds.size(); d++) 
+    {
       clamp[d] = 0;
     }
 
     // nrrdHistoJoint crashes if min == max
-    for (int d = 0; d < (int)nrrds.size(); d++) {
-      if (range[d]->min == range[d]->max) {
+    for (int d = 0; d < (int)nrrds.size(); d++) 
+    {
+      if (range[d]->min == range[d]->max) 
+      {
         warning("range has 0 width, not computing.");
         return;
       }
@@ -447,17 +450,17 @@ UnuJhisto::execute()
       return;
     }
 
-    last_nrrdH_ = scinew NrrdData(nout);
+    last_nrrdH_ = new NrrdData(nout);
 
     if (nrrds.size())
     {
       if (airIsNaN(range[0]->min) || airIsNaN(range[0]->max))
       {
-	NrrdRange *minmax = nrrdRangeNewSet(nrrds_array[0],
-                                            nrrdBlind8BitRangeFalse);
-	if (airIsNaN(range[0]->min)) range[0]->min = minmax->min;
-	if (airIsNaN(range[0]->max)) range[0]->max = minmax->max;
-	nrrdRangeNix(minmax);
+        NrrdRange *minmax = nrrdRangeNewSet(nrrds_array[0],
+                                                  nrrdBlind8BitRangeFalse);
+        if (airIsNaN(range[0]->min)) range[0]->min = minmax->min;
+        if (airIsNaN(range[0]->max)) range[0]->max = minmax->max;
+        nrrdRangeNix(minmax);
       }
       nrrdKeyValueAdd(last_nrrdH_->nrrd_, "jhisto_nrrd0_min", 
 		      to_string(range[0]->min).c_str());

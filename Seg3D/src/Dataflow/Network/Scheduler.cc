@@ -44,7 +44,7 @@
 #include <Dataflow/Network/Network.h>
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/Port.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/Environment.h>
 #include <Core/Util/sci_system.h>
 #include <iostream>
@@ -142,7 +142,7 @@ Scheduler::main_loop()
 void
 Scheduler::request_multisend(OPortHandle p1)
 {
-  mailbox.send(scinew Module_Scheduler_Message(p1));
+  mailbox.send(new Module_Scheduler_Message(p1));
 }
 
 
@@ -177,7 +177,7 @@ Scheduler::multisend_real(OPortHandle oport)
 void
 Scheduler::do_scheduling()
 {
-  mailbox.send(scinew Module_Scheduler_Message());
+  mailbox.send(new Module_Scheduler_Message());
 }
 
 
@@ -188,6 +188,7 @@ Scheduler::do_scheduling_real(ModuleHandle exclude)
     return;
 
   lockNeedExecute();
+  
   int nmodules;
   nmodules=net->nmodules();
 
@@ -201,6 +202,7 @@ Scheduler::do_scheduling_real(ModuleHandle exclude)
 
   unlockNeedExecute();
   if (!have_something_to_execute) return;
+  
   report_execution_started();
   lockNeedExecute();
 
@@ -304,7 +306,6 @@ Scheduler::do_scheduling_real(ModuleHandle exclude)
       }
     }
     module->unlock_iports();
-
   }
 
   // Trigger the ports in the trigger list.
@@ -323,7 +324,7 @@ Scheduler::do_scheduling_real(ModuleHandle exclude)
         {
           if (!module->need_execute_)
           {
-            module->mailbox_.send(scinew Scheduler_Module_Message(conn));
+            module->mailbox_.send(new Scheduler_Module_Message(conn));
           }
         }
       }
@@ -358,12 +359,12 @@ Scheduler::do_scheduling_real(ModuleHandle exclude)
     else if (module->need_execute_)
     {
       module->need_execute_ = false;
-      module->mailbox_.send(scinew Scheduler_Module_Message(serial_base + i));
+      module->mailbox_.send(new Scheduler_Module_Message(serial_base + i));
     }
     else
     {
       // Already done, just synchronize.
-      module->mailbox_.send(scinew Scheduler_Module_Message(serial_base + i,
+      module->mailbox_.send(new Scheduler_Module_Message(serial_base + i,
                                                            false));
     }
   }
@@ -379,14 +380,14 @@ Scheduler::report_execution_finished(const MessageBase *msg)
   ASSERT(msg->type == MessageTypes::ExecuteModule ||
          msg->type == MessageTypes::SynchronizeModule);
   Scheduler_Module_Message *sm_msg = (Scheduler_Module_Message *)msg;
-  mailbox.send(scinew Module_Scheduler_Message(sm_msg->serial));
+  mailbox.send(new Module_Scheduler_Message(sm_msg->serial));
 }
 
 
 void
 Scheduler::report_execution_finished(unsigned int serial)
 {
-  mailbox.send(scinew Module_Scheduler_Message(serial));
+  mailbox.send(new Module_Scheduler_Message(serial));
 }
 
 void
@@ -415,6 +416,8 @@ Scheduler::report_execution_started()
     }
   }
   callback_lock_.unlock();
+
+  net->network_progress(0,1);
 }
 
 void
@@ -422,8 +425,13 @@ Scheduler::report_execution_finished_real(unsigned int serial)
 {
   int found = 0;
   list<SerialSet>::iterator itr = serial_set.begin();
+
+  int tot_size = 0;
+  int cur_count = 0;
   while (itr != serial_set.end())
   {
+    tot_size += itr->size;
+    cur_count += itr->callback_count;
     if (serial >= itr->base && serial < itr->base + itr->size)
     {
       found++;
@@ -439,6 +447,8 @@ Scheduler::report_execution_finished_real(unsigned int serial)
     ++itr;
   }
   ASSERT(found==1);
+
+  net->network_progress(cur_count+1,tot_size);
 
   if (serial_set.size() == 0)
   {

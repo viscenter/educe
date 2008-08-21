@@ -30,180 +30,332 @@
 //    Date   : Wed Mar 22 07:56:22 2006
 
 #include <Core/Thread/Mutex.h>
-#include <Core/Util/TypeDescription.h>
-#include <Core/Util/DynamicLoader.h>
-#include <Core/Util/ProgressReporter.h>
+
 #include <Core/Datatypes/Field.h>
-#include <Core/Basis/NoData.h>
-#include <Core/Basis/TetLinearLgn.h>
-#include <Core/Basis/TriLinearLgn.h>
-#include <Core/Datatypes/TetVolMesh.h>
-#include <Core/Datatypes/TriSurfMesh.h>
-#include <Core/Datatypes/GenericField.h>
+#include <Core/Datatypes/FieldInformation.h>
+
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Modules/Fields/InterfaceWithTetGen.h>
+
+#include <tetgen.h>
+
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
+#include <sstream>
+
+// _DEBUG defined in Visual Studio debug builds
+#undef DEBUG
+#if defined (_DEBUG) || !defined (NDEBUG)
+# define DEBUG 1
+#else
+# define DEBUG 0
+#endif
 
 namespace SCIRun {
 
 using std::cerr;
 using std::endl;
 
+Mutex TetGenMutex("Protect TetGen from running in parallel");
+
 class InterfaceWithTetGen : public Module
 {
-public:
-  InterfaceWithTetGen(GuiContext* ctx);
-  virtual ~InterfaceWithTetGen();
+  public:
+    InterfaceWithTetGen(GuiContext* ctx);
+    virtual ~InterfaceWithTetGen() {}
 
   virtual void execute();
 private:
-  GuiString switch_;
+  void fillCommandOptions(string& commandLine, bool addPoints);
+
+  GuiInt piecewiseFlag_;            // -p
+  GuiInt assignFlag_;               // -A
+  GuiInt setNonzeroAttributeFlag_;  // -AA
+  GuiInt suppressSplitFlag_;        // -Y
+  GuiInt setSplitFlag_;             // -YY
+  GuiInt numberOutputFlag_;         // -z
+  GuiInt qualityFlag_;              // -q
+  GuiInt setRatioFlag_;             // -q
+  GuiInt volConstraintFlag_;        // -a
+  GuiInt setMaxVolConstraintFlag_;  // -a
+  GuiDouble minRadius_;
+  GuiDouble maxVolConstraint_;
+  GuiInt detectIntersectionsFlag_;  // -d
+  GuiString moreSwitches_;          // additional flags
 };
 
 DECLARE_MAKER(InterfaceWithTetGen)
   
 InterfaceWithTetGen::InterfaceWithTetGen(GuiContext* ctx) : 
   Module("InterfaceWithTetGen", ctx, Filter, "NewField", "SCIRun"),
-  switch_(ctx->subVar("switch"), "pqYAz")
-{ 
-}
-
-
-InterfaceWithTetGen::~InterfaceWithTetGen()
+  piecewiseFlag_(ctx->subVar("piecewiseFlag"), 1),
+  assignFlag_(ctx->subVar("assignFlag"), 1),
+  setNonzeroAttributeFlag_(ctx->subVar("setNonzeroAttributeFlag"), 0),
+  suppressSplitFlag_(ctx->subVar("suppressSplitFlag"), 1),
+  setSplitFlag_(ctx->subVar("setSplitFlag"), 0),
+  numberOutputFlag_(ctx->subVar("numberOutputFlag"), 1),
+  qualityFlag_(ctx->subVar("qualityFlag"), 1),
+  setRatioFlag_(ctx->subVar("setRatioFlag"), 0),
+  volConstraintFlag_(ctx->subVar("volConstraintFlag"), 0),
+  setMaxVolConstraintFlag_(ctx->subVar("setMaxVolConstraintFlag"), 0),
+  // see TetGen documentation for "-q" switch: default is 2.0
+  minRadius_(ctx->subVar("minRadius"), 2.0),
+  maxVolConstraint_(ctx->subVar("maxVolConstraint"), 0.1),
+  detectIntersectionsFlag_(ctx->subVar("detectIntersectionsFlag"), 0),
+  moreSwitches_(ctx->subVar("moreSwitches"), "")
 {
 }
 
+void
+InterfaceWithTetGen::fillCommandOptions(string& commandLine, bool addPoints)
+{
+  std::ostringstream oss;
+  commandLine.clear();
+  if (addPoints) {
+    oss << 'i';
+  }
+
+  if (piecewiseFlag_.get()) {
+    oss << 'p';
+  }
+  if (assignFlag_.get()) {
+    if (setNonzeroAttributeFlag_.get()) {
+      oss << "AA";
+    }
+    else {
+      oss << 'A';
+    }
+  }
+  if (suppressSplitFlag_.get()) {
+    if (setSplitFlag_.get()) {
+      oss << "YY";
+    }
+    else {
+      oss << 'Y';
+    }
+  }
+  if (numberOutputFlag_.get()) {
+    oss << 'z';
+  }
+  if (qualityFlag_.get()) {
+    oss << 'q';
+    if (setRatioFlag_.get()) {
+      oss << minRadius_.get();
+    }
+  }
+  if (volConstraintFlag_.get()) {
+    oss << 'a';
+    if (setMaxVolConstraintFlag_.get()) {
+      oss << maxVolConstraint_.get();
+    }
+  }
+  if (detectIntersectionsFlag_.get()) {
+    oss << 'd';
+  }
+  string s = moreSwitches_.get();
+  if (s.size() > 0) {
+    oss << s;
+  }
+  commandLine = oss.str();
+}
 
 void
 InterfaceWithTetGen::execute() 
 {
   tetgenio in, addin, out;
 
-  FieldHandle main_input;
-  if(!get_input_handle("Main", main_input, true)) return;
+  FieldHandle first_surface;
+  std::vector<FieldHandle> surfaces, tsurfaces;
 
+  get_input_handle("Main", first_surface, true);
+  surfaces.push_back(first_surface);
+
+  get_dynamic_input_handles("Regions", tsurfaces, false);
+  for (size_t j=0; j< tsurfaces.size(); j++) surfaces.push_back(tsurfaces[j]);
+  
   FieldHandle points;
   bool add_points = false;
-  if (get_input_handle("Points", points, false)) {
-    // Process the extra interior points.
-    const TypeDescription *pnts = points->get_type_description();
-    const string tcn("TGAdditionalPoints");
-    CompileInfoHandle ci = TGAdditionalPointsAlgo::get_compile_info(pnts,tcn);
-    Handle<TGAdditionalPointsAlgo> ap_algo;
-    if (module_dynamic_compile(ci, ap_algo)) {
-      // Process the region attributes.
-      
-      ap_algo->add_points(this, points, addin);
-    }
-
+  
+  if (get_input_handle("Points", points, false)) 
+  {
+    VMesh* mesh = points->vmesh();    
+    VMesh::Node::size_type num_nodes = mesh->num_nodes();
+    
+    addin.numberofpoints = num_nodes;
+    addin.pointlist = new REAL[num_nodes*3];
+    for(VMesh::Node::index_type idx=0; idx<num_nodes; idx++) 
+    {
+      Point p;
+      mesh->get_center(p, idx);
+      addin.pointlist[idx * 3] = p.x();
+      addin.pointlist[idx * 3 + 1] = p.y();
+      addin.pointlist[idx * 3 + 2] = p.z();
+    }  
     add_points = true;
-    warning("Added extra interior points from Points port.");
+    remark("Added extra interior points from Points port.");
   }
 
   FieldHandle region_attribs;
   if (get_input_handle( "Region Attribs", region_attribs, false)) 
   {
-    const TypeDescription *ratd = region_attribs->get_type_description();
-    const string tcn("TGRegionAttrib");
-    CompileInfoHandle ci = TGRegionAttribAlgo::get_compile_info(ratd, tcn);
-    Handle<TGRegionAttribAlgo> raalgo;
-    if (module_dynamic_compile(ci, raalgo)) {
-      // Process the region attributes.
-      raalgo->set_region_attribs(this, region_attribs, in);
-    }
+    VMesh* mesh = region_attribs->vmesh();
+    VField* field = region_attribs->vfield();
+    VMesh::Node::size_type num_nodes = mesh->num_nodes();
+
+    in.regionlist = new REAL[num_nodes*5];
+    in.numberofregions = num_nodes;
+    for(VMesh::Node::index_type idx=0; idx<num_nodes; idx++) 
+    {
+      Point p; double val;
+      mesh->get_center(p, idx);
+      in.regionlist[idx * 5] = p.x();
+      in.regionlist[idx * 5 + 1] = p.y();
+      in.regionlist[idx * 5 + 2] = p.z();
+      in.regionlist[idx * 5 + 3] = idx;
+      field->get_value(val, idx);
+      in.regionlist[idx * 5 + 4] = val;
+    } 
   }
 
-  unsigned idx = 0;
-  unsigned fidx = 0;
 
   // indices start from 0.
   in.firstnumber = 0;
   in.mesh_dim = 3;
 
-  
-  //! Add the info for the outer surface, or tetvol to be refined.
-  const TypeDescription *ostd = main_input->get_type_description();
-  const string tcn("TGSurfaceTGIO");
-  CompileInfoHandle ci = TGSurfaceTGIOAlgo::get_compile_info(ostd, tcn);
-  Handle<TGSurfaceTGIOAlgo> algo;
-  if (!module_dynamic_compile(ci, algo)) {
-    error("Could not get InterfaceWithTetGen/SCIRun converter algorithm");
-    return;
-  }
   int marker = -10;
-  algo->to_tetgenio(this, main_input, idx, fidx, marker, in);
+  
+  VMesh::size_type tot_num_nodes = 0;
+  VMesh::size_type tot_num_elems = 0;
 
-  // Interior surfaces -- each a new boundary.
-  vector<FieldHandle> interior_surfaces;
-  if (get_dynamic_input_handles("Regions", interior_surfaces, false)) {
-    // Add each interior surface to the tetgenio input class.
-    vector<FieldHandle>::iterator iter = interior_surfaces.begin();
-    while (iter != interior_surfaces.end()) {
-      FieldHandle insurf = *iter++;
-      const TypeDescription *rtd = insurf->get_type_description();
-      CompileInfoHandle ci = TGSurfaceTGIOAlgo::get_compile_info(rtd, tcn);
-      Handle<TGSurfaceTGIOAlgo> algo;
-      if (!module_dynamic_compile(ci, algo)) {
-	error("Could not get InterfaceWithTetGen/SCIRun surface input algorithm");
-	return;
-      }    
-      marker *= 2;
-      algo->to_tetgenio(this, insurf, idx, fidx, marker, in);
-    }
+  for (size_t j=0; j< surfaces.size(); j++)
+  {
+    VMesh*  mesh = surfaces[j]->vmesh();
+    VMesh::Node::size_type num_nodes = mesh->num_nodes();
+    VMesh::Elem::size_type num_elems = mesh->num_elems();
+
+    tot_num_nodes += num_nodes;
+    tot_num_elems += num_elems;
   }
+  
+  in.pointlist = new REAL[(tot_num_nodes) * 3];
+  in.numberofpoints = tot_num_nodes;
+    
+  in.facetlist = new tetgenio::facet[tot_num_elems];
+  in.facetmarkerlist = new int[tot_num_elems];
+  in.numberoffacets = tot_num_elems;
+
+  VMesh::index_type idx = 0;
+  VMesh::index_type fidx = 0;
+  VMesh::index_type off = 0;
+  
+  for (size_t j=0; j< surfaces.size(); j++)
+  {
+    VMesh*  mesh = surfaces[j]->vmesh();
+    VMesh::Node::size_type num_nodes = mesh->num_nodes();
+    VMesh::Elem::size_type num_elems = mesh->num_elems();
+
+    off = idx;
+    for(VMesh::Node::index_type nidx=0; nidx<num_nodes; nidx++)
+    {
+      Point p;
+      mesh->get_center(p, nidx);
+      in.pointlist[idx * 3] = p.x();
+      in.pointlist[idx * 3 + 1] = p.y();
+      in.pointlist[idx * 3 + 2] = p.z();
+      ++idx;
+    }
+
+    unsigned int vert_per_face = mesh->num_nodes_per_elem();
+
+    // iterate over faces.
+    for(VMesh::Elem::index_type eidx=0; eidx<num_elems; eidx++)
+    {
+      tetgenio::facet *f = &in.facetlist[fidx];
+      f->numberofpolygons = 1;
+      f->polygonlist = new tetgenio::polygon[1];
+      f->numberofholes = 0;
+      f->holelist = 0;
+      tetgenio::polygon *p = &f->polygonlist[0];
+      p->numberofvertices = vert_per_face;
+      p->vertexlist = new int[p->numberofvertices];
+      
+      VMesh::Node::array_type nodes;
+      mesh->get_nodes(nodes, eidx);
+      for (size_t j=0; j<nodes.size(); j++)
+      {
+        p->vertexlist[j] = VMesh::index_type(nodes[j]) + off;
+      }
+
+      in.facetmarkerlist[fidx] = marker;
+      ++fidx;
+    }
+
+    marker *= 2;
+  }
+ 
   update_progress(.2);
   // Save files for later debugging.
-  string filename = string(sci_getenv("SCIRUN_TMP_DIR")) + "/tgIN";
-  in.save_nodes((char*)filename.c_str());
-  in.save_poly((char*)filename.c_str());
+  // string filename = string(sci_getenv("SCIRUN_TMP_DIR")) + "/tgIN";
+  // in.save_nodes((char*)filename.c_str());
+  // in.save_poly((char*)filename.c_str());
 
-
-  string cmmd_ln = switch_.get();
+  std::string cmmd_ln;
+  fillCommandOptions(cmmd_ln, add_points);
+#if DEBUG
+  cerr << "\nTetgen command line: " << cmmd_ln << std::endl;
+#endif
   tetgenio *addtgio = 0;
-   if (add_points) {
-   // if we are adding points make sure the command line switches include an i
-     if (cmmd_ln.find("i") == string::npos) {
-       cmmd_ln = cmmd_ln + "i";
-     }
+  if (add_points) 
+  {
      addtgio = &addin;
-   }
+  }
   // Create the new mesh.
-  tetrahedralize((char*)cmmd_ln.c_str(), &in, &out, addtgio); 
 
-  FieldHandle tetvol_out;
+  TetGenMutex.lock();
+  tetrahedralize((char*)cmmd_ln.c_str(), &in, &out, addtgio); 
+  TetGenMutex.unlock();
+  
   update_progress(.9);
+  FieldInformation fi("TetVolMesh",0,"double");
+  FieldHandle tetvol_out = CreateField(fi);
   // Convert to a SCIRun TetVol.
-  tetvol_out = algo->to_tetvol(out);
+  
+  VMesh* mesh = tetvol_out->vmesh();
+  VField* field = tetvol_out->vfield();
+  for (int i = 0; i < out.numberofpoints; i++) 
+  {
+    Point p(out.pointlist[i*3], out.pointlist[i*3+1], out.pointlist[i*3+2]);
+    mesh->add_point(p);
+  }  
+
+  VMesh::Node::array_type nodes(4);
+  for (int i = 0; i < out.numberoftetrahedra; i++) 
+  {
+    nodes[0] = out.tetrahedronlist[i*4];
+    nodes[1] = out.tetrahedronlist[i*4+1];
+    nodes[2] = out.tetrahedronlist[i*4+2];
+    nodes[3] = out.tetrahedronlist[i*4+3];
+    mesh->add_elem(nodes);
+  }
+  
+  field->resize_values();
+
+  int atts =  out.numberoftetrahedronattributes;
+  for (int i = 0; i < out.numberoftetrahedra; i++) 
+  {
+     for (int j = 0; j < atts; j++) 
+     {
+       double val = out.tetrahedronattributelist[i * atts + j];     
+       field->set_value(val, VMesh::Elem::index_type(i));      
+    }
+  }   
+  
   update_progress(1.0);
   if (tetvol_out.get_rep() == 0) { return; }
+
   send_output_handle("TetVol", tetvol_out);
-}
-
-CompileInfoHandle
-InterfaceWithTetGenInterface::get_compile_info(const TypeDescription *td, 
-					  const string template_class_name)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string base_class_name("InterfaceWithTetGenInterface");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       td->get_name(".", ".") + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       td->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  td->fill_compile_info(rval);
-  rval->add_basis_include("Core/Basis/Constant.h");
-  rval->add_basis_include("Core/Basis/TetLinearLgn.h");
-  rval->add_mesh_include("Core/Datatypes/TetVolMesh.h");
-  return rval;
 }
 
 

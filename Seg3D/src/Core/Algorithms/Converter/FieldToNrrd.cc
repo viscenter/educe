@@ -27,9 +27,9 @@
 */
 
 
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/Tensor.h>
@@ -68,7 +68,7 @@ public:
 template<class T>
 bool FieldToNrrdAlgoT::ScalarFieldToNrrd(ProgressReporter* pr,FieldHandle input, NrrdDataHandle& output,int datatype)
 {
-  output = scinew NrrdData();
+  output = new NrrdData();
   output->nrrd_ = nrrdNew();
   
   if (output->nrrd_ == 0)
@@ -366,7 +366,7 @@ bool FieldToNrrdAlgoT::ScalarFieldToNrrd(ProgressReporter* pr,FieldHandle input,
 
 bool FieldToNrrdAlgoT::VectorFieldToNrrd(ProgressReporter* pr,FieldHandle input, NrrdDataHandle& output)
 {
-  output = scinew NrrdData();
+  output = new NrrdData();
   output->nrrd_ = nrrdNew();
   
   if (output->nrrd_ == 0)
@@ -677,7 +677,7 @@ bool FieldToNrrdAlgoT::VectorFieldToNrrd(ProgressReporter* pr,FieldHandle input,
 
 bool FieldToNrrdAlgoT::TensorFieldToNrrd(ProgressReporter* pr,FieldHandle input, NrrdDataHandle& output)
 {
-  output = scinew NrrdData();
+  output = new NrrdData();
   output->nrrd_ = nrrdNew();
   
   if (output->nrrd_ == 0)

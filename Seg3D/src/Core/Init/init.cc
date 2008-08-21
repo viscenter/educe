@@ -106,6 +106,9 @@ SCIRunInit(string packages)
       (*init)(0);
     }
   }
+  
+  // Force library to load
+  LIBRARY_HANDLE plugin = findLib("libCore_IEPlugin"+lib_ext);
 }
 
 

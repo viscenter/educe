@@ -41,7 +41,7 @@
 #define SCI_Geom_Arrows_h 1
 
 #include <Core/Geom/GeomObj.h>
-#include <Core/Geom/Material.h>
+#include <Core/Datatypes/Material.h>
 #include <Core/Containers/Array1.h>
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>

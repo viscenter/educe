@@ -68,6 +68,8 @@ public:
   DenseMatrix(size_type r, size_type c);
   DenseMatrix(const DenseMatrix&);
   DenseMatrix(const Transform &t);
+  DenseMatrix(double scalar);
+  
   //! Destructor
   virtual ~DenseMatrix();
   
@@ -91,6 +93,7 @@ public:
 
   virtual double min();
   virtual double max();
+  virtual int compute_checksum();
   
   virtual void    getRowNonzeros(index_type r, Array1<index_type>& idx, 
                                  Array1<double>& val);
@@ -100,12 +103,11 @@ public:
 
   virtual DenseMatrix* transpose() const;
   virtual void    mult(const ColumnMatrix& x, ColumnMatrix& b,
-		       int& flops, int& memrefs, index_type beg=-1, index_type end=-1, 
-		       int spVec=0) const;
-  virtual void    mult(ColumnMatrix& x, ColumnMatrix& b) const;
+                      index_type beg=-1, index_type end=-1, 
+                      int spVec=0) const;
   virtual void    mult_transpose(const ColumnMatrix& x, ColumnMatrix& b,
-				 int& flops, int& memrefs,
-				 index_type beg=-1, index_type end=-1, int spVec=0) const;
+                                 index_type beg=-1, index_type end=-1, 
+                                 int spVec=0) const;
   virtual void scalar_multiply(double s);
   virtual MatrixHandle submatrix(index_type r1, index_type c1, 
                                  index_type r2, index_type c2);

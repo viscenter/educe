@@ -45,34 +45,34 @@ itcl_class Teem_Tend_TendEstim {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	checkbutton $w.f.options.knownB0 -text \
-	    "B0 is stored as first DWI value" -variable $this-knownB0
-	pack $w.f.options.knownB0 -side top -expand yes -fill x
-	checkbutton $w.f.options.usedefaultthreshold -text \
-	    "Use Default Threshold" -variable $this-use-default-threshold
-	pack $w.f.options.usedefaultthreshold -side top -expand yes -fill x
-        iwidgets::entryfield $w.f.options.threshold -labeltext "threshold:" \
-	    -textvariable $this-threshold
+        sci_checkbutton $w.f.options.knownB0 -text \
+            "B0 is stored as first DWI value" -variable $this-knownB0
+        pack $w.f.options.knownB0 -side top -expand yes -fill x
+        sci_checkbutton $w.f.options.usedefaultthreshold -text \
+            "Use Default Threshold" -variable $this-use-default-threshold
+        pack $w.f.options.usedefaultthreshold -side top -expand yes -fill x
+        sci_entryfield $w.f.options.threshold -labeltext "threshold:" \
+            -textvariable $this-threshold
         pack $w.f.options.threshold -side top -expand yes -fill x
-        iwidgets::entryfield $w.f.options.soft -labeltext "soft:" \
-	    -textvariable $this-soft
+        sci_entryfield $w.f.options.soft -labeltext "soft:" \
+            -textvariable $this-soft
         pack $w.f.options.soft -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.scale -labeltext "scale:" \
-	    -textvariable $this-scale
+        sci_entryfield $w.f.options.scale -labeltext "scale:" \
+            -textvariable $this-scale
         pack $w.f.options.scale -side top -expand yes -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

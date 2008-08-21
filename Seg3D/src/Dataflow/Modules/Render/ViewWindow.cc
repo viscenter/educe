@@ -50,7 +50,6 @@
 #include <Core/Util/NotFinished.h>
 #include <Core/Util/Environment.h>
 #include <Core/Util/Timer.h>
-#include <Core/Math/Expon.h>
 #include <Core/Math/MiscMath.h>
 #include <Core/Containers/StringUtil.h>
 #include <Core/Persistent/Pstreams.h>
@@ -58,7 +57,6 @@
 #include <Core/Geometry/Transform.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Geom/GeomObj.h>
-#include <Core/Geom/Material.h>
 #include <Core/Geom/DrawInfoOpenGL.h>
 #include <Core/Geom/GeomPick.h>
 #include <Core/Geom/PointLight.h>
@@ -68,9 +66,9 @@
 #include <Core/Geom/GeomCylinder.h>  
 #include <Core/Geom/GeomGroup.h>     
 #include <Core/Geom/GeomSticky.h>     
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomViewerItem.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/Trig.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/GuiInterface/TCLTask.h>
@@ -104,7 +102,7 @@ extern int CAPTURE_Z_DATA_HACK;
 
 ViewWindow::ViewWindow(ViewScene* viewer, GuiInterface* gui, GuiContext* ctx)
   : id_(ctx->getfullname()),
-    ball_(scinew BallData()),
+    ball_(new BallData()),
     loop_count_(45),
     rot_view_(),
     prev_trans_(),
@@ -174,7 +172,7 @@ ViewWindow::ViewWindow(ViewScene* viewer, GuiInterface* gui, GuiContext* ctx)
     down_pt_(),
     dtime_(0.0),
     uni_dist_(0.0),
-    focus_sphere_(scinew GeomSphere),
+    focus_sphere_(new GeomSphere),
     gui_current_time_(ctx->subVar("current_time",false)),
     gui_currentvisual_(ctx->subVar("currentvisual")),
     gui_autoav_(ctx->subVar("autoav")),
@@ -190,12 +188,12 @@ ViewWindow::ViewWindow(ViewScene* viewer, GuiInterface* gui, GuiContext* ctx)
   ball_->Init();
   
   // 0 - Axes, visible
-  viewwindow_objs_.push_back(scinew GeomViewerItem(createGenAxes(),"Axis",0) );
+  viewwindow_objs_.push_back(new GeomViewerItem(createGenAxes(),"Axis",0) );
   viewwindow_objs_draw_.push_back(true);              
 
   // 1 - Unicam control sphere, not visible by default.
-  MaterialHandle focus_color = scinew Material(Color(0.0, 0.0, 1.0));
-  viewwindow_objs_.push_back(scinew GeomMaterial(focus_sphere_, focus_color));
+  MaterialHandle focus_color = new Material(Color(0.0, 0.0, 1.0));
+  viewwindow_objs_.push_back(new GeomMaterial(focus_sphere_, focus_color));
   viewwindow_objs_draw_.push_back(false);
 
   // Clip plane variables, declare them so that they are saved out
@@ -212,7 +210,7 @@ ViewWindow::ViewWindow(ViewScene* viewer, GuiInterface* gui, GuiContext* ctx)
     ctx_->subVar("clip-normal-z-" + istr);
     ctx_->subVar("clip-normal-d-" + istr);
     // and fill the geometry
-    viewwindow_clip_frames_[i] = scinew ViewWindowClipFrame();
+    viewwindow_clip_frames_[i] = new ViewWindowClipFrame();
   }
 
   // Lighting Variables, declare them so that they are saved out
@@ -248,7 +246,7 @@ ViewWindow::itemAdded(GeomViewerItem* si)
   map<string,GuiInt*>::iterator gui_iter = visible_.find(name);
   if(gui_iter==visible_.end()){
     gui_->lock();
-    visible_.insert(make_pair(name,scinew GuiInt(ctx_->subVar(name))));
+    visible_.insert(make_pair(name,new GuiInt(ctx_->subVar(name))));
     gui_->unlock();
     if (!visible_[name]->valid()) 
       visible_[name]->set(1);
@@ -389,8 +387,6 @@ ViewWindow::mouse_translate(int action, int x, int y, int, int, int)
                                               translate_u_, translate_v_);
       translate_u_ = translate_u_ / xres;
       translate_v_ = translate_v_ / yres;
-
-      update_mode_string("translate: ");
     }
     break;
   case MouseMove:
@@ -406,12 +402,9 @@ ViewWindow::mouse_translate(int action, int x, int y, int, int, int)
 
       need_redraw_=true;
       ostringstream str;
-      str << "translate: " << dx << ", " << dy;
-      update_mode_string(str.str());
     }
     break;
   case MouseEnd:
-    update_mode_string("");
     need_redraw_ = 1; // this is needed for mouse-adaptive rendering
     break;
   }
@@ -465,9 +458,6 @@ ViewWindow::mouse_dolly(int action, int x, int y, int, int, int)
 
       dolly_vector_.normalize();
       dolly_total_=0;
-      char str[100];
-      sprintf(str, "dolly: %.3g (th=%.3g)", dolly_total_, dolly_throttle_);
-      update_mode_string(str);
     }
     break;
   case MouseMove:
@@ -491,13 +481,9 @@ ViewWindow::mouse_dolly(int action, int x, int y, int, int, int)
         gui_view_.set(tmpview);
         need_redraw_=true;
       }
-      char str[100];
-      sprintf(str, "dolly: %.3g (th=%.3g)", dolly_total_, dolly_throttle_);
-      update_mode_string(str);
     }
     break;
   case MouseEnd:
-    update_mode_string("");
     need_redraw_ = 1;
     break;
   }
@@ -513,7 +499,6 @@ ViewWindow::mouse_scale(int action, int x, int y, int, int, int)
         gui_inertia_mode_.set(0);
         redraw();
       }
-      update_mode_string("scale: ");
       last_x_=x;
       last_y_=y;
       total_scale_=1.0;
@@ -536,13 +521,9 @@ ViewWindow::mouse_scale(int action, int x, int y, int, int, int)
 
       gui_view_.set(tmpview);
       need_redraw_=true;
-      ostringstream str;
-      str << "scale: " << 100.0/total_scale_ << "%";
-      update_mode_string(str.str());
     }
     break;
   case MouseEnd:
-    update_mode_string("");
     need_redraw_ = 1;
     break;
   }
@@ -803,7 +784,6 @@ ViewWindow::mouse_unicam(int action, int x, int y, int, int, int)
       CAPTURE_Z_DATA_HACK = 1;
       redraw();
 
-      update_mode_string("unicam: ");
       last_x_ = x;
       last_y_ = y;
       dtime_    = the_time();
@@ -841,9 +821,6 @@ ViewWindow::mouse_unicam(int action, int x, int y, int, int, int)
       }
       need_redraw_=true;
       ostringstream str;
-      char *unicamMode[] = {"Choose", "Rotate", "Pan", "Zoom"};
-      str << "unicam: " << unicamMode[unicam_state_];
-      update_mode_string(str.str());
     }
     break;
 
@@ -864,7 +841,6 @@ ViewWindow::mouse_unicam(int action, int x, int y, int, int, int)
       }
     }
     need_redraw_ = true;
-    update_mode_string("");
     break;
   }
 }
@@ -879,7 +855,6 @@ ViewWindow::mouse_rotate(int action, int x, int y, int, int, int time)
         gui_inertia_mode_.set(0);
         redraw();
       }
-      update_mode_string("rotate:");
       last_x_ = x;
       last_y_ = y;
 
@@ -970,8 +945,6 @@ ViewWindow::mouse_rotate(int action, int x, int y, int, int, int time)
 
       gui_view_.set(tmpview);
       need_redraw_=1;
-      update_mode_string("rotate:");
-
       last_time_=time;
       gui_inertia_mode_.set(0);
     }
@@ -1050,7 +1023,6 @@ ViewWindow::mouse_rotate(int action, int x, int y, int, int, int time)
     ball_->EndDrag();
     rotate_valid_p_ = 0; // so we don't have to draw this...
     need_redraw_ = 1;     // always update this...
-    update_mode_string("");
     break;
   }
 }
@@ -1065,7 +1037,6 @@ ViewWindow::mouse_rotate_eyep(int action, int x, int y, int, int, int time)
         gui_inertia_mode_.set(0);
         redraw();
       }
-      update_mode_string("rotate lookatp:");
       last_x_ = x;
       last_y_ = y;
 
@@ -1155,8 +1126,6 @@ ViewWindow::mouse_rotate_eyep(int action, int x, int y, int, int, int time)
       tmpview.lookat(tmpview.eyep()-(z_a*(eye_dist_)).vector());
       gui_view_.set(tmpview);
       need_redraw_=1;
-      update_mode_string("rotate lookatp:");
-
       last_time_=time;
       gui_inertia_mode_.set(0);
     }
@@ -1233,7 +1202,6 @@ ViewWindow::mouse_rotate_eyep(int action, int x, int y, int, int, int time)
     ball_->EndDrag();
     rotate_valid_p_ = 0; // so we don't have to draw this...
     need_redraw_ = 1;     // always update this...
-    update_mode_string("");
     break;
   }
 }
@@ -1265,7 +1233,6 @@ ViewWindow::mouse_pick(int action, int x, int y, int state, int btn, int)
 
       if (pick_obj_.get_rep())
       {
-        update_mode_string(pick_obj_);
         pick_pick_->set_picked_obj(pick_obj_);
         pick_pick_->pick(this,bs);
 
@@ -1273,7 +1240,6 @@ ViewWindow::mouse_pick(int action, int x, int y, int state, int btn, int)
       } 
       else 
       {
-        update_mode_string("pick: none");
       }
     }
     break;
@@ -1283,6 +1249,7 @@ ViewWindow::mouse_pick(int action, int x, int y, int state, int btn, int)
       // project the center of the item grabbed onto the screen -- take the z
       // component and unprojec the last and current x, y locations to get a 
       // vector in object space.
+      
       y=renderer_->yres_-y;
       BBox itemBB;
       pick_obj_->get_bounds(itemBB);
@@ -1304,14 +1271,23 @@ ViewWindow::mouse_pick(int action, int x, int y, int state, int btn, int)
 
       double maxdot=0;
       int prin_dir=-1;
-      for (int i=0; i<pick_pick_->nprincipal(); i++) {
+      
+      Vector motion(0,0,0);
+      for (int i=0; i<pick_pick_->nprincipal(); i++) 
+      {
         double pdot=Dot(motionv, pick_pick_->principal(i));
-        if(pdot > maxdot){
+        if(pdot > maxdot)
+        {
           maxdot=pdot;
           prin_dir=i;
         }
+        pdot=Dot(pmotionv, pick_pick_->principal(i));
+        if (pdot > 0)
+          motion += pdot * (pick_pick_->principal(i)/pick_pick_->principal(i).length());
       }
-      if(prin_dir != -1){
+
+      if(prin_dir != -1)
+      {
         //        double dist=motionv.length2()/maxdot;
         double dist=motionv.length();
         Vector mtn(pick_pick_->principal(prin_dir)*dist);
@@ -1322,11 +1298,11 @@ ViewWindow::mouse_pick(int action, int x, int y, int state, int btn, int)
         if (Abs(total_y_) < .0001) total_y_=0;
         if (Abs(total_z_) < .0001) total_z_=0;
         need_redraw_=1;
-        update_mode_string(pick_obj_);
-        pick_pick_->moved(prin_dir, dist, mtn, bs, pmotionv);
+        pick_pick_->moved(prin_dir, dist, mtn, bs, motion);
         need_redraw_=1;
-      } else {
-        update_mode_string("pick: Bad direction...");
+      } 
+      else 
+      {
       }
       last_x_ = x;
       last_y_ = y;
@@ -1339,7 +1315,6 @@ ViewWindow::mouse_pick(int action, int x, int y, int state, int btn, int)
     }
     pick_pick_=0;
     pick_obj_=0;
-    update_mode_string("");
     break;
   }
 }
@@ -1395,7 +1370,7 @@ ViewWindow::tcl_command(GuiArgs& args, void*)
     // We need to dispatch this one to the remote thread.  We use an ID string
     // instead of a pointer in case this viewwindow gets killed by the time the
     // redraw message gets dispatched.
-    ViewSceneMessage *msg = scinew ViewSceneMessage
+    ViewSceneMessage *msg = new ViewSceneMessage
       (MessageTypes::ViewWindowDumpImage,id_,args[2], args[3],args[4],args[5]);
     viewer_->mailbox_.send(msg);
   } else if (args[1] == "startup") {
@@ -1417,7 +1392,7 @@ ViewWindow::tcl_command(GuiArgs& args, void*)
     // We need to dispatch this one to the  remote thread We use an ID string
     // instead of a pointer in case this viewwindow gets killed by the time the
     // redraw message gets dispatched.
-    ViewSceneMessage *tmp = scinew ViewSceneMessage(id_);
+    ViewSceneMessage *tmp = new ViewSceneMessage(id_);
     if (!viewer_->mailbox_.sendIfNotSentLast(tmp, check_for_redraw_msg))
     {
       // Message wasn't needed, delete it.
@@ -1451,7 +1426,7 @@ ViewWindow::tcl_command(GuiArgs& args, void*)
       args.error("Can't figure out framerate");
       return;
     }
-    ViewSceneMessage *msg = scinew ViewSceneMessage(id_, tbeg, tend, num, framerate);
+    ViewSceneMessage *msg = new ViewSceneMessage(id_, tbeg, tend, num, framerate);
     if(!viewer_->mailbox_.trySend(msg))
        cerr << "Redraw event dropped, mailbox full!\n";
   } 
@@ -1475,7 +1450,7 @@ ViewWindow::tcl_command(GuiArgs& args, void*)
   } else if(args[1] == "gohome") {
     gui_inertia_mode_.set(0);
     gui_view_.set(homeview_);
-    viewer_->mailbox_.send(scinew ViewSceneMessage(id_)); // Redraw
+    viewer_->mailbox_.send(new ViewSceneMessage(id_)); // Redraw
   } else if(args[1] == "autoview") {
     BBox bbox;
     gui_inertia_mode_.set(0);
@@ -1498,7 +1473,7 @@ ViewWindow::tcl_command(GuiArgs& args, void*)
       if (string_to_int(str,vw)) 
       {
         FutureValue<GeometryData*> reply("Geometry getData reply");
-        GeometryComm *msg = scinew GeometryComm(MessageTypes::GeometryGetData, 0, &reply, vw, GEOM_VIEW);
+        GeometryComm *msg = new GeometryComm(MessageTypes::GeometryGetData, 0, &reply, vw, GEOM_VIEW);
         viewer_->mailbox_.send(msg);
         GeometryData *data = reply.receive();
         if (data != 0) df = *(data->view);
@@ -1611,7 +1586,7 @@ ViewWindow::tcl_command(GuiArgs& args, void*)
     sscanf(args[5].c_str(), "%f%f%f", &r, &g, &b);
 
     viewer_->
-      mailbox_.send(scinew ViewSceneMessage(MessageTypes::ViewWindowEditLight,
+      mailbox_.send(new ViewSceneMessage(MessageTypes::ViewWindowEditLight,
                                             id_, lightNo, on, Vector(x,y,z),
                                             Color(r,g,b)));
     
@@ -1623,7 +1598,7 @@ ViewWindow::tcl_command(GuiArgs& args, void*)
     // We need to dispatch this one to the remote thread We use an ID string
     // instead of a pointer in case this viewwindow gets killed by the time the
     // redraw message gets dispatched.
-    ViewSceneMessage *msg = scinew ViewSceneMessage
+    ViewSceneMessage *msg = new ViewSceneMessage
       (MessageTypes::ViewWindowDumpObjects,id_,args[2],args[3],args[4],args[5]);
     viewer_->mailbox_.send(msg);
   } else if(args[1] == "listvisuals") {
@@ -1666,7 +1641,7 @@ ViewWindow::tcl_command(GuiArgs& args, void*)
       delete renderer_->tk_gl_context_;
 
     renderer_->tk_gl_context_ = 
-      scinew TkOpenGLContext(args[2], visualid, width, height);
+      new TkOpenGLContext(args[2], visualid, width, height);
     renderer_->old_tk_gl_context_ = 0;
     renderer_->myname_ = args[2];
     renderer_->start_helper();
@@ -1725,7 +1700,7 @@ ViewWindow::tcl_command(GuiArgs& args, void*)
       } 
 
       ViewSceneMessage *msg =
-        scinew ViewSceneMessage(MessageTypes::ViewWindowUpdateClipFrame,
+        new ViewSceneMessage(MessageTypes::ViewWindowUpdateClipFrame,
                              id_, idx, p, n, w, h, 0.01*diag.length());
       viewer_->mailbox_.send(msg);
     } else {
@@ -1800,7 +1775,7 @@ ViewWindow::do_mouse(MouseHandler handler, GuiArgs& args)
 
 
   // We have to send this to the Viewer thread...
-  ViewWindowMouseMessage *msg = scinew ViewWindowMouseMessage
+  ViewWindowMouseMessage *msg = new ViewWindowMouseMessage
     (id_, handler, action, x, y, state, btn, time);
 
   if (!viewer_->mailbox_.trySend(msg))
@@ -1875,27 +1850,6 @@ ViewWindow::redraw(double tbeg, double tend, int nframes, double framerate)
   renderer_->redraw(tbeg, tend, nframes, framerate);
 }
 
-void
-ViewWindow::update_mode_string(GeomHandle pick_obj)
-{
-  string ms="pick: ";
-  GeomViewerItem* si=dynamic_cast<GeomViewerItem*>(pick_obj.get_rep());
-  if(!si){
-    ms += "GeomObj";
-  } else {
-    ms+=si->getString();
-  }
-  if(pick_n_ != 0x12345678)
-    ms+=", index="+to_string(pick_n_);
-  update_mode_string(ms);
-}
-
-void
-ViewWindow::update_mode_string(const string& msg)
-{
-  gui_->eval(id_ + " updateMode {"+msg+"}",ctx_);
-}
-
 ViewWindowMouseMessage::ViewWindowMouseMessage(const string& rid, 
                                                MouseHandler handler,
                                                int action, int x, int y, 
@@ -1913,7 +1867,7 @@ void
 ViewWindow::animate_to_view(const View& v, double /*time*/)
 {
   gui_view_.set(v);
-  viewer_->mailbox_.send(scinew ViewSceneMessage(id_));
+  viewer_->mailbox_.send(new ViewSceneMessage(id_));
 }
 
 void
@@ -2017,46 +1971,46 @@ ViewWindow::getData(int datamask, FutureValue<GeometryData*>* result)
 void
 ViewWindow::setView(View newView) {
   gui_view_.set(newView);
-  viewer_->mailbox_.send(scinew ViewSceneMessage(id_)); // Redraw
+  viewer_->mailbox_.send(new ViewSceneMessage(id_)); // Redraw
 }
 
 GeomHandle
 ViewWindow::createGenAxes() {
   const Color black(0,0,0), grey(.5,.5,.5);
-  MaterialHandle dk_red =   scinew Material(black, Color(.2,0,0), grey, 20);
-  MaterialHandle dk_green = scinew Material(black, Color(0,.2,0), grey, 20);
-  MaterialHandle dk_blue =  scinew Material(black, Color(0,0,.2), grey, 20);
-  MaterialHandle lt_red =   scinew Material(black, Color(.8,0,0), grey, 20);
-  MaterialHandle lt_green = scinew Material(black, Color(0,.8,0), grey, 20);
-  MaterialHandle lt_blue =  scinew Material(black, Color(0,0,.8), grey, 20);
+  MaterialHandle dk_red =   new Material(black, Color(.2,0,0), grey, 20);
+  MaterialHandle dk_green = new Material(black, Color(0,.2,0), grey, 20);
+  MaterialHandle dk_blue =  new Material(black, Color(0,0,.2), grey, 20);
+  MaterialHandle lt_red =   new Material(black, Color(.8,0,0), grey, 20);
+  MaterialHandle lt_green = new Material(black, Color(0,.8,0), grey, 20);
+  MaterialHandle lt_blue =  new Material(black, Color(0,0,.8), grey, 20);
 
-  GeomGroup* xp = scinew GeomGroup; 
-  GeomGroup* yp = scinew GeomGroup;
-  GeomGroup* zp = scinew GeomGroup;
-  GeomGroup* xn = scinew GeomGroup;
-  GeomGroup* yn = scinew GeomGroup;
-  GeomGroup* zn = scinew GeomGroup;
+  GeomGroup* xp = new GeomGroup; 
+  GeomGroup* yp = new GeomGroup;
+  GeomGroup* zp = new GeomGroup;
+  GeomGroup* xn = new GeomGroup;
+  GeomGroup* yn = new GeomGroup;
+  GeomGroup* zn = new GeomGroup;
 
   const double sz = 1.0;
-  xp->add(scinew GeomCylinder(Point(0,0,0), Point(sz, 0, 0), sz/20));
-  xp->add(scinew GeomCone(Point(sz, 0, 0), Point(sz+sz/5, 0, 0), sz/10, 0));
-  yp->add(scinew GeomCylinder(Point(0,0,0), Point(0, sz, 0), sz/20));
-  yp->add(scinew GeomCone(Point(0, sz, 0), Point(0, sz+sz/5, 0), sz/10, 0));
-  zp->add(scinew GeomCylinder(Point(0,0,0), Point(0, 0, sz), sz/20));
-  zp->add(scinew GeomCone(Point(0, 0, sz), Point(0, 0, sz+sz/5), sz/10, 0));
-  xn->add(scinew GeomCylinder(Point(0,0,0), Point(-sz, 0, 0), sz/20));
-  xn->add(scinew GeomCone(Point(-sz, 0, 0), Point(-sz-sz/5, 0, 0), sz/10, 0));
-  yn->add(scinew GeomCylinder(Point(0,0,0), Point(0, -sz, 0), sz/20));
-  yn->add(scinew GeomCone(Point(0, -sz, 0), Point(0, -sz-sz/5, 0), sz/10, 0));
-  zn->add(scinew GeomCylinder(Point(0,0,0), Point(0, 0, -sz), sz/20));
-  zn->add(scinew GeomCone(Point(0, 0, -sz), Point(0, 0, -sz-sz/5), sz/10, 0));
-  GeomGroup* all=scinew GeomGroup;
-  all->add(scinew GeomMaterial(xp, lt_red));
-  all->add(scinew GeomMaterial(yp, lt_green));
-  all->add(scinew GeomMaterial(zp, lt_blue));
-  all->add(scinew GeomMaterial(xn, dk_red));
-  all->add(scinew GeomMaterial(yn, dk_green));
-  all->add(scinew GeomMaterial(zn, dk_blue));
+  xp->add(new GeomCylinder(Point(0,0,0), Point(sz, 0, 0), sz/20));
+  xp->add(new GeomCone(Point(sz, 0, 0), Point(sz+sz/5, 0, 0), sz/10, 0));
+  yp->add(new GeomCylinder(Point(0,0,0), Point(0, sz, 0), sz/20));
+  yp->add(new GeomCone(Point(0, sz, 0), Point(0, sz+sz/5, 0), sz/10, 0));
+  zp->add(new GeomCylinder(Point(0,0,0), Point(0, 0, sz), sz/20));
+  zp->add(new GeomCone(Point(0, 0, sz), Point(0, 0, sz+sz/5), sz/10, 0));
+  xn->add(new GeomCylinder(Point(0,0,0), Point(-sz, 0, 0), sz/20));
+  xn->add(new GeomCone(Point(-sz, 0, 0), Point(-sz-sz/5, 0, 0), sz/10, 0));
+  yn->add(new GeomCylinder(Point(0,0,0), Point(0, -sz, 0), sz/20));
+  yn->add(new GeomCone(Point(0, -sz, 0), Point(0, -sz-sz/5, 0), sz/10, 0));
+  zn->add(new GeomCylinder(Point(0,0,0), Point(0, 0, -sz), sz/20));
+  zn->add(new GeomCone(Point(0, 0, -sz), Point(0, 0, -sz-sz/5), sz/10, 0));
+  GeomGroup* all=new GeomGroup;
+  all->add(new GeomMaterial(xp, lt_red));
+  all->add(new GeomMaterial(yp, lt_green));
+  all->add(new GeomMaterial(zp, lt_blue));
+  all->add(new GeomMaterial(xn, dk_red));
+  all->add(new GeomMaterial(yn, dk_green));
+  all->add(new GeomMaterial(zn, dk_blue));
   
   return all;
 }
@@ -2363,8 +2317,8 @@ ViewWindowClipFrame::ViewWindowClipFrame() :
 {
   unsigned int i;
   for(i = 0; i < 4; i++){
-    corners_[i] = scinew GeomSphere;
-    edges_[i] = scinew GeomCylinder;
+    corners_[i] = new GeomSphere;
+    edges_[i] = new GeomCylinder;
   }
 }
 

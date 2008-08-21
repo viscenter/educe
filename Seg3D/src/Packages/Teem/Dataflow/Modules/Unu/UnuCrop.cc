@@ -40,7 +40,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Containers/StringUtil.h>
@@ -272,8 +272,8 @@ UnuCrop::execute()
     Nrrd *nin = input_nrrd_handle->nrrd_;
     Nrrd *nout = nrrdNew();
 
-    size_t *min = scinew size_t[gui_num_axes_.get()];
-    size_t *max = scinew size_t[gui_num_axes_.get()];
+    size_t *min = new size_t[gui_num_axes_.get()];
+    size_t *max = new size_t[gui_num_axes_.get()];
 
     for(int i=0; i< gui_num_axes_.get(); i++)
     {
@@ -330,7 +330,7 @@ UnuCrop::execute()
 	   nout->axis[0].size != 6) )
 	nout->axis[0].kind = nrrdKindDomain;
 
-      NrrdData *nrrd = scinew NrrdData(nout);
+      NrrdData *nrrd = new NrrdData(nout);
 
       NrrdDataHandle output_nrrd_handle = NrrdDataHandle(nrrd);
 
@@ -344,7 +344,7 @@ UnuCrop::execute()
     delete[] max;
 
 
-    DenseMatrix *indexMat = scinew DenseMatrix( gui_num_axes_.get(), 2 );
+    DenseMatrix *indexMat = new DenseMatrix( gui_num_axes_.get(), 2 );
     MatrixHandle output_matrix_handle = MatrixHandle(indexMat);
 
     for(int i=0; i< gui_num_axes_.get(); i++)

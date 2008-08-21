@@ -42,7 +42,7 @@
 #include <Core/Datatypes/SparseRowMatrix.h>
 #include <Core/Datatypes/ColumnMatrix.h>
 #include <Core/Datatypes/MatrixOperations.h>
-#include <Core/Math/Expon.h>
+#include <Core/Math/MiscMath.h>
 #include <Core/Math/MinMax.h>
 
 namespace SCIRun {

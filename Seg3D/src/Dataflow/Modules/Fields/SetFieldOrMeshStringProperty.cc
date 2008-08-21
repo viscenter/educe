@@ -46,13 +46,14 @@
 namespace SCIRun {
 
 class SetFieldOrMeshStringProperty : public Module {
-  GuiString prop_;
-  GuiString val_;
-  GuiInt mesh_prop_; // is this property for the mesh or the Field?
-public:
-  SetFieldOrMeshStringProperty(GuiContext* ctx);
-  virtual ~SetFieldOrMeshStringProperty();
-  virtual void execute();
+  public:
+    SetFieldOrMeshStringProperty(GuiContext* ctx);
+    virtual ~SetFieldOrMeshStringProperty() {}
+    virtual void execute();
+  private:  
+    GuiString prop_;
+    GuiString val_;
+    GuiInt mesh_prop_; // is this property for the mesh or the Field?
 };
 
 DECLARE_MAKER(SetFieldOrMeshStringProperty)
@@ -64,9 +65,6 @@ SetFieldOrMeshStringProperty::SetFieldOrMeshStringProperty(GuiContext* ctx)
 {
 }
 
-SetFieldOrMeshStringProperty::~SetFieldOrMeshStringProperty()
-{
-}
 
 void
 SetFieldOrMeshStringProperty::execute()

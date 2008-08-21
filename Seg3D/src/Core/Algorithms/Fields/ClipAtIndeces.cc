@@ -43,7 +43,7 @@ ClipAtIndecesBase::get_compile_info(const TypeDescription *fsrc)
   static const string base_class_name("ClipAtIndecesBase");
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_name + "." +
+    new CompileInfo(template_name + "." +
 		       fsrc->get_filename() + ".",
                        base_class_name, 
                        template_name, 

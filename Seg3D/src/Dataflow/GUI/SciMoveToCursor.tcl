@@ -51,6 +51,8 @@ set screenHeight [winfo screenheight .]
 
 proc moveToCursor { window { leave_up "no" } } {
 
+  return
+
   if { ![envBool SCIRUN_GUI_MoveGuiToMouse] } {
      if { $leave_up == "leave_up" } {
         wm deiconify $window

@@ -1,3 +1,34 @@
+//  
+//  For more information, please see: http://software.sci.utah.edu
+//  
+//  The MIT License
+//  
+//  Copyright (c) 2006 Scientific Computing and Imaging Institute,
+//  University of Utah.
+//  
+//  
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//  
+//  The above copyright notice and this permission notice shall be included
+//  in all copies or substantial portions of the Software.
+//  
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+//  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//  
+//    File   : Seg3DFrame.h
+//    Author : David Brayford
+//    Date   : May 2008
+
 #ifndef SEG3D_SEG3DFRAME_H
 #define SEG3D_SEG3DFRAME_H
 
@@ -19,7 +50,7 @@
 #error Need WX GL Canvas!
 #endif
 
-#define SEG3D_VERSION_STRING "1.9.1"
+#define SEG3D_VERSION_STRING "1.10.0"
 
 #include <StandAlone/Apps/Seg3D/share.h>
 
@@ -38,10 +69,19 @@ class FlipTool;
 class ResampleTool;
 class MedianFilterTool;
 class OptionlessFilter;
-class ITKThresholdFilter;
 class MaskFilter;
 class itkDiscreteGaussianImageFilter;
 class HistoEqFilter;
+class PolylineToolPanel;
+class ThresholdToolPanel;
+class MoveScaleToolPanel;
+class MeasurementTool;
+class IntensityCorrectionFilterPanel;
+
+class ITKSpeedToPathGradientDescentFilter;
+class ITKSpeedToPathRegularStepGradientDescentFilter;
+class ITKSpeedToPathIterateNeighborhoodFilter;
+class SpeedFunction;
 
 #define PANEL_WIDTH 200
 #define INFO_HEIGHT 250
@@ -180,20 +220,30 @@ public:
   void Filter_FillHole( wxCommandEvent& WXUNUSED(event) );
   void Filter_FloodFillCopy( wxCommandEvent &WXUNUSED(event) );
   void Filter_MedianFilter( wxCommandEvent& WXUNUSED(event) );
-  void Filter_ThresholdFilter( wxCommandEvent& WXUNUSED(event) );
   void Filter_DiscreteGaussianFilter( wxCommandEvent& WXUNUSED(event) );
   void Filter_HistoEq( wxCommandEvent& WXUNUSED(event) );
+  void Filter_InhomoCorrection( wxCommandEvent& WXUNUSED(event) );
+
+  void Filter_SpeedToPathGradientDescent( wxCommandEvent& WXUNUSED(event) );
+  void Filter_SpeedToPathRegularStepGradientDescent( wxCommandEvent& WXUNUSED(event) );
+  void Filter_SpeedToPathIterateNeighborhood( wxCommandEvent& WXUNUSED(event) );
 
   void Filter_MaskData( wxCommandEvent& WXUNUSED(event) );
   void Filter_MaskLabel( wxCommandEvent& WXUNUSED(event) );
   void Filter_MaskAnd( wxCommandEvent& WXUNUSED(event) );
+  void Filter_MaskRemove( wxCommandEvent& WXUNUSED(event) );
   void Filter_MaskOr( wxCommandEvent& WXUNUSED(event) );
+  void Filter_MaskXor( wxCommandEvent& WXUNUSED(event) );
 
 
   void About( wxCommandEvent& WXUNUSED(event) );
   void Index( wxCommandEvent& WXUNUSED(event) );
   void Undo( wxCommandEvent& WXUNUSED(event) );
 
+  void OnUpdatePrefsFatlines( wxCommandEvent& WXUNUSED(event) );
+  void OnUpdatePrefsStipple( wxCommandEvent& WXUNUSED(event) );
+
+  void OnVolumeInfoPanel( wxCommandEvent& WXUNUSED(event) );
 
   bool Init();
 
@@ -213,12 +263,21 @@ public:
   ITKBinaryDilateErodeFilter* itk_BDEF_;
   ITKThresholdSegmentationLevelSetFilter* itk_TSLSF_;
   OptionlessFilter* optionless_;
-  ITKThresholdFilter* itk_thresholdfilter_;
   itkDiscreteGaussianImageFilter* itk_discretegaussianfilter_;
   MaskFilter* maskfilter_;
+  PolylineToolPanel *polylinetoolpanel_;
+  ThresholdToolPanel *thresholdtoolpanel_;
+  MoveScaleToolPanel *movescaletoolpanel_;
+  MeasurementTool *measurementtoolpanel_;
+  IntensityCorrectionFilterPanel *intensitycorrectionfilterpanel_;
+
+  ITKSpeedToPathGradientDescentFilter* itk_STPGDF_;
+  ITKSpeedToPathRegularStepGradientDescentFilter* itk_STPRSGDF_;
+  ITKSpeedToPathIterateNeighborhoodFilter* itk_STPINF_;
 
   void ShowTool(wxPanel* tool, const char* event_name,
-                const char *title0, const char *title1 = "");
+                const char *title0, const char *title1 = "");  
+
   void HideTool();
   wxPanel *CurrentToolPanel();
 
@@ -241,6 +300,9 @@ private:
   wxPanel* toolsPanel_;
   wxPanel* infoPanel_;
   wxPanel* current_tool_;
+
+  wxMenu* editMenu_;
+  wxMenu* prefsMenu_;
 
   wxStaticText* tool_label0_;
   wxStaticText* tool_label1_;

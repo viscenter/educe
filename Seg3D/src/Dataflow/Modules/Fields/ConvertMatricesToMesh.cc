@@ -40,14 +40,14 @@
  *  Copyright (C) 2001 SCI Institute
  */
 
-#include <Dataflow/Network/Module.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/Matrix.h>
+#include <Core/Datatypes/FieldInformation.h>
+
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Modules/Fields/ConvertMatricesToMesh.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Containers/Handle.h>
-#include <iostream>
-#include <stdio.h>
+#include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
 
@@ -61,7 +61,7 @@ private:
 
 public:
   ConvertMatricesToMesh(GuiContext* ctx);
-  virtual ~ConvertMatricesToMesh();
+  virtual ~ConvertMatricesToMesh() {}
 
   virtual void execute();
 };
@@ -78,128 +78,90 @@ ConvertMatricesToMesh::ConvertMatricesToMesh(GuiContext* ctx)
 }
 
 
-
-ConvertMatricesToMesh::~ConvertMatricesToMesh()
-{
-}
-
-
-
 void
 ConvertMatricesToMesh::execute()
 {
   MatrixHandle elementshandle;
-  if (!get_input_handle("Mesh Elements", elementshandle)) return;
-
   MatrixHandle positionshandle;
-  if (!get_input_handle("Mesh Positions", positionshandle)) return;
-
   MatrixHandle normalshandle;
+
+  get_input_handle("Mesh Elements", elementshandle,true);
+  get_input_handle("Mesh Positions", positionshandle,true);
   if (!get_input_handle("Mesh Normals", normalshandle, false))
   {
     remark("No input normals connected, not used.");
   }
 
-  CompileInfoHandle ci =
-      ConvertMatricesToMeshAlgo::get_compile_info(gui_fieldbasetype_.get(),
-				       gui_datatype_.get());
-  Handle<ConvertMatricesToMeshAlgo> algo;
-  if (!DynamicCompilation::compile(ci, algo, false, this))
+  if (inputs_changed_ || gui_fieldbasetype_.changed() ||
+      gui_datatype_.changed() || !oport_cached("Output Field"))
   {
-    error("Could not compile algorithm.");
-    return;
+    if (positionshandle->ncols() < 3)
+    {
+      error("Mesh Positions must contain at least 3 columns for position data.");
+      return;
+    }
+    if (positionshandle->ncols() > 3)
+    {
+      remark("Mesh Positions contains unused columns, only first three are used.");
+    }
+
+    std::string basename = gui_fieldbasetype_.get();
+    std::string datatype = gui_datatype_.get();
+
+    FieldInformation fi("CurveMesh",1,datatype);
+    if (basename == "Curve") fi.make_curvemesh();
+    else if (basename == "HexVol") fi.make_hexvolmesh();
+    else if (basename == "PointCloud") fi.make_pointcloudmesh();
+    else if (basename == "PrismVol") fi.make_prismvolmesh();
+    else if (basename == "QuadSurf") fi.make_quadsurfmesh();
+    else if (basename == "TetVol") fi.make_tetvolmesh();
+    else if (basename == "TriSurf") fi.make_trisurfmesh();
+    
+    FieldHandle result_field = CreateField(fi);
+    VMesh* mesh = result_field->vmesh();
+
+    Matrix::index_type i, j;
+    const Matrix::size_type pnrows = positionshandle->nrows();
+    for (i = 0; i < pnrows; i++)
+    {
+      const Point p(positionshandle->get(i, 0),
+        positionshandle->get(i, 1),
+        positionshandle->get(i, 2));
+      mesh->add_point(p);
+    }
+
+    Matrix::index_type ecount = 0;
+    const Matrix::size_type enrows = elementshandle->nrows();
+    const Matrix::size_type encols = elementshandle->ncols();
+    VMesh::Node::array_type nodes;
+    
+    for (i = 0; i < enrows; i++)
+    {
+      for (j = 0; j < encols; j++)
+      {
+        VMesh::Node::index_type index = static_cast<Matrix::index_type>(elementshandle->get(i, j));
+        if (index < 0 || index >= pnrows)
+        {
+          if (ecount < 10)
+          {
+            error("Bad index found at " + to_string(i) + ", "+ to_string(j));
+          }
+          index = 0;
+          ecount++;
+        }
+        nodes.push_back(index);
+      }
+      mesh->add_elem(nodes);
+    }
+    if (ecount >= 10)
+    {
+      error("..." + to_string(ecount-9) + " additional bad indices found.");
+    }
+    
+    result_field->vfield()->resize_values();
+    send_output_handle("Output Field", result_field);
   }
-
-  FieldHandle result_field =
-    algo->execute(this, elementshandle, positionshandle,
-		  normalshandle, 1);
-
-  if (!result_field.get_rep())
-  {
-    return;
-  }
-
-  send_output_handle("Output Field", result_field);
 }
-
-
-
-CompileInfoHandle
-ConvertMatricesToMeshAlgo::get_compile_info(const string &basename,
-				 const string &datatype)
-{
-  // Use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("ConvertMatricesToMeshAlgoT");
-  static const string base_class_name("ConvertMatricesToMeshAlgo");
-
-
-  string ftype;
-  string basis_inc;
-  string mesh_inc;
-  if (basename == "Curve") {
-    ftype = "GenericField<CurveMesh<CrvLinearLgn<Point> >, CrvLinearLgn<" + 
-      datatype + ">, vector<" + datatype + "> > ";
-    basis_inc = "Core/Basis/CrvLinearLgn.h";
-    mesh_inc = "Core/Datatypes/CurveMesh.h";
-  } else if (basename == "HexVol") {
-    ftype = 
-      "GenericField<HexVolMesh<HexTrilinearLgn<Point> >, HexTrilinearLgn<" + 
-      datatype + ">, vector<" + datatype + "> > ";
-    basis_inc = "Core/Basis/HexTrilinearLgn.h";
-    mesh_inc = "Core/Datatypes/HexVolMesh.h";
-  } else if (basename == "PointCloud") {
-    ftype = 
-      "GenericField<PointCloudMesh<ConstantBasis<Point> >, ConstantBasis<" +
-      datatype + ">, vector<" + datatype + "> > ";
-    basis_inc = "Core/Basis/Constant.h";
-    mesh_inc = "Core/Datatypes/PointCloudMesh.h";
-
-  } else if (basename == "PrismVol") {
-    ftype = 
-      "GenericField<PrismVolMesh<PrismLinearLgn<Point> >, PrismLinearLgn<" + 
-      datatype + ">, vector<" + datatype + "> > ";
-    basis_inc = "Core/Basis/PrismLinearLgn.h";
-    mesh_inc = "Core/Datatypes/PrismVolMesh.h";
-  } else if (basename == "QuadSurf") {
-    ftype = 
-      "GenericField<QuadSurfMesh<QuadBilinearLgn<Point> >, QuadBilinearLgn<" +
-      datatype + ">, vector<" + datatype + "> > ";
-    basis_inc = "Core/Basis/QuadBilinearLgn.h";
-    mesh_inc = "Core/Datatypes/QuadSurfMesh.h";
-  } else if (basename == "TetVol") {
-    ftype = 
-      "GenericField<TetVolMesh<TetLinearLgn<Point> >, TetLinearLgn<" +
-      datatype + ">, vector<" + datatype + "> > ";
-    basis_inc = "Core/Basis/TetLinearLgn.h";
-    mesh_inc = "Core/Datatypes/TetVolMesh.h";
-  } else if (basename == "TriSurf") {
-    ftype = 
-      "GenericField<TriSurfMesh<TriLinearLgn<Point> >, TriLinearLgn<" +
-      datatype + ">, vector<" + datatype + "> > ";
-    basis_inc = "Core/Basis/TriLinearLgn.h";
-    mesh_inc = "Core/Datatypes/TriSurfMesh.h";    
-  }
-
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       to_filename(ftype) + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       ftype);
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_basis_include(basis_inc);
-  rval->add_mesh_include(mesh_inc);
-  rval->add_field_include("Core/Datatypes/GenericField.h");
-  rval->add_namespace("SCIRun");
-
-  return rval;
-}
-
-
 
 } // End namespace SCIRun
 

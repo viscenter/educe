@@ -44,7 +44,7 @@
 #endif
 #include <sys/stat.h>
 #include <Core/Util/FileUtils.h>
-#include <Core/OS/Dir.h>
+#include <Core/Util/Dir.h>
 #include <Core/Util/Assert.h>
 #include <Core/Util/Environment.h>
 #include <Core/Util/sci_system.h>
@@ -143,7 +143,7 @@ InsertStringInFile(char* filename, const char* match, const char* add_text)
 }
 
 std::map<int,char*>*
-GetFilenamesEndingWith(char* d, char* ext)
+GetFilenamesEndingWith(const char* d, const  char* ext)
 {
   std::map<int,char*>* newmap = 0;
   dirent* file = 0;
@@ -572,7 +572,7 @@ int copyFile(string src, string dest)
   string cpCmd = "cp -f ";
 #endif
 
-  string cmd = cpCmd + src + " " + dest;
+  string cmd = cpCmd + "\"" + src + "\"" + " " + "\"" + dest + "\"";
   int code = sci_system(cmd.c_str());
   if (code)
   {
@@ -591,7 +591,7 @@ int moveFile(string src, string dest)
   string mvCmd = "mv -f ";
 #endif
 
-  string cmd = mvCmd + src + " " + dest;
+  string cmd = mvCmd + "\"" + src + "\"" + " " + "\"" + dest + "\"";
   int code = sci_system(cmd.c_str());
   if (code)
   {
@@ -609,7 +609,7 @@ int deleteFile(string filename)
   string rmCmd = "rm -f ";
 #endif
 
-  string cmd = rmCmd + filename;
+  string cmd = rmCmd + "\"" + filename + "\"";
   int code = sci_system(cmd.c_str());
   if (code)
   {
@@ -628,7 +628,7 @@ int copyDir(string src, string dest)
   string cpCmd = "cp -fr ";
 #endif
 
-  string cmd = cpCmd + src + " " + dest;
+  string cmd = cpCmd + "\"" + src + "\"" + " " + "\"" + dest + "\"";
   int code = sci_system(cmd.c_str());
   if (code)
   {
@@ -646,7 +646,7 @@ int deleteDir(string filename)
   string rmCmd = "rm -rf ";
 #endif
 
-  string cmd = rmCmd + filename;
+  string cmd = rmCmd + "\"" + filename + "\"";
   int code = sci_system(cmd.c_str());
   if (code)
   {

@@ -27,8 +27,8 @@
 */
 
 
-#ifndef CORE_ALGORITHMS_FIELDS_FIELDDATANODETOELEM_H
-#define CORE_ALGORITHMS_FIELDS_FIELDDATANODETOELEM_H 1
+#ifndef CORE_ALGORITHMS_FIELDS_MAPFIELDDATAFROMNODETOELEM_H
+#define CORE_ALGORITHMS_FIELDS_MAPFIELDDATAFROMNODETOELEM_H 1
 
 //! STL classes to include
 #include <algorithm>
@@ -59,7 +59,7 @@ class SCISHARE MapFieldDataFromNodeToElemAlgo : public AlgoBase
     }
 
     //! Functions
-    bool run(FieldHandle input,FieldHandle& output);
+    bool run(FieldHandle& input,FieldHandle& output);
 };
 
 } // namespace SCIRunAlgo

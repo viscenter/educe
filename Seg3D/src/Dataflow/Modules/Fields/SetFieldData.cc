@@ -48,13 +48,13 @@
 namespace SCIRun {
 
 class SetFieldData : public Module {
+  public:
+    SetFieldData(GuiContext*);
+    virtual ~SetFieldData() {}
+    virtual void execute();
 
-public:
-  SetFieldData(GuiContext*);
-  virtual void execute();
-
-protected:
-  GuiInt gui_keepscalartype_;
+  protected:
+    GuiInt gui_keepscalartype_;
 };
 
 

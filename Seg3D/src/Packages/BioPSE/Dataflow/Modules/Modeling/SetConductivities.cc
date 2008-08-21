@@ -45,7 +45,6 @@
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Core/Datatypes/DenseMatrix.h>
-#include <Core/Datatypes/FieldInterface.h>
 #include <Core/Geometry/Tensor.h>
 #include <sci_hash_map.h>
 #include <iostream>
@@ -252,31 +251,30 @@ SetConductivities::execute()
   if (get_input_handle("Tensor Matrix", imatrix, false))
   {
     imatrix->get_property("tensor-names", tensor_names);
-    ScalarFieldInterfaceHandle sfi = field->query_scalar_interface(this);
     double minval, maxval;
-    sfi->compute_min_max(minval, maxval);
+    field->vfield()->minmax(minval, maxval);
     if (imatrix->nrows() > maxval && imatrix->ncols() == 9)
     {
       for (int i = 0; i < imatrix->nrows(); i++)
       {
-	Tensor t;
-	t.mat_[0][0] = imatrix->get(i, 0);
-	t.mat_[0][1] = imatrix->get(i, 1);
-	t.mat_[0][2] = imatrix->get(i, 2);
+        Tensor t;
+        t.mat_[0][0] = imatrix->get(i, 0);
+        t.mat_[0][1] = imatrix->get(i, 1);
+        t.mat_[0][2] = imatrix->get(i, 2);
 
-	t.mat_[1][0] = imatrix->get(i, 3);
-	t.mat_[1][1] = imatrix->get(i, 4);
-	t.mat_[1][2] = imatrix->get(i, 5);
+        t.mat_[1][0] = imatrix->get(i, 3);
+        t.mat_[1][1] = imatrix->get(i, 4);
+        t.mat_[1][2] = imatrix->get(i, 5);
 
-	t.mat_[2][0] = imatrix->get(i, 6);
-	t.mat_[2][1] = imatrix->get(i, 7);
-	t.mat_[2][2] = imatrix->get(i, 8);
-	if ((unsigned int)i < tensor_names.size()) {
-	  field_tensors.push_back(pair<string, Tensor>(tensor_names[i], t));
-	} else {
-	  const string s = "matrix-row-" + to_string(i+1);
-	  field_tensors.push_back(pair<string, Tensor>(s, t));
-	}
+        t.mat_[2][0] = imatrix->get(i, 6);
+        t.mat_[2][1] = imatrix->get(i, 7);
+        t.mat_[2][2] = imatrix->get(i, 8);
+        if ((unsigned int)i < tensor_names.size()) {
+          field_tensors.push_back(pair<string, Tensor>(tensor_names[i], t));
+        } else {
+          const string s = "matrix-row-" + to_string(i+1);
+          field_tensors.push_back(pair<string, Tensor>(s, t));
+        }
       }
       created_p = true;
     }
@@ -315,11 +313,13 @@ SetConductivities::execute()
   if (!(created_p || field->get_property("conductivity_table", field_tensors)))
   {
     created_p = true;
-    ScalarFieldInterfaceHandle sfi = field->query_scalar_interface(this);
+    
+    VField* vfield = field->vfield();
+
     double minval, maxval;
-    if (sfi.get_rep())
+    if (vfield->is_scalar())
     {
-      sfi->compute_min_max(minval, maxval);
+      vfield->minmax(minval, maxval);
     }
     else
     {
@@ -414,7 +414,7 @@ SetConductivities::execute()
     changed_table_p = true;
   }
 
-  DenseMatrix *omatrix = scinew DenseMatrix(gui_tensors.size(), 9);
+  DenseMatrix *omatrix = new DenseMatrix(gui_tensors.size(), 9);
   tensor_names.clear();
   for (unsigned int j = 0; j < gui_tensors.size(); j++)
   {

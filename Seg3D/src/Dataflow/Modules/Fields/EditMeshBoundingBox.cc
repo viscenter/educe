@@ -34,8 +34,6 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Datatypes/FieldInterface.h>
 
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/GeometryPort.h>
@@ -55,59 +53,67 @@ using std::endl;
 using std::pair;
 
 class EditMeshBoundingBox : public Module {
-public:
-  EditMeshBoundingBox(GuiContext* ctx);
-  virtual ~EditMeshBoundingBox();
+  public:
+    EditMeshBoundingBox(GuiContext* ctx);
+    virtual ~EditMeshBoundingBox();
 
-  GuiDouble		outputcenterx_;	// the out geometry (center point and size)
-  GuiDouble		outputcentery_;
-  GuiDouble		outputcenterz_;
-  GuiDouble		outputsizex_;
-  GuiDouble		outputsizey_;
-  GuiDouble		outputsizez_;
-  GuiInt      useoutputcenter_;   // center checkbox
-  GuiInt      useoutputsize_;   // size checkbox
+    GuiDouble		outputcenterx_;	// the out geometry (center point and size)
+    GuiDouble		outputcentery_;
+    GuiDouble		outputcenterz_;
+    GuiDouble		outputsizex_;
+    GuiDouble		outputsizey_;
+    GuiDouble		outputsizez_;
+    GuiInt      useoutputcenter_;   // center checkbox
+    GuiInt      useoutputsize_;   // size checkbox
 
-  GuiString		inputcenterx_;
-  GuiString		inputcentery_;
-  GuiString		inputcenterz_;
-  GuiString		inputsizex_;
-  GuiString		inputsizey_;
-  GuiString		inputsizez_;
+    GuiString		inputcenterx_;
+    GuiString		inputcentery_;
+    GuiString		inputcenterz_;
+    GuiString		inputsizex_;
+    GuiString		inputsizey_;
+    GuiString		inputsizez_;
 
-  // NOTE: box_scale_ isn't actually the scale of the box.  It keeps
-  // track of whether or not the box has been edited by hand or was
-  // automatically generated.  It will have a negative value if the
-  // box was automatically generated and a positive value if it was
-  // edited by hand (widget_moved called).  The name has been
-  // preserved for backwards compatability.
-  GuiDouble             box_scale_;
+    // NOTE: box_scale_ isn't actually the scale of the box.  It keeps
+    // track of whether or not the box has been edited by hand or was
+    // automatically generated.  It will have a negative value if the
+    // box was automatically generated and a positive value if it was
+    // edited by hand (widget_moved called).  The name has been
+    // preserved for backwards compatability.
+    GuiDouble             box_scale_;
 
-  GuiInt                box_mode_;
-  GuiDouble             box_real_scale_;
-  GuiPoint              box_center_;
-  GuiPoint              box_right_;
-  GuiPoint              box_down_;
-  GuiPoint              box_in_;
+    GuiInt                box_mode_;
+    GuiDouble             box_real_scale_;
+    GuiPoint              box_center_;
+    GuiPoint              box_right_;
+    GuiPoint              box_down_;
+    GuiPoint              box_in_;
 
-  GuiInt                resetting_;
+    GuiInt                resetting_;
+    
+    GuiInt restrict_translation_;
+    GuiInt restrict_x_;
+    GuiInt restrict_y_;
+    GuiInt restrict_z_;
+    GuiInt restrict_r_;
+    GuiInt restrict_d_;
+    GuiInt restrict_i_;
 
-  CrowdMonitor		widget_lock_;
-  BoxWidget *     box_;
-  Transform       box_initial_transform_;
-  Transform       field_initial_transform_;
-  BBox            box_initial_bounds_;
-  int             generation_;
-  int             widgetid_;
+    CrowdMonitor		widget_lock_;
+    BoxWidget *     box_;
+    Transform       box_initial_transform_;
+    Transform       field_initial_transform_;
+    BBox            box_initial_bounds_;
+    int             generation_;
+    int             widgetid_;
 
-  void clear_vals();
-  void update_input_attributes(FieldHandle);
-  void build_widget(FieldHandle, bool reset);
+    void clear_vals();
+    void update_input_attributes(FieldHandle);
+    void build_widget(FieldHandle, bool reset);
 
-  virtual void execute();
-  virtual void widget_moved(bool, BaseWidget*);
-	
-	virtual void tcl_command(GuiArgs&, void*);
+    virtual void execute();
+    virtual void widget_moved(bool, BaseWidget*);
+    
+    virtual void tcl_command(GuiArgs&, void*);
 };
 
 DECLARE_MAKER(EditMeshBoundingBox)
@@ -136,13 +142,32 @@ EditMeshBoundingBox::EditMeshBoundingBox(GuiContext* ctx)
     box_down_(get_ctx()->subVar("box-down"), Point(0.0, 0.0, 0.0)),
     box_in_(get_ctx()->subVar("box-in"), Point(0.0, 0.0, 0.0)),
     resetting_(get_ctx()->subVar("resetting", false), 0),
+    restrict_translation_(get_ctx()->subVar("restrict-translation"),0),
+    restrict_x_(get_ctx()->subVar("restrict-x"),0),
+    restrict_y_(get_ctx()->subVar("restrict-y"),0),
+    restrict_z_(get_ctx()->subVar("restrict-z"),0),
+    restrict_r_(get_ctx()->subVar("restrict-r"),0),
+    restrict_d_(get_ctx()->subVar("restrict-d"),0),
+    restrict_i_(get_ctx()->subVar("restrict-i"),0),
     widget_lock_("EditMeshBoundingBox widget lock"),
     generation_(-1),
     widgetid_(0)
 {
-  box_ = scinew BoxWidget(this, &widget_lock_, 1.0, false, false);
-  box_->Connect((GeometryOPort*)get_oport("Transformation Widget"));
+  GeometryOPortHandle ogport;
+  get_oport_handle("Transformation Widget",ogport);
 
+  box_ = new BoxWidget(this, &widget_lock_, 1.0, false, false);
+  box_->Connect(ogport.get_rep());
+  box_->SetRestrictX(restrict_x_.get());
+  box_->SetRestrictY(restrict_y_.get());
+  box_->SetRestrictZ(restrict_z_.get());
+  box_->SetRestrictR(restrict_r_.get());
+  box_->SetRestrictD(restrict_d_.get());
+  box_->SetRestrictI(restrict_i_.get());
+  int val = restrict_translation_.get() ;
+  if (val== 0) box_->UnRestrictTranslation();
+  else if (val== 1) box_->RestrictTranslationXYZ();
+  else if (val== 2) box_->RestrictTranslationRDI();
   inputcenterx_.set("---");
   inputcentery_.set("---");
   inputcenterz_.set("---");
@@ -159,7 +184,6 @@ EditMeshBoundingBox::tcl_command(GuiArgs& args, void* userdata)
     args.error("EditMeshBoundingBox needs a minor command");
     return;
   }
-
 	if(args[1] == "scale")
   {
 		std::cout << "called scale\n";
@@ -184,6 +208,80 @@ EditMeshBoundingBox::tcl_command(GuiArgs& args, void* userdata)
       return;
     }
     box_->NextMode();
+  }
+  else if (args[1] == "restricttranslation")
+  {
+    if (args.count() != 3)
+    {
+      args.error("widget doesn't need a minor command");
+      return;
+    }
+    int val;
+    string_to_int(args[2],val);
+    if (val == 0) box_->UnRestrictTranslation();
+    if (val == 1) box_->RestrictTranslationXYZ();
+    if (val == 2) box_->RestrictTranslationRDI();
+  }
+  else if (args[1] == "restrictx")
+  {
+    if (args.count() != 2)
+    {
+      args.error("widget doesn't need a minor command");
+      return;
+    }
+    restrict_x_.reset();
+    box_->SetRestrictX(restrict_x_.get());
+  }
+  else if (args[1] == "restricty")
+  {
+    if (args.count() != 2)
+    {
+      args.error("widget doesn't need a minor command");
+      return;
+    }
+    restrict_y_.reset();
+    box_->SetRestrictY(restrict_y_.get());
+  }  
+  else if (args[1] == "restrictz")
+  {
+    if (args.count() != 2)
+    {
+      args.error("widget doesn't need a minor command");
+      return;
+    }
+    restrict_z_.reset();
+    box_->SetRestrictZ(restrict_z_.get());
+  }
+  else if (args[1] == "restrictr")
+  {
+    if (args.count() != 2)
+    {
+      args.error("widget doesn't need a minor command");
+      return;
+    }
+    restrict_r_.reset();
+    box_->SetRestrictR(restrict_r_.get());
+
+  }
+  else if (args[1] == "restrictd")
+  {
+    if (args.count() != 2)
+    {
+      args.error("widget doesn't need a minor command");
+      return;
+    }
+    restrict_d_.reset();
+    box_->SetRestrictD(restrict_d_.get());
+  }  
+  else if (args[1] == "restricti")
+  {
+    if (args.count() != 2)
+    {
+      args.error("widget doesn't need a minor command");
+      return;
+    }
+    restrict_i_.reset();
+    box_->SetRestrictI(restrict_i_.get());
   }
   else 
   {
@@ -326,12 +424,12 @@ EditMeshBoundingBox::build_widget(FieldHandle f, bool reset)
     box_->SetCurrentMode(box_mode_.get());
   }
 
-  GeomGroup *widget_group = scinew GeomGroup;
+  GeomGroup *widget_group = new GeomGroup;
   widget_group->add(box_->GetWidget());
 
-  GeometryOPort *ogport = (GeometryOPort*)get_oport("Transformation Widget");
-  widgetid_ = ogport->addObj(widget_group,"EditMeshBoundingBox Transform widget",
-			     &widget_lock_);
+  GeometryOPortHandle ogport;
+  get_oport_handle("Transformation Widget",ogport);
+  widgetid_ = ogport->addObj(widget_group,"EditMeshBoundingBox Transform widget", &widget_lock_);
   ogport->flushViews();
 }
 
@@ -346,6 +444,17 @@ EditMeshBoundingBox::execute()
     return;
   }
 
+  box_->SetRestrictX(restrict_x_.get());
+  box_->SetRestrictY(restrict_y_.get());
+  box_->SetRestrictZ(restrict_z_.get());
+  box_->SetRestrictR(restrict_r_.get());
+  box_->SetRestrictD(restrict_d_.get());
+  box_->SetRestrictI(restrict_i_.get());
+  int val = restrict_translation_.get() ;
+  if (val== 0) box_->UnRestrictTranslation();
+  else if (val== 1) box_->RestrictTranslationXYZ();
+  else if (val== 2) box_->RestrictTranslationRDI();
+  
   // The output port is required.
   update_state(Executing);
 
@@ -473,7 +582,7 @@ EditMeshBoundingBox::execute()
   send_output_handle("Output Field", fh);
   
   // Convert the transform into a matrix and send it out.
-  MatrixHandle mh = scinew DenseMatrix(t);
+  MatrixHandle mh = new DenseMatrix(t);
   send_output_handle("Transformation Matrix", mh);
 }
 

@@ -15,10 +15,10 @@ itcl_class SCIRun_MiscField_GetMeshQualityField {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
         wm minsize $w 170 20
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
         make_labeled_radio $w.f.r "Mesh Quality Metrics:" "" \
                 top 1 $this-method \

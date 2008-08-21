@@ -14,6 +14,7 @@
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 #include <StandAlone/Apps/Seg3D/Painter.h>
+#include <StandAlone/Apps/Seg3D/Seg3DwxGuiUtils.h>
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -111,7 +112,7 @@ void ITKConfidenceConnectedFilter::Init()
 {
 ////@begin ITKConfidenceConnectedFilter member initialisation
     mIterations = NULL;
-    mMultipliers = NULL;
+    mMultiplier = NULL;
     mPercentage = NULL;
 ////@end ITKConfidenceConnectedFilter member initialisation
 
@@ -129,8 +130,11 @@ void ITKConfidenceConnectedFilter::CreateControls()
     if (!wxXmlResource::Get()->LoadPanel(this, GetParent(), _T("ID_ITKCONFIDENCECONNECTEDFILTER")))
         wxLogError(wxT("Missing wxXmlResource::Get()->Load() in OnInit()?"));
     mIterations = XRCCTRL(*this, "SPIN_ITERATIONS", wxSpinCtrl);
-    mMultipliers = XRCCTRL(*this, "SPIN_MULTIPLIER", wxSpinCtrl);
+    mMultiplier = XRCCTRL(*this, "TEXT_MULTIPLIER", wxTextCtrl);
     mPercentage = XRCCTRL(*this, "ID_GAUGE1", wxGauge);
+    // Set validators
+    if (FindWindow(XRCID("TEXT_MULTIPLIER")))
+        FindWindow(XRCID("TEXT_MULTIPLIER"))->SetValidator( wxTextValidator(wxFILTER_NUMERIC) );
 ////@end ITKConfidenceConnectedFilter content construction
 
     // Create custom windows not generated automatically here.
@@ -156,7 +160,7 @@ void ITKConfidenceConnectedFilter::OnStartButtonClick( wxCommandEvent& event )
   tsse->add_var("ITKConfidenceConnectedImageFilterTool::numberOfIterations",
                 SCIRun::to_string(mIterations->GetValue()));
   tsse->add_var("ITKConfidenceConnectedImageFilterTool::multiplier",
-                SCIRun::to_string(mMultipliers->GetValue()));
+                wx2std(mMultiplier->GetValue()));
   SCIRun::Painter::ThrowSkinnerSignal(tsse, false);
 }
 
@@ -183,8 +187,8 @@ void ITKConfidenceConnectedFilter::OnSetProgress( wxCommandEvent &event)
   
   if (progress < 0)
   {
-    wxBeginBusyCursor();
     disabler_ = new wxWindowDisabler();
+    wxBeginBusyCursor();
     progress = 0;
   }
   if (progress > 100)

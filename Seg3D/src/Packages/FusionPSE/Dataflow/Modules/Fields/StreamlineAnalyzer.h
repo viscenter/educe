@@ -560,9 +560,8 @@ execute(FieldHandle& ifield_h,
     (ifield_h->get_type_description(Field::MESH_TD_E)->get_name().find("PointCloud") !=
      string::npos );
 
-
-  typename OFIELD::mesh_type *omesh = scinew typename OFIELD::mesh_type();
-  OFIELD *ofield = scinew OFIELD(omesh);
+  typename OFIELD::mesh_type *omesh = new typename OFIELD::mesh_type();
+  OFIELD *ofield = new OFIELD(omesh);
 
   ofield_h = FieldHandle(ofield);
 
@@ -603,8 +602,8 @@ execute(FieldHandle& ifield_h,
     }
   }
 
-  typename PCFIELD::mesh_type *opccmesh = scinew typename PCFIELD::mesh_type();
-  PCFIELD *opccfield = scinew PCFIELD(opccmesh);
+  typename PCFIELD::mesh_type *opccmesh = new typename PCFIELD::mesh_type();
+  PCFIELD *opccfield = new PCFIELD(opccmesh);
 
   opccfield_h = FieldHandle(opccfield);
 
@@ -639,8 +638,8 @@ execute(FieldHandle& ifield_h,
     }
   }
 
-  typename PCFIELD::mesh_type *opcsmesh = scinew typename PCFIELD::mesh_type();
-  PCFIELD *opcsfield = scinew PCFIELD(opcsmesh);
+  typename PCFIELD::mesh_type *opcsmesh = new typename PCFIELD::mesh_type();
+  PCFIELD *opcsfield = new PCFIELD(opcsmesh);
 
   opcsfield_h = FieldHandle(opcsfield);
 
@@ -666,9 +665,9 @@ execute(FieldHandle& ifield_h,
   vector< unsigned int > islands;
   vector< float > avenodes;
 
-  Point lastPt, currPt;
+  Point penultimatePt, lastPt, currPt;
   double lastAng, currAng;
-  bool CCWstreamline;
+  bool CCWstreamline, checkTwist = false;
 
   if( !poincareField ) {
     // Get the direction of the streamline winding.
@@ -686,12 +685,16 @@ execute(FieldHandle& ifield_h,
 
   unsigned int count = 0;
   unsigned int index = 0;
-  
+
+  unsigned int twist;
+  vector< unsigned int > twistset;
+
   // First find out how many windings it takes to get back to the
   // starting point at the Phi = 0 plane. 
   double plane = 0;
 
   vector< Point > points;
+  vector< Point > twist_points;
 
   imesh->begin( inodeItr );
   inodeNext = *inodeItr;
@@ -699,24 +702,31 @@ execute(FieldHandle& ifield_h,
   dataItr = ifield->fdata().begin();
   index = 9999999;
 
+  cerr << "Starting  " << endl;
+
   while (inodeItr != inodeEnd) {
 
     // Prep for a new set of points from a streamline or poincare points.
     if( ( poincareField && *dataItr  != index    ) ||
 	(!poincareField && *inodeItr == inodeNext) ) {
 
-//      cerr << "Starting new streamline winding "
-//	   << count << "  " << *inodeItr << endl;
+      cerr << "Starting new streamline "
+	   << count << "  " << *inodeItr << "  ";
 
       points.clear();
+      twist_points.clear();
+      twistset.clear();
 
       if( poincareField ) {
 	// The index for this set of poincare points.
 	index = (unsigned int) *dataItr;
 
       } else {
+
 	imesh->get_center(lastPt, *inodeItr);
-	lastAng = atan2( lastPt.y(), lastPt.x() );      
+	lastAng = atan2( lastPt.y(), lastPt.x() );
+	penultimatePt = lastPt;
+	twist = 0;
 	++inodeItr;
 	++dataItr;
 
@@ -760,8 +770,32 @@ execute(FieldHandle& ifield_h,
 	}
 
 	points.push_back( point );
+	checkTwist = true;
+
+//	if( points.size() && points.size() < maxWindings )
+//  	  cerr << "winding/twist  "
+//  	       << points.size() - 1 << "  "
+//  	       << twist << "  "
+//  	       << (double) (points.size()-1)/(double)twist << endl;
+
+	twistset.push_back( twist );
       }
 
+      // Find the zero positive zero crossing.
+      if( points.size() ) {
+	if( checkTwist &&
+	    0.25 < currPt.z() &&
+	    penultimatePt.z() <= lastPt.z() &&
+	    currPt.z() < lastPt.z() ) {
+	  ++twist;
+
+	  twist_points.push_back( lastPt );
+
+	  checkTwist = false;
+	}
+      }
+
+      penultimatePt = lastPt;
       lastPt  = currPt;
       lastAng = currAng;
     }
@@ -791,9 +825,245 @@ execute(FieldHandle& ifield_h,
 
       } else {
 
-	FLlib.fieldlineProperties( points, maxWindings,
-				   winding, twist, skip, type,
-				   island, avenode, windingNextBest );
+	cerr << "analyzing with "
+	     << points.size() << " pucture points and "
+	     << twist_points.size() << " zero crossing points " << endl;
+
+	unsigned int bestwinding = 0;
+	double hitrate = 0;
+
+	for( winding=1; (winding<maxWindings &&
+			 winding<points.size()/2); ++winding) {
+
+	  // If the first two connections of one group crosses the
+	  // first two connections of another group skip it.
+	  if( ! FLlib.IntersectCheck( points, winding ) )
+	    continue;
+
+	  twist = twistset[winding];
+
+	  if( twist == 0 )
+	    continue;
+
+	  unsigned int cc = 0;
+
+	  // See if the twisting pattern is consistant throughout all
+	  // of the windings.
+	  for( unsigned int i=0; i<points.size()-winding; ++i) {
+	    if( twist == twistset[i+winding] - twistset[i] )
+	      ++cc;
+	  }
+
+	  cerr << "winding/twist  "
+	       << winding << "  "
+	       << twist << "  "
+	       << "consistency "
+	       << 100.0 * (double) cc / (double) (points.size()-winding)
+	       << " percent" << endl;
+
+	  if( hitrate < (double) cc / (double) (points.size()-winding ) ) {
+	    hitrate = (double) cc / (double) (points.size()-winding);
+
+// 	    if( bestwtwist &&
+// 		bestwinding % winding == 0 &&
+// 		twistset[bestwinding] % twistset[winding] == 0 ) {
+
+	      bestwinding = winding;
+//  	    }
+	  }
+	}
+
+	winding = bestwinding;
+	twist = twistset[winding];
+
+	cerr << "winding/twist  "
+	     << winding << "  "
+	     << twist << "  "
+	     << "consistency "
+	     << 100.0 * hitrate
+	     << " percent" << endl;
+
+	if( hitrate < .90 ) {
+	  cerr << "Poor consistancy - probably chaotic" << endl;
+	  winding = 1;
+	  twist = 1;
+	  skip = 0;
+	}
+
+	// If the winding and twist have a common denominator find the
+	// greatest one and remove it.
+	for( unsigned int i=twist; i>1; --i) {
+	  if( winding % i == 0 && twist % i == 0 ) {
+	    winding /= i;
+	    twist /= i;
+
+	    i = twist;
+	  }
+	}
+
+	cerr << "winding/twist  "
+	     << winding << "  "
+	     << twist << "  "
+	     << "consistency "
+	     << 100.0 * hitrate
+	     << " percent" << endl;
+
+	if( winding > 1 ) {
+	  //  To find the skip find the mutual primes via the
+	  //  (Blankinship Algorithm).
+	  for( skip=1; skip<winding; skip++ )
+	    if( (skip * twist) % winding == 1 )
+	      break;
+	} else {
+	  skip = 0;
+	}
+
+	// Find the best twist based on the zero crossing
+	unsigned int besttwist = 0;
+	double bestsd = 1.0e12;
+
+	for( unsigned int i=1; i<=winding/2; ++i ) {
+
+	  double average_sd =  FLlib.twistStats( twist_points, i );
+
+	  if( i == twist ) {
+	    cerr << "Base twist  " << i
+		 << "  " << average_sd
+		 << endl;
+	  }
+
+	  if( bestsd > average_sd ) {
+
+	    bestsd = average_sd;
+	    besttwist = i;
+	  }
+	}
+
+	if( besttwist % twist == 0 )
+	  cerr<< "Integer ";
+
+	cerr << "Best twist  " << besttwist
+	     << "  " << bestsd
+	     << endl;
+
+	// Find the overall twist based on the zero crossing
+	unsigned int overalltwist = 0;
+	double overallsd = 1.0e12;
+
+	for( unsigned int i=1; i<twist_points.size()/2; ++i ) {
+
+	  double average_sd =  FLlib.twistStats( twist_points, i );
+
+// 	  cerr << "twist  " << i
+// 	       << "  " << average_sd
+// 	       << endl;
+
+	  if( overallsd > average_sd ) {
+
+	    overallsd = average_sd;
+	    overalltwist = i;
+	  }
+	}
+
+	if( overalltwist % twist == 0 )
+	  cerr<< "Integer ";
+
+	cerr << "Overall twist  " << overalltwist
+	     << "  " << overallsd
+	     << endl;
+
+
+	// Do this to get the basic values of the fieldline.
+	Vector centroid;
+
+	bool groupCCW;
+
+	if( winding > 1 &&
+	    FLlib.islandChecks( points, winding, island, avenode ) ) {
+
+	// Find the island twist based on the zero crossing
+	unsigned int nnodes = ceil(avenode);
+	unsigned int islandtwist = 0;
+	double islandsd = 1.0e12;
+
+	for( unsigned int i=nnodes; i<twist_points.size()/2; i+=nnodes ) {
+
+	  double average_sd =  FLlib.twistStats( twist_points, i );
+
+ 	  cerr << "Island node  " << i
+ 	       << "  " << average_sd
+ 	       << endl;
+
+	  if( islandsd > average_sd ) {
+
+	    islandsd = average_sd;
+	    islandtwist = i;
+	  }
+	}
+
+	if( islandtwist % twist == 0 )
+	  cerr<< "Integer ";
+
+	cerr << "Island twist  " << islandtwist
+	     << "  " << islandsd
+	     << endl;
+
+	if( islandtwist && islandtwist % (nnodes * twist) == 0 ) {
+	  cerr << "Zero crossing period matches the number of nodes in the island" << endl;
+	}
+
+      } else {
+	  // Find the first point from another group that overlaps the first
+	  // group. This only works if there is an overlap between groups.
+	  avenode = (double) points.size() / (double) winding;	  
+
+	  Vector v0, v1;
+
+	  for( unsigned int i=0, j=winding;
+	       j<points.size();
+	       i+=winding, j+=winding ) {
+
+	    for( unsigned int k=1; k<winding; k++ ) {
+
+	      v0 = (Vector) points[i] - (Vector) points[k];
+	      v1 = (Vector) points[j] - (Vector) points[k];
+
+	      v0.safe_normalize();
+	      v1.safe_normalize();
+
+	      if( Dot( v0, v1 ) < 0.0 ) {
+		avenode = (double) i / (double) winding + 1.0;
+		j = points.size();
+
+		if( k != winding - skip && k != skip ) {
+		  cerr << endl
+		       << "ERROR in finding the overlap"
+		       << " winding " << winding
+		       << " twist " << twist
+		       << " skip " << skip
+		       << " overlap group " << k
+		       << endl;
+		}
+
+		break;
+	      }
+	    }
+	  }
+	}
+
+	cerr << "End of streamline " << count
+//	     << "  type " << type
+	     << "  windings " << winding 
+	     << "  twists " << twist
+	     << "  ("<< (double)winding/(double)twist << ")"
+	     << "  skip "   << skip
+	     << "  islands " << island
+	     << "  avenode " << avenode
+	     << endl;;
+
+// 	FLlib.fieldlineProperties( points, maxWindings,
+// 				   winding, twist, skip, type,
+// 				   island, avenode, windingNextBest );
 
 	// This is for island analysis - if the initial centroid
 	// locations are provided which have the winding value from
@@ -811,11 +1081,13 @@ execute(FieldHandle& ifield_h,
 	}
 
 	cerr << "End of streamline " << count
-	     << "  windings " << winding 
 	     << "  type " << type
+	     << "  windings " << winding 
 	     << "  twists " << twist
+	     << "  ("<< (double)winding/(double)twist << ")"
 	     << "  skip "   << skip
 	     << "  islands " << island
+	     << "  avenode " << avenode
 	     << "  windingNextBest " << (windingNextBest>0 ? windingNextBest : 0)
 	     << endl;
       }
@@ -1238,7 +1510,7 @@ execute(FieldHandle& ifield_h,
 
     if( !curveField ) {
 
-      vector< int > dims;
+      vector< size_type > dims;
       
       dims.resize(2);
       

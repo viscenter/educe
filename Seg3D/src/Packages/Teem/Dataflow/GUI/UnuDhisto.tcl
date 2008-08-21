@@ -44,36 +44,37 @@ itcl_class Teem_UnuAtoM_UnuDhisto {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.height \
-	    -labeltext "Height:" -textvariable $this-height
+        sci_entryfield $w.f.options.height \
+          -labeltext "Height:" -textvariable $this-height
         pack $w.f.options.height -side top -expand yes -fill x
 
-        checkbutton $w.f.options.log \
-	    -text "Show log-scaled histogram:" -variable $this-log
+        sci_checkbutton $w.f.options.log \
+          -text "Show log-scaled histogram:" -variable $this-log
         pack $w.f.options.log -side top -anchor nw
 
-	frame $w.f.options.max -relief groove -borderwidth 2
-	pack $w.f.options.max -side top -expand yes -fill x
+        sci_frame $w.f.options.max -relief groove -borderwidth 2
+        pack $w.f.options.max -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.max.v \
-	    -labeltext "Max Number of Hits:" -textvariable $this-max
+        sci_entryfield $w.f.options.max.v \
+          -labeltext "Max Number of Hits:" -textvariable $this-max
         pack $w.f.options.max.v -side top -anchor nw
 
-        checkbutton $w.f.options.max.usemax \
-	    -text "Use Max Number of Hits:" -variable $this-usemax
+        sci_checkbutton $w.f.options.max.usemax \
+          -text "Use Max Number of Hits:" -variable $this-usemax
         pack $w.f.options.max.usemax -side top -anchor nw
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+
     }
 }

@@ -39,35 +39,31 @@
  *  Copyright (C) 2002 SCI Group
  */
 
-// check for same meshes as last time -- if so, reuse contrib array
-// fix have_some -- just need to know which TVM indices we've visited
 
-#include <Core/Basis/TetLinearLgn.h>
-#include <Core/Datatypes/TetVolMesh.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/FieldInformation.h>
+
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Packages/BioPSE/Dataflow/Modules/Forward/InsertVoltageSource.h>
-#include <iostream>
-#include <sstream>
+#include <Dataflow/Network/Module.h>
+#include <vector>
 
 namespace BioPSE {
 
 using namespace SCIRun;
 
 class InsertVoltageSource : public Module {
-  typedef SCIRun::TetVolMesh<TetLinearLgn<Point> > TVMesh;
+  private:
+    GuiInt outside_;
+    GuiInt groundfirst_;
 
-  GuiInt outside_;
-  GuiInt groundfirst_;
-public:
-  InsertVoltageSource(GuiContext *context);
-  virtual ~InsertVoltageSource();
-  virtual void execute();
+  public:
+    InsertVoltageSource(GuiContext *context);
+    virtual ~InsertVoltageSource() {}
+    virtual void execute();
 };
 
-
 DECLARE_MAKER(InsertVoltageSource)
-
 
 InsertVoltageSource::InsertVoltageSource(GuiContext *context)
   : Module("InsertVoltageSource", context, Filter, "Forward", "BioPSE"),
@@ -76,58 +72,84 @@ InsertVoltageSource::InsertVoltageSource(GuiContext *context)
 {
 }
 
-
-InsertVoltageSource::~InsertVoltageSource()
-{
-}
-
-
 void
 InsertVoltageSource::execute()
 {
   FieldHandle imeshH;
-  if (!get_input_handle("TetMesh", imeshH)) return;
+  get_input_handle("FEMesh", imeshH, true);
 
-  MeshHandle tetVolH = imeshH->mesh();
-  TVMesh *tvm = dynamic_cast<TVMesh *>(tetVolH.get_rep());
-  if (!tvm) {
-    error("Input FEM wasn't a TetVolField.");
+  if (!(imeshH->has_virtual_interface()))
+  {
+    error("FEMesh has no virtual interface");
+    return;
+  }
+
+  FieldInformation fi(imeshH);
+  if (fi.is_pointcloudmesh())
+  {
+    error("FEMesh is a point cloud mesh, the FE mesh needs to have elements");
     return;
   }
   
   FieldHandle isourceH;
-  if (!get_input_handle("VoltageSource", isourceH)) return;
+  get_input_handle("VoltageSource", isourceH, true);
 
-  int groundfirst = groundfirst_.get();
-  vector<Point> sources;
-  vector<double> vals;
-  if (groundfirst) {
-    // just need to know the position of the first point of the mesh
-    const TypeDescription *meshtd = isourceH->mesh()->get_type_description();
-    CompileInfoHandle ci =
-      InsertVoltageSourceGetPtBase::get_compile_info(meshtd);
-    Handle<InsertVoltageSourceGetPtBase> algo;
-    if (!module_dynamic_compile(ci, algo)) return;
-
-    Point pt = algo->execute(isourceH->mesh());
-    sources.push_back(pt);
-    vals.push_back(0);
-  } else {
-    const TypeDescription *field_td = isourceH->get_type_description();
-    const TypeDescription *loc_td = isourceH->order_type_description();
-    CompileInfoHandle ci = 
-      InsertVoltageSourceGetPtsAndValsBase::get_compile_info(field_td, 
-							     loc_td);
-    Handle<InsertVoltageSourceGetPtsAndValsBase> algo;
-    if (!module_dynamic_compile(ci, algo)) return;
-
-    algo->execute(isourceH, sources, vals);
+  FieldInformation fis(isourceH);
+  
+  if (fis.is_nodata())
+  {
+    error("VoltageSource needs to contain data");
+    return;
   }
 
-  vector<pair<int, double> > dirichlet;
+  int groundfirst = groundfirst_.get();
+  std::vector<Point> sources;
+  std::vector<double> vals;
+  
+  if (groundfirst) 
+  {
+    Point pnt;
+    if (isourceH->vmesh()->num_nodes() == 0)
+    {
+      error("VoltageSource field does not have any nodes");
+      return;
+    }
+    isourceH->vmesh()->get_center(pnt,VMesh::Node::index_type(0));
+
+    sources.push_back(pnt);
+    vals.push_back(0);
+  } 
+  else 
+  {
+  
+    VField* field = isourceH->vfield();
+    VMesh*  mesh  = isourceH->vmesh();
+    VField::size_type num_values = field->num_values();
+
+    Point pnt;
+    double val;
+    
+    for (VField::index_type idx=0; idx<num_values; idx++)
+    {
+      if (field->basis_order() == 0)
+      {
+        mesh->get_center(pnt,VMesh::Elem::index_type(idx));
+      }
+      else
+      {
+        mesh->get_center(pnt,VMesh::Node::index_type(idx));
+      }
+      
+      field->get_value(val,idx);
+      sources.push_back(pnt);
+      vals.push_back(val);
+    }
+  }
+
+  std::vector<std::pair<int, double> > dirichlet;
   imeshH->get_property("dirichlet", dirichlet);
 
-  vector<pair<string, Tensor> > conds;
+  std::vector<std::pair<string, Tensor> > conds;
   imeshH->get_property("conductivity_table", conds);
 
   // get our own local copy of the Field and mesh
@@ -135,22 +157,21 @@ InsertVoltageSource::execute()
 
   int outside = outside_.get();
 
-  TVMesh::Node::size_type tvm_nnodes;
-  TVMesh::Cell::size_type tvm_ncells;
-  tvm->size(tvm_nnodes);
-  tvm->size(tvm_ncells);
-  tvm->synchronize(Mesh::LOCATE_E);
+  VMesh* vmesh = imeshH->vmesh();
+  VMesh::Node::size_type nnodes = vmesh->num_nodes();
+  VMesh::Elem::size_type nelems = vmesh->num_elems();
+  vmesh->synchronize(Mesh::ELEM_LOCATE_E);
 
-  TVMesh::Node::array_type nbrs;
-
-  Array1<vector<pair<double, double> > > closest(tvm_nnodes); 
+  VMesh::Node::array_type nbrs;
+  Array1<std::vector<std::pair<double, double> > > closest(nnodes); 
                                      // store the dist/val
                                      // to source nodes
-  Array1<int> have_some(tvm_nnodes);
+  Array1<int> have_some(nnodes);
   have_some.initialize(0);
-  Array1<TVMesh::Node::index_type> bc_tet_nodes;
+  Array1<VMesh::Node::index_type> bc_nodes;
 
-  for (unsigned int di=0; di<dirichlet.size(); di++) {
+  for (size_t di=0; di<dirichlet.size(); di++) 
+  {
     int didx=dirichlet[di].first;
     // so other BCs can't over-write this one
     have_some[didx]=1;
@@ -158,99 +179,68 @@ InsertVoltageSource::execute()
   }
     
   // for each surface data_at position/value...
-  for (unsigned int s=0; s<sources.size(); s++) {
+  for (size_t s=0; s<sources.size(); s++) 
+  {
     Point pt=sources[s];
     double val=vals[s];
 
     // find the tet nodes (nbrs) that it's closest to
-    TVMesh::Cell::index_type tvm_cidx;
-    if (tvm->locate(tvm_cidx, pt)) {
-      tvm->get_nodes(nbrs, tvm_cidx);
-    } else if (outside) {
+    VMesh::Elem::index_type cidx;
+    
+    if (vmesh->locate(cidx, pt)) 
+    {
+      vmesh->get_nodes(nbrs, cidx);
+    } 
+    else if (outside) 
+    {
       nbrs.resize(1);
-      tvm->locate(nbrs[0], pt);
-    } else continue;
-  
+      vmesh->locate(nbrs[0], pt);
+    } 
+    else
+    {
+      continue;
+    }
+    
     // for each nbr, see if this node is the closest of the bc nodes checked
     //   so far -- if so, store it
-    unsigned int i;
     double dmin=-1;
-    TVMesh::Node::index_type nmin;
+    VMesh::Node::index_type nmin;
 
-    for (i=0; i<nbrs.size(); i++) {
+    for (size_t i=0; i<nbrs.size(); i++) 
+    {
       Point nbr_pt;
-      TVMesh::Node::index_type nidx = nbrs[i];
-      tvm->get_center(nbr_pt, nidx);
+      VMesh::Node::index_type nidx = nbrs[i];
+      vmesh->get_center(nbr_pt, nidx);
       double d = (pt - nbr_pt).length();
-      if (i==0 || d<dmin) {
-	nmin=nbrs[i];
-	dmin=d;
+      if (i==0 || d<dmin)
+      {
+        nmin=nbrs[i];
+        dmin=d;
       }
     }
-    if (dmin != -1 && !have_some[nmin]) {
-      pair<double, double> p(dmin, val);
+    if (dmin != -1 && !have_some[nmin]) 
+    {
+      std::pair<double, double> p(dmin, val);
       have_some[nmin]=1;
-      bc_tet_nodes.add(nmin);
+      bc_nodes.add(nmin);
       closest[nmin].push_back(p);
     }
   }
 
-  for (int i=0; i<bc_tet_nodes.size(); i++)
+  for (size_t i=0; i<bc_nodes.size(); i++)
   {
     double val=0;
-    int nsrcs=closest[bc_tet_nodes[i]].size();
+    int nsrcs=closest[bc_nodes[i]].size();
     for (int j=0; j<nsrcs; j++)
-      val+=closest[bc_tet_nodes[i]][j].second/nsrcs;
-    dirichlet.push_back(pair<int, double>((int)bc_tet_nodes[i], val));
+      val+=closest[bc_nodes[i]][j].second/nsrcs;
+    dirichlet.push_back(pair<int, double>((int)bc_nodes[i], val));
   }
+  
   imeshH->set_property("dirichlet", dirichlet, false);
   imeshH->set_property("conductivity_table", conds, false);
 
-  send_output_handle("TetMesh", imeshH);
+  send_output_handle("FEMesh", imeshH);
 }
 
 
 } // End namespace BioPSE
-
-namespace SCIRun {
-CompileInfoHandle
-InsertVoltageSourceGetPtBase::get_compile_info(const TypeDescription *mesh_td)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("InsertVoltageSourceGetPt");
-  static const string base_class_name("InsertVoltageSourceGetPtBase");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       mesh_td->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       mesh_td->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  mesh_td->fill_compile_info(rval);
-  return rval;
-}
-
-CompileInfoHandle
-InsertVoltageSourceGetPtsAndValsBase::get_compile_info(const TypeDescription *field_td, const TypeDescription *loc_td)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("InsertVoltageSourceGetPtsAndVals");
-  static const string base_class_name("InsertVoltageSourceGetPtsAndValsBase");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       field_td->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       field_td->get_name() + ", " + loc_td->get_name());
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  field_td->fill_compile_info(rval);
-  return rval;
-}
-} // End namespace SCIRun

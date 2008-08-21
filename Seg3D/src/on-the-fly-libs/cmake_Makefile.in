@@ -49,8 +49,6 @@ ifneq ($(SCIRUN_SRCDIR),)
   SCIRUN_SRCTOP := $(SCIRUN_SRCDIR)
 endif
 
-#include $(SCIRUN_OBJTOP)/configVars.mk
-
 LIBDIR1		:= $(SCIRUN_OBJTOP)/lib
 LIBRPATH1       := -Wl,-rpath -Wl,$(LIBDIR1) -L$(LIBDIR1)
 
@@ -65,30 +63,35 @@ LIBS_under        := $(patsubst $(SCIRUN_OBJTOP)/lib/_%,, $(LIBS_NAMES1))
 # replace front section with -l
 LIBS1         := $(patsubst $(SCIRUN_OBJTOP)/lib/lib%,-l%, $(LIBS_under))
 
-EXT_LIBS := $(subst -framework ,FRAMEWORK,$(subst ;, ,@SCI_THIRDPARTY_LIBRARY@ @BABEL_LIBRARY@ @TAU_LIBRARY@ @MPI_LIBRARY@ @GL_LIBRARY@ @INSIGHT_LIBRARY@ @TEEM_LIBRARY@ @TETGEN_LIBRARY@ @VERDICT_LIBRARY@ @MESQUITE_LIBRARY@ @CBLAS_LIBRARY@ @CONDITIONAL_LIBS@))
-EXT_LIBS1 := $(filter-out FRAMEWORK%,$(EXT_LIBS))
-EXT_LIBS1_PARSED := $(foreach lib,$(EXT_LIBS1), -L$(dir $(lib)) -l$(patsubst lib%.a,%,$(patsubst lib%.@SO_OR_A_FILE@,%,$(notdir $(lib)))))
-EXT_LIBS2_PARSED := $(subst FRAMEWORK,-framework ,$(filter FRAMEWORK%,$(EXT_LIBS)))
-
-
 # babel libs necessary for bridge compilation
 BABEL_LIBS    := $(filter -lCCA_Components_BabelTest%,$(LIBS))
 
 
 # Sandia Meshing Library
-ifeq ($(HAVE_CAMAL),yes)
-   CONDITIONAL_LIBS := $(CAMAL_LIBRARY) $(F_LIBRARY)
+HAVE_CAMAL:=@HAVE_CAMAL@
+ifeq ($(HAVE_CAMAL),YES)
+   CONDITIONAL_LIBS := $(CAMAL_LIBRARY) -Wl,-rpath -Wl,$(F_LIBRARY) -L$(F_LIBRARY) 
 endif
 
-# VERDICT Mesh Quality Library
-ifeq ($(HAVE_VERDICT),yes)
-   CONDITIONAL_LIBS := $(CONDITIONAL_LIBS) $(VERDICT_LIBRARY)
+# VERDICT Mesh Quality Library (Now a part of VTK)
+HAVE_VTK:=@HAVE_VTK@
+ifeq ($(HAVE_VTK),YES)
+   CONDITIONAL_LIBS := $(CONDITIONAL_LIBS) -Wl,-rpath -Wl,@VTK_LIBRARY_DIRS@ -L@VTK_LIBRARY_DIRS@ -lvtkGraphics
 endif
 
 # MESQUITE Mesh Optimization Library
-ifeq ($(HAVE_MESQUITE),yes)
-   CONDITIONAL_LIBS := $(CONDITIONAL_LIBS) $(MESQUITE_LIBRARY)
+HAVE_MESQUITE:=@HAVE_MESQUITE@
+ifeq ($(HAVE_MESQUITE),YES)
+   CONDITIONAL_LIBS := $(CONDITIONAL_LIBS) -Wl,-rpath -Wl,@MESQUITE_DIR@/lib -L@MESQUITE_DIR@/lib -lmesquite
 endif
+
+
+EXT_LIBS := $(subst -framework ,FRAMEWORK,$(subst ;, ,@SCI_THIRDPARTY_LIBRARY@ @BABEL_LIBRARY@ @TAU_LIBRARY@ @MPI_LIBRARY@ @GL_LIBRARY@ @INSIGHT_LIBRARY@ @TEEM_LIBRARY@ @CBLAS_LIBRARY@))
+EXT_LIBS1 := $(filter-out FRAMEWORK%,$(EXT_LIBS))
+EXT_LIBS1_PARSED := $(foreach lib,$(EXT_LIBS1), -L$(dir $(lib)) -l$(patsubst lib%.a,%,$(patsubst lib%.@SO_OR_A_FILE@,%,$(notdir $(lib)))))
+EXT_LIBS2_PARSED := $(subst FRAMEWORK,-framework ,$(filter FRAMEWORK%,$(EXT_LIBS)))
+
+
 
 INCLUDES = @OTFL_INCLUDES@
 
@@ -131,10 +134,10 @@ endif
 ifeq ($(SCI_MAKE_BE_QUIET),true)
 	@echo "Compiling: $<"
 	@rm -f $@ $(*).so $(*).dylib $(*).dll
-	@$(CXX) -c @OTFL_CFLAGS@ $(INCLUDES) $< -o $@ 
+	@$(CXX) -c -O3 @OTFL_CFLAGS@ $(INCLUDES) $< -o $@ 
 else
 	rm -f $@ $(*).so $(*).dylib $(*).dll
-	$(CXX) -c @OTFL_CFLAGS@ $(INCLUDES) $< -o $@ 
+	$(CXX) -c -O3 @OTFL_CFLAGS@ $(INCLUDES) $< -o $@ 
 endif
 
 # don't create deps with ms yet
@@ -145,9 +148,9 @@ endif
 %.so : %.o 
 ifeq ($(SCI_MAKE_BE_QUIET),true)
 	@echo "Linking: $@"
-	@$(CXX) @OTFL_CFLAGS@ $(LIBRARY) @SOFLAGS@ $< -o $@ $(LIBRPATH1) $(LIBS1) $(EXT_LIBS2_PARSED) $(EXT_LIBS1_PARSED) 
+	@$(CXX) @OTFL_CFLAGS@ $(LIBRARY) @SOFLAGS@ $< -o $@ $(LIBRPATH1) $(LIBS1) $(EXT_LIBS2_PARSED) $(EXT_LIBS1_PARSED) $(CONDITIONAL_LIBS)
 else
-	$(CXX) @OTFL_CFLAGS@ $(LIBRARY) @SOFLAGS@ $< -o $@ $(LIBRPATH1) $(LIBS1) $(EXT_LIBS2_PARSED) $(EXT_LIBS1_PARSED)
+	$(CXX) @OTFL_CFLAGS@ $(LIBRARY) @SOFLAGS@ $< -o $@ $(LIBRPATH1) $(LIBS1) $(EXT_LIBS2_PARSED) $(EXT_LIBS1_PARSED) $(CONDITIONAL_LIBS)
 endif
 
 %.dylib : %.o 

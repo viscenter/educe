@@ -39,7 +39,7 @@
 #include <Core/Datatypes/GenericField.h>
 
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 //#include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 
@@ -238,7 +238,7 @@ main(int argc, char **argv) {
   //SCIRunInit();
   setDefaults();
 
-  HVMesh *hvm = scinew HVMesh();
+  HVMesh *hvm = new HVMesh();
   //exit(5);
   char *in = argv[1];
   char *out = argv[2];
@@ -334,7 +334,7 @@ main(int argc, char **argv) {
       cerr << "supporting float only atm..." << endl;
       return 1;
     }
-    HVFieldC *hvc = scinew HVFieldC(HVMesh::handle_type(hvm));
+    HVFieldC *hvc = new HVFieldC(HVMesh::handle_type(hvm));
     hvc->resize_fdata();
     hv_handle = hvc;
     //cout << "putting data at faces" << endl;
@@ -344,7 +344,7 @@ main(int argc, char **argv) {
       cerr << "supporting float only atm..." << endl;
       return 1;
     }
-    HVFieldL *hvl = scinew HVFieldL(HVMesh::handle_type(hvm));
+    HVFieldL *hvl = new HVFieldL(HVMesh::handle_type(hvm));
     hvl->resize_fdata();
     hv_handle = hvl;
   }

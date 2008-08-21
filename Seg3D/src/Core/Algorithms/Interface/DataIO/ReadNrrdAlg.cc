@@ -44,7 +44,7 @@ ReadNrrdAlg::execute(string filename)
   vector<size_t> rval(2, 0);
   DataManager *dm = DataManager::get_dm();
 
-  NrrdData *n = scinew NrrdData;
+  NrrdData *n = new NrrdData;
   if (nrrdLoad(n->nrrd_, airStrdup(filename.c_str()), 0)) {
     char *err = biffGetDone(NRRD);
     ProgressReporter *pr = get_progress_reporter();

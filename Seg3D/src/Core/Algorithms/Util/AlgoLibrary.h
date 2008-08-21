@@ -39,7 +39,7 @@
 #include <Core/Datatypes/String.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/NrrdData.h>
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 
 namespace SCIRun {
 
@@ -67,7 +67,7 @@ inline AlgoLibrary::AlgoLibrary(ProgressReporter* pr) :
 {
   if (pr_ == 0) 
   {
-    pr_ = scinew ProgressReporter;
+    pr_ = new ProgressReporter;
     delete_pr_ = true;
   }
 }

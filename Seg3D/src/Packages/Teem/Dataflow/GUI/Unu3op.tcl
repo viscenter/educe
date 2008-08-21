@@ -41,23 +41,23 @@ itcl_class Teem_UnuAtoM_Unu3op {
         global $this-operator
         set $this-operator "+"
 
-	global $this-float1
-	set $this-float1 "0.0"
+        global $this-float1
+        set $this-float1 "0.0"
 
-	global $this-float2
-	set $this-float2 "0.0"
+        global $this-float2
+        set $this-float2 "0.0"
 
-	global $this-float3
-	set $this-float3 "0.0"
+        global $this-float3
+        set $this-float3 "0.0"
 
-	global $this-type
-	set $this-type nrrdTypeFloat
+        global $this-type
+        set $this-type nrrdTypeFloat
 
-	global $this-usetype
-	set $this-usetype 1
+        global $this-usetype
+        set $this-usetype 1
 
-	trace variable $this-operator w "$this set_operator" 
-	trace variable $this-type w "$this set_type" 
+        trace variable $this-operator w "$this set_operator" 
+        trace variable $this-type w "$this set_type" 
     }
 
     method ui {} {
@@ -66,49 +66,50 @@ itcl_class Teem_UnuAtoM_Unu3op {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	iwidgets::optionmenu $w.f.options.operator -labeltext "Operator:" \
-	    -labelpos w -command "$this update_operator $w.f.options.operator"
-	$w.f.options.operator insert end "+" "x" "min" "max" "clamp" \
-	    "ifelse" "lerp" "exists" "in_op" "in_cl"
+        sci_optionmenu $w.f.options.operator -labeltext "Operator:" \
+            -labelpos w -command "$this update_operator $w.f.options.operator"
+        $w.f.options.operator insert end "+" "x" "min" "max" "clamp" \
+            "ifelse" "lerp" "exists" "in_op" "in_cl"
 
-	pack $w.f.options.operator -side top -anchor nw -padx 3 -pady 3
-	$w.f.options.operator select [set $this-operator]
+        pack $w.f.options.operator -side top -anchor nw -padx 3 -pady 3
+        $w.f.options.operator select [set $this-operator]
 
-	iwidgets::entryfield $w.f.options.float1 \
-	    -labeltext "Float Input 1:" -textvariable $this-float1
-        pack $w.f.options.float1 -side top -expand yes -fill x
+        sci_entryfield $w.f.options.float1 \
+            -labeltext "Float Input 1:" -textvariable $this-float1
+              pack $w.f.options.float1 -side top -expand yes -fill x
 
-	iwidgets::entryfield $w.f.options.float2 \
-	    -labeltext "Float Input 2:" -textvariable $this-float2
-        pack $w.f.options.float2 -side top -expand yes -fill x
+        sci_entryfield $w.f.options.float2 \
+            -labeltext "Float Input 2:" -textvariable $this-float2
+              pack $w.f.options.float2 -side top -expand yes -fill x
 
-	iwidgets::entryfield $w.f.options.float3 \
-	    -labeltext "Float Input 3:" -textvariable $this-float3
-        pack $w.f.options.float3 -side top -expand yes -fill x
+        sci_entryfield $w.f.options.float3 \
+            -labeltext "Float Input 3:" -textvariable $this-float3
+              pack $w.f.options.float3 -side top -expand yes -fill x
 
-	iwidgets::optionmenu $w.f.options.type -labeltext "Type:" \
-	    -labelpos w -command "$this update_type $w.f.options.type"
-	$w.f.options.type insert end nrrdTypeChar nrrdTypeUChar nrrdTypeShort nrrdTypeUShort nrrdTypeInt \
-	    nrrdTypeUInt nrrdTypeLLong nrrdTupeULLong nrrdTypeFloat nrrdTypeDouble
-	pack $w.f.options.type -side top -anchor nw -padx 3 -pady 3
-	$w.f.options.type select [set $this-type]
+        sci_optionmenu $w.f.options.type -labeltext "Type:" \
+            -labelpos w -command "$this update_type $w.f.options.type"
+        $w.f.options.type insert end nrrdTypeChar nrrdTypeUChar nrrdTypeShort nrrdTypeUShort nrrdTypeInt \
+            nrrdTypeUInt nrrdTypeLLong nrrdTupeULLong nrrdTypeFloat nrrdTypeDouble
+        pack $w.f.options.type -side top -anchor nw -padx 3 -pady 3
+        $w.f.options.type select [set $this-type]
 
-	checkbutton $w.f.options.usetype -text "Same as input type" \
-	    -variable $this-usetype
-	pack $w.f.options.usetype -side top -anchor nw -padx 3 -pady 3 	
+        sci_checkbutton $w.f.options.usetype -text "Same as input type" \
+            -variable $this-usetype
+        pack $w.f.options.usetype -side top -anchor nw -padx 3 -pady 3 	
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+
     }
 
     method update_operator {menu} {

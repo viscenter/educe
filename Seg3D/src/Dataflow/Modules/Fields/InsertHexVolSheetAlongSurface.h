@@ -173,15 +173,15 @@ InsertHexVolSheetAlongSurfaceAlgoHex<FIELD>::execute(
   
   typename FIELD::mesh_type *mesh_rep = 
       dynamic_cast<typename FIELD::mesh_type *>(hexfieldh->mesh().get_rep());
-  typename FIELD::mesh_type *side1_mesh = scinew typename FIELD::mesh_type();
+  typename FIELD::mesh_type *side1_mesh = new typename FIELD::mesh_type();
   side1_mesh->copy_properties( mesh_rep );
-  typename FIELD::mesh_type *side2_mesh = scinew typename FIELD::mesh_type();
+  typename FIELD::mesh_type *side2_mesh = new typename FIELD::mesh_type();
   side2_mesh->copy_properties( mesh_rep );
 
   compute_intersections( mod, original_mesh, tri_mesh, side1_mesh, side2_mesh, add_to_side1, add_layer );
 
-  side1field = scinew FIELD( side1_mesh );
-  side2field = scinew FIELD( side2_mesh );
+  side1field = new FIELD( side1_mesh );
+  side2field = new FIELD( side2_mesh );
   side1field->copy_properties( hexfieldh.get_rep() );
   side2field->copy_properties( hexfieldh.get_rep() );
 }
@@ -552,7 +552,7 @@ InsertHexVolSheetAlongSurfaceAlgoHex<FIELD>::compute_intersections(
         {
             // Get all the faces in the cell.
           typename FIELD::mesh_type::Face::array_type faces;
-          original_mesh->get_faces( faces, k );
+          original_mesh->get_faces( faces, typename FIELD::mesh_type::Cell::index_type(k) );
           
             // Check each face for neighbors. 
           typename FIELD::mesh_type::Face::array_type::iterator fiter = faces.begin();
@@ -608,7 +608,7 @@ InsertHexVolSheetAlongSurfaceAlgoHex<FIELD>::compute_intersections(
         {
             // Get all the faces in the cell.
           typename FIELD::mesh_type::Face::array_type faces;
-          original_mesh->get_faces( faces, k );
+          original_mesh->get_faces( faces, typename FIELD::mesh_type::Cell::index_type(k) );
           
             // Check each face for neighbors. 
           typename FIELD::mesh_type::Face::array_type::iterator fiter = faces.begin();
@@ -858,7 +858,8 @@ InsertHexVolSheetAlongSurfaceAlgoHex<FIELD>::compute_intersections(
     
       Point new_result;
       typename FIELD::mesh_type::Face::index_type face_id;
-      tri_mesh->find_closest_elem( new_result, face_id, n_p );
+      double dist;
+      tri_mesh->find_closest_elem( dist, new_result, face_id, n_p );
       Vector dist_vect = 1.5*( new_result - n_p );
       
         // Finding the closest face can be slow.  Update the progress meter
@@ -1113,8 +1114,8 @@ InsertHexVolSheetAlongSurfaceAlgoHex<FIELD>::compute_intersections(
   cout << "Finished\n";
   
     // Force all the synch data to be rebuilt on next synch call.
-  side1_mesh->unsynchronize();
-  side2_mesh->unsynchronize();
+  side1_mesh->clear_synchronization();
+  side2_mesh->clear_synchronization();
   
   typename HexVolMesh<HexTrilinearLgn<Point> >::Elem::size_type side1_size;
   typename HexVolMesh<HexTrilinearLgn<Point> >::Elem::size_type side2_size;

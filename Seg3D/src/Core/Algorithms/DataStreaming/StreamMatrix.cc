@@ -74,7 +74,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
-#include <Core/OS/Dir.h>
+#include <Core/Util/Dir.h>
 
 using namespace SCIRun;
 
@@ -412,7 +412,7 @@ bool StreamMatrixAlgo::open(std::string filename)
   FILE *datafile;
   if (useformatting_)
   {
-    char *buffer = scinew char[datafilename_.size()+40];
+    char *buffer = new char[datafilename_.size()+40];
 
     std::string  newfilename;
     datafilenames_.clear();
@@ -575,7 +575,7 @@ bool StreamMatrixAlgo::close()
 bool StreamMatrixAlgo::getcolmatrix(SCIRun::MatrixHandle& mh,SCIRun::MatrixHandle indices)
 {
 
-  // Check whether we have an index ort multiple indices
+  // Check whether we have an index or multiple indices
   if (indices.get_rep() == 0)
   {
     pr_->error("StreamMatrixAlgo: No indices given for colums");
@@ -586,8 +586,14 @@ bool StreamMatrixAlgo::getcolmatrix(SCIRun::MatrixHandle& mh,SCIRun::MatrixHandl
   // Get the number of elements (sparse or dense it does not matter)
   std::vector<Matrix::index_type> idx(indices->get_data_size());
   double *idataptr =  indices->get_data_pointer();
-  
-  // Copy and cast the indices to intergers
+
+  if (idataptr == 0)
+  {
+    pr_->error("StreamMatrixAlgo: Could not read index matrix");
+    return (false);
+  }
+    
+  // Copy and cast the indices to integers
   for (size_t p=0; p<idx.size(); p++) 
   {
     idx[p] = static_cast<int>(idataptr[p]);
@@ -596,7 +602,7 @@ bool StreamMatrixAlgo::getcolmatrix(SCIRun::MatrixHandle& mh,SCIRun::MatrixHandl
   }
   
   // Create the output matrix
-  SCIRun::DenseMatrix *mat = scinew SCIRun::DenseMatrix(idx.size(),sizes_[0]);
+  SCIRun::DenseMatrix *mat = new SCIRun::DenseMatrix(idx.size(),sizes_[0]);
   if (mat == 0)
   {
     pr_->error("StreamMatrixAlgo: Could not allocate matrix");
@@ -609,6 +615,11 @@ bool StreamMatrixAlgo::getcolmatrix(SCIRun::MatrixHandle& mh,SCIRun::MatrixHandl
   // Get the data pointer where we can store the data
   char* buffer = reinterpret_cast<char *>(mat->get_data_pointer());
 
+  if (buffer == 0)
+  {
+    pr_->error("StreamMatrixAlgo: Could not read buffer matrix");
+    return (false);
+  }
 
   std::string fn;
   // Loop over all the indices
@@ -768,7 +779,7 @@ bool StreamMatrixAlgo::getcolmatrix_weights(SCIRun::MatrixHandle& mh,SCIRun::Mat
       
                 
   // Create the output matrix
-  SCIRun::DenseMatrix *mat = scinew SCIRun::DenseMatrix(nnz,sizes_[0]);
+  SCIRun::DenseMatrix *mat = new SCIRun::DenseMatrix(nnz,sizes_[0]);
   if (mat == 0)
   {
     pr_->error("StreamMatrixAlgo: Could not allocate matrix");
@@ -891,7 +902,7 @@ bool StreamMatrixAlgo::getcolmatrix_weights(SCIRun::MatrixHandle& mh,SCIRun::Mat
 
   // Fit everything together again
   
-  mh = dynamic_cast<SCIRun::Matrix *>(scinew DenseMatrix(sizes_[0],nrows));
+  mh = dynamic_cast<SCIRun::Matrix *>(new DenseMatrix(sizes_[0],nrows));
 
   if (mh.get_rep() == 0)
   {
@@ -946,7 +957,7 @@ bool StreamMatrixAlgo::getrowmatrix(SCIRun::MatrixHandle& mh,SCIRun::MatrixHandl
   }
   
   // Create output martrix
-  SCIRun::DenseMatrix *mat = scinew SCIRun::DenseMatrix(idx.size(),sizes_[1]);
+  SCIRun::DenseMatrix *mat = new SCIRun::DenseMatrix(idx.size(),sizes_[1]);
   // Store matrix in a handle so that when we fail, the memory is automatically
   // deallocated
   SCIRun::MatrixHandle handle = dynamic_cast<SCIRun::Matrix *>(mat);
@@ -1130,7 +1141,7 @@ bool StreamMatrixAlgo::getrowmatrix_weights(SCIRun::MatrixHandle& mh,SCIRun::Mat
         
                   
   // Create the output matrix
-  SCIRun::DenseMatrix *mat = scinew SCIRun::DenseMatrix(nnz,sizes_[1]);
+  SCIRun::DenseMatrix *mat = new SCIRun::DenseMatrix(nnz,sizes_[1]);
   if (mat == 0)
   {
     pr_->error("StreamMatrixAlgo: Could not allocate matrix");
@@ -1272,7 +1283,7 @@ bool StreamMatrixAlgo::getrowmatrix_weights(SCIRun::MatrixHandle& mh,SCIRun::Mat
 
   // Fit everything together again
   
-  mh = dynamic_cast<SCIRun::Matrix *>(scinew DenseMatrix(nrows,sizes_[1]));
+  mh = dynamic_cast<SCIRun::Matrix *>(new DenseMatrix(nrows,sizes_[1]));
 
   if (mh.get_rep() == 0)
   {

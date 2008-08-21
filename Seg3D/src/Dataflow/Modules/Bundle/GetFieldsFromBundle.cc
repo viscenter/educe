@@ -27,11 +27,12 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
+#include <Core/Datatypes/Field.h>
+
+#include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Datatypes/Field.h>
-#include <Dataflow/Network/Module.h>
 
 using namespace SCIRun;
 
@@ -61,7 +62,7 @@ DECLARE_MAKER(GetFieldsFromBundle)
       guifield4name_(get_ctx()->subVar("field4-name"), "field4"),
       guifield5name_(get_ctx()->subVar("field5-name"), "field5"),
       guifield6name_(get_ctx()->subVar("field6-name"), "field6"),
-      guifields_(get_ctx()->subVar("field-selection"), "")
+      guifields_(get_ctx()->subVar("field-selection",false), "")
 {
 }
 
@@ -83,6 +84,8 @@ void GetFieldsFromBundle::execute()
       !oport_cached("field3")  || !oport_cached("field4") ||
       !oport_cached("field5")  || !oport_cached("field6"))
   {
+    update_state(Executing);
+
     FieldHandle fhandle;
     std::string field1name = guifield1name_.get();
     std::string field2name = guifield2name_.get();

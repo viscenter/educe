@@ -66,7 +66,7 @@ private:
   // we only ever create one Network.
   Network *	net_;
   NetworkIO* netio_;
-  GuiInterface *	gui_;
+  GuiInterface*	gui_;
 
 };
 } // End namespace SCIRun

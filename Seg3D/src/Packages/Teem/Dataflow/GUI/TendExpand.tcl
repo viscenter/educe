@@ -41,28 +41,28 @@ itcl_class Teem_Tend_TendExpand {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	iwidgets::entryfield $w.f.options.threshold \
-	    -labeltext "Threshold:" \
-	    -textvariable $this-threshold
+        sci_entryfield $w.f.options.threshold \
+            -labeltext "Threshold:" \
+            -textvariable $this-threshold
         pack $w.f.options.threshold -side top -expand yes -fill x
 	
 
-        iwidgets::entryfield $w.f.options.scale \
-	    -labeltext "Scale:" \
-	    -textvariable $this-scale
+        sci_entryfield $w.f.options.scale \
+          -labeltext "Scale:" \
+          -textvariable $this-scale
         pack $w.f.options.scale -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w.f $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

@@ -94,6 +94,7 @@ if test "$OSNAME" = "Linux"; then
     fi
 fi
 
+# on Darwin use the build in version
 export TEEM_PNG=
 export TEEM_PNG_IPATH=-I$PNG_INC_DIR
 export TEEM_PNG_LPATH=-L$DIR/lib
@@ -101,6 +102,7 @@ export TEEM_PNG_LPATH=-L$DIR/lib
 export TEEM_ZLIB=
 export TEEM_ZLIB_IPATH=-I$ZLIB_INC_DIR
 export TEEM_ZLIB_LPATH=-L$DIR/lib
+
 
 # Verify that png.h and zlib.h exist...
 if test ! -f $PNG_INC_DIR/png.h; then
@@ -136,21 +138,33 @@ if test -f $PATCH_FILE; then
 fi
 
 # One special case, there is a patch for Teem on intel macs
-if test "$OSNAME" = "Darwin" -a "`uname -p`" = "i386"; then
+if test "$OSNAME" = "Darwin"; then
 
-  mv $DIR/src/teem-1.9.0-src/src/make/darwin.mk $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old
-  sed 's:TEEM_ENDIAN = 4321:TEEM_ENDIAN = 1234:g' $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old >$DIR/src/teem-1.9.0-src/src/make/darwin.mk
+  mv $DIR/src/teem-1.9.0-src/src/air/endianAir.c $DIR/src/teem-1.9.0-src/src/air/endianAir.c.old
+  sed 's:if TEEM_ENDIAN == 1234:ifdef __LITTLE_ENDIAN__:g' $DIR/src/teem-1.9.0-src/src/air/endianAir.c.old >$DIR/src/teem-1.9.0-src/src/air/endianAir.c
+  mv $DIR/src/teem-1.9.0-src/src/air/privateAir.h $DIR/src/teem-1.9.0-src/src/air/privateAir.h.old
+  sed 's:if TEEM_ENDIAN == 1234:ifdef __LITTLE_ENDIAN__:g' $DIR/src/teem-1.9.0-src/src/air/privateAir.h.old >$DIR/src/teem-1.9.0-src/src/air/privateAir.h
 
   if test "$BITS" = "64"; then
     mv $DIR/src/teem-1.9.0-src/src/make/darwin.mk $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old
     sed 's:TEEM_32BIT = 1:TEEM_32BIT = 0:g' $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old >$DIR/src/teem-1.9.0-src/src/make/darwin.mk
     mv $DIR/src/teem-1.9.0-src/src/make/darwin.mk $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old
-    sed 's:LD = gcc:LD = gcc -m64:g' $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old >$DIR/src/teem-1.9.0-src/src/make/darwin.mk
+    sed 's:LD = gcc:LD = gcc -arch x86_64 -arch ppc64:g' $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old >$DIR/src/teem-1.9.0-src/src/make/darwin.mk
     mv $DIR/src/teem-1.9.0-src/src/make/darwin.mk $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old
-    sed 's:OPT_CFLAG ?= -O2:OPT_CFLAG ?= -O2 -m64:g' $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old >$DIR/src/teem-1.9.0-src/src/make/darwin.mk
-
+    sed 's:OPT_CFLAG ?= -O2:OPT_CFLAG ?= -O2 -arch ppc64 -arch x86_64:g' $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old >$DIR/src/teem-1.9.0-src/src/make/darwin.mk
+  fi
+  
+  if test "$BITS" = "32"; then
+    mv $DIR/src/teem-1.9.0-src/src/make/darwin.mk $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old
+    sed 's:TEEM_32BIT = 1:TEEM_32BIT = 1:g' $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old >$DIR/src/teem-1.9.0-src/src/make/darwin.mk
+    mv $DIR/src/teem-1.9.0-src/src/make/darwin.mk $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old
+    sed 's:LD = gcc:LD = gcc -arch i386 -arch ppc:g' $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old >$DIR/src/teem-1.9.0-src/src/make/darwin.mk
+    mv $DIR/src/teem-1.9.0-src/src/make/darwin.mk $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old
+    sed 's:OPT_CFLAG ?= -O2:OPT_CFLAG ?= -O2 -arch i386 -arch ppc:g' $DIR/src/teem-1.9.0-src/src/make/darwin.mk.old >$DIR/src/teem-1.9.0-src/src/make/darwin.mk
   fi
 
+  mv $DIR/src/teem-1.9.0-src/src/GNUmakefile $DIR/src/teem-1.9.0-src/src/GNUmakefile.old
+  sed 's:$(LD) -o $@:$(LD) -o $@ -install_name $@ :g' $DIR/src/teem-1.9.0-src/src/GNUmakefile.old >$DIR/src/teem-1.9.0-src/src/GNUmakefile
 fi
 
 ############

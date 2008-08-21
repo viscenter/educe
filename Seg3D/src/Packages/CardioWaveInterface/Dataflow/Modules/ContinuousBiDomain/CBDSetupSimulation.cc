@@ -28,9 +28,9 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 
-#include <Core/Bundle/Bundle.h>
+
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/String.h>
 #include <Core/Datatypes/Matrix.h>
@@ -43,11 +43,11 @@
 #include <Packages/CardioWaveInterface/Core/XML/CardioWaveXML.h>
 #include <Packages/CardioWaveInterface/Core/XML/CWTimeStepXML.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <sstream>
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h> 
+ 
 
 namespace CardioWaveInterface {
 
@@ -164,7 +164,7 @@ void CBDSetupSimulation::execute()
   // optional ones
   get_input_handle("Parameters",ExtParameters,false);
   
-  SimulationBundle = scinew Bundle();
+  SimulationBundle = new Bundle();
   if (SimulationBundle.get_rep() == 0)
   {
     error("Could not allocate new simulation bundle");
@@ -304,7 +304,7 @@ void CBDSetupSimulation::execute()
     paramstr += ExtParameters->get() + "\n";
   }
 
-  StringHandle Parameters = scinew String(paramstr);
+  StringHandle Parameters = new String(paramstr);
   if (Parameters.get_rep() == 0)
   {
     error("Could not create parameter string");
@@ -397,7 +397,7 @@ void CBDSetupSimulation::execute()
     }
   }
   
-  StringHandle SourceFile = scinew String(sourcefiles);
+  StringHandle SourceFile = new String(sourcefiles);
   SimulationBundle->setString("SourceFile",SourceFile);
   send_output_handle("SimulationBundle",SimulationBundle,true);
 }

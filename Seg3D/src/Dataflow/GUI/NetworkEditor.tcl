@@ -33,10 +33,12 @@ source [netedit getenv SCIRUN_SRCDIR]/Dataflow/GUI/Port.tcl
 source [netedit getenv SCIRUN_SRCDIR]/Dataflow/GUI/Subnet.tcl
 source [netedit getenv SCIRUN_SRCDIR]/Dataflow/GUI/UIvar.tcl
 source [netedit getenv SCIRUN_SRCDIR]/Dataflow/GUI/Range.tcl
+source [netedit getenv SCIRUN_SRCDIR]/Dataflow/GUI/ToolTipText.tcl
 
 set SCIRUN_SRCDIR [netedit getenv SCIRUN_SRCDIR]
 set smallIcon [image create photo -file "$SCIRUN_SRCDIR/pixmaps/scirun-icon-small.ppm"]
 set splashImageFile "$SCIRUN_SRCDIR/main/scisplash.ppm"
+set splashAboutFile "$SCIRUN_SRCDIR/main/sciabout.ppm"
 set bioTensorSplashImageFile "$SCIRUN_SRCDIR/Packages/Teem/Dataflow/GUI/splash-tensor.ppm"
 set bioFEMSplashImageFile "$SCIRUN_SRCDIR/Packages/BioPSE/Dataflow/GUI/splash-biofem.ppm"
 set bioImageSplashImageFile "$SCIRUN_SRCDIR/Packages/Teem/Dataflow/GUI/splash-bioimage.ppm"
@@ -45,7 +47,7 @@ set levelSetSegmenterViewerSplashImageFile "$SCIRUN_SRCDIR/main/scisplash.ppm"
 
 set padlockImageFile "$SCIRUN_SRCDIR/main/padlock.ppm"
 
-set modname_font "-Adobe-Helvetica-Bold-R-Normal-*-12-120-75-*"
+set modname_font "-Adobe-Helvetica-Medium-R-Normal-*-12-120-75-*"
 set ui_font "-Adobe-Helvetica-Medium-R-Normal-*-12-120-75-*"
 set time_font "-Adobe-Courier-Medium-R-Normal-*-12-120-75-*"
 
@@ -53,8 +55,8 @@ set firstIcon 1
 
 set mainCanvasWidth    4500.0
 set mainCanvasHeight   4500.0
-set maincanvas .topbot.pane1.childsite.frame.canvas
-set minicanvas .topbot.pane0.childsite.panes.pane0.childsite.pad.frame.canvas
+set maincanvas .frame.editor.canvas
+set minicanvas .frame.editor.canvas.mini
 
 # Records mouse position at button press to bring up menus at 
 set mouseX 0
@@ -83,6 +85,14 @@ set totalProgressSteps  0
 set currentProgressStep 0
 set currentPercent      0; # Integer range 0-100
 
+set ENV_SCIRUN_DATA [netedit getenv SCIRUN_DATA]
+set ENV_SCIRUN_MYDATA_DIR [netedit getenv SCIRUN_MYDATA_DIR]
+set ENV_SCIRUN_NET_DIR [netedit getenv SCIRUN_NET_DIR]
+set ENV_SCIRUN_DATASET [netedit getenv SCIRUN_DATASET]
+
+set ENV_SCIRUN_NET_SUBSTITUTE_DATADIR [netedit getenv SCIRUN_NET_SUBSTITUTE_DATADIR]
+set ENV_SCIRUN_NET_RELATIVE_FILENAMES [netedit getenv SCIRUN_NET_RELATIVE_FILENAMES]
+
 proc set_network_executing {val} {
     global network_executing disable_network_locking
     if { $disable_network_locking == "1" } {
@@ -93,64 +103,63 @@ proc set_network_executing {val} {
 }
 
 proc restore_not_executing_interface {} {
-    global network_executing maincanvas Color disable_network_locking
-     $maincanvas itemconfigure bgRect -fill $Color(NetworkEditor) \
-	-outline $Color(NetworkEditor)
-    bind . <Control-d> "moduleDestroySelected"
-    bind . <Control-l> "ClearCanvas"
-    bind . <Control-z> "undo"
-    bind . <Control-e> "netedit scheduleall"
-    bind . <Control-y> "redo"
-    bind . <Control-o> "popupLoadMenu"
-    bind . <Control-s> "popupSaveMenu"
-    bind all <Control-q> "NiceQuit"
-    .main_menu.file.menu entryconfig  0 -state active
-    .main_menu.file.menu entryconfig  1 -state active
-    .main_menu.file.menu entryconfig  2 -state active
-    .main_menu.file.menu entryconfig  3 -state active
-    .main_menu.file.menu entryconfig  5 -state active
-    .main_menu.file.menu entryconfig  6 -state active
-    .main_menu.file.menu entryconfig  7 -state active
-    .main_menu.file.menu entryconfig  9 -state active
-    .main_menu.file.menu entryconfig 11 -state active
+#    global network_executing maincanvas Color disable_network_locking
+#     $maincanvas itemconfigure bgRect -fill $Color(NetworkEditor) \
+#	-outline $Color(NetworkEditor)
+#    bind . <Control-d> "moduleDestroySelected"
+#    bind . <Control-l> "ClearCanvas"
+#    bind . <Control-z> "undo"
+#    bind . <Control-e> "netedit scheduleall"
+#    bind . <Control-y> "redo"
+#    bind . <Control-o> "popupLoadMenu"
+#    bind . <Control-s> "popupSaveMenu"
+#    bind all <Control-q> "NiceQuit"
+#    .main_menu.file.menu entryconfig  0 -state active
+#    .main_menu.file.menu entryconfig  1 -state active
+#    .main_menu.file.menu entryconfig  2 -state active
+#    .main_menu.file.menu entryconfig  3 -state active
+#    .main_menu.file.menu entryconfig  5 -state active
+#    .main_menu.file.menu entryconfig  6 -state active
+#    .main_menu.file.menu entryconfig  7 -state active
+#    .main_menu.file.menu entryconfig  9 -state active
+#    .main_menu.file.menu entryconfig 11 -state active
 }
 
 proc disable_netedit_locking {} {
-    global disable_network_locking
-    set disable_network_locking "1"
-    set_network_executing "0"
-    restore_not_executing_interface
-    redrawMinicanvas
+#    global disable_network_locking
+#    set disable_network_locking "1"
+#    set_network_executing "0"
+#    restore_not_executing_interface
+#    redrawMinicanvas
 }
 
 proc handle_network_executing { var op1 op2} {
-    global network_executing maincanvas Color
-    # unbind/rebind the keystroke commands that can change network state.
-    if { $network_executing == "1" } {
-	redrawMinicanvas
-	bind . <Control-u> "disable_netedit_locking"
-	bind . <Control-d> ""
-	bind . <Control-l> ""
-	bind . <Control-z> ""
-	bind . <Control-e> ""
-	bind . <Control-y> ""
-	bind . <Control-o> ""
-	bind . <Control-s> ""
-	bind all <Control-q> ""
-	.main_menu.file.menu entryconfig  0 -state disabled
-	.main_menu.file.menu entryconfig  1 -state disabled
-	.main_menu.file.menu entryconfig  2 -state disabled
-	.main_menu.file.menu entryconfig  3 -state disabled
-	.main_menu.file.menu entryconfig  5 -state disabled
-	.main_menu.file.menu entryconfig  6 -state disabled
-	.main_menu.file.menu entryconfig  7 -state disabled
-	.main_menu.file.menu entryconfig  9 -state disabled
-	.main_menu.file.menu entryconfig 11 -state disabled
-
-    } else {
-	restore_not_executing_interface
-	redrawMinicanvas
-    }
+#    global network_executing maincanvas Color
+#    # unbind/rebind the keystroke commands that can change network state.
+#    if { $network_executing == "1" } {
+#      redrawMinicanvas
+#      bind . <Control-u> "disable_netedit_locking"
+#      bind . <Control-d> ""
+#      bind . <Control-l> ""
+#      bind . <Control-z> ""
+#      bind . <Control-e> ""
+#      bind . <Control-y> ""
+#      bind . <Control-o> ""
+#      bind . <Control-s> ""
+#      bind all <Control-q> ""
+#      .main_menu.file.menu entryconfig  0 -state disabled
+#      .main_menu.file.menu entryconfig  1 -state disabled
+#      .main_menu.file.menu entryconfig  2 -state disabled
+#      .main_menu.file.menu entryconfig  3 -state disabled
+#      .main_menu.file.menu entryconfig  5 -state disabled
+#      .main_menu.file.menu entryconfig  6 -state disabled
+#      .main_menu.file.menu entryconfig  7 -state disabled
+#      .main_menu.file.menu entryconfig  9 -state disabled
+#      .main_menu.file.menu entryconfig 11 -state disabled
+#    } else {
+#      restore_not_executing_interface
+#      redrawMinicanvas
+#    }
 }
 
 proc setIcons { { w . } { size small } } {
@@ -187,11 +196,11 @@ proc setIcons { { w . } { size small } } {
 proc envBool { var } {
     set val [netedit getenv $var] ; # returns blank string if variable not set
     if { [string equal $val ""] } {
-	return 0; # blank value is taken to mean false
+      return 0; # blank value is taken to mean false
     }
     if { ![string is boolean $val] } {
-	puts "TCL envBool: Cannot determine boolean value of env: $var=$val"
-	return 1; # follows the C convention of any non-zero value equals true
+      puts "TCL envBool: Cannot determine boolean value of env: $var=$val"
+      return 1; # follows the C convention of any non-zero value equals true
     }
     return [string is true $val]
 }
@@ -201,31 +210,25 @@ proc safeSetWindowGeometry { w geom } {
     set geom [split $geom +]
     set sizepos [lsearch $geom *x*]
     if { $sizepos == -1 } {
-	set width [winfo width $w]
-	set height [winfo height $w]
+      set width [winfo width $w]
+      set height [winfo height $w]
     } else {
-	set size [split [lindex $geom $sizepos] x]
-	set geom [lreplace $geom $sizepos $sizepos]
-	set width [lindex $size 0]
-	set height [lindex $size 1]
+      set size [split [lindex $geom $sizepos] x]
+      set geom [lreplace $geom $sizepos $sizepos]
+      set width [lindex $size 0]
+      set height [lindex $size 1]
     }
 
     set xoff [lindex $realgeom 1]
     set yoff [lindex $realgeom 2]
 
     if { [llength $geom] } {
-	set xoff [lindex $geom end-1]
-	set yoff [lindex $geom end]
+      set xoff [lindex $geom end-1]
+      set yoff [lindex $geom end]
     }
     
     set xoff    [expr ($xoff < 0) ? 0 : $xoff]
     set yoff    [expr ($yoff < 0) ? 0 : $yoff]
-
-#    set swidth  [expr [winfo screenwidth .]  - $xoff]
-#    set sheight [expr [winfo screenheight .] - $yoff]
-	
-#    set width   [expr ($swidth  < $width)  ? $swidth  : $width]
-#    set height  [expr ($sheight < $height) ? $sheight : $height]
 
     wm geometry $w ${width}x${height}+${xoff}+${yoff}
 }
@@ -256,13 +259,10 @@ proc geometryTrace { args } {
 
 proc makeNetworkEditor {} {
 
-    wm protocol . WM_DELETE_WINDOW { NiceQuit }
-    wm minsize . 100 100
-
-    global geometry
-    trace variable geometry w geometryTrace
-
-    global OnWindows
+    global Color maincanvas minicanvas mainCanvasHeight mainCanvasWidth
+    global geometry OnWindows
+    global ui_font modname_font time_font
+    
     set ostype [netedit getenv OS]
     if { $ostype == "Windows_NT" } {
         set OnWindows 1
@@ -270,122 +270,175 @@ proc makeNetworkEditor {} {
         set OnWindows 0
     }
 
+    wm protocol . WM_DELETE_WINDOW { NiceQuit }
+    wm minsize . 150 150
+
+    trace variable geometry w geometryTrace
+
     set geom [netedit getenv SCIRUN_GEOMETRY]
     if { [string length $geom] } {
-	safeSetWindowGeometry . $geom
+      safeSetWindowGeometry . $geom
     } else {
-	safeSetWindowGeometry . 800x800
+      safeSetWindowGeometry . 800x500
     }
 
-    wm title . "SCIRun v[netedit getenv SCIRUN_VERSION]"
+    wm title . "SCIRun"
     setIcons . large
 
     loadToolTipText
 
-    frame .main_menu -relief raised -borderwidth 3
-    pack .main_menu -fill x
+# BUILD THE TOP MENU BAR
+
+    frame .main_menu -borderwidth 0 -background $Color(MenuBarBackGround)
     
     menubutton .main_menu.file -text "File" -underline 0 \
-	-menu .main_menu.file.menu
-    menu .main_menu.file.menu -tearoff false
-    menu .main_menu.file.menu.new -tearoff false
-    .main_menu.file.menu.new add command -label "Create Module Skeleton..." \
-        -underline 0 -command "ComponentWizard"
+      -menu .main_menu.file.menu -bd 0\
+      -background $Color(MenuBarBackGround) \
+      -foreground $Color(MenuBarForeGround) \
+      -activebackground $Color(MenuSelectBackGround)  \
+      -activeforeground $Color(MenuSelectForeGround)
+
+    menu .main_menu.file.menu -tearoff false -bd 2 -activeborderwidth 0 \
+     -activebackground $Color(MenuSelectBackGround)  \
+     -activeforeground $Color(MenuSelectForeGround) \
+     -background $Color(MenuBackGround) \
+     -foreground $Color(MenuForeGround)
 
     # Create the "File" Menu sub-menus.  Create (most of) them in the
     # disabled state.  They will be enabled when all packages are loaded.
     .main_menu.file.menu add command -label "Load..." -underline 0 \
-	-command "popupLoadMenu" -state disabled
+      -command "popupLoadMenu" -state disabled
     .main_menu.file.menu add command -label "Insert..." -underline 0 \
-	-command "popupInsertMenu" -state disabled
+      -command "popupInsertMenu" -state disabled
     .main_menu.file.menu add command -label "Save" -underline 0 \
-	-command "popupSaveMenu" -state disabled
+      -command "popupSaveMenu" -state disabled
     .main_menu.file.menu add command -label "Save As..." -underline 0 \
-	-command "popupSaveAsMenu" -state disabled
+      -command "popupSaveAsMenu" -state disabled
 
     .main_menu.file.menu add separator
 
     .main_menu.file.menu add command -label "Clear Network" -underline 0 \
-	-command "ClearCanvas" -state disabled
+      -command "ClearCanvas" -state disabled
     .main_menu.file.menu add command -label "Select All" -underline 0 \
-	-command "selectAll" -state disabled
-
-    if 0 {
-        .main_menu.file.menu add separator
-	.main_menu.file.menu add command -label "Save Postscript..." -underline 0 \
-	    -command ".bot.neteditFrame.canvas postscript -file /tmp/canvas.ps -x 0 -y 0 -width 4500 -height 4500" -state disabled
-    }
+      -command "selectAll" -state disabled
     .main_menu.file.menu add command -label "Execute All" -underline 0 \
-	-command "backupNetwork; updateRunDateAndTime 0; netedit scheduleall" -state disabled
+      -command "updateRunDateAndTime 0; netedit scheduleall" -state disabled
 
     .main_menu.file.menu add separator
-    .main_menu.file.menu add cascade -label "Wizards" -underline 0 \
-        -menu .main_menu.file.menu.new -state disabled
-    .main_menu.file.menu add separator
+      .main_menu.file.menu add command -label "Create Module Skeleton..." \
+        -underline 0 -command "ComponentWizard"
+      .main_menu.file.menu add separator
+    
+# This was added by Mohamed Dekhil to add some infor to the net
+#    .main_menu.file.menu add command -label "Network Properties" -underline 0 \
+#      -command "popupInfoMenu"
 
-    # This was added by Mohamed Dekhil to add some infor to the net
-    .main_menu.file.menu add command -label "Network Properties" -underline 0 \
-      -command "popupInfoMenu"
+#    .main_menu.file.menu add separator
+#    .main_menu.file.menu add command -label "Edit Configuration" -underline 0 \
+#      -command "editrcfile"
 
-    .main_menu.file.menu add separator
-    .main_menu.file.menu add command -label "Edit Configuration" -underline 0 \
-      -command "editrcfile"
-
-    .main_menu.file.menu add separator
+#    .main_menu.file.menu add separator
     .main_menu.file.menu add command -label "Quit" -underline 0 \
 	    -command "NiceQuit"
 
-
-    pack .main_menu.file -side left
-    global ToolTipText
-    Tooltip .main_menu.file $ToolTipText(FileMenu)
-    
-    menubutton .main_menu.subnet -text "Sub-Networks" -underline 0 \
-	-menu .main_menu.subnet.menu -direction below 
-    menu .main_menu.subnet.menu -tearoff false -postcommand createSubnetMenu
-    pack .main_menu.subnet -side left
-
-
     menubutton .main_menu.help -text "Help" -underline 0 \
-	-menu .main_menu.help.menu -direction below
-    menu .main_menu.help.menu -tearoff false
+      -menu .main_menu.help.menu -direction below -bd 0 \
+      -background $Color(MenuBarBackGround) \
+      -foreground $Color(MenuBarForeGround) \
+      -activebackground $Color(MenuSelectBackGround)  \
+      -activeforeground $Color(MenuSelectForeGround)
+      
+    menu .main_menu.help.menu -tearoff false -bd 2 -activeborderwidth 0 \
+     -activebackground $Color(MenuSelectBackGround)  \
+     -activeforeground $Color(MenuSelectForeGround) \
+     -background $Color(MenuBackGround) \
+     -foreground $Color(MenuForeGround)
     .main_menu.help.menu add checkbutton -label "Show Tooltips" -underline 0 \
-	-variable tooltipsOn
+      -variable tooltipsOn
 
     # Mac hack to fix size of 'About' window ... sigh... 
     .main_menu.help.menu add command -label "About..." -underline 0 \
-	-state disabled -command  "showProgress 1 none 1"
+      -state disabled -command  "showProgress 2 none 1"
+
+    .main_menu.help.menu add command -label "Credits..." -underline 0 \
+      -state disabled -command  "showProgress 1 none 1"
 
     .main_menu.help.menu add command -label "License..." -underline 0 \
-	-command  "licenseDialog" -state disabled
+      -command  "licenseDialog" -state disabled
 
-    pack .main_menu.help -side right
-    Tooltip .main_menu.help $ToolTipText(HelpMenu)
+    label .main_menu.disclaimer \
+      -text "SCIRun v[netedit getenv SCIRUN_VERSION] (revision [netedit getenv SCIRUN_SVN_REVISION])" \
+      -background $Color(MenuBarBackGround) \
+      -foreground $Color(SCIText)
+
+    menubutton .main_menu.module -text "Modules" -underline 0 \
+      -menu .main_menu.module.menu -direction above -bd 0\
+      -background $Color(MenuBarBackGround) \
+      -foreground $Color(MenuBarForeGround) \
+      -activebackground $Color(MenuSelectBackGround)  \
+      -activeforeground $Color(MenuSelectForeGround)
+     
+    menu .main_menu.module.menu -tearoff false -bd 2 -activeborderwidth 0 \
+     -activebackground $Color(MenuSelectBackGround)  \
+     -activeforeground $Color(MenuSelectForeGround) \
+     -background $Color(MenuBackGround) \
+     -foreground $Color(MenuForeGround)
+
+    menubutton .main_menu.subnet -text "Subnets" -underline 0 \
+      -menu .main_menu.subnet.menu -bd 0 \
+      -background $Color(MenuBarBackGround) \
+      -foreground $Color(MenuBarForeGround) \
+      -activebackground $Color(MenuSelectBackGround)  \
+      -activeforeground $Color(MenuSelectForeGround)
+
+    menu .main_menu.subnet.menu -tearoff false -postcommand createSubnetMenu \
+     -bd 2 -activeborderwidth 0 \
+     -activebackground $Color(MenuSelectBackGround)  \
+     -activeforeground $Color(MenuSelectForeGround) \
+     -background $Color(MenuBackGround) \
+     -foreground $Color(MenuForeGround)
+
+
+    pack .main_menu.file -side left
+    pack .main_menu.module -side left
+    pack .main_menu.subnet -side left    
+    pack .main_menu.help -side left
+    pack .main_menu.disclaimer -side right
     
     tk_menuBar .main_menu .main_menu.file
 
-    global leftFrame rightFrame botFrame topFrame Color
-    global maincanvas minicanvas mainCanvasHeight mainCanvasWidth
-    iwidgets::panedwindow .topbot -orient horizontal -thickness 0 -sashwidth 5000 -sashheight 10 -sashindent 0 -sashborderwidth 0 -sashcursor sb_v_double_arrow
-    pack .topbot -expand 1 -fill both -padx 0 -pady 0 -ipadx 0 -ipady 0
-    .topbot add topFrame -margin 0 -minimum 0
-    .topbot add botFrame -margin 5 -minimum 0
-    set topFrame [.topbot childsite topFrame]
-    set botFrame [.topbot childsite botFrame]
+# BUILD SCIRUN MENUBAR
+    
+    frame .scirun_menu -background $Color(MainBackGround) 
+    
+    sci_button .scirun_menu.execute_all \
+      -command "updateRunDateAndTime 0; netedit scheduleall" -text "Execute All" 
+    
+    frame .scirun_menu.space -width 24 -background $Color(MainBackGround)
+    pack .scirun_menu.execute_all -padx 8 -side left
 
-    iwidgets::panedwindow $topFrame.panes -orient vertical -height 100 -thickness 0 -sashheight 5000 -sashwidth 10 -sashindent 0 -sashborderwidth 0 -sashcursor sb_h_double_arrow
-    pack $topFrame.panes -fill both -expand 1
-    $topFrame.panes add leftFrame -margin 0 -minimum 0
-    $topFrame.panes add rightFrame -margin 0 -minimum 0
-    set leftFrame [$topFrame.panes childsite leftFrame].pad
-    frame $leftFrame -borderwidth 5 -relief flat -bg $Color(Basecolor)
-    pack $leftFrame -side left -fill both -expand 1 
-    set rightFrame [$topFrame.panes childsite rightFrame].pad
-    frame $rightFrame -borderwidth 5 -relief flat -bg $Color(Basecolor)
-    pack $rightFrame -side left -fill both -expand 1 
+    label .scirun_menu.indicator -text "0/0" -background $Color(MainBackGround) -foreground black
+    sci_button .scirun_menu.configure -text "< Configure >" -width 12
+    sci_button .scirun_menu.detach -text "+"  
 
+    bind .scirun_menu.configure <ButtonPress-1> "SwitchConfigMenu3"
+    bind .scirun_menu.configure <ButtonPress-2> "SwitchConfigMenu"
+    bind .scirun_menu.configure <ButtonPress-3> "SwitchConfigMenu2"
+    bind .scirun_menu.detach <ButtonPress-1>    "SwitchConfigMenu2"
+    
+    pack .scirun_menu.space .scirun_menu.detach .scirun_menu.configure .scirun_menu.indicator -side right -padx 1 -pady 3
+    
+    frame .scirun_menu.inset -relief sunken -height 16 \
+                -borderwidth 1 -width [expr 80-4] -background $Color(Trough)
+    pack .scirun_menu.inset -side right -fill y -padx 1 -pady 3
+    frame .scirun_menu.inset.graph -relief raised \
+                -width 0 -borderwidth 1 -background $Color(ModuleProgress)
 
-    frame $botFrame.frame -relief sunken -borderwidth 3 -bg $Color(Basecolor)
+# BUILD MAIN CANVAS
+
+    frame .frame 
+    frame .frame.editor -relief sunken -borderwidth 2 -bg $Color(Basecolor) 
+
     canvas $maincanvas -bg "$Color(NetworkEditor)" \
         -scrollregion "0 0 $mainCanvasWidth $mainCanvasHeight"
     pack $maincanvas -expand 1 -fill both
@@ -396,62 +449,380 @@ proc makeNetworkEditor {} {
     # itself because mouse events are sent to both the objects on the
     # canvas (such as the lines connection the modules) and the canvas.
      eval $maincanvas create rectangle [$maincanvas cget -scrollregion] \
- 	-fill "$Color(NetworkEditor)" -outline "$Color(NetworkEditor)" \
- 	-tags bgRect 
+      -fill "$Color(NetworkEditor)" -outline "$Color(NetworkEditor)" \
+      -tags bgRect 
 
     $maincanvas configure \
-	-xscrollcommand "updateViewAreaBox; $botFrame.hscroll set" \
-	-yscrollcommand "updateViewAreaBox; $botFrame.vscroll set"
+      -xscrollcommand "updateViewAreaBox; .frame.hscroll set" \
+      -yscrollcommand "updateViewAreaBox; .frame.vscroll set"
 
-    scrollbar $botFrame.hscroll -relief sunken -orient horizontal \
-	-command "$maincanvas xview"
-    scrollbar $botFrame.vscroll -relief sunken \
-	-command "$maincanvas yview"
+    scrollbar .frame.hscroll -orient horizontal \
+      -command "$maincanvas xview" -elementborderwidth 1 \
+      -bd 1 -troughcolor $Color(Trough) \
+      -background $Color(MainBackGround) 
+    
+    scrollbar .frame.vscroll \
+      -command "$maincanvas yview" -elementborderwidth 1 \
+      -bd 1 -troughcolor $Color(Trough) \
+      -background $Color(MainBackGround) 
 
 
     # Layout the scrollbars and canvas in the bottom pane
-    grid $botFrame.frame $botFrame.vscroll $botFrame.hscroll
-    grid columnconfigure $botFrame 0 -weight 1 
-    grid rowconfigure    $botFrame 0 -weight 1 
-    grid config $botFrame.frame -column 0 -row 0 \
+    grid .frame.editor .frame.vscroll .frame.hscroll
+    grid columnconfigure .frame 0 -weight 1 
+    grid rowconfigure    .frame 0 -weight 1 
+    grid config .frame.editor -column 0 -row 0 \
 	    -columnspan 1 -rowspan 1 -sticky "snew" 
-    grid config $botFrame.hscroll -column 0 -row 1 \
+    grid config .frame.hscroll -column 0 -row 1 \
 	    -columnspan 1 -rowspan 1 -sticky "ew" -pady 2
-    grid config $botFrame.vscroll -column 1 -row 0 \
+    grid config .frame.vscroll -column 1 -row 0 \
 	    -columnspan 1 -rowspan 1 -sticky "sn" -padx 0
 
-    # Create Error Message Window...
-    text $rightFrame.text -relief sunken -bd 3 \
-	-bg "$Color(ErrorFrameBG)" -fg "$Color(ErrorFrameFG)" \
-	-yscrollcommand "$rightFrame.s set";# -height 10 -width 180 
-    $rightFrame.text insert end "SCIRun v[netedit getenv SCIRUN_VERSION]\n"
-    $rightFrame.text insert end "Messages:\n"
-    $rightFrame.text insert end "--------------------------\n\n"
-    $rightFrame.text tag configure errtag -foreground red
-    $rightFrame.text tag configure warntag -foreground orange
-    $rightFrame.text tag configure infotag -foreground yellow
-    scrollbar $rightFrame.s -relief sunken -command "$rightFrame.text yview"
-    pack $rightFrame.s -side right -fill y -padx 0 -ipadx 0
-    pack $rightFrame.text -expand yes -fill both
+    pack .main_menu -fill x
+    pack .scirun_menu -fill x
+    pack .frame -expand 1 -fill both -after .main_menu
 
     # Create Mini Network Editor
     global miniCanvasWidth miniCanvasHeight
-    frame $leftFrame.frame -relief sunken -borderwidth 3 -bg "$Color(Basecolor)"
-    canvas $minicanvas -bg $Color(NetworkEditor) 
-    pack $minicanvas -expand 1 -fill both
-    pack $leftFrame.frame -expand 1 -fill both
-    $minicanvas create rectangle 0 0 1 1 -outline black -width 2 -tag "viewAreaBox"
+    canvas $minicanvas -bg $Color(NetworkEditorSmall) -width 120 -height 120 -borderwidth 1 -relief raised
+    pack $minicanvas -anchor se -side bottom -padx 3 -pady 3
+
+    $minicanvas create rectangle 0 0 1 1 -outline white -width 2 -tag "viewAreaBox"
     initInfo
     
-    .topbot fraction 25 75
-    $topFrame.panes fraction 25 75
-    wm withdraw .    
+    
+    # SETUP THE SETTING WINDOWS CONFIGURATIONS
+
+    # DEFINE THE WINDOW AND AN EMPTY FRAME INSIDE
+    toplevel .detached
+    frame .detached.f -background $Color(MainBackGround)
+    pack .detached.f -side top -anchor n -fill y -expand yes
+    
+    wm title .detached "SCIRun Configuration"
+    wm sizefrom .detached user
+    wm positionfrom .detached user
+    wm protocol .detached WM_DELETE_WINDOW "RemoveConfigFrame"
+    wm withdraw .detached
+    
+    # This is the frame for the geometry controls
+    iwidgets::scrolledframe .configframe -width 350 -height 230 \
+      -hscrollmode dynamic\
+      -vscrollmode none\
+      -background $Color(MainBackGround) \
+      -foreground $Color(MainForeGround) -borderwidth 0
+      
+    set sc [.configframe component horizsb]  
+    $sc configure -elementborderwidth 1 \
+      -bd 1 -troughcolor $Color(Trough) \
+      -background $Color(MainBackGround) 
+
+    set sc [.configframe component vertsb] 
+    $sc configure -elementborderwidth 1 \
+      -bd 1 -troughcolor $Color(Trough) \
+      -background $Color(MainBackGround) 
+        
+    # get the childsite to add stuff to
+    set configframe [.configframe childsite]
+
+    frame $configframe.f
+    pack $configframe.f -side top -anchor nw
+    pack $configframe -side top -anchor nw -padx 10
+
+    global IsAttached IsDisplayed
+
+    set IsAttached 1
+    set IsDisplayed 0
+    
+    InitConfigFrame .detached.f $configframe.f
+    InitConfigFrame $configframe.f .detached.f
+    
+    wm withdraw .
+}
+
+proc RemoveConfigFrame {} {
+    global IsAttached IsDisplayed
+
+    if { $IsAttached != 0 } {
+        pack forget .configframe
+        set height [expr [winfo height .]-[winfo height .configframe]]
+        wm geometry . [winfo width .]x${height}
+        update
+    } else { 
+        wm withdraw .detached
+    }
+    
+    .scirun_menu.configure configure -text "< Configure >"
+    .scirun_menu.detach configure -text "+"
+    bind .scirun_menu.configure <ButtonPress-1> "SwitchConfigMenu3"
+    bind .scirun_menu.configure <ButtonPress-2> "SwitchConfigMenu"
+    bind .scirun_menu.configure <ButtonPress-3> "SwitchConfigMenu2"
+    bind .scirun_menu.detach <ButtonPress-1>    "SwitchConfigMenu2"
+   
+    set IsDisplayed 0
+  }
+
+proc AddConfigFrame {} {
+    global IsAttached IsDisplayed
+    
+    if { $IsAttached!=0} {
+        pack .configframe -anchor w -side bottom -before .scirun_menu -fill x
+        set w1 [winfo width .]
+        set w2 [winfo width .configframe]
+        set width [expr $w1 > $w2 ? $w1 : $w2]
+        set height [expr [winfo height .]+[winfo reqheight .configframe]]
+        wm geometry . ${width}x${height}
+        update
+    } else {
+        wm deiconify $detachedFr
+    }
+    
+    .scirun_menu.configure configure -text "> Configure <"
+    .scirun_menu.detach configure -text "S"
+    bind .scirun_menu.configure <ButtonPress-1> "RemoveConfigFrame"
+    bind .scirun_menu.configure <ButtonPress-2> "SwitchConfigMenu"
+    bind .scirun_menu.configure <ButtonPress-3> "RemoveConfigFrame"
+    bind .scirun_menu.detach <ButtonPress-1>     "SwitchConfigMenu2"
+   
+    set IsDisplayed 1
+  }
+
+
+proc InitConfigFrame {m m2} {
+    if { ![winfo exists $m] } return
+
+    global Color
+    frame $m.config -background $Color(UIBackGround) -bd 1 -relief sunken
+    pack $m.config -fill x -expand yes -side top
+
+    iwidgets::tabnotebook $m.config.tabs -height 210 -width 700 -tabpos n \
+      -background $Color(UIBackGround) \
+      -foreground $Color(UIForeGround) \
+      -backdrop $Color(UIBackDrop) \
+      -tabbackground $Color(UIBackDrop) \
+      -bevelamount 0 -gap 0 -borderwidth 0 \
+      -equaltabs false
+      
+    $m.config.tabs add -label "General"
+    $m.config.tabs add -label "Module"
+    $m.config.tabs add -label "Log"
+    $m.config.tabs select 0
+
+    pack $m.config.tabs -fill x -expand yes -anchor w
+
+    set general   [$m.config.tabs childsite 0]
+    set module    [$m.config.tabs childsite 1]
+    set log       [$m.config.tabs childsite 2]
+
+    sci_frame $general.f1
+    sci_frame $general.f2
+    pack $general.f1 $general.f2 -side left -anchor nw
+     
+    sci_labeledframe $general.f1.f -labeltext "SCIRun Path Settings"
+    pack $general.f1.f -side top -anchor nw -pady 5 -padx 5
+    set f [$general.f1.f childsite]
+    
+    global ENV_SCIRUN_DATA
+    sci_label $f.lab1 -text "SCIRun Data"
+    sci_entry $f.ent1 -textvariable ENV_SCIRUN_DATA -width 25
+    sci_button $f.but1 -text "Set" -command "global ENV_SCIRUN_DATA; netedit update_env SCIRUN_DATA \$ENV_SCIRUN_DATA"
+
+    global ENV_MYDATA_DIR
+    sci_label $f.lab2 -text "User Data"
+    sci_entry $f.ent2 -textvariable ENV_MYDATA_DIR -width 25
+    sci_button $f.but2 -text "Set" -command "global ENV_MYDATA_DIR;netedit update_env MYDATA_DIR \$ENV_MYDATA_DIR"
+
+    global ENV_SCIRUN_NET_DIR
+    sci_label $f.lab3 -text "SCIRun Nets"
+    sci_entry $f.ent3 -textvariable ENV_SCIRUN_NET_DIR -width 25
+    sci_button $f.but3 -text "Set" -command "global ENV_SCIRUN_NET_DIR;netedit update_env SCIRUN_NET_DIR \$ENV_SCIRUN_NET_DIR"
+    
+    grid $f.lab1 -row 0 -column 0 -sticky w -pady 1 -padx 5
+    grid $f.ent1 -row 0 -column 1 -pady 1 -padx 5
+    grid $f.but1 -row 0 -column 2 -pady 1 -padx 5
+
+    grid $f.lab2 -row 2 -column 0 -sticky w -pady 1 -padx 5
+    grid $f.ent2 -row 2 -column 1 -pady 1 -padx 5
+    grid $f.but2 -row 2 -column 2 -pady 1 -padx 5
+
+    grid $f.lab3 -row 1 -column 0 -sticky w -pady 1 -padx 5
+    grid $f.ent3 -row 1 -column 1 -pady 1 -padx 5
+    grid $f.but3 -row 1 -column 2 -pady 1 -padx 5
+    
+    sci_labeledframe $general.f1.g -labeltext "SCIRun Data Set"
+    pack $general.f1.g -side top -anchor nw -pady 5 -padx 5 -fill x
+    set g [$general.f1.g childsite]
+    
+    global ENV_SCIRUN_DATASET
+    sci_label $g.lab1 -text "Data Set"
+    sci_entry $g.ent1 -textvariable ENV_SCIRUN_DATASET -width 25
+    sci_button $g.but1 -text "Set" -command "global ENV_SCIRUN_DATASET; netedit update_env SCIRUN_DATASET \$ENV_SCIRUN_DATASET"
+ 
+    grid $g.lab1 -row 0 -column 0 -sticky w -pady 5 -padx 5
+    grid $g.ent1 -row 0 -column 1 -pady 1 -padx 5
+    grid $g.but1 -row 0 -column 2 -pady 1 -padx 5
+ 
+    sci_labeledframe $general.f2.f -labeltext "SCIRun Options"
+    pack $general.f2.f -side top -anchor nw -pady 5 -padx 5
+    set f [$general.f2.f childsite]
+ 
+    global ENV_SCIRUN_NET_SUBSTITUTE_DATADIR
+    sci_checkbutton $f.opt1 -text "The names of data files in the SCIRun Data\n directory are saved relative to this one."\
+      -variable ENV_SCIRUN_NET_SUBSTITUTE_DATADIR \
+      -command "global ENV_SCIRUN_NET_SUBSTITUTE_DATADIR; netedit update_env SCIRUN_NET_SUBSTITUTE_DATADIR \$ENV_SCIRUN_NET_SUBSTITUTE_DATADIR"
+
+    global ENV_SCIRUN_NET_RELATIVE_FILENAMES
+    sci_checkbutton $f.opt2 -text "The names of data files are saved relative\n to the path of the network file."\
+      -variable ENV_SCIRUN_NET_RELATIVE_FILENAMES \
+      -command "global ENV_SCIRUN_NET_RELATIVE_FILENAMES; netedit update_env SCIRUN_NET_RELATIVE_FILENAMES \$ENV_SCIRUN_NET_RELATIVE_FILENAMES"
+
+    grid $f.opt1 -row 0 -column 0 -sticky w -pady 5 -padx 5
+    grid $f.opt2 -row 1 -column 0 -sticky w -pady 5 -padx 5
+
+
+    # LOG SCREEN
+
+    sci_scrolledtext $log.text 
+    pack $log.text -fill both -expand yes
+    set stext [$log.text component text]
+
+    $stext tag configure red -foreground red
+    $stext tag configure blue -foreground blue
+    $stext tag configure yellow -foreground "\#808000"
+    $stext tag configure black -foreground "black"
+
+}
+
+proc AddToLog { logtext { status "info"} } {
+
+    set status_tag "blue"
+    if { "$status" == "error" } {
+       set status_tag "red" 
+    } elseif { "$status" == "warning" } {
+       set status_tag "yellow" 
+    } elseif { "$status" == "remark" } {
+       set status_tag "blue" 
+    }
+    
+    set configframe [.configframe childsite]
+    set log [$configframe.f.config.tabs childsite 2]
+    set text [$log.text component text] 
+    $text insert end $logtext $status_tag
+    $log.text yview moveto 1
+
+    set log [.detached.f.config.tabs childsite 2]
+    set text [$log.text component text] 
+    $text insert end $logtext $status_tag
+    $log.text yview moveto 1
+}
+
+
+proc SwitchConfigMenu {} {
+    global Color
+    global IsAttached IsDisplayed
+
+    if { $IsDisplayed } {
+      if { $IsAttached!=0} {        
+        pack forget .configframe
+        set hei [expr [winfo height .]-[winfo reqheight .configframe]]
+        append geom [winfo width .]x${hei}
+        wm geometry . $geom
+        wm deiconify .detached
+        set IsAttached 0
+      } else {
+        wm withdraw .detached
+        pack .configframe -anchor w -side bottom \
+            -before .scirun_menu -fill x
+        set hei [expr [winfo height .]+[winfo reqheight .configframe]]
+        append geom [winfo width .]x${hei}
+        wm geometry . $geom
+        set IsAttached 1
+      }
+      
+      update
+      .scirun_menu.configure configure -text "> Configure <"
+      .scirun_menu.detach configure -text "S"
+      bind .scirun_menu.configure <ButtonPress-1> "RemoveConfigFrame"
+      bind .scirun_menu.configure <ButtonPress-2> "SwitchConfigMenu"
+      bind .scirun_menu.configure <ButtonPress-3> "RemoveConfigFrame"    
+      bind .scirun_menu.detach <ButtonPress-1> "SwitchConfigMenu"
+
+    }
+  }
+
+proc SwitchConfigMenu2 {} {
+    global Color
+    global IsAttached IsDisplayed    
+    
+    if { !$IsDisplayed } {
+      pack forget .configframe
+      wm deiconify .detached
+      set IsAttached 0
+      set IsDisplayed 1
+      update
+    
+      .scirun_menu.detach configure -text "S"
+      .scirun_menu.configure configure -text "> Configure <"
+      bind .scirun_menu.configure <ButtonPress-1> "RemoveConfigFrame"
+      bind .scirun_menu.configure <ButtonPress-2> "SwitchConfigMenu"
+      bind .scirun_menu.configure <ButtonPress-3> "RemoveConfigFrame"   
+      bind .scirun_menu.detach <ButtonPress-1> "SwitchConfigMenu"
+    } 
+  }
+
+
+proc SwitchConfigMenu3 {} {
+    global Color
+    global IsAttached IsDisplayed 
+
+    if { !$IsDisplayed } {
+      wm withdraw .detached
+      pack .configframe -anchor w -side bottom \
+          -before .scirun_menu -fill x
+      set hei [expr [winfo height .]+[winfo reqheight .configframe]]
+      append geom [winfo width .]x${hei}
+      wm geometry . $geom
+      set IsAttached 1
+      set IsDisplayed 1
+      update
+    
+      .scirun_menu.configure configure -text "> Configure <"
+      .scirun_menu.detach configure -text "S"
+      bind .scirun_menu.configure <ButtonPress-1> "RemoveConfigFrame"
+      bind .scirun_menu.configure <ButtonPress-2> "SwitchConfigMenu"
+      bind .scirun_menu.configure <ButtonPress-3> "RemoveConfigFrame"   
+      bind .scirun_menu.detach <ButtonPress-1>    "SwitchConfigMenu"
+    } 
+  }
+
+
+
+proc UpdateNetworkProgress {cnt size} {
+    if { $size  > 0 } {
+      set progress [expr $cnt/double($size)]
+    } else {
+      set progress 1
+    }
+    
+    set width [expr int($progress*(74))]
+    set graph .scirun_menu.inset.graph
+    
+    if {$width == 0} { 
+      place forget $graph
+    } else {
+      $graph configure -width $width
+      place $graph -relheight 1 -anchor nw
+    }
+    
+    set progtext "$cnt/$size"
+    .scirun_menu.indicator configure -text $progtext
 }
 
 proc canvasScroll { canvas { dx 0.0 } { dy 0.0 } {multiplier 1.0} } {
     if {$dx!=0.0} {$canvas xview moveto [expr $dx*$multiplier +[lindex [$canvas xview] 0]]}
     if {$dy!=0.0} {
     $canvas yview moveto [expr $dy*$multiplier +[lindex [$canvas yview] 0]]}
+
+    raise .frame.editor.canvas.mini
 }
 
 # Activate the "File" menu items - called from C after all packages are loaded
@@ -465,11 +836,12 @@ proc activate_file_submenus { } {
     .main_menu.file.menu entryconfig  5 -state active
     .main_menu.file.menu entryconfig  6 -state active
     .main_menu.file.menu entryconfig  7 -state active
-    .main_menu.file.menu entryconfig  9 -state active
-    .main_menu.file.menu entryconfig 11 -state active
+#    .main_menu.file.menu entryconfig  9 -state active
+#    .main_menu.file.menu entryconfig 11 -state active
 
     .main_menu.help.menu entryconfig  1 -state active
     .main_menu.help.menu entryconfig  2 -state active
+    .main_menu.help.menu entryconfig  3 -state active
 
     ###################################################################
     # Bind all the actions after SCIRun has loaded everything...
@@ -532,9 +904,9 @@ proc redrawMinicanvas {} {
     set connections ""
     $minicanvas raise module
     foreach module $Subnet(Subnet0_Modules) {
-	set coords [scalePath [$maincanvas bbox $module]]
-	after 1 $minicanvas coords $module $coords	
-	eval lappend connections $Subnet(${module}_connections)
+      set coords [scalePath [$maincanvas bbox $module]]
+      after 1 $minicanvas coords $module $coords	
+      eval lappend connections $Subnet(${module}_connections)
     }
     after 1 drawConnections \{[lsort -unique $connections]\}
     $minicanvas raise "viewAreaBox"
@@ -544,22 +916,25 @@ proc redrawMinicanvas {} {
     set lockedimg "$SCIRUN_SRCDIR/pixmaps/locked-24.gif"
     set unlockedimg "$SCIRUN_SRCDIR/pixmaps/unlocked-24.gif"
     #create locked state image
-    global network_executing
-    global cimg
-    if { [string length [info commands ::img::lstate]] } {
-	image delete ::img::lstate
-	$minicanvas delete $cimg
-    } 
 
-    if { $network_executing } {
-	image create photo ::img::lstate -file $lockedimg
-	set cimg [$minicanvas create image $w $h \
-		      -image ::img::lstate -anchor se]
-    } else {
-	image create photo ::img::lstate -file $unlockedimg
-	set cimg [$minicanvas create image $w $h \
-		      -image ::img::lstate  -anchor se]
-    }
+#    global network_executing
+#    global cimg
+#    if { [string length [info commands ::img::lstate]] } {
+#      image delete ::img::lstate
+#      $minicanvas delete $cimg
+#    } 
+
+#    if { $network_executing } {
+#      image create photo ::img::lstate -file $lockedimg
+#      set cimg [$minicanvas create image $w $h \
+#		      -image ::img::lstate -anchor se]
+#    } else {
+#      image create photo ::img::lstate -file $unlockedimg
+#      set cimg [$minicanvas create image $w $h \
+#		      -image ::img::lstate  -anchor se]
+#    }
+
+    raise .frame.editor.canvas.mini
 }
 
 proc updateViewAreaBox {} {
@@ -571,14 +946,16 @@ proc updateViewAreaBox {} {
     set uly [expr [lindex [$maincanvas yview] 0] * $h]
     set lry [expr [lindex [$maincanvas yview] 1] * $h]
     $minicanvas coords viewAreaBox $ulx $uly $lrx $lry
+
+    raise .frame.editor.canvas.mini   
 }
 
 proc updateCanvases { x y } {
     global miniCanvasWidth miniCanvasHeight maincanvas minicanvas
 
     # if the user clicks on the lock / unlock icon, just ignore it
-    if {[expr [winfo width $minicanvas] - $x] < 32 && 
-	[expr [winfo height $minicanvas] - $y] < 32} return
+    # if {[expr [winfo width $minicanvas] - $x] < 32 && 
+    #    [expr [winfo height $minicanvas] - $y] < 32} return
 
     set x [expr $x/([winfo width $minicanvas]-2.0)]
     set y [expr $y/([winfo height $minicanvas]-2.0)]
@@ -592,8 +969,10 @@ proc updateCanvases { x y } {
 }
 
 proc createPackageMenu {index} {
-    global ModuleMenu ModuleIPorts ModuleOPorts    
-    global ModuleVIPorts ModuleVOPorts    
+
+    global Color ModuleMenu ModuleIPorts ModuleOPorts    
+    global ModuleVIPorts ModuleVOPorts time_font
+       
     set package [lindex [netedit packageNames] $index]
     set packageToken [join "menu_${package}" ""]
     set ModuleMenu($packageToken) $package
@@ -626,27 +1005,29 @@ proc createPackageMenu {index} {
 
     set pack $packageToken
     # Add the cascade button and menu for the package to the menu bar
-    menubutton .main_menu.$pack -text "$ModuleMenu($pack)" -underline 0 \
-	-menu .main_menu.$pack.menu
-    menu .main_menu.$pack.menu
-    pack forget .main_menu.subnet
-    pack .main_menu.$pack -side left
-    pack .main_menu.subnet -side left
-    global ToolTipText
-    Tooltip .main_menu.$pack $ToolTipText(PackageMenus)
+
+    .main_menu.module.menu add command -label "$ModuleMenu($pack)" \
 
     foreach cat $ModuleMenu(${pack}_categories) {
       # Add the category to the menu bar menu
-      .main_menu.$pack.menu add cascade -label "$ModuleMenu($cat)" \
-          -menu .main_menu.$pack.menu.$cat
-      menu .main_menu.$pack.menu.$cat -tearoff false
+
+      .main_menu.module.menu add cascade -label "  $ModuleMenu($cat)" \
+        -menu .main_menu.module.menu.$cat 
+
+      menu .main_menu.module.menu.$cat -tearoff true\
+        -bd 2 -activeborderwidth 0 \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -background $Color(MenuBackGround) \
+        -foreground $Color(MenuForeGround)
+
       foreach mod $ModuleMenu(${pack}_${cat}_modules) {
-          .main_menu.$pack.menu.$cat add command \
-        -label "$ModuleMenu($mod)" \
-        -command "addModule \"$ModuleMenu($pack)\" \"$ModuleMenu($cat)\" \"$ModuleMenu($mod)\""
+        .main_menu.module.menu.$cat add command \
+          -label "$ModuleMenu($mod)" \
+          -command "addModule \"$ModuleMenu($pack)\" \"$ModuleMenu($cat)\" \"$ModuleMenu($mod)\""
       }
-    }
-    global maincanvas
+    } 
+
     update idletasks
 }
 
@@ -655,7 +1036,7 @@ proc createPackageMenu {index} {
 # canvas.  It presents them with a menu of all modules.  Selecting
 # a module name will create it at the clicked location
 proc createModulesMenu { menu subnet } {
-    global ModuleMenu Subnet
+    global ModuleMenu Subnet Color
     # return if there is no information to put in menu
     if ![info exists ModuleMenu] return
     # destroy the old menu
@@ -664,7 +1045,11 @@ proc createModulesMenu { menu subnet } {
     #    }
     # create a new menu
     if { ![winfo exists $menu] } {	
-      menu $menu
+      menu $menu -bd 2 -activeborderwidth 0 \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -background $Color(MenuBackGround) \
+        -foreground $Color(MenuForeGround)
     }
     $menu delete 0 end
     $menu configure -tearoff false -disabledforeground black
@@ -680,7 +1065,11 @@ proc createModulesMenu { menu subnet } {
         # Add the category to the right-button menu
         $menu add cascade -label "  $ModuleMenu($cat)" -menu $menu.$cat
         if { ![winfo exists $menu.$cat] } {	
-          menu $menu.$cat -tearoff false
+          menu $menu.$cat -tearoff false -bd 2 -activeborderwidth 0 \
+            -activebackground $Color(MenuSelectBackGround)  \
+            -activeforeground $Color(MenuSelectForeGround) \
+            -background $Color(MenuBackGround) \
+            -foreground $Color(MenuForeGround)
         }
         $menu.$cat delete 0 end
 
@@ -691,10 +1080,14 @@ proc createModulesMenu { menu subnet } {
       }
     }
     
-    $menu add separator
-    $menu add cascade -label "Sub-Networks" -menu $menu.subnet
+#    $menu add separator
+    $menu add cascade -label "Subnets" -menu $menu.subnet
     if { ![winfo exists $menu.subnet] } {	
-      menu $menu.subnet -tearoff false
+      menu $menu.subnet -tearoff false -bd 2 -activeborderwidth 0 \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -background $Color(MenuBackGround) \
+        -foreground $Color(MenuForeGround)
     }
 
     createSubnetMenu $menu $subnet
@@ -703,34 +1096,34 @@ proc createModulesMenu { menu subnet } {
 }
 
 proc createSubnetMenu { { menu "" } { subnet 0 } } {
-    global SubnetScripts
+    global SubnetScripts time_font
     loadSubnetScriptsFromDisk
     #generateSubnetScriptsFromNetwork
 
     if { [winfo exists $menu ] } {
-	$menu.subnet delete 0 end
+      $menu.subnet delete 0 end
     }
     .main_menu.subnet.menu delete 0 end
     set names [lsort -dictionary [array names SubnetScripts *]]
 
     if { ![llength $names] } {
-	if { [winfo exists $menu ] } {
-	    $menu entryconfigure Sub-Networks -state disabled
-	}
-	.main_menu configure Sub-Networks configure -state disabled
+#      if { [winfo exists $menu ] } {
+#          $menu entryconfigure Subnets -state disabled
+#      }
+#      .main_menu configure Subnets configure -state disabled
     } else {
-	if { [winfo exists $menu ] } {
-	    $menu entryconfigure Sub-Networks -state normal
-	}
-	.main_menu.subnet configure -state normal
-	foreach name $names {
-	    if { [winfo exists $menu ] } {
-		$menu.subnet add command -label "$name" \
-		    -command "instanceSubnet \"$name\" 0 0 $subnet"
-	    }
-	    .main_menu.subnet.menu add command -label "$name" \
-		-command "instanceSubnet \"$name\" 0 0 $subnet"
-	}
+      if { [winfo exists $menu ] } {
+          $menu entryconfigure Subnets -state normal
+      }
+      .main_menu.subnet configure -state normal
+      foreach name $names {
+          if { [winfo exists $menu ] } {
+            $menu.subnet add command -label "$name" \
+            -command "instanceSubnet \"$name\" 0 0 $subnet"
+          }
+          .main_menu.subnet.menu add command -label "$name" \
+            -command "instanceSubnet \"$name\" 0 0 $subnet" 
+      }
     }
 }
     
@@ -758,38 +1151,6 @@ proc addModuleAtMouse { pack cat mod subnet_id } {
 
 proc findMovedModulePath { packvar catvar modvar } {
     # Deprecated module translation table.
-    set xlat "
-{Fusion Fields NrrdFieldConverter} {Teem Converters NrrdToField}
-{SCIRun FieldsCreate GatherPoints} {SCIRun FieldsCreate GatherFields}
-{SCIRun Fields GatherPoints} {SCIRun FieldsCreate GatherFields}
-{Teem DataIO ColorMapToNrrd} {Teem Converters ColorMapToNrrd}
-{Teem DataIO FieldToNrrd} {Teem Converters FieldToNrrd}
-{Teem DataIO NrrdToMatrix} {Teem Converters NrrdToMatrix}
-{Teem DataIO MatrixToNrrd} {Teem Converters MatrixToNrrd}
-{Teem DataIO NrrdToField} {Teem Converters NrrdToField}
-{SCIRun Visualization NrrdToColorMap2} {Teem Converters NrrdToColorMap2}
-{SCIRun Visualization GLTextureBuilder} {SCIRun Visualization TextureBuilder}
-{SCIRun Visualization TextureVolVis} {SCIRun Visualization VolumeVisualizer}
-{SCIRun Visualization TexCuttingPlanes} {SCIRun Visualization VolumeSlicer}
-{SCIRun FieldsData ChangeFieldDataAt} {SCIRun FieldsData ChangeFieldBasis}
-{SCIRun Fields ChangeFieldDataAt} {SCIRun FieldsData ChangeFieldBasis}
-{SCIRun Visualization GenTransferFunc} {SCIRun Visualization EditColorMap}
-{SCIRun Visualization EditTransferFunc2} {SCIRun Visualization EditColorMap2D}
-{SCIRun FieldsData BuildInterpMatrix} {SCIRun FieldsData BuildMappingMatrix}
-{SCIRun FieldsData ApplyInterpMatrix} {SCIRun FieldsData ApplyMappingMatrix}
-{SCIRun FieldsData DirectInterpolate} {SCIRun FieldsData DirectMapping}
-{SCIRun Fields DirectInterpolate} {SCIRun FieldsData DirectMapping}
-{SCIRun FieldsData BuildInterpolant} {SCIRun FieldsData BuildMappingMatrix}
-{SCIRun FieldsData ApplyInterpolant} {SCIRun FieldsData ApplyMappingMatrix}
-{SCIRun Fields BuildInterpolant} {SCIRun FieldsData BuildMappingMatrix}
-{SCIRun Fields ApplyInterpolant} {SCIRun FieldsData ApplyMappingMatrix}
-"
-
-    upvar 1 $packvar package $catvar category $modvar module
-    set newpath [string map $xlat "$package $category $module"]
-    set package  [lindex $newpath 0]
-    set category [lindex $newpath 1]
-    set module   [lindex $newpath 2]
 }	        
 
 
@@ -806,17 +1167,17 @@ proc addModuleAtPosition {package category module { xpos 10 } { ypos 10 } { abso
     # default argument is empty, but if C already created the module, 
     # it will pass the id in.
     if { $modid == "" } {
-	# Tell the C++ network to create the requested module
-	set modid [netedit addmodule "$package" "$category" "$module"]
+      # Tell the C++ network to create the requested module
+      set modid [netedit addmodule "$package" "$category" "$module"]
     }
     # Reset the unknown proc to default behavior
     proc unknown { args } $unknown_body
 
     # netedit addmodule returns an empty string if the module wasnt created
     if { ![string length $modid] } {
-	tk_messageBox -type ok -parent . -icon warning -message \
-	    "Cannot find the ${package}::${category}::${module} module."
-	return
+      tk_messageBox -type ok -parent . -icon warning -message \
+        "Cannot find the ${package}::${category}::${module} module."
+      return
     }    
 
     networkHasChanged
@@ -829,26 +1190,28 @@ proc addModuleAtPosition {package category module { xpos 10 } { ypos 10 } { abso
     set className [join "${package}_${category}_${module}" ""]
     # Create the itcl object
     if {[catch "$className $modid" exception]} {
-	# Use generic module
-	if {$exception != "invalid command name \"$className\""} {
-	    bgerror "Error instantiating iTcl class for module:\n$exception";
-	}
-	Module $modid -name "$module"
+      # Use generic module
+      if {$exception != "invalid command name \"$className\""} {
+          bgerror "Error instantiating iTcl class for module:\n$exception";
+      }
+      Module $modid -name "$module"
     }
 
     # compute position if we're inserting the net to the right    
     if { $inserting } {
-	global insertOffset
-	set xpos [expr $xpos+[lindex $insertOffset 0]]
-	set ypos [expr $ypos+[lindex $insertOffset 1]]
+      global insertOffset
+      set xpos [expr $xpos+[lindex $insertOffset 0]]
+      set ypos [expr $ypos+[lindex $insertOffset 1]]
     } else { ;# create the module relative to current screen position
-	set xpos [expr $xpos+[$canvas canvasx 0]]
-	set ypos [expr $ypos+[$canvas canvasy 0]]
+      set xpos [expr $xpos+[$canvas canvasx 0]]
+      set ypos [expr $ypos+[$canvas canvasy 0]]
     }
     set absolute [expr $absolute || $inserting]
     $modid make_icon $xpos $ypos $absolute
     update idletasks
-    return $modid
+
+    raise .frame.editor.canvas.mini
+    return $modid    
 }
 
 
@@ -865,17 +1228,17 @@ proc addModuleAtAbsolutePosition {package category module { xpos 10 } { ypos 10 
     # default argument is empty, but if C already created the module, 
     # it will pass the id in.
     if { $modid == "" } {
-	# Tell the C++ network to create the requested module
-	set modid [netedit addmodule "$package" "$category" "$module"]
+      # Tell the C++ network to create the requested module
+      set modid [netedit addmodule "$package" "$category" "$module"]
     }
     # Reset the unknown proc to default behavior
     proc unknown { args } $unknown_body
 
     # netedit addmodule returns an empty string if the module wasnt created
     if { ![string length $modid] } {
-	tk_messageBox -type ok -parent . -icon warning -message \
-	    "Cannot find the ${package}::${category}::${module} module."
-	return
+      tk_messageBox -type ok -parent . -icon warning -message \
+          "Cannot find the ${package}::${category}::${module} module."
+      return
     }    
 
     networkHasChanged
@@ -888,50 +1251,27 @@ proc addModuleAtAbsolutePosition {package category module { xpos 10 } { ypos 10 
     set className [join "${package}_${category}_${module}" ""]
     # Create the itcl object
     if {[catch "$className $modid" exception]} {
-	# Use generic module
-	if {$exception != "invalid command name \"$className\""} {
-	    bgerror "Error instantiating iTcl class for module:\n$exception";
-	}
-	Module $modid -name "$module"
+      # Use generic module
+      if {$exception != "invalid command name \"$className\""} {
+          bgerror "Error instantiating iTcl class for module:\n$exception";
+      }
+      Module $modid -name "$module"
     }
 
     # compute position if we're inserting the net to the right    
     if { $inserting } {
-	global insertOffset
-	set xpos [expr $xpos+[lindex $insertOffset 0]]
-	set ypos [expr $ypos+[lindex $insertOffset 1]]
+      global insertOffset
+      set xpos [expr $xpos+[lindex $insertOffset 0]]
+      set ypos [expr $ypos+[lindex $insertOffset 1]]
     } else { ;# create the module relative to current screen position
     }
     $modid make_icon $xpos $ypos 1
     update idletasks
+
+    raise .frame.editor.canvas.mini    
     return $modid
 }
 
-
-
-# addModule2 creates a SCIRun module to be used in the SCIRun2 framework
-# as an instance of the SCIRunComponentModel.
-proc addModule2 {package category module modid} {  
-    global Subnet
-
-    set Subnet($modid) $Subnet(Loading)
-    set Subnet(${modid}_connections) ""
-    lappend Subnet(Subnet$Subnet(Loading)_Modules) $modid
-
-    set className [join "${package}_${category}_${module}" ""]
-    if {[catch "$className $modid" exception]} {
-        # Use generic module
-        if {$exception != "invalid command name \"$className\""} {
-            bgerror "Error instantiating iTcl class for module:\n$exception";
-        }
-        Module $modid -name "$module"
-    }
-
-    redrawMinicanvas
-    $modid make_icon 10 10 0
-
-    return $modid
-}
 
 proc append_srn_filename {name} {
 
@@ -969,7 +1309,7 @@ proc popupSaveMenu {} {
 
 proc popupSaveAsMenu {} {
     set types {
-	{{SCIRun Net} {.srn} }
+      {{SCIRun Net} {.srn} }
     } 
 
     global netedit_savefile NetworkChanged
@@ -988,15 +1328,45 @@ proc popupSaveAsMenu {} {
       set initialfile [lindex $dirs $size]
     }
 
-    set netedit_savefile \
-    [tk_getSaveFile -defaultextension {.srn} -filetypes $types -initialdir $initialdir -initialfile $initialfile]
-    if { $netedit_savefile != "" } {
-      # make sure we only save .srn files
-      set netedit_savefile [append_srn_filename $netedit_savefile]
-      wm title . "SCIRun ([lindex [file split $netedit_savefile] end])"
-      writeNetwork $netedit_savefile
-      set NetworkChanged 0
-      netedit setenv "SCIRUN_NETFILE" $netedit_savefile
+    global save_file netedit_savefile filetype_savefile
+    
+    set save_file 0;
+    set netedit_savefile $initialfile
+    set filetype_savefile ".srn"
+
+    set w .save_network_dialog
+    if {![winfo exists $w]} {
+      sci_toplevel $w -class TkFDialog
+      
+      makeSaveFilebox \
+          -parent $w \
+          -filevar netedit_savefile \
+          -cancel "global save_file; set save_file 0; wm withdraw $w" \
+          -commandname "Save" \
+          -command "global save_file; set save_file 1; wm withdraw $w" \
+          -title "Save Network file" \
+          -filetypes $types \
+          -initialfile $initialfile \
+          -initialdir $initialdir \
+          -formatvar filetype_savefile \
+          -defaultextension ".srn" \
+          -formats {None} \
+          -donotresize 1
+    } else {
+      wm deiconify $w
+    }
+
+    tkwait variable save_file
+    
+    if {$save_file == 1} {
+      if { $netedit_savefile != "" } {
+        # make sure we only save .srn files
+        set netedit_savefile [append_srn_filename $netedit_savefile]
+        wm title . "SCIRun ([lindex [file split $netedit_savefile] end])"
+        writeNetwork $netedit_savefile
+        set NetworkChanged 0
+        netedit setenv "SCIRUN_NETFILE" $netedit_savefile
+      }
     }
 }
 
@@ -1009,19 +1379,49 @@ proc popupInsertMenu { {subnet 0} } {
       {{SCIRun Net} {.srn} }
       {{old SCIRun Net} {.net} }
     } 
-    set netedit_insertnet [tk_getOpenFile -filetypes $types ]
-    if { [check_filename $netedit_insertnet] == "invalid" } {
-      set netedit_insertnet ""
+
+    global insert_file netedit_insertfile filetype_insertfile
+    set w .insert_network_dialog
+
+    set initialdir [netedit getenv SCIRUN_NET_DIR] 
+    set insert_file 0
+    set netedit_insertfile ""
+    set filetype_insertfile ".srn"   
+
+    if {![winfo exists $w]} {
+      sci_toplevel $w -class TkFDialog
+      makeOpenFilebox \
+        -parent $w \
+        -filevar netedit_insertfile \
+        -cancel "global insert_file; set insert_file 0; wm withdraw $w" \
+        -commandname "Insert" \
+        -command "global insert_file; set insert_file 1; wm withdraw $w" \
+        -title "Insert Network file" \
+        -filetypes $types \
+        -initialdir $initialdir \
+        -defaultextension ".srn" \
+        -donotresize 1        
+    } else {
+      wm deiconify $w
+    }
+
+    tkwait variable insert_file
+    
+    if {$insert_file != 1} return
+ 
+#    set netedit_insertfile [tk_getOpenFile -filetypes $types -initialdir [netedit getenv SCIRUN_NET_DIR] ]
+    if { [check_filename $netedit_insertfile] == "invalid" } {
+      set netedit_insertfile ""
       return
     }
-    if { ![file exists $netedit_insertnet]} { 
+    if { ![file exists $netedit_insertfile]} { 
       return
     }
     
     set canvas $Subnet(Subnet${subnet}_canvas)    
     # get the bbox for the net being inserted by
-    # parsing netedit_loadnet for bbox 
-    set fchannel [open $netedit_insertnet]
+    # parsing netedit_openfile for bbox 
+    set fchannel [open $netedit_insertfile]
     set curr_line ""
     set curr_line [gets $fchannel]
     while { ![eof $fchannel] } {
@@ -1084,12 +1484,12 @@ proc popupInsertMenu { {subnet 0} } {
     $canvas yview moveto [expr [lindex $bbox 1]/$mainCanvasHeight-0.01]
     set preLoadModules $Subnet(Subnet${subnet}_Modules)
     set inserting 1
-    if {[string match *.net $netedit_insertnet]} {
-      loadnet $netedit_insertnet
+    if {[string match *.net $netedit_insertfile]} {
+      loadnet $netedit_insertfile
     } else {
       global netedit_savefile
       set tmp $netedit_savefile
-      uplevel \#0 netedit load_srn $netedit_insertnet
+      uplevel \#0 netedit load_srn $netedit_insertfile
       set netedit_savefile $tmp
     }
     set inserting 0
@@ -1165,51 +1565,85 @@ proc update_network_editor_title {filename} {
 proc popupLoadMenu {} {
     global NetworkChanged
     if $NetworkChanged {
-	set result [tk_messageBox -type yesnocancel -parent . -title "Warning" \
-			-message "Your network has not been saved.\n\nWould you like to save before loading a new one?" -icon warning ]
-	if {![string compare "yes" $result]} { popupSaveMenu }
-	if {![string compare "cancel" $result]} { return }
+      set result [createSciDialog -warning -title "Save Network?" \
+		    -button1 "No" -button2 "Cancel" -button3 "Yes" \
+		    -message "Your network has not been saved.\n\nWould you like to save before loading a new one?"]    
+    
+      if {$result == 3} { popupSaveMenu }
+      if {$result == 2} { return }
     }
 
     set types {
-	{{SCIRun Net} {.srn} }
-	{{old SCIRun Net} {.net} }
+      {{SCIRun Net} {.srn} }
+      {{old SCIRun Net} {.net} }
     } 
-    
-    set netedit_loadnet [tk_getOpenFile -filetypes $types ]
-    if { [check_filename $netedit_loadnet] == "invalid" } {
-		set netedit_loadnet ""
-		return
+
+    global open_file netedit_openfile
+    set initialdir [netedit getenv SCIRUN_NET_DIR] 
+    set open_file 0
+    set netedit_openfile ""
+
+    set w .open_network_dialog
+    if {![winfo exists $w]} {
+      sci_toplevel $w -class TkFDialog
+      makeOpenFilebox \
+          -parent $w \
+          -filevar netedit_openfile \
+          -cancel "global open_file; set open_file 0; wm withdraw $w" \
+          -commandname "Open" \
+          -command "global open_file; set open_file 1; wm withdraw $w" \
+          -title "Open Network file" \
+          -filetypes $types \
+          -initialdir $initialdir \
+          -defaultextension ".srn" \
+          -donotresize 1
+    } else {
+      wm deiconify $w
     }
 
-    if { ![file exists $netedit_loadnet]} { return }
+    tkwait variable open_file
+    
+    if {$open_file != 1} return
+ 
+    puts " $netedit_openfile"
+ 
+    if { [check_filename $netedit_openfile] == "invalid" } {
+      set netedit_openfile ""
+      return
+    }
+
+    if { ![file exists $netedit_openfile]} { 
+      return
+    }
 
     #dont ask user before clearing canvas
     ClearCanvas 0
     set inserting 0
-    if {[string match *.srn $netedit_loadnet]} {
-        # compensate for spaces in the filename (windows)
-		after 500 uplevel \#0 netedit load_srn \{\{$netedit_loadnet\}\}
+    if {[string match *.srn $netedit_openfile]} {
+      # compensate for spaces in the filename (windows)
+      after 500 uplevel \#0 netedit load_srn \{\{$netedit_openfile\}\}
     } else {
-		loadnet $netedit_loadnet 
+      loadnet $netedit_openfile 
     }
-    wm title . "SCIRun ([lindex [file split $netedit_loadnet] end])"
+    wm title . "SCIRun ([lindex [file split $netedit_openfile] end])"
 }
 
 proc ClearCanvas { { confirm 1 } { subnet 0 } } {
     # destroy all modules
     global NetworkChanged
     if { !$NetworkChanged } { set confirm 0 }
-    set do_clear yes
+    set do_clear 3
+
     if { $confirm } {
       set message [list "Your network has not been saved." \
 			 "All Modules and connections will be deleted." \
 			 "Really clear?"]
-      set do_clear [tk_messageBox -title "Warning" -type yesno -parent . \
-			  -icon warning -message [join $message "\n\n"] ]
+      set do_clear [createSciDialog -warning -title "Warning" \
+		    -button1 "No" -button3 "Yes" \
+		    -message [join $message "\n\n"]]
     }
 
-  if { $do_clear == "yes" } {
+  if { $do_clear == 3 } {
     global Subnet
     foreach module $Subnet(Subnet${subnet}_Modules) {
 	    if { [string first Render_Viewer $module] != -1 } {
@@ -1227,26 +1661,28 @@ proc ClearCanvas { { confirm 1 } { subnet 0 } } {
     
       set Subnet(num) 0
     }
+    
+    raise .frame.editor.canvas.mini
 }
 
 proc NiceQuit {} {
     global NetworkChanged netedit_savefile
     if { $NetworkChanged && ![envBool SCIRUN_FAST_QUIT] } {
-	set result [createSciDialog -warning -title "Quit?" \
+      set result [createSciDialog -warning -title "Quit?" \
 		    -button1 "Don't Save" -button2 "Cancel" -button3 "Save" \
 		    -message "Your session has not been saved.\nWould you like to save before exiting?"]
-	switch -- $result { 
-	    "-1" return
-	    "2" return
-	    "3" {
-		if { [winfo exists .standalone] } {
-		    app save_session
-		} else {
-		    puts -nonewline "Saving $netedit_savefile..."
-		    popupSaveMenu
-		}
-	    }
-	}
+      switch -- $result { 
+        "-1" return
+        "2" return
+        "3" {
+        if { [winfo exists .standalone] } {
+              app save_session
+          } else {
+              puts -nonewline "Saving $netedit_savefile..."
+              popupSaveMenu
+          }
+        }
+      }
     }
     set geom [open ~/.scirun.geom w]
     puts $geom [wm geom .]
@@ -1254,6 +1690,17 @@ proc NiceQuit {} {
     puts "Goodbye!"
     netedit quit
 }
+
+
+proc UpdateGraphicsDriversDialog {} {
+    createSciDialog -error -title "Please Update Graphics Card Drivers" \
+      -button1 "OK" \
+      -message "The graphics card drivers on this computer are out of date.\nSCIRun needs OpenGL version 2.0 or higher.\nPlease download an updated graphics card driver for this machine.\nAn up to date driver can be generally found at the website of graphics card manufacturer.\n"
+
+    puts "Goodbye!"
+    netedit quit
+}
+
 
 proc initInfo { {subnet_number 0} } {
     global Subnet
@@ -1322,14 +1769,14 @@ proc popupInfoMenu { {subnet_num 0 } } {
     initInfo $subnet_num
     
     lappend backupDateTimeNotes \
-	$Subnet(Subnet${subnet_num}_userName) \
-	$Subnet(Subnet${subnet_num}_runDate) \
-	$Subnet(Subnet${subnet_num}_runTime) \
-	$Subnet(Subnet${subnet_num}_creationDate) \
-	$Subnet(Subnet${subnet_num}_creationTime) \
-	$Subnet(Subnet${subnet_num}_notes) \
-	$Subnet(Subnet${subnet_num}_relfilenames) \
-	$Subnet(Subnet${subnet_num}_netversion) \
+      $Subnet(Subnet${subnet_num}_userName) \
+      $Subnet(Subnet${subnet_num}_runDate) \
+      $Subnet(Subnet${subnet_num}_runTime) \
+      $Subnet(Subnet${subnet_num}_creationDate) \
+      $Subnet(Subnet${subnet_num}_creationTime) \
+      $Subnet(Subnet${subnet_num}_notes) \
+      $Subnet(Subnet${subnet_num}_relfilenames) \
+      $Subnet(Subnet${subnet_num}_netversion) \
 
     set w .netedit_info$subnet_num
         
@@ -1359,7 +1806,7 @@ proc popupInfoMenu { {subnet_num 0 } } {
     frame $infoframe.fname
     label $infoframe.fname.lname -text "User: " -padx 3 -pady 3
     entry $infoframe.fname.ename -width 50 -relief sunken -bd 2 \
-	-textvariable Subnet(Subnet${subnet_num}_userName)
+      -textvariable Subnet(Subnet${subnet_num}_userName)
     pack $infoframe.fname.lname $infoframe.fname.ename -side left
 
     set pre [expr $subnet_num?"Sub-":""]
@@ -1367,7 +1814,7 @@ proc popupInfoMenu { {subnet_num 0 } } {
     label $infoframe.cdt.label -text "${pre}Network Created:"
     label $infoframe.cdt.ldate -text "   Date: " -padx 3 -pady 3 
     entry $infoframe.cdt.edate -width 20 -relief sunken -bd 2 \
-	-textvariable Subnet(Subnet${subnet_num}_creationDate)
+      -textvariable Subnet(Subnet${subnet_num}_creationDate)
 
     label $infoframe.cdt.ltime -text "   Time: " -padx 5 -pady 3 
     entry $infoframe.cdt.etime -width 10 -relief sunken -bd 2 \
@@ -1383,14 +1830,14 @@ proc popupInfoMenu { {subnet_num 0 } } {
     label $infoframe.fdt.label -text "${pre}Network Executed:"
     label $infoframe.fdt.ldate -text "   Date: " -padx 3 -pady 3 
     entry $infoframe.fdt.edate -width 20 -relief sunken -bd 2 \
-	-textvariable Subnet(Subnet${subnet_num}_runDate)
+      -textvariable Subnet(Subnet${subnet_num}_runDate)
 
     label $infoframe.fdt.ltime -text "   Time: " -padx 5 -pady 3 
     entry $infoframe.fdt.etime -width 10 -relief sunken -bd 2 \
-	-textvariable Subnet(Subnet${subnet_num}_runTime)
+      -textvariable Subnet(Subnet${subnet_num}_runTime)
 
     button $infoframe.fdt.reset -text "Reset" \
-	-command "updateRunDateAndTime $subnet_num"
+      -command "updateRunDateAndTime $subnet_num"
 
     pack $infoframe.fdt.label  -side left -fill x
     pack $infoframe.fdt.reset $infoframe.fdt.etime $infoframe.fdt.ltime $infoframe.fdt.edate $infoframe.fdt.ldate   -side right -padx 5
@@ -1398,7 +1845,7 @@ proc popupInfoMenu { {subnet_num 0 } } {
     frame $infoframe.nv
     label $infoframe.nv.label -text "Network version: "
     entry $infoframe.nv.entry -width 20 -relief sunken -bd 2 \
-  -textvariable Subnet(Subnet${subnet_num}_netversion)
+      -textvariable Subnet(Subnet${subnet_num}_netversion)
 
     pack $infoframe.nv.entry $infoframe.nv.label -side right -padx 5
 
@@ -1408,7 +1855,7 @@ proc popupInfoMenu { {subnet_num 0 } } {
     frame $infoframe.fnotes.bot
     label $infoframe.fnotes.top.lnotes -text "Notes:" -padx 2 -pady 5 
     text $infoframe.fnotes.bot.tnotes -relief sunken -bd 2 \
-	-yscrollcommand "$infoframe.fnotes.bot.scroll set"
+      -yscrollcommand "$infoframe.fnotes.bot.scroll set"
     scrollbar $infoframe.fnotes.bot.scroll -command "$infoframe.fnotes.bot tnotes yview"
     $infoframe.fnotes.bot.tnotes insert 1.0 $Subnet(Subnet${subnet_num}_notes)
 
@@ -1422,9 +1869,9 @@ proc popupInfoMenu { {subnet_num 0 } } {
     frame $w.fbuttons 
     button $w.fbuttons.ok -text "Done" -command "infoOk $w $subnet_num"
     button $w.fbuttons.clear -text "Clear All" \
-	-command "infoClear $w $subnet_num"
+      -command "infoClear $w $subnet_num"
     button $w.fbuttons.cancel -text "Cancel" \
-	-command "infoCancel $w $subnet_num $backupDateTimeNotes"
+      -command "infoCancel $w $subnet_num $backupDateTimeNotes"
 
     pack $infoframe.fname $infoframe.cdt $infoframe.fdt $infoframe.nv -side top -padx 1 -pady 1 -ipadx 2 -ipady 2 -fill x
     pack $infoframe.fnotes -expand 1 -fill both
@@ -1480,9 +1927,9 @@ proc loadfile {netedit_loadfile} {
 proc loadnet { netedit_loadfile} {
     # Check to see of the file exists; warn user if it doesnt
     if { ![file exists $netedit_loadfile] } {
-	set message "File \"$netedit_loadfile\" does not exist."
-	createSciDialog -warning -message $message
-	return
+      set message "File \"$netedit_loadfile\" does not exist."
+      createSciDialog -warning -message $message
+      return
     }
 
     global netedit_savefile inserting PowerApp Subnet geometry
@@ -1497,16 +1944,16 @@ proc loadnet { netedit_loadfile} {
     
     # if we are not loading a powerapp network, show loading progress
     if { !$PowerApp } {
-	showProgress 0 0 1 ;# -maybe- raise the progress meter
-	setProgressText "Loading SCIRun network file..."
-	update idletasks
-	# The following counts the number of steps it will take to load the net
-	resetScriptCount
-	renameNetworkCommands counting_
-	source $netedit_loadfile
-	renameNetworkCommands counting_
-	global scriptCount
-	addProgressSteps $scriptCount(Total)
+      showProgress 0 0 1 ;# -maybe- raise the progress meter
+      setProgressText "Loading SCIRun network file..."
+      update idletasks
+      # The following counts the number of steps it will take to load the net
+      resetScriptCount
+      renameNetworkCommands counting_
+      source $netedit_loadfile
+      renameNetworkCommands counting_
+      global scriptCount
+      addProgressSteps $scriptCount(Total)
     }
 
     # Renames a few procs to increment the progressmeter as we load
@@ -1519,7 +1966,7 @@ proc loadnet { netedit_loadfile} {
     resetSourceCommand
 
     if { !$PowerApp } {
-	hideProgress
+      hideProgress
     }
     set Subnet(Subnet$Subnet(Loading)_Filename) $netedit_loadfile
     if { !$inserting } { setGlobal NetworkChanged 0 }
@@ -1527,21 +1974,21 @@ proc loadnet { netedit_loadfile} {
 
 proc SCIRunNew_source { args } {
     set filename [lindex $args 0]
-    if { [file exists $filename] } {    
-	return [uplevel 1 SCIRunBackup_source \{$filename\}]
+    if { [file exists $filename] } {
+      return [uplevel 1 SCIRunBackup_source \{$filename\}]
     }
 
     set lastSettings [string last .settings $filename]
     if { ($lastSettings != -1) && \
 	     ([expr [string length $filename] - $lastSettings] == 9) } {
-	set file "[netedit getenv SCIRUN_SRCDIR]/nets/default.settings"
-	global recentlyWarnedAboutDefaultSettings
-	if { ![info exists recentlyWarnedAboutDefaultSettings] } {
-	    set recentlyWarnedAboutDefaultSettings 1
-	    after 10000 uplevel \#0 unset recentlyWarnedAboutDefaultSettings
-	    displayErrorWarningOrInfo "*** No $filename file was found.\n*** Loading the default dataset .settings file: $file\n" info
-	}
-	return [uplevel 1 SCIRunBackup_source \{$file\}]
+      set file "[netedit getenv SCIRUN_SRCDIR]/nets/default.settings"
+      global recentlyWarnedAboutDefaultSettings
+      if { ![info exists recentlyWarnedAboutDefaultSettings] } {
+          set recentlyWarnedAboutDefaultSettings 1
+          after 10000 uplevel \#0 unset recentlyWarnedAboutDefaultSettings
+          displayErrorWarningOrInfo "*** No $filename file was found.\n*** Loading the default dataset .settings file: $file\n" info
+      }
+      return [uplevel 1 SCIRunBackup_source \{$file\}]
     }
     puts "SCIRun TCL cannot source \'$filename\': File does not exist."
 }
@@ -1604,28 +2051,28 @@ proc sourceSettingsFile {} {
     set DATAFILE [netedit getenv SCIRUN_DATAFILE]
     
     if { ![string length $DATASET] } {
-	# if env var SCIRUN_DATASET not set... default to sphere:
-	set DATASET sphere
+      # if env var SCIRUN_DATASET not set... default to sphere:
+      set DATASET sphere
     } 
 
     global recentlyCalledSourceSettingsFile
     if { ![info exists recentlyCalledSourceSettingsFile] } {
-	set initialdir ""
-	while {![string length [glob -nocomplain "$DATADIR/$DATASET/$DATAFILE*"]] } {
-	    case [showInvalidDatasetPrompt] {
-		1 "set data [showChooseDatasetPrompt $initialdir]"
-		2 { 
-		    displayErrorWarningOrInfo "*** SCIRUN_DATA not set.  Reader modules will need to be manually set to valid filenames." warning
-		    uplevel \#0 source "[netedit getenv SCIRUN_SRCDIR]/nets/default.settings"
-		    return
-		}
-		3 "netedit quit"
+      set initialdir ""
+      while {![string length [glob -nocomplain "$DATADIR/$DATASET/$DATAFILE*"]] } {
+          case [showInvalidDatasetPrompt] {
+        1 "set data [showChooseDatasetPrompt $initialdir]"
+        2 { 
+            displayErrorWarningOrInfo "*** SCIRUN_DATA not set.  Reader modules will need to be manually set to valid filenames." warning
+            uplevel \#0 source "[netedit getenv SCIRUN_SRCDIR]/nets/default.settings"
+            return
+        }
+        3 "netedit quit"
 	    }
 	    if { [string length $data] } {
-		set initialdir $data
-		set data [file split $data]
-		set DATASET [lindex $data end]
-		set DATADIR [eval file join [lrange $data 0 end-1]]
+        set initialdir $data
+        set data [file split $data]
+        set DATASET [lindex $data end]
+        set DATADIR [eval file join [lrange $data 0 end-1]]
 	    }	      
 	}
 
@@ -1646,30 +2093,8 @@ proc sourceSettingsFile {} {
     return "$DATADIR $DATASET $DATAFILE"
 }
 
-#
-# displayErrorWarningOrInfo(): 
-#
-# Generic function that should be called to display to Error/Warning
-# window.  (Ie: don't write to the window directly, use this function.)
-#
-# Displays the message "msg" (a string) to the Error/Warning window.
-# "status" (Possible values: "error", "warning", "info") determines if
-# the message should be displayed as an error, as a warning, or as
-# information.
-#
 proc displayErrorWarningOrInfo { msg status } { 
-    # Yellow Message
-    set status_tag "infotag"
-    if { "$status" == "error" } {
-       # Red Message
-       set status_tag "errtag" 
-    } elseif { "$status" == "warning" } {
-       # Orange Message
-       set status_tag "warntag" 
-    }
-    global rightFrame
-    $rightFrame.text insert end "$msg\n" "$status_tag"
-    $rightFrame.text see end
+    AddToLog "$msg\n" "$status"
 }
 
 
@@ -1677,46 +2102,66 @@ proc hideProgress { args } {
     if { ![winfo exists .splash] } return
     update idletasks
     update
-    wm withdraw .splash
+    if {[llength $args]} {
+      wm withdraw .splash
+    } else {
+      after 1500 { wm withdraw .splash }
+    }
     grab release .splash
     update idletasks
 }
 
 proc showProgress { { show_image 0 } { steps none } { dismissButton 0 } { over . } } {
 
+    global Color
+
     if { [envBool SCIRUN_HIDE_PROGRESS] && ![winfo exists .standalone] } return
     update idletasks
     set w .splash
     if { ![winfo exists $w] } {
-	toplevel $w -bd 2 -relief raised
-	wm withdraw $w
-	wm protocol $w WM_DELETE_WINDOW hideProgress
+      toplevel $w -bd 0 -relief raised -background $Color(MainBackGround)
+      set width 820
+      set height 100
+      
+      # do not show if either env vars are set to true, the only 
+      # exception is when we are calling this from a powerapp's
+      # show_help
+      if { [envBool SCIRUN_NOSPLASH] || [envBool SCI_NOSPLASH] } {
+        set show_image 0
+      }      
+      
+      if { $show_image } {
+        set height 600
+      }
+  
+      
+      set xoffset [expr ([winfo screenwidth $w] - $width)/2]
+      set yoffset [expr ([winfo screenheight $w] - $height)/2]
+      
+      wm withdraw $w 
+      wm geometry $w "${width}x${height}+${xoffset}+${yoffset}"
+      wm protocol $w WM_DELETE_WINDOW hideProgress
     }
     if { $show_image } {
-	wm title $w "Welcome to SCIRun v[netedit getenv SCIRUN_VERSION]"
+        wm title $w "Welcome to SCIRun v[netedit getenv SCIRUN_VERSION]"
     } else {
-	wm title $w "Loading Network..."
+      wm title $w "Loading Network..."
     }
 
     if { ![winfo exists $w.frame] } {
-	frame $w.frame
-	pack $w.frame -expand 1 -fill both
+      frame $w.frame -background $Color(MainBackGround)
+      pack $w.frame -expand 1 -fill both
     }
     set w $w.frame
 
-    # do not show if either env vars are set to true, the only 
-    # exception is when we are calling this from a powerapp's
-    # show_help
-    if { [envBool SCIRUN_NOSPLASH] || [envBool SCI_NOSPLASH] } {
-	set show_image 0
-    }
+
     if {[winfo exists .standalone]} {
-	set show_image 1
+      set show_image 1
     }
 
     if { [winfo exists $w.fb] } {
-	destroy $w.fb
-	unsetIfExists progressMeter
+      destroy $w.fb
+      unsetIfExists progressMeter
     }
 
     if { "$steps" != "none" } {
@@ -1724,63 +2169,88 @@ proc showProgress { { show_image 0 } { steps none } { dismissButton 0 } { over .
         # the more it (I assume) loses accuracy and thus causes the
         # display window to grow...  Therefore we are going to just use
         # 100 steps all the time.
-	iwidgets::feedback $w.fb -steps 100 -barheight 11
-	setGlobal progressMeter $w.fb
+      iwidgets::feedback $w.fb -steps 100 -barheight 11 -background $Color(MainBackGround)
+      setGlobal progressMeter $w.fb
     }
 
     if { ![winfo exists $w.dismissBtn] } {
-	button $w.dismissBtn -text "Dismiss" -width 10 -command hideProgress
+      button $w.dismissBtn -text "Dismiss" -width 10 \
+        -command "hideProgress 1" -bd $Color(BorderWidth)\
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -background $Color(ButtonBackGround) \
+        -foreground $Color(ButtonForeGround)  
     }
 
     if { $show_image } {
-        global splashImageFile
-        if { [string length [info commands ::img::splash]] && \
-                 ![string equal $splashImageFile [::img::splash cget -file]] } {
-            image delete ::img::splash
-        }
+      global splashImageFile splashAboutFile
+      if { [string length [info commands ::img::splash]] && \
+               ![string equal $splashImageFile [::img::splash cget -file]] } {
+          image delete ::img::splash
+      }
 
-        if { [file isfile $splashImageFile] && \
-                 [file readable $splashImageFile] && \
-                 ![string length [info commands ::img::splash]] } {
-            image create photo ::img::splash -file $splashImageFile
-        }
+      if { [string length [info commands ::img::about]] && \
+               ![string equal $splashImageFile [::img::about cget -file]] } {
+          image delete ::img::about
+      }
 
-        if { ![winfo exists $w.splash] } {
-            label $w.splash
-        }
-    
-        if { [string length [info command ::img::splash]] } {
-            $w.splash configure -image ::img::splash
-            pack $w.splash
+      if { [file isfile $splashImageFile] && \
+               [file readable $splashImageFile] && \
+               ![string length [info commands ::img::splash]] } {
+          image create photo ::img::splash -file $splashImageFile
+      }
+
+      if { [file isfile $splashAboutFile] && \
+               [file readable $splashAboutFile] && \
+               ![string length [info commands ::img::about]] } {
+          image create photo ::img::about -file $splashAboutFile
+      }
+      if { ![winfo exists $w.splash] } {
+          label $w.splash
+      }
+  
+      if { $show_image == 2} {
+        if { [string length [info command ::img::about]] } {
+            $w.splash configure -image ::img::about -background $Color(MainBackGround)
+            pack $w.splash -anchor w -fill both -expand yes
         } else {
             pack forget $w.splash
         }
+      } else {
+        if { [string length [info command ::img::splash]] } {
+            $w.splash configure -image ::img::splash
+            pack $w.splash -anchor w -fill both -expand yes
+        } else {
+            pack forget $w.splash
+        }
+      }
     } else {
-	pack forget $w.splash
+      pack forget $w.splash
     }
 
     if { "$steps" != "none" } {
-	setProgressText Initializing...
-	addProgressSteps $steps
-	pack $w.fb -padx 5 -fill x
+      setProgressText Initializing...
+      addProgressSteps $steps
+      pack $w.fb -padx 5 -fill x
     } else {
-	pack forget $w.fb
+      pack forget $w.fb
     }
 
     if { $dismissButton } {
-	pack $w.dismissBtn -side bottom -padx 5 -pady 3 -fill none
+      pack $w.dismissBtn -side bottom -padx 5 -pady 3 -fill none
     } else {
-	pack forget $w.dismissBtn
+      pack forget $w.dismissBtn
     }
 
     if {![winfo exists $w.scaffold] } {
-	frame $w.scaffold -width 500 -relief raised -bd 3
-	pack $w.scaffold -side bottom
+      frame $w.scaffold -width 500 -background $Color(MainBackGround)
+      pack $w.scaffold -side bottom
     }
 
     global PowerApp
     if { !$PowerApp } {
-        centerWindow .splash $over
+       wm deiconify .splash
+       # centerWindow .splash $over
     } else {
         # PowerApp splash doesn't have a "." to center over...
         centerWindow .splash
@@ -1834,190 +2304,143 @@ global LicenseResult
 set licenseResult decline
 
 
+proc acceptLicense {{ lic ""}} {
+
+    netedit update_rcfile SCIRUN_ACCEPT_LICENSE ${lic}
+}
+
+
 proc licenseDialog { {firsttime 0} } {
-    if $firsttime { return "accept" }
-    global licenseResult userData
-    set filename [file join [netedit getenv SCIRUN_SRCDIR] LICENSE]
-    set stream [open $filename r]
-    toplevel .license
 
-    wm title .license {UNIVERSITY OF UTAH RESEARCH FOUNDATION PUBLIC LICENSE}
-
-    frame .license.text -borderwidth 1 -class Scroll -highlightthickness 1 \
-	-relief sunken -takefocus 0
-    text .license.text.text -wrap word  -borderwidth 2 -relief sunken \
-	-yscrollcommand ".license.text.y set" -width 80 -height 20
-    scrollbar .license.text.y -borderwidth 2 -elementborderwidth 1 \
-	-orient vertical -takefocus 0 -highlightthicknes 0 \
-	-command ".license.text.text yview"
-    grid columnconfigure .license.text 0 -weight 1
-    grid rowconfigure .license.text    0 -weight 1 -pad 2
-    grid .license.text.text -column 0 -row 0 -sticky news
-    grid .license.text.y -column 1 -row 0 -sticky news
-
-    pack .license.text -expand 1 -fill both -side top
-    while { ![eof $stream] } {
-	gets $stream line
-	.license.text.text insert end "$line\n"
+    global licenseResult userData Color
+    
+    # Ignore license while regression testing
+    if {[string compare [netedit getenv SCI_REGRESSION_TESTING] ""]} {
+      return
     }
-    close $stream
-    .license.text.text configure -state disabled
-    bind .license.text.text <1> {focus %W}
-    frame .license.b
-    pack .license.b -side bottom
-    set result decline
-    set userData(first) ""
-    set userData(last) ""
-    set userData(email) ""
-    set userData(aff) ""
-    set licenseResult decline
+    
+    set licensedir  [file join [netedit getenv SCIRUN_OBJDIR] Licenses]
+
     if { $firsttime } {
-	frame .license.b.entry
-	
-	set w .license.b.entry.first
-	frame $w
-	label $w.lab -justify right -text "First Name:"
-	entry $w.entry -width 35 -textvariable userData(first)
-	pack $w.entry $w.lab -side right -expand 0
+      set lic ""
+      foreach file [glob -nocomplain -directory $licensedir *.license] {
+        set name [lindex [file split [file rootname $file]] end]
+        set lic "${lic}_${name}"
+      }
 
-	set w .license.b.entry.last
-	frame $w
-	label $w.lab -justify right -text "Last Name:"
-	entry $w.entry -width 35 -textvariable userData(last)
-	pack $w.entry $w.lab -side right -expand 0
-
-	set w .license.b.entry.email
-	frame $w
-	label $w.lab -justify right -text "E-Mail Address:"
-	entry $w.entry -width 35 -textvariable userData(email)
-	pack $w.entry $w.lab -side right -expand 0
-
-	set w .license.b.entry.affil
-	frame $w
-	label $w.lab -justify right -text "Affiliation:"
-	entry $w.entry -width 35 -textvariable userData(aff)
-	pack $w.entry $w.lab -side right -expand 0
-
-	set w .license.b.entry
-	pack $w.first $w.last $w.email $w.affil -side top -expand 1 -fill x
-
-	set w .license.b.buttons
-	frame $w
-	button $w.accept -text Accept -width 12 -command "licenseAccept"
-	button $w.decline -text Decline -width 12 \
-	    -command "set licenseResult cancel
-                      catch {destroy .license}"
-	button $w.later -text Later -width 12\
-	    -command "set licenseResult later
-                      catch {destroy .license}"
-	pack $w.accept $w.decline $w.later -padx 5 -pady 5 -side left -padx 20
-	pack .license.b.buttons  .license.b.entry -side bottom
-
-	wm protocol .license WM_DELETE_WINDOW {
-	    createSciDialog -error -message "You must choose Accept, Decline, or Later to continue."
-	}
-
-    } else {
-        wm protocol .license WM_DELETE_WINDOW { destroy .license }
-	button .license.b.ok -text "OK" -width 10 -command {destroy .license}
-	pack .license.b.ok -padx 2 -pady 2 -side bottom
+      set curlic [netedit getenv SCIRUN_ACCEPT_LICENSE]
+      
+      if {[string compare $curlic $lic] == 0} return
     }
+
+
+    sci_toplevel .license
+    wm title .license {SCIRun License Information}
+    sci_tabnotebook .license.tabs -height 400 -width 600 -tabpos n
+
+    .license.tabs add -label "Licenses"
+    set firsttab [.license.tabs childsite 0]
+
+    sci_labeledframe $firsttab.info -labeltext "License Information"
+      
+    set frame [$firsttab.info childsite]
+    
+    sci_scrolledtext $frame.text -vscrollmode dynamic -hscrollmode dynamic -visibleitems 70x30
+    set textw [$frame.text component text]
+    pack $firsttab.info -fill both -expand 1
+    pack $frame.text -fill both -expand 1
+    
+    $textw insert end "SCIRun 4.0 License Information\n\n"
+    $textw insert end "This version of SCIRun includes the following external packages:\n\n"
+    
+    .license.tabs select 0
+
+    set i 1
+
+    set file "$licensedir/SCIRun.license"
+    set name [lindex [file split [file rootname $file]] end]
+    
+    .license.tabs add -label "$name License"
+    set tab [.license.tabs childsite $i]
+
+    sci_labeledframe $tab.text -labeltext "$name License"
+    pack $tab.text -fill both -expand 1
+
+    set text [$tab.text childsite]
+    sci_scrolledtext $text.license -vscrollmode dynamic -hscrollmode dynamic -visibleitems 70x30
+    
+    $text.license import $file
+    pack $text.license -fill both -expand 1
+
+    foreach file [glob -nocomplain -directory $licensedir *.license] {
+      set name [lindex [file split [file rootname $file]] end]
+      
+      if {[string compare $name "SCIRun"]} {
+        .license.tabs add -label "$name License"
+        set tab [.license.tabs childsite $i]
+
+        sci_labeledframe $tab.text -labeltext "$name License"
+        pack $tab.text -fill both -expand 1
+
+        set text [$tab.text childsite]
+        sci_scrolledtext $text.license -vscrollmode dynamic -hscrollmode dynamic -visibleitems 70x30
+      
+        $text.license import $file
+        pack $text.license -fill both -expand 1
+
+        $textw insert end " - ${name}\n"
+      }
+      
+      incr i
+    }
+    
+
+
+    $textw insert end "\n\nOther SCIRun Binary and Source distributions are available at:\nhttp://software.sci.utah.edu"
+    if { $firsttime } {
+      $textw insert end "\n\nPlease read the license for each package before continuing.\n"
+      $textw insert end "and press 'Accept licenses' to continue or 'Decline' to quit\n"
+    } else {
+      $textw insert end "\n\nThe license of SCIRun and the additional packages can be found by\nclicking on the different license tabs\n"
+    }
+     
+    pack .license.tabs -side top -fill both -expand yes
+
+    frame .license.buttons -background $Color(MainBackGround) -bd 1 -relief raised
+    pack .license.buttons -side bottom -fill x 
+
+    if { $firsttime } {
+      set w .license.buttons
+      sci_button $w.accept -text "Accept Licenses" -width 20 -command "netedit setenv SCIRUN_ACCEPT_LICENSE $lic; acceptLicense $lic; catch {destroy .license}"
+      sci_button $w.decline -text "Decline" -width 12 \
+          -command "netedit quit"
+      pack $w.accept $w.decline   -padx 5 -pady 5 -side right -padx 20
+
+      wm protocol .license WM_DELETE_WINDOW {
+          createSciDialog -error -message "You must choose Accept or Decline to continue."}
+    } else {
+      wm protocol .license WM_DELETE_WINDOW { destroy .license }
+      
+      set w .license.buttons
+      sci_button $w.ok -text "OK" -width 10 -command {destroy .license} 
+      pack $w.ok -padx 2 -pady 2 -side bottom
+    
+    }
+
     moveToCursor .license
     wm deiconify .license
     grab .license
-    if { $firsttime } { tkwait window .license }
-    return $licenseResult
+    if { $firsttime } { tkwait window .license }    
+    return
+
 }
 
-proc licenseAccept { } {
-    set ouremail "scirun-register@sci.utah.edu"
-    set majordomo "majordomo@sci.utah.edu"
-    global licenseResult userData
-    if { [string length $userData(first)] &&
-	 [string length $userData(last)] &&
-	 [string length $userData(email)] } {
-
-	set w .license.confirm
-	toplevel $w
-	wm title $w "Confirm E-Mail"
-	wm geometry $w +180+240
-	wm withdraw $w
-
-	label $w.label -justify left -text "The following e-mail will be sent:"
-	pack $w.label -side top -expand 1 -fill x
-	text $w.text -wrap word -height 10 -width 50  -borderwidth 1
-	$w.text insert end "To: $ouremail\n"
-	$w.text insert end "Subject: SCIRun_Registration_Notice\n\n"
-	$w.text insert end "The following e-mail was automatically generated by SCIrun v$[netedit getenv SCIRUN_VERSION]\n\n"
-	$w.text insert end "First Name:  $userData(first)\n"
-	$w.text insert end "Last Name:  $userData(last)\n"
-	$w.text insert end "E-Mail:  $userData(email)\n"
-	$w.text insert end "Affiliation:  $userData(aff)\n"
-	pack $w.text -expand 1 -fill both -side top
-	set check 1
-	checkbutton $w.check -variable check -text  \
-	    "Register \($userData(email)\) for the SCIRun Users' Mailing List"
-	$w.check select
-
-	frame $w.b
-	button $w.b.cancel -text Cancel -width 12 \
-	    -command "catch {destroy .license.confirm}"
-	button $w.b.ok -text OK -width 12 -command \
-	    "set licenseResult accept; catch {destroy .license.confirm}"
-	pack $w.b.ok $w.b.cancel -padx 5 -pady 5 -side left -padx 20
-	pack $w.b $w.check -side bottom 
-
-	grab $w
-	wm deiconify $w
-	raise $w
-	wm withdraw .license
-	tkwait window $w
-
-	if ![string equal $licenseResult accept] {
-	    wm deiconify .license
-	} else {
-	    catch {destroy .license}
-	    set name [file join / tmp SCIRun.Register.email.txt]
-	    catch "set out \[open $name w\]"
-	    if { ![info exists out] } {
-		puts "Cannot open $name for writing.  Giving up."
-		return
-	    }
-	    puts $out "\nThe following e-mail was automatically generated by SCIRun v$[neteedit getenv SCIRUN_VERSION]"
-	    puts $out "\nFirst Name:  $userData(first)"
-	    puts $out "Last Name:  $userData(last)"
-	    puts $out "E-Mail:  $userData(email)"
-	    puts $out "Affiliation:  $userData(aff)"
-	    catch "close $out"
-	    netedit sci_system /usr/bin/Mail -n -s SCIRun_Registration_Notice $ouremail < $name
-	    catch [file delete $name]
-
-	    if { $check } {
-		set name [file join / tmp SCIRun.Register.email.txt]
-		catch "set out \[open $name w\]"
-		if { ![info exists out] } {
-		    puts "Cannot open $name for writing.  Giving up."
-		    return
-		}
-		puts $out "subscribe scirun-users $userData(email)\n"
-		catch "close $out"
-		netedit sci_system /usr/bin/Mail -n $majordomo < $name
-		catch [file delete $name]
-	    }
-
-	}
-
-    } else {
-	tk_messageBox -type ok -parent .license -icon error \
-	    -message "You must enter a First Name, Last Name, and E-Mail address to Accept."
-    }
-}
 
 proc promptUserToCopySCIRunrc {} {
-    global copyResult
+    global copyResult Color
     set w .copyRCprompt
 
-    toplevel $w
+    sci_toplevel $w
     wm withdraw $w
 
     set copyResult 0
@@ -2031,19 +2454,24 @@ proc promptUserToCopySCIRunrc {} {
     }
 
     wm title $w "Update .scirunrc file to version $sr_version?"
-    label $w.message -text "A newer version of the .scirunrc file is avaliable with this release.\n\nThis file contains SCIRun environment variables that are necessary\nfor new features.\n\nPlease note: If you have made changes to your .scirunrc file they will\nbe undone by updating to a new .scirunrc.\n\nHowever, if you generate a new .scirunrc, your existing file will be\nbacked up to .scirunrc.$rc_version just in case.\n\nWould you like SCIRun to update to the new .scirunrc?" -justify left
+    sci_frame $w.ff
+    sci_label $w.ff.message \
+     -text "A newer version of the .scirunrc file is avaliable with this release.\n\nThis file contains SCIRun environment variables that are necessary\nfor new features.\n\nPlease note: If you have made changes to your .scirunrc file they will\nbe undone by updating to a new .scirunrc.\n\nHowever, if you generate a new .scirunrc, your existing file will be\nbacked up to .scirunrc.$rc_version just in case.\n\nWould you like SCIRun to update to the new .scirunrc?" -justify left
 
-    frame $w.but
-    button $w.but.ok -text "Update" -command "set copyResult 1"
-    button $w.but.no -text "Don't Update" -command "set copyResult 0"
-    button $w.but.dontask -text "Don't Ask Again" -command "set copyResult 2"
+    frame $w.but -background $Color(MainBackGround)
+    sci_button $w.but.ok -text "Update" -command "set copyResult 1" 
+     
+    sci_button $w.but.no -text "Don't Update" -command "set copyResult 0"
+    sci_button $w.but.dontask -text "Don't Ask Again" -command "set copyResult 2"  
 
-    pack $w.but.ok $w.but.no $w.but.dontask  -side left -pady 5 -padx 5 -ipadx 5 -expand 1
-    pack $w.message -expand 1 -fill both -padx 10 -pady 10
+
+    pack $w.but.ok $w.but.no $w.but.dontask  -side left -pady 3 -padx 5 -expand 1
+    pack $w.ff -expand 1 -fill both
+    pack $w.ff.message -expand 1 -fill both -padx 10 -pady 10
 
     # Vertical separator
-    frame $w.separator -height 2 -relief sunken -borderwidth 2
-    pack  $w.separator -fill both -padx 5 -pady 5 -expand no
+    # frame $w.separator -height 2 -relief sunken -borderwidth 2 -background $Color(MainBackGround)
+    # pack  $w.separator -fill both -padx 5 -pady 1 -expand no
 
     pack $w.but -expand 1 -fill both -side top -anchor n
 
@@ -2055,20 +2483,20 @@ proc promptUserToCopySCIRunrc {} {
     vwait copyResult
 
     if { $copyResult == 2 } {
-	if { [catch { set rcfile [open ~/.scirunrc "WRONLY APPEND"] }] } {
-            puts "Unable to open ~/.scirunrc"
-            return 0
-        }
+      if { [catch { set rcfile [open ~/.scirunrc "WRONLY APPEND"] }] } {
+                puts "Unable to open ~/.scirunrc"
+                return 0
+            }
 
-	puts $rcfile \
-            "\n\# This section added when the user chose 'Dont Ask Again'"
-	puts $rcfile \
-            "\# when prompted about updating the .scirurc file version"
+      puts $rcfile \
+                "\n\# This section added when the user chose 'Dont Ask Again'"
+      puts $rcfile \
+                "\# when prompted about updating the .scirurc file version"
 
-        set rc_sub_version [netedit getenv SCIRUN_RCFILE_SUBVERSION]
-	puts $rcfile "SCIRUN_RCFILE_VERSION=${sr_version}.${rc_sub_version}"
-	close $rcfile
-        set copyResult 0
+      set rc_sub_version [netedit getenv SCIRUN_RCFILE_SUBVERSION]
+      puts $rcfile "SCIRUN_RCFILE_VERSION=${sr_version}.${rc_sub_version}"
+      close $rcfile
+      set copyResult 0
     }
 
     destroy $w
@@ -2086,58 +2514,44 @@ proc validDir { name } {
 }
 
 proc getOnTheFlyLibsDir {} {
+
     global tcl_platform
     set binOTF [file join [netedit getenv SCIRUN_OBJDIR] on-the-fly-libs]
 
     set dir [netedit getenv SCIRUN_ON_THE_FLY_LIBS_DIR]
 
     if { $dir != "" } {
-	catch "file mkdir $dir"
-	if { [validDir $dir] && ![llength [glob -nocomplain -directory $dir *]] } {
-	    displayErrorWarningOrInfo "\nCopying the contents of $binOTF\nto $dir..." info
-	    update idletasks
-	    foreach name [glob -nocomplain -directory $binOTF *.cc *.d *.o *.so] {
-		file copy $name $dir
-	    }
-	    displayErrorWarningOrInfo "Done copying on-the-fly-libs.\n" info
-	}
+      catch "file mkdir $dir"
+      if { [validDir $dir] && ![llength [glob -nocomplain -directory $dir *]] } {
+          displayErrorWarningOrInfo "\nCopying the contents of $binOTF\nto $dir..." info
+          update idletasks
+          foreach name [glob -nocomplain -directory $binOTF *.cc *.d *.o *.so] {
+            file copy $name $dir
+          }
+          displayErrorWarningOrInfo "Done copying on-the-fly-libs.\n" info
+      }
     }
 
     if { ![validDir $dir] } {
-	set dir $binOTF
-	
-	# if this is a Windows OS directory, it won't think this is a
-	# valid dir with the '/'s in the name
-        global OnWindows
-        if { $OnWindows } {
-            return $binOTF
-        }
+      set dir $binOTF
+      
+      # if this is a Windows OS directory, it won't think this is a
+      # valid dir with the '/'s in the name
+      global OnWindows
+      if { $OnWindows } {
+          return $binOTF
+      }
     }
 
     if ![validDir $dir] {
-	set home [file nativename ~]
-	set dir [file join $home SCIRun on-the-fly-libs $tcl_platform(os)]
-	catch "file mkdir $dir"
-	if { [validDir $dir] && ![llength [glob -nocomplain -directory $dir *]] } {
-	    displayErrorWarningOrInfo "\nCopying the contents of $binOTF\nto $dir..." info
-	    update idletasks
-	    foreach name [glob -nocomplain -directory $binOTF *.cc *.d *.o *.so] {
-		file copy $name $dir
-	    }
-	    displayErrorWarningOrInfo "Done copying on-the-fly-libs.\n" info
-	}
+      return ""
     }
-    if { ![validDir $dir] } {
-	tk_messageBox -type ok -parent . -icon error -message \
-	    "SCIRun cannot find a directory to store dynamically compiled code.\n\nPlease quit and set the environment variable SCIRUN_ON_THE_FLY_LIBS_DIR to a readable and writable directory.\n\nDynamic code generation will not work.  If you continue this session, networks may not execute correctly."
-	return $binOTF
-    }
-
+    
     set makefile [file join [netedit getenv SCIRUN_OBJDIR] on-the-fly-libs Makefile]
     if [catch "file copy -force $makefile $dir"] {
-	tk_messageBox -type ok -parent . -icon error -message \
-	    "SCIRun cannot copy $makefile to $dir.\n\nThe Makefile was generated during configure and is necessasary for dynamic compilation to work.  Please reconfigure SCIRun to re-generate this file.\n\nDynamic code generation will not work.  If you continue this session, networks may not execute correctly."
-	return $binOTF
+      tk_messageBox -type ok -parent . -icon error -message \
+      "This version of SCIRun does not support dynamically compiled code.\nNote: Some modules may not work properly"
+      return $binOTF
     }
 	
     return $dir
@@ -2180,13 +2594,13 @@ proc initVarStates { var save substitute } {
     set varname [join [lrange $ids 1 end] -]
     
     if { $save } {
-	lappend ModuleSavedVars($module) $varname
-	# TODO: find a faster mechanism than the next line for setting changed
-	uplevel \#0 trace variable \"$var\" w networkHasChanged
+      lappend ModuleSavedVars($module) $varname
+      # TODO: find a faster mechanism than the next line for setting changed
+      uplevel \#0 trace variable \"$var\" w networkHasChanged
     }
      
     if { $substitute } {
-	lappend ModuleSubstitutedVars($module) $varname
+      lappend ModuleSubstitutedVars($module) $varname
     }
 }
 
@@ -2243,12 +2657,12 @@ proc setVarStates { var save substitute isfilename} {
 # Debug procedure to print global variable values
 proc printvars { pattern } {
     foreach name [lsort [uplevel \#0 "info vars *${pattern}*"]] { 
-	upvar \#0 $name var
-	if { [uplevel \#0 array exists \"$name\"] } {
-	    uplevel \#0 parray \"$name\"
-	} else {
-	    puts "set \"$name\" \{$var\}"
-	}
+      upvar \#0 $name var
+      if { [uplevel \#0 array exists \"$name\"] } {
+          uplevel \#0 parray \"$name\"
+      } else {
+          puts "set \"$name\" \{$var\}"
+      }
     }
 }
 
@@ -2260,7 +2674,7 @@ proc setGlobal { var val } {
 proc initGlobal { var val } {
     upvar \#0 $var globalvar
     if { ![info exists globalvar] } {
-	set globalvar $val
+      set globalvar $val
     }
 }
 
@@ -2375,14 +2789,14 @@ proc backupNetwork { } {
 proc writeNetwork { filename { subnet 0 } } {
     # if the file already exists, back it up to "filename.bak"
     if { [file exists $filename] &&
-	 [string index $filename 0] != "#" &&
-	 [string index $filename end] != "#"} {
-	set src  "[file split [pwd]] [file split ${filename}]"
-	set src [eval file join $src]
-	set parts [file split $src]
-	set parts "[lreplace $parts end end [lindex $parts end]].bak"
-	set dest [eval file join $parts]
-	catch [file rename -force $src $dest]
+         [string index $filename 0] != "#" &&
+         [string index $filename end] != "#"} {
+      set src  "[file split [pwd]] [file split ${filename}]"
+      set src [eval file join $src]
+      set parts [file split $src]
+      set parts "[lreplace $parts end end [lindex $parts end]].bak"
+      set dest [eval file join $parts]
+      catch [file rename -force $src $dest]
     }
 
     global Subnet
@@ -2437,6 +2851,7 @@ proc in_power_app {} {
 
 proc editrcfile {} {
 
+  global Color
   set rcfile [netedit getenv "SCIRUN_RCFILE"]
 
   # Create a unique name for the file selection window
@@ -2451,26 +2866,38 @@ proc editrcfile {} {
 
   toplevel $w -class TkFDialog        
 
-  iwidgets::labeledframe $w.config -labeltext "EDIT .SCIRUNRC FILE"
-  set childframe [$w.config childsite]
-
-  pack $w.config -fill both -expand true
-
-  iwidgets::scrolledtext $childframe.file -labeltext "SCIRun Configuration file" \
-  -visibleitems 70x20 -vscrollmode dynamic -hscrollmode dynamic -wrap none
-
-  pack $childframe.file -fill both -expand true
-  set a $childframe
-  set b [set rcfile]
-  $childframe.file import [set rcfile]
-  frame $childframe.f1
-  pack $childframe.f1 -side bottom -anchor e
-
-  button $childframe.f1.load -text "load" -command "$a.file clear; $a.file import $b"
-  button $childframe.f1.save -text "save" -command "$a.file export $b; netedit reload_rcfile"
-  button $childframe.f1.done -text "done" -command "destroy $w"
+  iwidgets::scrolledtext $w.file -labeltext "SCIRun Configuration file" \
+    -visibleitems 70x20 -vscrollmode dynamic -hscrollmode dynamic -wrap none \
+    -background $Color(MainBackGround)
+ 
+  pack $w.file -fill both -expand true
   
-  pack $childframe.f1.load $childframe.f1.save $childframe.f1.done -anchor e -side left
+  set b [set rcfile]
+  $w.file import [set rcfile]
+  frame $w.f1 -background $Color(MainBackGround)
+  pack $w.f1 -side bottom -anchor e -fill x
+
+  button $w.f1.load -text "Load" -command "$w.file clear; $w.file import $b" \
+     -bd $Color(BorderWidth) \
+     -activebackground $Color(MenuSelectBackGround)  \
+     -activeforeground $Color(MenuSelectForeGround) \
+     -background $Color(ButtonBackGround) \
+     -foreground $Color(ButtonForeGround)    
+  button $w.f1.save -text "Save" -command "$w.file export $b; netedit reload_rcfile" \
+     -bd $Color(BorderWidth) \
+     -activebackground $Color(MenuSelectBackGround)  \
+     -activeforeground $Color(MenuSelectForeGround) \
+     -background $Color(ButtonBackGround) \
+     -foreground $Color(ButtonForeGround)   
+  button $w.f1.done -text "Done" -command "destroy $w" \
+     -bd $Color(BorderWidth) \
+     -activebackground $Color(MenuSelectBackGround)  \
+     -activeforeground $Color(MenuSelectForeGround) \
+     -background $Color(ButtonBackGround) \
+     -foreground $Color(ButtonForeGround)     
+  
+  frame $w.f1.space -background $Color(MainBackGround) -width 20
+  pack $w.f1.space $w.f1.done $w.f1.save $w.f1.load  -anchor e -side right -padx 3 -pady 1
                     
 }
 

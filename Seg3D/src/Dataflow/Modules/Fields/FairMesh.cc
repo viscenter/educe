@@ -24,32 +24,27 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
-//  
-//    File   : FairMesh.cc
-//    Author : Martin Cole
-//    Date   : Fri Mar 16 09:40:53 2007
 
-#include <Core/Malloc/Allocator.h>
-#include <Core/Datatypes/Field.h>
+#include <Core/Algorithms/Fields/SmoothMesh/FairMesh.h>
 
-#include <Dataflow/Network/Module.h>
-#include <Dataflow/Modules/Fields/FairMesh.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
+#include <Dataflow/Network/Module.h>
+
+#include <Dataflow/Modules/Fields/share.h>
 
 namespace SCIRun {
 
 class FairMesh : public Module {
-public:
-  FairMesh(GuiContext*);
-  virtual void execute();
-  
-private:
-  GuiInt       iterations_;
-  GuiString    method_;
-
-  int last_iterations_;
-  string last_method_;
-  Handle<SurfaceFairingAlgoBase> fair_;
+  public:
+    FairMesh(GuiContext*);
+    virtual ~FairMesh() {}
+    virtual void execute();
+    
+  private:
+    GuiInt       iterations_;
+    GuiString    method_;
+    
+    SCIRunAlgo::FairMeshAlgo algo_;
 };
 
 
@@ -57,76 +52,29 @@ DECLARE_MAKER(FairMesh)
 FairMesh::FairMesh(GuiContext* ctx) : 
   Module("FairMesh", ctx, Source, "NewField", "SCIRun"),
   iterations_(get_ctx()->subVar("iterations"), 50),
-  method_(get_ctx()->subVar("method"), "fast"),
-  last_iterations_(-1),
-  last_method_(""),
-  fair_(0)
-{}
+  method_(get_ctx()->subVar("method"), "fast")
+{
+  algo_.set_progress_reporter(this);
+}
 
 
 void FairMesh::execute()
 {
-  SCIRun::FieldHandle input;
-  if (!get_input_handle("Input Mesh", input, true)) return;
+  FieldHandle input, output;
+  
+  get_input_handle("Input Mesh", input);
 
   //! If it is a new field get appropriate algorithm, 
   //! otherwise the cached algorithm is still good.
-  bool changed = false;
-  if (inputs_changed_)
+  if (inputs_changed_ || iterations_.changed() ||
+      method_.changed() || !oport_cached("Faired Mesh"))
   {
-    inputs_changed_ = false;
-    const TypeDescription *td = input->get_type_description();
-    CompileInfoHandle ci = SurfaceFairingAlgoBase::get_compile_info(td);
-    if (module_dynamic_compile(ci, fair_)) {
-      remark("Compiled surface fairing for new input.");
-    } else {
-      error("Failed to compile fairing algorithm for input.");
-      return;
-    }
-    changed = true;
-  }
-  reset_vars();
-  int        it = iterations_.get();
-  string method = method_.get();
-
-  if (method != last_method_) {
-    last_method_ = method;
-    fair_->generate_neighborhoods(input, method);
-    remark("Cached neighborhood info for new input.");    
-  }
-
-  if (changed ||
-      it != last_iterations_ ||
-      method != last_method_)
-  {
-    last_iterations_ = it;
-    SCIRun::FieldHandle output = fair_->iterate(this, input, it, method);
+    algo_.set_int("num_iterations",iterations_.get());
+    algo_.set_option("method",method_.get());
+    if(!(algo_.run(input,output))) return;
+    
     send_output_handle("Faired Mesh", output);
   }
 }
 
-
-CompileInfoHandle
-SurfaceFairingAlgoBase::get_compile_info(const TypeDescription *td)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string base_class_name("SurfaceFairingAlgoBase");
-  static const string template_class_name("SurfaceFairingAlgo");
-
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       td->get_name(".", ".") + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       td->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  td->fill_compile_info(rval);
-  return rval;
-}
-
 } // End namespace SCIRun
-

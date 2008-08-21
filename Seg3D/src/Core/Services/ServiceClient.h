@@ -40,9 +40,8 @@
 #include <Core/Thread/Thread.h>
 #include <Core/Containers/LockingHandle.h>
 
-#include <sgi_stl_warnings_off.h>
+#include <iostream>
 #include <string>
-#include <sgi_stl_warnings_on.h>
 
 #include <Core/Services/share.h>
 

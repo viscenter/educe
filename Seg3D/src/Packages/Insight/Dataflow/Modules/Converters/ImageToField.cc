@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Core/Util/TypeDescription.h>
 #include <Core/Geometry/Tensor.h>
@@ -159,13 +159,13 @@ ImageToField::create_image_field(ITKDatatypeHandle &img)
   Point min(origin_x, origin_y, 0.0);
   Point max(origin_x + spread_x, origin_y + spread_y, 0.0);
   
-  IMesh* m = scinew IMesh(size_x, size_y, min, max);
+  IMesh* m = new IMesh(size_x, size_y, min, max);
   
   typename IF::mesh_handle_type mh(m);
   
   FieldHandle fh;
   
-  fh = scinew IF(mh);
+  fh = new IF(mh);
   IMesh::Node::iterator iter, end;
   mh->begin(iter);
   mh->end(end);
@@ -231,14 +231,14 @@ ImageToField::create_latvol_field(ITKDatatypeHandle &img)
   Point min(origin_x, origin_y, origin_z);
   Point max(origin_x + spread_x, origin_y + spread_y, origin_z + spread_z);
   
-  LVMesh* m = scinew LVMesh(size_x, size_y, size_z, min, max);
+  LVMesh* m = new LVMesh(size_x, size_y, size_z, min, max);
   
   typename LVF::mesh_handle_type mh(m);
   
   FieldHandle fh;
   
   // copy the data into a SCIRun LatVolField
-  fh = scinew LVF(mh); 
+  fh = new LVF(mh); 
   LVMesh::Node::iterator iter, end;
   mh->begin(iter);
   mh->end(end);
@@ -303,13 +303,13 @@ ImageToField::create_image_vector_field1(ITKDatatypeHandle &img)
   Point min(origin_x, origin_y, 0.0);
   Point max(origin_x + spread_x, origin_y + spread_y, 0.0);
   
-  IMesh* m = scinew IMesh(size_x, size_y, min, max);
+  IMesh* m = new IMesh(size_x, size_y, min, max);
   
   IF::mesh_handle_type mh(m);
   FieldHandle fh;
   
   // copy the data into a SCIRun ImageField
-  fh = scinew IF(mh);
+  fh = new IF(mh);
   IMesh::Node::iterator iter, end;
   mh->begin(iter);
   mh->end(end);
@@ -381,14 +381,14 @@ ImageToField::create_latvol_vector_field1(ITKDatatypeHandle &img)
   Point min(origin_x, origin_y, origin_z);
   Point max(origin_x + spread_x, origin_y + spread_y, origin_z + spread_z);
   
-  LVMesh* m = scinew LVMesh(size_x, size_y, size_z, min, max);
+  LVMesh* m = new LVMesh(size_x, size_y, size_z, min, max);
   
   LVF::mesh_handle_type mh(m);
   
   FieldHandle fh;
   
   // copy the data into a SCIRun LatVolField
-  fh = scinew LVF(mh); 
+  fh = new LVF(mh); 
   LVMesh::Node::iterator iter, end;
   mh->begin(iter);
   mh->end(end);
@@ -461,14 +461,14 @@ ImageToField::create_image_vector_field2(ITKDatatypeHandle &img)
   Point min(origin_x, origin_y, 0.0);
   Point max(origin_x + spread_x, origin_y + spread_y, 0.0);
   
-  IMesh* m = scinew IMesh(size_x, size_y, min, max);
+  IMesh* m = new IMesh(size_x, size_y, min, max);
   
   IF::mesh_handle_type mh(m);
   
   FieldHandle fh;
   
   // copy the data into a SCIRun ImageField
-  fh = scinew IF(mh);
+  fh = new IF(mh);
   IMesh::Node::iterator iter, end;
   mh->begin(iter);
   mh->end(end);
@@ -535,14 +535,14 @@ ImageToField::create_latvol_vector_field2(ITKDatatypeHandle &img)
   Point min(origin_x - spread_x, origin_y - spread_y, origin_z - spread_z);
   Point max(origin_x + spread_x, origin_y + spread_y, origin_z + spread_z);
   
-  LVMesh* m = scinew LVMesh(size_x, size_y, size_z, min, max);
+  LVMesh* m = new LVMesh(size_x, size_y, size_z, min, max);
   
   LVF::mesh_handle_type mh(m);
   
   FieldHandle fh;
   
   // copy the data into a SCIRun LatVolField
-  fh = scinew LVF(mh); 
+  fh = new LVF(mh); 
   LVMesh::Node::iterator iter, end;
   mh->begin(iter);
   mh->end(end);

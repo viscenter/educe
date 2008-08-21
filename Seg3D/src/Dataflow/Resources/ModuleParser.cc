@@ -28,7 +28,7 @@
 
 #include <iostream>
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Resources/ModuleParser.h>
 #include <Dataflow/Resources/Resources.h>
 
@@ -58,7 +58,7 @@ ModuleParser::startElement( const XMLCh * const uri,
   string tag ( XMLString::transcode(localname) );
 
   if ( tag == "component" ) {
-    info_ = scinew ModuleInfo;
+    info_ = new ModuleInfo;
     info_->package_ = package_->name_;
     info_->name_ = XMLString::transcode(attrs.getValue( t_name ) );
     info_->maker_ = "make_"+ info_->name_;
@@ -86,7 +86,7 @@ ModuleParser::startElement( const XMLCh * const uri,
   else if ( tag == "io" ) 
     mode_.push(IoMode);
   else if ( tag == "port" ) 
-    port_info_ = scinew ModulePortInfo;
+    port_info_ = new ModulePortInfo;
 
   XMLParser::startElement( uri, localname, qname, attrs );
 }

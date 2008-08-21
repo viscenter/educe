@@ -52,7 +52,7 @@
 #include <Core/Geom/ColorMapTex.h>
 #include <Core/Geom/GeomTransform.h>
 #include <Core/Geometry/Transform.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Geom/GeomSticky.h>
 
 #include <stdio.h>
@@ -104,7 +104,7 @@ ShowColorMap::ShowColorMap(GuiContext* context)
     gui_color_b_(context->subVar("color-b"), 1.0),
     gui_text_fontsize_(context->subVar("text-fontsize"), 2),
     gui_extra_padding_(context->subVar("extra-padding"), 0),
-    text_material_handle_(scinew Material(Color(1.0, 1.0, 1.0))),
+    text_material_handle_(new Material(Color(1.0, 1.0, 1.0))),
     color_changed_(false)
 {
 }
@@ -137,7 +137,7 @@ ShowColorMap::execute()
 
     update_state(Executing);
 
-    GeomGroup *all = scinew GeomGroup();
+    GeomGroup *all = new GeomGroup();
 
     Point  ref1(0.0, 0.0, 0.0);
     Vector out(0.0, 0.0, 0.0);
@@ -211,7 +211,7 @@ ShowColorMap::execute()
       cmap_rescaled = cmHandle;
     }
     
-    ColorMapTex *sq = scinew ColorMapTex(ref0,
+    ColorMapTex *sq = new ColorMapTex(ref0,
 					 ref0 + along,
 					 ref0 + along + out,
 					 ref0 + out,
@@ -238,8 +238,8 @@ ShowColorMap::execute()
 
 	Point p0  = ref0 - out * 0.02; 
 	char value[80];
-	GeomLines *lines = scinew GeomLines();
-	GeomTexts *texts = scinew GeomTexts();
+	GeomLines *lines = new GeomLines();
+	GeomTexts *texts = new GeomTexts();
 	texts->set_is_2d(true);
 	texts->set_font_index(gui_text_fontsize_.get());
 	int num_sig_digits = gui_num_sig_digits_.get();
@@ -268,7 +268,7 @@ ShowColorMap::execute()
 	all->add(lines);
       }
 
-    GeomSticky *sticky = scinew GeomSticky(all);
+    GeomSticky *sticky = new GeomSticky(all);
 
     geometry_output_handle_ = GeomHandle( sticky );
     send_output_handle( "Geometry",

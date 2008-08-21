@@ -43,35 +43,29 @@
 
 namespace SCIRun {
 
-  class SmoothMesh : public Module
-  {
-  public:
-    SmoothMesh(GuiContext* ctx);
-    virtual ~SmoothMesh();
+class SmoothMesh : public Module
+{
+public:
+  SmoothMesh(GuiContext* ctx);
+  virtual ~SmoothMesh() {}
 
-    virtual void execute();
-  };
-
-
-  DECLARE_MAKER(SmoothMesh)
+  virtual void execute();
+};
 
 
-  SmoothMesh::SmoothMesh(GuiContext* ctx)
-  : Module("SmoothMesh", ctx, Filter, "ChangeMesh", "SCIRun")
-  {
-  }
+DECLARE_MAKER(SmoothMesh)
 
 
-  SmoothMesh::~SmoothMesh()
-  {
-  }
+SmoothMesh::SmoothMesh(GuiContext* ctx)
+: Module("SmoothMesh", ctx, Filter, "ChangeMesh", "SCIRun")
+{
+}
 
-
-  void
-  SmoothMesh::execute()
-  {
-    error("This module is disabled, because the necessary supporting libraries were not found at build time.");
-  }
+void
+SmoothMesh::execute()
+{
+  error("This module is disabled, because the necessary supporting libraries were not found at build time.");
+}
 
 } // End namespace SCIRun
 

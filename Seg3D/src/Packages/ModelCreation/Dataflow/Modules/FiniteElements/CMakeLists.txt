@@ -29,7 +29,6 @@
 # CMakeLists.txt for Packages/ModelCreation/Dataflow/Modules/FiniteElements
 
 SET(Packages_ModelCreation_Dataflow_Modules_FiniteElements_SRCS
-  BuildFEMatrix.cc
   CreateFEDirichletBC.cc
   CreateLinkBetweenMeshAndCompGridByDomain.cc
   CreateLinkBetweenMeshAndCompGrid.cc
@@ -51,6 +50,7 @@ TARGET_LINK_LIBRARIES(Packages_ModelCreation_Dataflow_Modules_FiniteElements
   Core_Geometry
   Core_GeomInterface
   Dataflow_TkExtensions
+  Core_Algorithms_FiniteElements
   Core_Algorithms_Fields
   Core_Algorithms_Math
   ${TK_LIBRARY}

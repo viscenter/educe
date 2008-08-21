@@ -51,7 +51,7 @@ public:
 		 const vector<Plane*> &planes,
                  int tex_mem);
   VolumeRenderer(const VolumeRenderer&);
-  ~VolumeRenderer();
+  virtual ~VolumeRenderer();
 
   void set_mode(RenderMode mode);
   void set_sampling_rate(double rate);
@@ -73,12 +73,13 @@ public:
 
   double num_slices_to_rate(int slices);
   
-  void set_draw_level( int i, bool b){ draw_level_[i] = b; }
+  void set_draw_level( int i, bool b) { draw_level_[i] = b; }
   void set_level_alpha(int i, double v) { level_alpha_[i] = v; }
   
   void set_planes(const vector<Plane*> &p);
 
-  bool get_shading() { return(shading_); }
+  bool get_shading() const { return shading_; }
+
 protected:
   double grange_, goffset_;
   bool shading_;

@@ -14,6 +14,6 @@ using namespace SCIRun;
 
 extern "C" {
 MarchingCubesAlg* maker_MrchngCbs_GFldLtVlMhHxTLLgnPtHxTLLgndblFDt3ddblLtVlMhHxTLLgnPt () {
-  return scinew MarchingCubes<HexMC<GenericField<LatVolMesh<HexTrilinearLgn<Point> > ,HexTrilinearLgn<double> ,FData3d<double,LatVolMesh<HexTrilinearLgn<Point> > > > > >;
+  return new MarchingCubes<HexMC<GenericField<LatVolMesh<HexTrilinearLgn<Point> > ,HexTrilinearLgn<double> ,FData3d<double,LatVolMesh<HexTrilinearLgn<Point> > > > > >;
 }
 }

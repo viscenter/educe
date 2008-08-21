@@ -47,16 +47,15 @@ namespace SCIRun {
 
 class TransformMeshWithFunction : public Module
 {
-public:
-  TransformMeshWithFunction(GuiContext* ctx);
-  virtual ~TransformMeshWithFunction();
+  public:
+    TransformMeshWithFunction(GuiContext* ctx);
+    virtual ~TransformMeshWithFunction() {}
 
-  virtual void execute();
+    virtual void execute();
+    virtual void presave();
 
-  virtual void presave();
-
-protected:
-  GuiString gui_function_;
+  protected:
+    GuiString gui_function_;
 };
 
 
@@ -67,11 +66,6 @@ TransformMeshWithFunction::TransformMeshWithFunction(GuiContext* ctx)
   : Module("TransformMeshWithFunction", ctx, Filter,"ChangeMesh", "SCIRun"),
     gui_function_(get_ctx()->subVar("function"),
 		  "result = (Point) (Vector(x,y,z) * Vector(1.0, 2.0, 3.0));")
-{
-}
-
-
-TransformMeshWithFunction::~TransformMeshWithFunction()
 {
 }
 
@@ -87,6 +81,15 @@ TransformMeshWithFunction::execute()
 
   // Update gui_function_ before the get.
   get_gui()->execute(get_id() + " update_text");
+
+  // The transform can only work on irregular meshes.
+  if( !(field_input_handle->mesh()->topology_geometry() & Mesh::IRREGULAR) ) {
+
+    error( field_input_handle->get_type_description(Field::MESH_TD_E)->get_name() );
+    error( "Only availible for irregular meshes." );
+    error( "Need to convert the mesh to an irregular mesh first." );
+    return;
+  }
 
   // Check to see if the input field(s) has changed.
   if( inputs_changed_ ||

@@ -39,13 +39,13 @@
  *  Copyright (C) 2004 SCI Institute
  */
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/ImportExport/ColorMap/ColorMapIEPlugin.h>
 #include <Core/Containers/StringUtil.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
 #define SCISHARE __declspec(dllimport)
@@ -81,7 +81,7 @@ ColorMapIEPlugin::ColorMapIEPlugin(const string& pname,
   colormapIEPluginMutex.lock();
   if (!colormap_plugin_table)
   {
-    colormap_plugin_table = scinew map<string, ColorMapIEPlugin *>();
+    colormap_plugin_table = new map<string, ColorMapIEPlugin *>();
   }
 
   string tmppname = pluginname;

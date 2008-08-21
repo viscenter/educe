@@ -35,17 +35,18 @@
 #include <Dataflow/Network/Ports/MatrixPort.h>
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCIRun {
 
 class ReportDataArrayMeasure : public Module {
-public:
-  ReportDataArrayMeasure(GuiContext*);
-  virtual void execute();
+  public:
+    ReportDataArrayMeasure(GuiContext*);
+    virtual ~ReportDataArrayMeasure() {}
+    virtual void execute();
 
-private:
-  GuiString guimeasure_;
+  private:
+    GuiString guimeasure_;
 };
 
 
@@ -63,11 +64,12 @@ ReportDataArrayMeasure::execute()
   MatrixHandle ArrayData;
   MatrixHandle Measure;
   
-  if (!(get_input_handle("Array",ArrayData,true))) return;
+  get_input_handle("Array",ArrayData,true);
   
   if (inputs_changed_ || guimeasure_.changed() ||
       !oport_cached("Measure"))
   {
+    update_state(Executing);  
     DenseMatrix* mat = ArrayData->dense();
     
     int m = mat->nrows();
@@ -76,7 +78,7 @@ ReportDataArrayMeasure::execute()
     
     std::string method = guimeasure_.get();
     
-    Measure = scinew DenseMatrix(1, n);
+    Measure = new DenseMatrix(1, n);
     double* dest = Measure->get_data_pointer();
     
     if (method == "Sum")

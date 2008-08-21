@@ -44,7 +44,7 @@ itcl_class SCIRun_ChangeFieldData_ConvertFieldBasis {
     method backcompat-odt {a b c} {
         # Set our new basis variable based upon the contents of the old
         # dataat variable.
-	global $this-output-basis
+        global $this-output-basis
         global $this-outputdataat
         if {[string equal [set $this-outputdataat] "None"]} {
             set $this-output-basis "None"
@@ -59,92 +59,92 @@ itcl_class SCIRun_ChangeFieldData_ConvertFieldBasis {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
-	wm maxsize $w 276 187 
+        sci_toplevel $w
+        wm maxsize $w 276 187 
 
-	iwidgets::Labeledframe $w.att -labelpos nw \
-		               -labeltext "Input Field Attributes" 
-			       
-	pack $w.att 
-	set att [$w.att childsite]
-	
-	labelpair $att.l1 "Name" $this-fldname
-	labelpair $att.l2 "Basis" $this-inputdataat
-	pack $att.l1 $att.l2 -side top 
+        sci_labeledframe $w.att -labelpos nw \
+                          -labeltext "Input Field Attributes" 
+                   
+        pack $w.att 
+        set att [$w.att childsite]
+        
+        labelpair $att.l1 "Name" $this-fldname
+        labelpair $att.l2 "Basis" $this-inputdataat
+        pack $att.l1 $att.l2 -side top 
 
-	iwidgets::Labeledframe $w.edit -labelpos nw \
-		               -labeltext "Output Field Attributes" 
-			       
-	pack $w.edit 
-	set edit [$w.edit childsite]
-	labelcombo $edit.l1 "Basis" {Linear Constant None} \
-            $this-output-basis $this-cdataat
-	pack $edit.l1 -side top 
+        sci_labeledframe $w.edit -labelpos nw \
+                         -labeltext "Output Field Attributes" 
+                   
+        pack $w.edit 
+        set edit [$w.edit childsite]
+        labelcombo $edit.l1 "Basis" {Linear Constant None} \
+                  $this-output-basis $this-cdataat
+        pack $edit.l1 -side top 
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
-    }
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+      }
 
-    method labelcombo { win text1 arglist var var2} {
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 -width [set $this-firstwidth] \
-		      -anchor w -just left
-	label $win.colon  -text ":" -width 2 -anchor w -just left
-	iwidgets::optionmenu $win.c -foreground darkred \
-		-command " $this comboget $win.c $var "
+        method labelcombo { win text1 arglist var var2} {
+          sci_frame $win 
+          pack $win -side top -padx 5
+          sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
+                  -anchor w -just left
+          sci_label $win.colon  -text ":" -width 2 -anchor w -just left
+          sci_optionmenu $win.c -foreground darkred \
+            -command " $this comboget $win.c $var "
 
-	set i 0
-	set found 0
-	set length [llength $arglist]
-	for {set elem [lindex $arglist $i]} {$i<$length} \
-	    {incr i 1; set elem [lindex $arglist $i]} {
-	    if {"$elem"=="[set $var]"} {
-		set found 1
-	    }
-	    $win.c insert end $elem
-	}
+          set i 0
+          set found 0
+          set length [llength $arglist]
+          for {set elem [lindex $arglist $i]} {$i<$length} \
+              {incr i 1; set elem [lindex $arglist $i]} {
+              if {"$elem"=="[set $var]"} {
+            set found 1
+              }
+              $win.c insert end $elem
+          }
 
-	if {!$found} {
-	    $win.c insert end [set $var]
-	}
+          if {!$found} {
+              $win.c insert end [set $var]
+          }
 
-	label $win.l2 -text "" -width 40 -anchor w -just left
+          sci_label $win.l2 -text "" -width 40 -anchor w -just left
 
-	# hack to associate optionmenus with a textvariable
-	bind $win.c <Map> "$win.c select {[set $var]}"
+          # hack to associate optionmenus with a textvariable
+          bind $win.c <Map> "$win.c select {[set $var]}"
 
-	pack $win.l1 $win.colon -side left
-	pack $win.c $win.l2 -side left	
-    }
+          pack $win.l1 $win.colon -side left
+          pack $win.c $win.l2 -side left	
+        }
 
-    method comboget { win var } {
-	if {![winfo exists $win]} {
-	    return
-	}
-	if { "$var"!="[$win get]" } {
-	    set $var [$win get]
-	}
-    }
+        method comboget { win var } {
+      if {![winfo exists $win]} {
+          return
+      }
+      if { "$var"!="[$win get]" } {
+          set $var [$win get]
+      }
+        }
 
-    method config_labelcombo { win arglist sel} {
-	if {![winfo exists $win]} {
-	    return
-	}
-	$win.c delete 0 end
-	if {[llength $arglist]==0} {
-	    $win.c insert end ""
-	}
-	set i 0
-	set length [llength $arglist]
-	for {set elem [lindex $arglist $i]} {$i<$length} \
-	    {incr i 1; set elem [lindex $arglist $i]} {
-	    $win.c insert end $elem
-	}
-	
-	if {"$sel"!="---"} {
-	    $win.c select $sel
-	}
+        method config_labelcombo { win arglist sel} {
+      if {![winfo exists $win]} {
+          return
+      }
+      $win.c delete 0 end
+      if {[llength $arglist]==0} {
+          $win.c insert end ""
+      }
+      set i 0
+      set length [llength $arglist]
+      for {set elem [lindex $arglist $i]} {$i<$length} \
+          {incr i 1; set elem [lindex $arglist $i]} {
+          $win.c insert end $elem
+      }
+      
+      if {"$sel"!="---"} {
+          $win.c select $sel
+      }
     }
 }
 

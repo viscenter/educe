@@ -104,7 +104,7 @@ bool MapFieldDataOntoFieldNodesAlgo::MapFieldDataOntoFieldNodes(ProgressReporter
   
   // Setup dynamic files
 
-  SCIRun::CompileInfoHandle ci = scinew CompileInfo(
+  SCIRun::CompileInfoHandle ci = new CompileInfo(
     "ALGOMapFieldDataOntoFieldNodes."+mappingmethod+"."+fi_src.get_field_filename()+"."+fi_dst.get_field_filename()+".",
     "MapFieldDataOntoFieldNodesAlgo","MapFieldDataOntoFieldNodesAlgoT",
     mapping+ "," + fi_src.get_field_name() + "," + fi_dst.get_field_name() + "," + fi_out.get_field_name());
@@ -294,7 +294,7 @@ bool ModalMappingAlgo::ModalMapping(ProgressReporter *pr,
   
   // Setup dynamic files
 
-  SCIRun::CompileInfoHandle ci = scinew CompileInfo(
+  SCIRun::CompileInfoHandle ci = new CompileInfo(
     "ALGOModalMapping."+mappingmethod+"."+integrationmethod+"."+fi_src.get_field_filename()+"."+fi_dst.get_field_filename()+".",
     "ModalMappingAlgo","ModalMappingAlgoT",
     mapping+ "," + integrator + "," + fi_src.get_field_name() + "," + fi_dst.get_field_name() + "," + fi_out.get_field_name());
@@ -322,7 +322,7 @@ bool ModalMappingAlgo::ModalMapping(ProgressReporter *pr,
   if(!(SCIRun::DynamicCompilation::compile(ci,algo,pr)))
   {
     pr->compile_error(ci->filename_);
-    SCIRun::DynamicLoader::scirun_loader().cleanup_failed_compile(ci);  
+//    SCIRun::DynamicLoader::scirun_loader().cleanup_failed_compile(ci);  
     return(false);
   }
 
@@ -497,7 +497,7 @@ MapFieldDataGradientOntoFieldAlgo::MapFieldDataGradientOntoField(
   std::string algotype = "";
   if (calcnorm) algotype = "Norm";
 
-  SCIRun::CompileInfoHandle ci = scinew CompileInfo(
+  SCIRun::CompileInfoHandle ci = new CompileInfo(
     "ALGOMapFieldDataGradientOntoField"+algotype+"."+mappingmethod+"."+integrationmethod+"."+fi_src.get_field_filename()+"."+fi_dst.get_field_filename()+".",
     "MapFieldDataGradientOntoFieldAlgo","MapFieldDataGradientOntoField"+algotype+"AlgoT",
     mapping+ "," + integrator + "," + fi_src.get_field_name() + "," + fi_dst.get_field_name() + "," + fi_out.get_field_name());

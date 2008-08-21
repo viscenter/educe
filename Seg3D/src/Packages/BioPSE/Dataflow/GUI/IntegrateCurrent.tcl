@@ -51,15 +51,15 @@ itcl_class BioPSE_Forward_IntegrateCurrent {
         set_defaults
     }
     method set_defaults {} {
-	global $this-current
-	set $this-current 0
+        global $this-current
+        set $this-current 0
     }
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-	global $v
-        entry $w.e -textvariable $v
+        global $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
@@ -70,16 +70,16 @@ itcl_class BioPSE_Forward_IntegrateCurrent {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 30
-        frame $w.f
-	global $this-current
-	frame $w.f.c
-	label $w.f.c.l -text "Computed current: "
-	label $w.f.c.c -textvariable $this-current
-	label $w.f.c.a -text "amps"
-	pack $w.f.c.l $w.f.c.c $w.f.c.a -side left -fill x -expand yes
-	pack $w.f.c -side top -fill x -expand yes
+        sci_frame $w.f
+        global $this-current
+        sci_frame $w.f.c
+        sci_label $w.f.c.l -text "Computed current: "
+        sci_label $w.f.c.c -textvariable $this-current
+        sci_label $w.f.c.a -text "amps"
+        pack $w.f.c.l $w.f.c.c $w.f.c.a -side left -fill x -expand yes
+        pack $w.f.c -side top -fill x -expand yes
         pack $w.f -side top -fill x -expand yes
     }
 }

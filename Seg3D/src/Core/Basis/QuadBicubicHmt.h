@@ -173,9 +173,9 @@ const TypeDescription* get_type_description(QuadBicubicHmt<T> *)
   static TypeDescription* td = 0;
   if(!td){
     const TypeDescription *sub = get_type_description((T*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("QuadBicubicHmt", subs, 
+    td = new TypeDescription("QuadBicubicHmt", subs, 
 				std::string(__FILE__),
 				"SCIRun", 
 				TypeDescription::BASIS_E);

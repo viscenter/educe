@@ -217,6 +217,9 @@ run( FieldHandle input, MatrixHandle data, FieldHandle& output)
       algo_end(); return (true);  
     }
   }
+  // keep the compiler happy:
+  // it seems reasonable to return false if none of the cases apply (AK)
+  return false;
 }
 
 

@@ -44,7 +44,7 @@
 
 #include <Core/Geom/IndexedGroup.h>
 #include <Core/Geom/GeomObj.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomSave.h>
 #include <Core/Geometry/BBox.h>
 #include <Core/Persistent/Persistent.h>

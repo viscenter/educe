@@ -53,12 +53,14 @@ public:
                          VMesh::Cell::index_type i) const;
   virtual void get_nodes(VMesh::Node::array_type& nodes,
                          VMesh::Elem::index_type i) const;
-  virtual void get_nodes(VMesh::Node::array_type& nodes,
+  virtual void get_nodes(VMesh::Node::array_type& nodes, 
                          VMesh::DElem::index_type i) const;
 
   virtual void get_enodes(VMesh::ENode::array_type& edges,
+                          VMesh::Node::index_type i) const;
+  virtual void get_enodes(VMesh::ENode::array_type& edges,
                           VMesh::Edge::index_type i) const;
-  virtual void get_enodes(VMesh::ENode::array_type& edges, 
+  virtual void get_enodes(VMesh::ENode::array_type& edges,
                           VMesh::Face::index_type i) const;
   virtual void get_enodes(VMesh::ENode::array_type& edges, 
                           VMesh::Cell::index_type i) const;
@@ -66,16 +68,22 @@ public:
                           VMesh::Elem::index_type i) const;
   virtual void get_enodes(VMesh::ENode::array_type& edges, 
                           VMesh::DElem::index_type i) const;
-                                            
-  virtual void get_edges(VMesh::Edge::array_type& edges, 
+
+  virtual void get_edges(VMesh::Edge::array_type& edges,
+                         VMesh::Node::index_type i) const;                                            
+  virtual void get_edges(VMesh::Edge::array_type& edges,
                          VMesh::Face::index_type i) const;
-  virtual void get_edges(VMesh::Edge::array_type& edges, 
+  virtual void get_edges(VMesh::Edge::array_type& edges,
                          VMesh::Cell::index_type i) const;
   virtual void get_edges(VMesh::Edge::array_type& edges,
                          VMesh::Elem::index_type i) const;
-  virtual void get_edges(VMesh::Edge::array_type& edges, 
+  virtual void get_edges(VMesh::Edge::array_type& edges,
                          VMesh::DElem::index_type i) const;
 
+  virtual void get_faces(VMesh::Face::array_type& faces,
+                         VMesh::Node::index_type i) const;
+  virtual void get_faces(VMesh::Face::array_type& faces,
+                         VMesh::Edge::index_type i) const;
   virtual void get_faces(VMesh::Face::array_type& faces,
                          VMesh::Cell::index_type i) const;
   virtual void get_faces(VMesh::Face::array_type& faces,
@@ -83,35 +91,45 @@ public:
   virtual void get_faces(VMesh::Face::array_type& faces,
                          VMesh::DElem::index_type i) const;
 
-  virtual void get_cells(VMesh::Cell::array_type& cells,
+  virtual void get_cells(VMesh::Cell::array_type& cells, 
                          VMesh::Node::index_type i) const;  
   virtual void get_cells(VMesh::Cell::array_type& cells,
                          VMesh::Edge::index_type i) const;  
-  virtual void get_cells(VMesh::Cell::array_type& cells, 
+  virtual void get_cells(VMesh::Cell::array_type& cells,
                          VMesh::Face::index_type i) const;  
   virtual void get_cells(VMesh::Cell::array_type& cells, 
                          VMesh::Elem::index_type i) const;  
-  virtual void get_cells(VMesh::Cell::array_type& cells,
+  virtual void get_cells(VMesh::Cell::array_type& cells, 
                          VMesh::DElem::index_type i) const;  
   
-  virtual void get_elems(VMesh::Elem::array_type& elems, 
+  virtual void get_elems(VMesh::Elem::array_type& elems,
                          VMesh::Node::index_type i) const;
   virtual void get_elems(VMesh::Elem::array_type& elems,
                          VMesh::Edge::index_type i) const;
-  virtual void get_elems(VMesh::Elem::array_type& elems,
+  virtual void get_elems(VMesh::Elem::array_type& elems, 
                          VMesh::Face::index_type i) const;
-  virtual void get_elems(VMesh::Elem::array_type& elems,
+  virtual void get_elems(VMesh::Elem::array_type& elems, 
                          VMesh::Cell::index_type i) const;
-  virtual void get_elems(VMesh::Elem::array_type& elems,
+  virtual void get_elems(VMesh::Elem::array_type& elems, 
                          VMesh::DElem::index_type i) const;
 
-  virtual void get_delems(VMesh::DElem::array_type& delems,
+  virtual void get_delems(VMesh::DElem::array_type& delems, 
+                          VMesh::Node::index_type i) const;
+  virtual void get_delems(VMesh::DElem::array_type& delems, 
+                          VMesh::Edge::index_type i) const;
+  virtual void get_delems(VMesh::DElem::array_type& delems, 
                           VMesh::Face::index_type i) const;
   virtual void get_delems(VMesh::DElem::array_type& delems,
                           VMesh::Cell::index_type i) const;
   virtual void get_delems(VMesh::DElem::array_type& delems,
                           VMesh::Elem::index_type i) const;
 
+  virtual void insert_node_into_elem(VMesh::Elem::array_type& newelems, 
+                                     VMesh::Node::index_type& newnode,
+                                     VMesh::Elem::index_type  elem,
+                                     Point& point);
+
+  virtual VMesh::index_type* get_elems_pointer() const;
 };
 
 //! Functions for creating the virtual interface for specific mesh types
@@ -127,7 +145,7 @@ public:
 //! Create virtual interface 
 VMesh* CreateVTetVolMesh(TetVolMesh<TetLinearLgn<Point> >* mesh)
 {
-  return scinew VTetVolMesh<TetVolMesh<TetLinearLgn<Point> > >(mesh);
+  return new VTetVolMesh<TetVolMesh<TetLinearLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -141,7 +159,7 @@ static MeshTypeID TetVolMesh_MeshID1(TetVolMesh<TetLinearLgn<Point> >::type_name
 //! Create virtual interface 
 VMesh* CreateVTetVolMesh(TetVolMesh<TetQuadraticLgn<Point> >* mesh)
 {
-  return scinew VTetVolMesh<TetVolMesh<TetQuadraticLgn<Point> > >(mesh);
+  return new VTetVolMesh<TetVolMesh<TetQuadraticLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -156,7 +174,7 @@ static MeshTypeID TetVolMesh_MeshID2(TetVolMesh<TetQuadraticLgn<Point> >::type_n
 //! Create virtual interface 
 VMesh* CreateVTetVolMesh(TetVolMesh<TetCubicHmt<Point> >* mesh)
 {
-  return scinew VTetVolMesh<TetVolMesh<TetCubicHmt<Point> > >(mesh);
+  return new VTetVolMesh<TetVolMesh<TetCubicHmt<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -210,6 +228,14 @@ VTetVolMesh<MESH>::get_nodes(VMesh::Node::array_type &nodes,
 template <class MESH>
 void
 VTetVolMesh<MESH>::get_enodes(VMesh::ENode::array_type &enodes,
+                             VMesh::Node::index_type idx) const
+{
+  this->mesh_->get_edges_from_node(enodes,idx);
+}
+
+template <class MESH>
+void
+VTetVolMesh<MESH>::get_enodes(VMesh::ENode::array_type &enodes,
                              VMesh::Edge::index_type idx) const
 {
   enodes.resize(1); enodes[0] = VMesh::ENode::index_type(idx);
@@ -247,7 +273,13 @@ VTetVolMesh<MESH>::get_enodes(VMesh::ENode::array_type &enodes,
   this->mesh_->get_edges_from_cell(enodes,idx);
 }
 
-
+template <class MESH>
+void
+VTetVolMesh<MESH>::get_edges(VMesh::Edge::array_type &edges,
+                             VMesh::Node::index_type idx) const
+{
+  this->mesh_->get_edges_from_node(edges,idx);
+}
 
 template <class MESH>
 void
@@ -279,6 +311,22 @@ VTetVolMesh<MESH>::get_edges(VMesh::Edge::array_type &edges,
                              VMesh::Elem::index_type idx) const
 {
   this->mesh_->get_edges_from_cell(edges,idx);
+}
+
+template <class MESH>
+void
+VTetVolMesh<MESH>::get_faces(VMesh::Face::array_type &faces,
+                             VMesh::Node::index_type idx) const
+{
+  this->mesh_->get_faces_from_node(faces,idx);
+}
+
+template <class MESH>
+void
+VTetVolMesh<MESH>::get_faces(VMesh::Face::array_type &faces,
+                             VMesh::Edge::index_type idx) const
+{
+  this->mesh_->get_faces_from_edge(faces,idx);
 }
 
 template <class MESH>
@@ -389,6 +437,22 @@ VTetVolMesh<MESH>::get_elems(VMesh::Elem::array_type &elems,
 template <class MESH>
 void
 VTetVolMesh<MESH>::get_delems(VMesh::DElem::array_type &delems,
+                              VMesh::Node::index_type idx) const
+{
+  this->mesh_->get_faces_from_node(delems,idx);
+}
+
+template <class MESH>
+void
+VTetVolMesh<MESH>::get_delems(VMesh::DElem::array_type &delems,
+                              VMesh::Edge::index_type idx) const
+{
+  this->mesh_->get_faces_from_edge(delems,idx);
+}
+
+template <class MESH>
+void
+VTetVolMesh<MESH>::get_delems(VMesh::DElem::array_type &delems,
                               VMesh::Cell::index_type idx) const
 {
   this->mesh_->get_faces_from_cell(delems,idx);
@@ -409,6 +473,33 @@ VTetVolMesh<MESH>::get_delems(VMesh::DElem::array_type &delems,
 {
   delems.resize(1); delems[0] = static_cast<VMesh::DElem::index_type>(idx);
 }
+
+template <class MESH>
+VMesh::index_type*
+VTetVolMesh<MESH>::
+get_elems_pointer() const
+{
+  if (this->mesh_->cells_.size() == 0) return (0);
+   return (&(this->mesh_->cells_[0]));
+}
+
+
+// TODO: Fix this function so it does not need the vector conversion
+template <class MESH>
+void
+VTetVolMesh<MESH>::insert_node_into_elem(VMesh::Elem::array_type& newelems, 
+                                     VMesh::Node::index_type& newnode,
+                                     VMesh::Elem::index_type  elem,
+                                     Point& point)
+{
+  // This wrapper fixes class types
+  typename MESH::Elem::array_type array;
+  typename MESH::Node::index_type index;
+  this->mesh_->insert_node_in_elem(array,index,typename MESH::Elem::index_type(elem),point);
+  convert_vector(array,newelems);
+  newnode = VMesh::Node::index_type(index);
+}
+
 
 } // namespace SCIRun
 

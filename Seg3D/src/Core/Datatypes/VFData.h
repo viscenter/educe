@@ -54,13 +54,17 @@
   virtual void set_value(const type &val, VMesh::index_type idx); \
   virtual void get_evalue(type &val, VMesh::index_type idx) const; \
   virtual void set_evalue(const type &val, VMesh::index_type idx); \
-  virtual void get_values(type *ptr, VMesh::size_type sz) const; \
-  virtual void set_values(const type *ptr, VMesh::size_type sz); \
-  virtual void get_evalues(type *ptr, VMesh::size_type sz) const; \
-  virtual void set_evalues(const type *ptr, VMesh::size_type sz); \
+  virtual void get_values(type *ptr, VMesh::size_type sz, VMesh::size_type offset) const; \
+  virtual void set_values(const type *ptr, VMesh::size_type sz, VMesh::size_type offset); \
+  virtual void get_evalues(type *ptr, VMesh::size_type sz, VMesh::size_type offset) const; \
+  virtual void set_evalues(const type *ptr, VMesh::size_type sz, VMesh::size_type offset); \
   virtual void set_all_values(const type &val); \
   virtual void get_weighted_value(type &val, VMesh::index_type* idx, VMesh::weight_type* w, VMesh::size_type sz) const;  \
   virtual void get_weighted_evalue(type &val, VMesh::index_type* idx, VMesh::weight_type* w, VMesh::size_type sz) const; \
+  virtual void get_values(type *ptr, VMesh::Node::array_type& nodes) const; \
+  virtual void get_values(type *ptr, VMesh::Elem::array_type& elems) const; \
+  virtual void set_values(const type *ptr, VMesh::Node::array_type& nodes); \
+  virtual void set_values(const type *ptr, VMesh::Elem::array_type& elems); \
 
 #define VFDATA_ACCESS_DECLARATION2(type) \
   virtual void interpolate(type &val, VMesh::ElemInterpolate &interp, type defval = ((type)0)) const; \
@@ -107,6 +111,9 @@ public:
   VFDATA_ACCESS_DECLARATION(Vector)
   VFDATA_ACCESS_DECLARATION(Tensor)
 
+
+  VFDATA_ACCESS_DECLARATION2(int)
+  VFDATA_ACCESS_DECLARATION2(float)
   VFDATA_ACCESS_DECLARATION2(double)
   VFDATA_ACCESS_DECLARATION2(Vector)
   VFDATA_ACCESS_DECLARATION2(Tensor)
@@ -116,6 +123,11 @@ public:
   virtual void copy_value(VFData* fdata, 
                           VMesh::index_type vidx, 
                           VMesh::index_type idx);
+
+  virtual void copy_values(VFData* fdata, 
+                           VMesh::index_type vidx, 
+                           VMesh::index_type idx,
+                           VMesh::size_type num);
 
   //! Copy a weighted value without needing to know the type                          
   virtual void copy_weighted_value(VFData* fdata, 
@@ -128,7 +140,12 @@ public:
   virtual void copy_evalue(VFData* fdata, 
                            VMesh::index_type vidx, 
                            VMesh::index_type idx);
-                           
+
+  virtual void copy_evalues(VFData* fdata, 
+                            VMesh::index_type vidx, 
+                            VMesh::index_type idx,
+                            VMesh::size_type num);
+                                                      
   //! Copy a weighted edge value without needing to know the type                          
   virtual void copy_weighted_evalue(VFData* fdata, 
                                     VMesh::index_type* vidx, 

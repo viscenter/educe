@@ -45,7 +45,7 @@
 
 #include <Core/Geom/GeomObj.h>
 #include <Core/Geom/GeomSave.h>
-#include <Core/Geom/Material.h>
+#include <Core/Datatypes/Material.h>
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/BBox.h>

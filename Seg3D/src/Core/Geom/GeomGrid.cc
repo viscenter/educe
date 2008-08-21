@@ -48,14 +48,14 @@
 #include <Core/Geom/Save.h>
 #include <Core/Geometry/BBox.h>
 #include <Core/Geometry/BSphere.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/hf.h>
 
 namespace SCIRun {
 
 Persistent* make_GeomGrid()
 {
-    return scinew GeomGrid(0,0,Point(0,0,0), Vector(1,0,0), Vector(0,0,1),
+    return new GeomGrid(0,0,Point(0,0,0), Vector(1,0,0), Vector(0,0,1),
 			   GeomGrid::Regular);
 }
 
@@ -140,7 +140,7 @@ void GeomGrid::make_prims(Array1<GeomObj*>&,
 
 GeomObj* GeomGrid::clone()
 {
-    return scinew GeomGrid(*this);
+    return new GeomGrid(*this);
 }
 
 void GeomGrid::preprocess()
@@ -183,7 +183,7 @@ void GeomGrid::compute_normals()
 #include <Core/Util/NotFinished.h>
 #include <Core/Geom/GeomSave.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::ostream;
 #include <stdio.h>
@@ -193,7 +193,7 @@ namespace SCIRun {
 
 Persistent* make_GeomGrid()
 {
-    return scinew GeomGrid(0,0,Point(0,0,0), Vector(1,0,0), Vector(0,0,1));
+    return new GeomGrid(0,0,Point(0,0,0), Vector(1,0,0), Vector(0,0,1));
 }
 
 PersistentTypeID GeomGrid::type_id("GeomGrid", "GeomObj", make_GeomGrid);
@@ -295,7 +295,7 @@ void GeomGrid::get_bounds(BBox& bb)
 
 GeomObj* GeomGrid::clone()
 {
-    return scinew GeomGrid(*this);
+    return new GeomGrid(*this);
 }
 
 #define GEOMGRID_VERSION 1

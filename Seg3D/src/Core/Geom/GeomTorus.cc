@@ -45,7 +45,7 @@
 #include <Core/Geometry/BBox.h>
 #include <Core/Geometry/Transform.h>
 #include <Core/Util/NotFinished.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/Trig.h>
 #include <Core/Math/TrigTable.h>
@@ -58,7 +58,7 @@ using namespace std;
 
 Persistent* make_GeomTorus()
 {
-    return scinew GeomTorus;
+    return new GeomTorus;
 }
 
 PersistentTypeID GeomTorus::type_id("GeomTorus", "GeomObj", make_GeomTorus);
@@ -95,7 +95,7 @@ GeomTorus::~GeomTorus()
 
 GeomObj* GeomTorus::clone()
 {
-    return scinew GeomTorus(*this);
+    return new GeomTorus(*this);
 }
 
 void GeomTorus::move(const Point& center, const Vector& axis,
@@ -155,7 +155,7 @@ void GeomTorus::io(Piostream& stream)
 
 Persistent* make_GeomTorusArc()
 {
-    return scinew GeomTorusArc;
+    return new GeomTorusArc;
 }
 
 PersistentTypeID GeomTorusArc::type_id("GeomTorusArc", "GeomTorus", make_GeomTorusArc);
@@ -189,7 +189,7 @@ GeomTorusArc::~GeomTorusArc()
 
 GeomObj* GeomTorusArc::clone()
 {
-    return scinew GeomTorusArc(*this);
+    return new GeomTorusArc(*this);
 }
 
 void GeomTorusArc::move(const Point& center, const Vector& axis,

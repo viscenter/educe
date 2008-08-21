@@ -33,6 +33,7 @@
 #define ShaderProgramARB_h
 
 #include <string>
+#include <iostream>
 
 namespace SLIVR {
 
@@ -40,37 +41,57 @@ namespace SLIVR {
 
 class SLIVRSHARE ShaderProgramARB
 {
-public:
-  ShaderProgramARB(const std::string& program);
-  ~ShaderProgramARB();
-  
-  bool create();
-  bool valid();
-  void destroy();
+  public:
+    ShaderProgramARB(const std::string& program);
+    ~ShaderProgramARB();
+    
+    bool create(std::string& error);
+    bool valid();
+    void destroy();
 
-  void bind();
-  void release();
+    void bind();
+    void release();
 
-  void setLocalParam(int, float, float, float, float);
+    void setLocalParam(int, float, float, float, float);
 
-  // Call init_shaders_supported before shaders_supported queries!
-  static void init_shaders_supported();
-  static bool shaders_supported();
-  static int max_texture_size_1();
-  static int max_texture_size_4();
-  static bool texture_non_power_of_two();
-  static const int MAX_SHADER_UNIFORMS = 4;
-protected:
-  unsigned int type_;
-  unsigned int id_;
-  std::string  program_;
+    // Call init_shaders_supported before shaders_supported queries!
+    static bool init_shaders_supported(std::string& error);
 
-  static bool init_;
-  static bool supported_;
-  static bool non_2_textures_;
-  static int  max_texture_size_1_;
-  static int  max_texture_size_4_;
-};
+    static bool shaders_supported();
+    static int max_texture_size_1();
+    static int max_texture_size_4();
+    static bool texture_non_power_of_two();
+    static const int MAX_SHADER_UNIFORMS = 4;
+    
+    // OBSOLETE CALLS WITH BAD ERROR CHECKING
+    static bool init_shaders_supported() 
+    { 
+      std::string error; 
+      bool ret = init_shaders_supported(error); 
+      if (!ret) std::cerr << error;
+      return (ret);
+    }    
+    
+    bool create()
+    {
+      std::string error;
+      bool ret = create(error);
+      if (!ret) std::cerr << error;
+      // Oddly enough true meant that the creation failed
+      return (!ret);
+    }
+    
+  protected:
+    unsigned int type_;
+    unsigned int id_;
+    std::string  program_;
+
+    static bool init_;
+    static bool supported_;
+    static bool non_2_textures_;
+    static int  max_texture_size_1_;
+    static int  max_texture_size_4_;
+  };
 
 class SLIVRSHARE VertexProgramARB : public ShaderProgramARB
 {

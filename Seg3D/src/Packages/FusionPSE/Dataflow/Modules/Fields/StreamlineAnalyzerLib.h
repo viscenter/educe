@@ -93,6 +93,16 @@ public:
   bool
   IntersectCheck( vector< Point >& points, unsigned int nbins );
 
+  double
+  twistStats( vector< Point >& twist_points,
+	      unsigned int &winding );
+
+  bool
+  islandChecks( vector< Point >& points,
+		unsigned int &winding,
+		unsigned int &island,
+		float &avenode );
+
   bool
   basicChecks( vector< Point >& points,
 	       Vector & globalCentroid,

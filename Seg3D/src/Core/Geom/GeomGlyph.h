@@ -42,14 +42,14 @@
 #define SCI_Geom_Glyph_h 1
 
 #include <Core/Datatypes/Color.h>
+#include <Core/Datatypes/Material.h>
 #include <Core/Geom/GeomTriangles.h>
 #include <Core/Geom/GeomQuads.h>
-#include <Core/Geom/Material.h>
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/Transform.h>
 
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/Trig.h>
@@ -1292,15 +1292,15 @@ void GeomGlyphBase::add_box(const Point& center, const T& t,
   {
     MaterialHandle mat[3];
 
-    mat[0] = scinew Material();
+    mat[0] = new Material();
     mat[0]->transparency = 1.0;
     mat[0]->diffuse = Color( 1.0, 0.0, 0.0 );
     
-    mat[1] = scinew Material();
+    mat[1] = new Material();
     mat[1]->transparency = 1.0;
     mat[1]->diffuse = Color( 0.0, 1.0, 0.0 );
     
-    mat[2] = scinew Material();
+    mat[2] = new Material();
     mat[2]->transparency = 1.0;
     mat[2]->diffuse = Color( 0.0, 0.0, 1.0 );
     
@@ -1466,7 +1466,7 @@ void GeomGlyphBase::add_cylinder(const Point& center, const T& t,
   gen_cylinder(center, t,
 	       radius1, radius2, length, nu, nv, quadstrips);
 
-  MaterialHandle mat = scinew Material();
+  MaterialHandle mat = new Material();
 
   double dt = (mat1->transparency - mat0->transparency) / (double) (nv-1);
   Color  dc = (mat1->diffuse      - mat0->diffuse     ) / (double) (nv-1);
@@ -1560,7 +1560,7 @@ void GeomGlyphBase::add_cylinder(const Point& center, const T& t,
   gen_cylinder(center, t,
 	       radius1, radius2, length, nu, nv, quadstrips);
 
-  MaterialHandle mat = scinew Material();
+  MaterialHandle mat = new Material();
 
   double dt = (mat1->transparency - mat0->transparency) / (double) (nv-1);
   Color  dc = (mat1->diffuse      - mat0->diffuse     ) / (double) (nv-1);
@@ -1687,7 +1687,7 @@ void GeomGlyphBase::add_helix(const Point& center, const T& t,
   gen_helix(center, t, major_radius1, major_radius2,
 	    minor_radius, length, pitch, nu, nv, quadstrips);
 
-  MaterialHandle mat = scinew Material();
+  MaterialHandle mat = new Material();
 
   double dt = (mat1->transparency - mat0->transparency) / (double) (nv-1);
   Color  dc = (mat1->diffuse      - mat0->diffuse     ) / (double) (nv-1);
@@ -1782,7 +1782,7 @@ void GeomGlyphBase::add_helix(const Point& center, const T& t,
   gen_helix(center, t, major_radius1, major_radius2,
 	    minor_radius, length, pitch, nu, nv, quadstrips);
 
-  MaterialHandle mat = scinew Material();
+  MaterialHandle mat = new Material();
 
   double dt = (mat1->transparency - mat0->transparency) / (double) (nv-1);
   Color  dc = (mat1->diffuse      - mat0->diffuse     ) / (double) (nv-1);

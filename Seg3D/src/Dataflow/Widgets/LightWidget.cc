@@ -50,7 +50,7 @@
 #include <Core/Geom/GeomCylinder.h>
 #include <Core/Geom/GeomSphere.h>
 #include <Core/Geom/GeomTorus.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
@@ -85,12 +85,12 @@ LightWidget::LightWidget( Module* module, CrowdMonitor* lock,
 {
   const double INIT = 10.0*widget_scale_;
   // Scheme4 is used for the Arrow.
-  variables[SourceVar] = scinew PointVariable("Source", solve, Scheme1, Point(0, 0, 0));
-  variables[DirectVar] = scinew PointVariable("Direct", solve, Scheme2, Point(INIT, 0, 0));
-  variables[ConeVar] = scinew PointVariable("Cone", solve, Scheme3, Point(INIT, INIT, 0));
-  variables[DistVar] = scinew RealVariable("Dist", solve, Scheme1, INIT);
-  variables[RadiusVar] = scinew RealVariable("Radius", solve, Scheme1, INIT);
-  variables[RatioVar] = scinew RealVariable("Ratio", solve, Scheme1, 1.0);
+  variables[SourceVar] = new PointVariable("Source", solve, Scheme1, Point(0, 0, 0));
+  variables[DirectVar] = new PointVariable("Direct", solve, Scheme2, Point(INIT, 0, 0));
+  variables[ConeVar] = new PointVariable("Cone", solve, Scheme3, Point(INIT, INIT, 0));
+  variables[DistVar] = new RealVariable("Dist", solve, Scheme1, INIT);
+  variables[RadiusVar] = new RealVariable("Radius", solve, Scheme1, INIT);
+  variables[RatioVar] = new RealVariable("Ratio", solve, Scheme1, 1.0);
   init( module );
 }
 
@@ -102,19 +102,19 @@ LightWidget::LightWidget( Module* module, CrowdMonitor* lock,
 {
   const double INIT = 10.0*widget_scale_;
   // Scheme4 is used for the Arrow.
-  variables[SourceVar] = scinew PointVariable("Source", solve, Scheme1, source);
-  variables[DirectVar] = scinew PointVariable("Direct", solve, Scheme2, direct);
-  variables[ConeVar] = scinew PointVariable("Cone", solve, Scheme3, cone );
-  variables[DistVar] = scinew RealVariable("Dist", solve, Scheme1, INIT);
-  variables[RadiusVar] = scinew RealVariable("Radius", solve, Scheme1, rad);
-  variables[RatioVar] = scinew RealVariable("Ratio", solve, Scheme1, rat);
+  variables[SourceVar] = new PointVariable("Source", solve, Scheme1, source);
+  variables[DirectVar] = new PointVariable("Direct", solve, Scheme2, direct);
+  variables[ConeVar] = new PointVariable("Cone", solve, Scheme3, cone );
+  variables[DistVar] = new RealVariable("Dist", solve, Scheme1, INIT);
+  variables[RadiusVar] = new RealVariable("Radius", solve, Scheme1, rad);
+  variables[RatioVar] = new RealVariable("Ratio", solve, Scheme1, rat);
   init( module );
 }
 
 void
 LightWidget::init( Module* module)
 {
-  constraints[ConstAdjacent] = scinew DistanceConstraint("ConstAdjacent",
+  constraints[ConstAdjacent] = new DistanceConstraint("ConstAdjacent",
 							 NumSchemes,
 							 variables[SourceVar],
 							 variables[DirectVar],
@@ -124,7 +124,7 @@ LightWidget::init( Module* module)
   constraints[ConstAdjacent]->VarChoices(Scheme3, 1, 1, 1);
   constraints[ConstAdjacent]->VarChoices(Scheme4, 1, 1, 1);
   constraints[ConstAdjacent]->Priorities(P_Default, P_Default, P_Default);
-  constraints[ConstOpposite] = scinew DistanceConstraint("ConstOpposite",
+  constraints[ConstOpposite] = new DistanceConstraint("ConstOpposite",
 							 NumSchemes,
 							 variables[ConeVar],
 							 variables[DirectVar],
@@ -134,7 +134,7 @@ LightWidget::init( Module* module)
   constraints[ConstOpposite]->VarChoices(Scheme3, 2, 2, 2);
   constraints[ConstOpposite]->VarChoices(Scheme4, 0, 0, 0);
   constraints[ConstOpposite]->Priorities(P_Default, P_Default, P_Default);
-  constraints[ConstRatio] = scinew RatioConstraint("ConstRatio",
+  constraints[ConstRatio] = new RatioConstraint("ConstRatio",
 						   NumSchemes,
 						   variables[DistVar],
 						   variables[RadiusVar],
@@ -144,7 +144,7 @@ LightWidget::init( Module* module)
   constraints[ConstRatio]->VarChoices(Scheme3, 2, 2, 2);
   constraints[ConstRatio]->VarChoices(Scheme4, 1, 1, 1);
   constraints[ConstRatio]->Priorities(P_Highest, P_Highest, P_Highest);
-  constraints[ConstProject] = scinew ProjectConstraint("ConstProject",
+  constraints[ConstProject] = new ProjectConstraint("ConstProject",
 						       NumSchemes,
 						       variables[DirectVar],
 						       variables[ConeVar],
@@ -156,49 +156,49 @@ LightWidget::init( Module* module)
   constraints[ConstProject]->VarChoices(Scheme4, 1, 1, 1, 1);
   constraints[ConstProject]->Priorities(P_Default, P_Default, P_Default, P_Default);
 
-  GeomGroup* arr = scinew GeomGroup;
-  geometries[GeomShaft] = scinew GeomCylinder;
+  GeomGroup* arr = new GeomGroup;
+  geometries[GeomShaft] = new GeomCylinder;
   arr->add(geometries[GeomShaft]);
-  geometries[GeomHead] = scinew GeomCappedCone;
+  geometries[GeomHead] = new GeomCappedCone;
   arr->add(geometries[GeomHead]);
-  materials[ArrowMatl] = scinew GeomMaterial(arr, DefaultEdgeMaterial);
-  picks_[PickArrow] = scinew GeomPick(materials[ArrowMatl], module, this, PickArrow);
+  materials[ArrowMatl] = new GeomMaterial(arr, DefaultEdgeMaterial);
+  picks_[PickArrow] = new GeomPick(materials[ArrowMatl], module, this, PickArrow);
   picks(PickArrow)->set_highlight(DefaultHighlightMaterial);
   CreateModeSwitch(0, picks_[PickArrow]);
 
-  geometries[GeomSource] = scinew GeomSphere;
-  picks_[PickSource] = scinew GeomPick(geometries[GeomSource], module, this, PickSource);
+  geometries[GeomSource] = new GeomSphere;
+  picks_[PickSource] = new GeomPick(geometries[GeomSource], module, this, PickSource);
   picks(PickSource)->set_highlight(DefaultHighlightMaterial);
-  materials[SourceMatl] = scinew GeomMaterial(picks_[PickSource], DefaultPointMaterial);
+  materials[SourceMatl] = new GeomMaterial(picks_[PickSource], DefaultPointMaterial);
   CreateModeSwitch(1, materials[SourceMatl]);
 
-  GeomGroup* spheres = scinew GeomGroup;
-  geometries[GeomDirect] = scinew GeomSphere;
-  picks_[PickDirect] = scinew GeomPick(geometries[GeomDirect], module, this, PickDirect);
+  GeomGroup* spheres = new GeomGroup;
+  geometries[GeomDirect] = new GeomSphere;
+  picks_[PickDirect] = new GeomPick(geometries[GeomDirect], module, this, PickDirect);
   picks(PickDirect)->set_highlight(DefaultHighlightMaterial);
   spheres->add(picks_[PickDirect]);
 
-  geometries[GeomCone] = scinew GeomSphere;
-  picks_[PickCone] = scinew GeomPick(geometries[GeomCone], module, this, PickCone);
+  geometries[GeomCone] = new GeomSphere;
+  picks_[PickCone] = new GeomPick(geometries[GeomCone], module, this, PickCone);
   picks(PickCone)->set_highlight(DefaultHighlightMaterial);
   spheres->add(picks_[PickCone]);
-  materials[PointMatl] = scinew GeomMaterial(spheres, DefaultPointMaterial);
+  materials[PointMatl] = new GeomMaterial(spheres, DefaultPointMaterial);
 
-  GeomGroup* axes = scinew GeomGroup;
-  geometries[GeomAxis] = scinew GeomCylinder;
+  GeomGroup* axes = new GeomGroup;
+  geometries[GeomAxis] = new GeomCylinder;
   axes->add(geometries[GeomAxis]);
-  geometries[GeomRing] = scinew GeomTorus;
+  geometries[GeomRing] = new GeomTorus;
   axes->add(geometries[GeomRing]);
-  picks_[PickAxis] = scinew GeomPick(axes, module, this, PickAxis);
+  picks_[PickAxis] = new GeomPick(axes, module, this, PickAxis);
   picks(PickAxis)->set_highlight(DefaultHighlightMaterial);
-  materials[ConeMatl] = scinew GeomMaterial(picks_[PickAxis], DefaultEdgeMaterial);
+  materials[ConeMatl] = new GeomMaterial(picks_[PickAxis], DefaultEdgeMaterial);
 
-  GeomGroup* conegroup = scinew GeomGroup;
+  GeomGroup* conegroup = new GeomGroup;
   conegroup->add(materials[PointMatl]);
   conegroup->add(materials[ConeMatl]);
   CreateModeSwitch(2, conegroup);
 
-//   arealight = scinew FrameWidget(module, lock, widget_scale);
+//   arealight = new FrameWidget(module, lock, widget_scale);
 //   CreateModeSwitch(3, arealight->GetWidget());
 
   SetMode(Mode0, Switch1|Switch0);

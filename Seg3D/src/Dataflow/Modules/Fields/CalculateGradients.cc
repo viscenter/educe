@@ -46,6 +46,7 @@ class CalculateGradients : public Module
 {
   public:
     CalculateGradients(GuiContext* ctx);
+    virtual ~CalculateGradients() {}
     virtual void execute();
 
   private:

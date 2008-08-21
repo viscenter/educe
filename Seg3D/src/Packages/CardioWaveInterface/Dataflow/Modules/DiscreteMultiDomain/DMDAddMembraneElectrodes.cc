@@ -28,7 +28,7 @@
 
 #include <Dataflow/Network/Module.h>
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/Matrix.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
@@ -37,11 +37,11 @@
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <sstream>
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h> 
+ 
 
 namespace CardioWaveInterface {
 
@@ -79,7 +79,7 @@ void DMDAddMembraneElectrodes::execute()
     // Test whether we have a ReferenceBundle on the input:
     if (ElectrodeBundle.get_rep() == 0) 
     {
-      ElectrodeBundle = scinew Bundle();
+      ElectrodeBundle = new Bundle();
       if (ElectrodeBundle.get_rep() == 0)
       {
         error("Could not allocate new electrode bundle");
@@ -113,7 +113,7 @@ void DMDAddMembraneElectrodes::execute()
     
     // Add a new bundle to the bundle with the data
     // from this module
-    BundleHandle Electrode = scinew Bundle();
+    BundleHandle Electrode = new Bundle();
     if (Electrode.get_rep() == 0)
     {
       error("Could not allocate new electrode bundle");
@@ -143,10 +143,10 @@ void DMDAddMembraneElectrodes::execute()
     Electrode->setField("Membrane",Membrane);
 
     
-    StringHandle SourceFile = scinew String("OutputSCIRun.cc ");
+    StringHandle SourceFile = new String("OutputSCIRun.cc ");
     Electrode->setString("SourceFile",SourceFile);
 
-    StringHandle Parameters = scinew String("scirun_dump_electrode=yes\nscirun_dump_electrode_time=yes\n");
+    StringHandle Parameters = new String("scirun_dump_electrode=yes\nscirun_dump_electrode_time=yes\n");
     Electrode->setString("Parameters",Parameters);
 
     // Send data downstream:

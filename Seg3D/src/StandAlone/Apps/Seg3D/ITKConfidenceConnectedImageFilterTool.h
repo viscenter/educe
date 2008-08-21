@@ -54,6 +54,7 @@ class ITKConfidenceConnectedImageFilterTool : public SeedTool
 {
 public:
   ITKConfidenceConnectedImageFilterTool(Painter *painter);
+  virtual ~ITKConfidenceConnectedImageFilterTool();
 
 protected:
   virtual void          run_filter();
@@ -68,6 +69,8 @@ private:
   typedef itk::ConfidenceConnectedImageFilter
   < ITKImageFloat3D, ITKImageLabel3D > FilterType;
   VolumeFilter<FilterType>      filter_;
+
+  static seeds_t         seed_cache_;
 };
   
   

@@ -27,12 +27,13 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
+#include <Core/Datatypes/ColorMap.h>
+
+#include <Dataflow/Network/Module.h>
+
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Ports/ColorMapPort.h>
-#include <Core/Geom/ColorMap.h>
-#include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 
 using namespace SCIRun;
 
@@ -61,7 +62,7 @@ DECLARE_MAKER(GetColorMapsFromBundle)
       guicolormap4name_(get_ctx()->subVar("colormap4-name"), "colormap4"),
       guicolormap5name_(get_ctx()->subVar("colormap5-name"), "colormap5"),
       guicolormap6name_(get_ctx()->subVar("colormap6-name"), "colormap6"),
-      guicolormaps_(get_ctx()->subVar("colormap-selection"), "")
+      guicolormaps_(get_ctx()->subVar("colormap-selection",false), "")
 {
 }
 
@@ -81,6 +82,8 @@ void GetColorMapsFromBundle::execute()
       !oport_cached("colormap3")  || !oport_cached("colormap4") ||
       !oport_cached("colormap5")  || !oport_cached("colormap6"))
   {
+    update_state(Executing);
+
     ColorMapHandle fhandle;
     std::string colormap1name = guicolormap1name_.get();
     std::string colormap2name = guicolormap2name_.get();

@@ -53,7 +53,7 @@
 #include <Core/Geom/GeomObj.h>
 #include <Core/Geom/HeadLight.h>
 #include <Core/Geom/GeomViewerItem.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Thread/CleanupManager.h>
 #include <Core/Thread/FutureValue.h>
@@ -88,19 +88,19 @@ ViewScene::ViewScene(GuiContext* ctx)
 {
   map<LightID, int> li;
   // Add a headlight
-  lighting_.lights.add(scinew HeadLight("Headlight", Color(1,1,1)));
+  lighting_.lights.add(new HeadLight("Headlight", Color(1,1,1)));
   li[0] = 0;
   for(int i = 1; i < 4; i++){ // only set up 3 more lights
     char l[8];
     sprintf(l,"Light%d",i);
     lighting_.lights.add
-      (scinew DirectionalLight(l, Vector(0,0,1), Color(1,1,1), false, false));
+      (new DirectionalLight(l, Vector(0,0,1), Color(1,1,1), false, false));
     li[i] = i;
   }
   pli_[0] = li;
 
   default_material_ =
-    scinew Material(Color(.1,.1,.1), Color(.6,0,0), Color(.7,.7,.7), 50);
+    new Material(Color(.1,.1,.1), Color(.6,0,0), Color(.7,.7,.7), 50);
   have_own_dispatch_=true;
 
   // Create port 0 - we use this for global objects such as cameras,
@@ -639,7 +639,7 @@ ViewScene::addObj(GeomViewerPort* port, int serial, GeomHandle obj,
 		    const string& name, CrowdMonitor* lock)
 {
   string pname(name + " ("+to_string(real_portno(port->portno))+")");
-  GeomViewerItem* si = scinew GeomViewerItem(obj, pname, lock);
+  GeomViewerItem* si = new GeomViewerItem(obj, pname, lock);
   port->addObj(si,serial);
   for (unsigned int i=0; i<view_window_.size(); i++)
   {
@@ -718,7 +718,7 @@ ViewScene::tcl_command(GuiArgs& args, void* userdata)
       args.error(args[1]+" must have a RID");
       return;
     }
-    ViewWindow* r=scinew ViewWindow(this, get_gui(), 
+    ViewWindow* r=new ViewWindow(this, get_gui(), 
 				    get_gui()->createContext(args[2]));
 
     view_window_lock_.lock();
@@ -735,7 +735,7 @@ ViewScene::tcl_command(GuiArgs& args, void* userdata)
     }
 
 
-    ViewSceneMessage *msg = scinew ViewSceneMessage
+    ViewSceneMessage *msg = new ViewSceneMessage
       (MessageTypes::ViewWindowKill,args[2],"");
     mailbox_.send(msg);
 
@@ -792,8 +792,8 @@ ViewSceneMessage::ViewSceneMessage(MessageTypes::MessageType type,
 			     const string& resy_string)
   : MessageBase(type), rid(rid), filename(filename), format(format)
 {
-  resx = atoi(resx_string.c_str());
-  resy = atoi(resy_string.c_str());
+  from_string(resx_string,resx);
+  from_string(resy_string,resy);
 }
 
 ViewSceneMessage::ViewSceneMessage(MessageTypes::MessageType type,
@@ -1021,7 +1021,7 @@ ViewScene::save_image_callback(void *voidstuff)
   {
     string name = string("snapshot") + to_string(i) + ".png";
     
-    if (sci_getenv("SCIRUN_NETFILE") != "")
+    if (sci_getenv("SCIRUN_NETFILE") != string(""))
     {
       string netfile = sci_getenv("SCIRUN_NETFILE");
       string::size_type lastslash = netfile.find_last_of("/");
@@ -1049,12 +1049,15 @@ ViewScene::save_image_callback(void *voidstuff)
 
     }
     
-    std::cout << "Saving regression image: " << name << "\n";
+    std::cerr << "Saving regression image: " << name << "\n";
     
     viewer->view_window_[i]->redraw_if_needed();
     // Make sure that the 640x480 here matches up with ViewWindow.cc defaults.
     viewer->view_window_[i]->renderer_->saveImage(name, "png", 640, 480);
     viewer->view_window_[i]->redraw(); // flushes saveImage.
+
+    std::cerr << "Done saving regression image: " << name << "\n";
+
     std::cout << "<DartMeasurementFile name=\"window-"<<i<<"\" type=\"image/png\">\n";
     std::cout << name << "\n";
     std::cout << "</DartMeasurementFile>\n";

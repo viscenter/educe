@@ -68,51 +68,51 @@ itcl_class SCIRun_DataIO_WritePath {
 
     
     method ui {} {
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    # Refresh UI
-	    biopseFDialog_RefreshCmd $w
-	    return
-	}
-	
-	toplevel $w -class TkFDialog
-	# place to put preferred data directory
-	# it's used if $this-filename is empty
-	set initdir [netedit getenv SCIRUN_DATA]
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          # Refresh UI
+          biopseFDialog_RefreshCmd $w
+          return
+      }
+      
+      sci_toplevel $w -class TkFDialog
+      # place to put preferred data directory
+      # it's used if $this-filename is empty
+      set initdir [netedit getenv SCIRUN_DATA]
 
-	#######################################################
-	# to be modified for particular reader
+      #######################################################
+      # to be modified for particular reader
 
-	# extansion to append if no extension supplied by user
-	set defext ".path"
-	
-	# name to appear initially
-	set defname "MyCameraPath"
-	set title "Save path file"
+      # extansion to append if no extension supplied by user
+      set defext ".path"
+      
+      # name to appear initially
+      set defname "MyCameraPath"
+      set title "Save path file"
 
-	# file types to appers in filter box
-	set types {
-	    {{Camera Path}     {.path}      }
-	    {{All Files}       {.*}   }
-	}
-	
-	######################################################
-	
-	makeSaveFilebox \
-		-parent $w \
-		-filevar $this-filename \
-		-cancel "wm withdraw $w" \
-		-setcmd "wm withdraw $w" \
-		-command "$this-c needexecute; wm withdraw $w" \
-		-title $title \
-		-filetypes $types \
-	  -initialfile $defname \
-		-initialdir $initdir \
-		-defaultextension $defext \
-		-formatvar $this-filetype \
-	  -confirmvar $this-confirm \
-	  -confirmoncevar $this-confirm-once 
+      # file types to appers in filter box
+      set types {
+          {{Camera Path}     {.path}      }
+          {{All Files}       {.*}   }
+      }
+      
+      ######################################################
+      
+      makeSaveFilebox \
+        -parent $w \
+        -filevar $this-filename \
+        -cancel "wm withdraw $w" \
+        -setcmd "wm withdraw $w" \
+        -command "$this-c needexecute" \
+        -title $title \
+        -filetypes $types \
+        -initialfile $defname \
+        -initialdir $initdir \
+        -defaultextension $defext \
+        -formatvar $this-filetype \
+        -confirmvar $this-confirm \
+        -confirmoncevar $this-confirm-once 
 
-	moveToCursor $w	
+      moveToCursor $w	
     }
 }

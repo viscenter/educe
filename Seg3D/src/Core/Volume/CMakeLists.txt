@@ -32,6 +32,7 @@ SET(Core_Volume_SRCS
   CM2Widget.cc
   ColorMap2.cc
   SliceRenderer.cc
+  SurfaceRenderer.cc
   Texture.cc
   TextureBrick.cc
   VolumeRenderer.cc

@@ -26,7 +26,7 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-//static char *get_id()="@(#) $Id: SmoothSepSurf.cc 35595 2006-10-16 18:59:21Z mdavis $";
+//static char *get_id()="@(#) $Id: SmoothSepSurf.cc 41380 2008-06-30 23:32:21Z jeroen $";
 
 /*
  *  SmoothSepSurf.cc:  
@@ -45,7 +45,6 @@
 #include <SCICore/Datatypes/ColumnMatrix.h>
 #include <SCICore/Datatypes/SparseRowMatrix.h>
 #include <SCICore/Datatypes/SurfTree.h>
-#include <SCICore/Malloc/Allocator.h>
 #include <SCICore/Math/MiscMath.h>
 #include <SCICore/Math/MusilRNG.h>
 #include <SCICore/TclInterface/TCLvar.h>
@@ -107,7 +106,7 @@ public:
 
 extern "C" Module* make_SmoothSepSurf(const clString& get_id())
 {
-   return scinew SmoothSepSurf(get_id());
+   return new SmoothSepSurf(get_id());
 }
 
 //static clString module_name("SmoothSepSurf");
@@ -119,10 +118,10 @@ SmoothSepSurf::SmoothSepSurf(const clString& get_id())
   constraintTCL("constraintTCL", get_id(), this), jitterTCL("jitterTCL", get_id(), this)
 {
    // Create the input port
-   isurf=scinew SurfaceIPort(this, "Surface", SurfaceIPort::Atomic);
+   isurf=new SurfaceIPort(this, "Surface", SurfaceIPort::Atomic);
    add_iport(isurf);
    // Create the output port
-   osurf=scinew SurfaceOPort(this, "Surface", SurfaceIPort::Atomic);
+   osurf=new SurfaceOPort(this, "Surface", SurfaceIPort::Atomic);
    add_oport(osurf);
 }
 
@@ -195,8 +194,8 @@ void SmoothSepSurf::bldMatrices() {
 	for (j=0; j<nbrs[i].size(); j++) in_cols.add(nbrs[i][j]);
     }
     in_rows[i]=in_cols.size();
-    srm=scinew SparseRowMatrix(nbrs.size(), nbrs.size(), in_rows, in_cols);
-    srg=scinew SparseRowMatrix(nbrs.size(), nbrs.size(), in_rows, in_cols);
+    srm=new SparseRowMatrix(nbrs.size(), nbrs.size(), in_rows, in_cols);
+    srg=new SparseRowMatrix(nbrs.size(), nbrs.size(), in_rows, in_cols);
 
     for (i=0; i<nbrs.size(); i++)
 	if (nbrs[i].size()) {
@@ -249,24 +248,26 @@ void SmoothSepSurf::smooth(int constrained, double cons) {
     dy2=dy2*dy2;
     double dz2=dz*.49*cons;
     dz2=dz2*dz2;
-    int flops, memrefs;
     // multiplyiteratively
     int iters=N.get();
 
-    if (jitterTCL.get()) {
-	for (int i=0; i<st->nodes.size(); i++) {
-	    oldX[i] += (mr()-.5)*dx/10.;
-	    oldY[i] += (mr()-.5)*dy/10.;
-	    oldZ[i] += (mr()-.5)*dz/10.;
-	}
+    if (jitterTCL.get()) 
+    {
+      for (int i=0; i<st->nodes.size(); i++) 
+      {
+        oldX[i] += (mr()-.5)*dx/10.;
+        oldY[i] += (mr()-.5)*dy/10.;
+        oldZ[i] += (mr()-.5)*dz/10.;
+      }
     }
-    for (int iter=0; iter<iters; iter++) {
-	srm->mult(oldX, tmpX, flops, memrefs);
-	srm->mult(oldY, tmpY, flops, memrefs);
-	srm->mult(oldZ, tmpZ, flops, memrefs);
-	srg->mult(tmpX, oldX, flops, memrefs);
-	srg->mult(tmpY, oldY, flops, memrefs);
-	srg->mult(tmpZ, oldZ, flops, memrefs);
+    for (int iter=0; iter<iters; iter++) 
+    {
+      srm->mult(oldX, tmpX);
+      srm->mult(oldY, tmpY);
+      srm->mult(oldZ, tmpZ);
+      srg->mult(tmpX, oldX);
+      srg->mult(tmpY, oldY);
+      srg->mult(tmpZ, oldZ);
     }
 
     // copy the resultant points back into the data
@@ -310,25 +311,28 @@ void SmoothSepSurf::smooth(int constrained, double cons) {
 }
 #endif
 
-void SmoothSepSurf::smooth(int constrained, double cons) {
-    int flops, memrefs;
+void SmoothSepSurf::smooth(int constrained, double cons) 
+{
     // multiplyiteratively
     int iters=N.get();
 
-    if (jitterTCL.get()) {
-	for (int i=0; i<st->nodes.size(); i++) {
-	    oldX[i] += (mr()-.5)*dx/10.;
-	    oldY[i] += (mr()-.5)*dy/10.;
-	    oldZ[i] += (mr()-.5)*dz/10.;
-	}
+    if (jitterTCL.get()) 
+    {
+      for (int i=0; i<st->nodes.size(); i++) 
+      {
+        oldX[i] += (mr()-.5)*dx/10.;
+        oldY[i] += (mr()-.5)*dy/10.;
+        oldZ[i] += (mr()-.5)*dz/10.;
+      }
     }
-    for (int iter=0; iter<iters; iter++) {
-	srm->mult(oldX, tmpX, flops, memrefs);
-	srm->mult(oldY, tmpY, flops, memrefs);
-	srm->mult(oldZ, tmpZ, flops, memrefs);
-	srg->mult(tmpX, oldX, flops, memrefs);
-	srg->mult(tmpY, oldY, flops, memrefs);
-	srg->mult(tmpZ, oldZ, flops, memrefs);
+    for (int iter=0; iter<iters; iter++) 
+    {
+      srm->mult(oldX, tmpX);
+      srm->mult(oldY, tmpY);
+      srm->mult(oldZ, tmpZ);
+      srg->mult(tmpX, oldX);
+      srg->mult(tmpY, oldY);
+      srg->mult(tmpZ, oldZ);
     }
 
     // copy the resultant points back into the data

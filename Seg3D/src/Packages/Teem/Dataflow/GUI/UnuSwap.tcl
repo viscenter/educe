@@ -41,26 +41,26 @@ itcl_class Teem_UnuNtoZ_UnuSwap {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.axisA -labeltext "Axis A:" \
-	    -textvariable $this-axisA
+        sci_entryfield $w.f.options.axisA -labeltext "Axis A:" \
+          -textvariable $this-axisA
         pack $w.f.options.axisA -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.axisB -labeltext "Axis B:" \
-	    -textvariable $this-axisB
+        sci_entryfield $w.f.options.axisB -labeltext "Axis B:" \
+          -textvariable $this-axisB
         pack $w.f.options.axisB -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
     }
 }
 

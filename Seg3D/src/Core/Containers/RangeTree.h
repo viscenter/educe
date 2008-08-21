@@ -30,13 +30,13 @@
 #define Core_Containers_RangeTree_h
 
 #include <Core/Util/Assert.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Exceptions/InternalError.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
 #include <list>
 #include <iostream>
-#include <sgi_stl_warnings_on.h>
+
 #include <limits.h>
 #include <math.h>
 
@@ -162,11 +162,6 @@ using namespace std;
   
 const int RANGE_LEFT = 0;
 const int RANGE_RIGHT = 1;
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209
-#endif
 
 template<class TPoint, class TPointElem,
   bool ALLOW_NEAREST_NEIGHBOR_QUERY=false>
@@ -740,7 +735,7 @@ RangeTree(list<TPoint*> points, int dimensions)
     setDiagonalDirections(); 
   
   // pre-sort in each dimension
-  TPoint*** pointSorts = scinew TPoint**[dimensions];
+  TPoint*** pointSorts = new TPoint**[dimensions];
   ASSERT(points.size() <= INT_MAX);
   int n = (int)points.size();
   int i, j;
@@ -749,7 +744,7 @@ RangeTree(list<TPoint*> points, int dimensions)
   largestPossibleL1Distance_ = 0;
   for (i = 0; i < dimensions; i++) {
     points.sort(CompareDimension<TPoint, TPointElem>(i));
-    pointSorts[i] = scinew TPoint*[n];
+    pointSorts[i] = new TPoint*[n];
     for (iter = points.begin(), j = 0; iter != points.end(); iter++, j++)
       pointSorts[i][j] = *iter;
 
@@ -758,7 +753,7 @@ RangeTree(list<TPoint*> points, int dimensions)
   }
 
   int d = dimensions - 1;
-  root_ = scinew RangeTreeNode(d, pointSorts[d], pointSorts, 0, n, this);
+  root_ = new RangeTreeNode(d, pointSorts[d], pointSorts, 0, n, this);
 
   for (i = 0; i < dimensions; i++)
     delete[] pointSorts[i];
@@ -879,21 +874,21 @@ RangeTreeNode(int d, TPoint** dSorted, TPoint*** subDSorted, int low, int high,
     // This is necessary, because in the process of building the
     // associated tree it will destroy the sorted order of these
     // sub-dimension sorted vectors.
-    TPoint*** subSubDSorted = scinew TPoint**[d-1];
+    TPoint*** subSubDSorted = new TPoint**[d-1];
     for (i = 0; i < d-1; i++) {
-      subSubDSorted[i] = scinew TPoint*[high - low];
+      subSubDSorted[i] = new TPoint*[high - low];
       for (j = low; j < high; j++)
 	subSubDSorted[i][j-low] = subDSorted[i][j];
     }
     lowerLevel_.rtn =
-      scinew RangeTreeNode(d-1, &subDSorted[d-1][low], subSubDSorted, 0,
+      new RangeTreeNode(d-1, &subDSorted[d-1][low], subSubDSorted, 0,
 			   high-low, entireTree);
     for (i = 0; i < d-1; i++)
       delete[] subSubDSorted[i];
     delete[] subSubDSorted;
   }
   else if (d == 1) {
-    lowerLevel_.bls = scinew BaseLevelSet(&subDSorted[0][low], high-low);
+    lowerLevel_.bls = new BaseLevelSet(&subDSorted[0][low], high-low);
     if (ALLOW_NEAREST_NEIGHBOR_QUERY)
       lowerLevel_.bls->setExtremePoints(entireTree->getDiagonalDirections(),
 					entireTree->getNumDiagDirections(),
@@ -911,8 +906,8 @@ RangeTreeNode(int d, TPoint** dSorted, TPoint*** subDSorted, int low, int high,
     if (d > 0) {
       // split the sorted vectors of sub-dimensions between 'left'
       // and 'right' (two sides on dimension d -- left/right is figurative)
-      TPoint** tmpLeftSorted = scinew TPoint*[mid_pos - low]; 
-      TPoint** tmpRightSorted = scinew TPoint*[high - mid_pos];
+      TPoint** tmpLeftSorted = new TPoint*[mid_pos - low]; 
+      TPoint** tmpRightSorted = new TPoint*[high - mid_pos];
       
       int left_index, right_index;
       
@@ -942,9 +937,9 @@ RangeTreeNode(int d, TPoint** dSorted, TPoint*** subDSorted, int low, int high,
       delete[] tmpRightSorted;
     }
 
-    leftChild_ = scinew RangeTreeNode(d, dSorted, subDSorted, low, mid_pos,
+    leftChild_ = new RangeTreeNode(d, dSorted, subDSorted, low, mid_pos,
 				      entireTree);
-    rightChild_ = scinew RangeTreeNode(d, dSorted, subDSorted, mid_pos,
+    rightChild_ = new RangeTreeNode(d, dSorted, subDSorted, mid_pos,
 				       high, entireTree); 
 
     if (d == 1) {
@@ -1026,8 +1021,8 @@ singleDimensionDump(int d)
 template<class TPoint, class TPointElem, bool ALLOW_NEAREST_NEIGHBOR_QUERY>
 RangeTree<TPoint, TPointElem, ALLOW_NEAREST_NEIGHBOR_QUERY>::BaseLevelSet::
 BaseLevelSet(TPoint** points, int n)
-  : points_(scinew TPoint*[n]), size_(n),
-    leftSubLinks_(scinew int[n+1]), rightSubLinks_(scinew int[n+1]),
+  : points_(new TPoint*[n]), size_(n),
+    leftSubLinks_(new int[n+1]), rightSubLinks_(new int[n+1]),
     extremePoints_(0)
 {
   ASSERT(size_ >= 1);
@@ -1055,14 +1050,14 @@ RangeTree<TPoint, TPointElem, ALLOW_NEAREST_NEIGHBOR_QUERY>::BaseLevelSet::
 setExtremePoints(int** diagonalDirections, int numDiagDirections,
 		 int dimensions)
 {
-  extremePoints_ = scinew TPoint**[size_];
+  extremePoints_ = new TPoint**[size_];
   TPointElem L1length;
   TPointElem L1length2;
   int i;
   int dir;
 
   for (i = 0; i < size_; i++)
-    extremePoints_[i] = scinew TPoint*[numDiagDirections];
+    extremePoints_[i] = new TPoint*[numDiagDirections];
   
   if (numDiagDirections > 0) {
     for (dir = 0; dir < numDiagDirections/2; dir++) {
@@ -1788,9 +1783,9 @@ setDiagonalDirections()
 {
   numDiagDirections_ = (int)pow(2.0, DIMENSIONS_);
   if (numDiagDirections_ <= 0) return;
-  diagonalDirections_ = scinew int*[numDiagDirections_];
+  diagonalDirections_ = new int*[numDiagDirections_];
   for (int i = 0; i < numDiagDirections_; i++)
-    diagonalDirections_[i] = scinew int[DIMENSIONS_];
+    diagonalDirections_[i] = new int[DIMENSIONS_];
     
   // set it in the same order as a binary number, but with -1 representing
   // a 0 bit (and 1 representing a 1 bit).
@@ -1815,10 +1810,5 @@ setDiagonalDirections()
 }
 
 } // End namespace SCIRun
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209
-#endif
 
 #endif // ndef Core_Containers_RangeTree_h

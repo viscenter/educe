@@ -128,8 +128,8 @@ inline std::ostream& operator<<( std::ostream& os, BaseVariable& v );
 
 
 /* Miscellaneous */
-char* PriorityString( const VPriority p );
-char* SchemeString( const Scheme s );
+const char* PriorityString( const VPriority p );
+const char* SchemeString( const Scheme s );
 
 inline int HigherPriority( const VPriority p1, const VPriority p2 )
 {

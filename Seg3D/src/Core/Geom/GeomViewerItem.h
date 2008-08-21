@@ -40,10 +40,12 @@
  *  Copyright (C) 2005 SCI Group
  */
 
+#include <Core/Datatypes/Material.h>
+
 #include <Core/Geom/GeomContainer.h>
 #include <Core/Geom/GeomObj.h>
-#include <Core/Geom/Material.h>
 #include <Core/Geom/GeomSave.h>
+
 #include <Core/Geometry/BBox.h>
 #include <Core/Persistent/Persistent.h>
 

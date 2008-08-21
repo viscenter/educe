@@ -58,17 +58,17 @@ SCIRun::Mutex InterfaceWithCamalMutex("InterfaceWithCamalMutex");
 
 class InterfaceWithCamal : public Module
 {
-public:
-  InterfaceWithCamal(GuiContext* ctx);
-  virtual ~InterfaceWithCamal();
+  public:
+    InterfaceWithCamal(GuiContext* ctx);
+    virtual ~InterfaceWithCamal() {}
 
-  virtual void execute();
+    virtual void execute();
 
-private:
-  bool read_tri_file(int &npoints, double *&points, int &ntris, int *&tris);
-  bool write_tet_file(const int &npoints, double* const points,
-                    const int &ntets, int* const tets, 
-                    const int &noldpoints, double* const oldpoints);
+  private:
+    bool read_tri_file(int &npoints, double *&points, int &ntris, int *&tris);
+    bool write_tet_file(const int &npoints, double* const points,
+                      const int &ntets, int* const tets, 
+                      const int &noldpoints, double* const oldpoints);
 };
 
 
@@ -77,11 +77,6 @@ DECLARE_MAKER(InterfaceWithCamal)
 InterfaceWithCamal::InterfaceWithCamal(GuiContext* ctx)
   : Module("InterfaceWithCamal", ctx, Filter, "NewField", "SCIRun")
 { 
-}
-
-
-InterfaceWithCamal::~InterfaceWithCamal()
-{
 }
 
 
@@ -271,7 +266,7 @@ InterfaceWithCamal::write_tet_file(const int &npoints, double* const points,
     tvm->add_tet( tets[i*4], tets[i*4+1], tets[i*4+2], tets[i*4+3] );
   }
   
-  my_tetvolfield* tvf = scinew my_tetvolfield(tvm);
+  my_tetvolfield* tvf = new my_tetvolfield(tvm);
   FieldHandle tvH = dynamic_cast<Field*>(tvf);
 
   cout << "Finished loading " << ntets << " tetrahedrons.\n\n";

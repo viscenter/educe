@@ -61,12 +61,13 @@ void ConvertMatrixToField::execute()
   FieldHandle ofield;
   
   // Get the new input data:  
-  if (!(get_input_handle("Matrix",imatrix,true))) return;
+  get_input_handle("Matrix",imatrix,true);
     
   // Only reexecute if the input changed. SCIRun uses simple scheduling
   // that executes every module downstream even if no data has changed:    
   if (inputs_changed_ || guidatalocation_.changed() || !oport_cached("Field"))
   {
+    update_state(Executing);
     std::string datalocation = guidatalocation_.get();
     SCIRunAlgo::ConverterAlgo algo(this);
     if (!(algo.MatrixToField(imatrix,ofield,datalocation))) return;

@@ -62,23 +62,23 @@ itcl_class SCIRun_NewField_GetDomainBoundary {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-        checkbutton $w.f.userange -text "Only include compartments in the range between:" -variable $this-userange -command "if { [set $this-usevalue] == 1 } { set $this-usevalue 0} ; $w.f.usevalue deselect"
-        checkbutton $w.f.usevalue -text "Only include compartment:" -variable $this-usevalue -command "if { [set $this-userange] == 1 } { set $this-userange 0} ; $w.f.userange deselect"
+        sci_frame $w.f
+        sci_checkbutton $w.f.userange -text "Only include compartments in the range between:" -variable $this-userange -command "if { [set $this-usevalue] == 1 } { set $this-usevalue 0} ; $w.f.usevalue deselect"
+        sci_checkbutton $w.f.usevalue -text "Only include compartment:" -variable $this-usevalue -command "if { [set $this-userange] == 1 } { set $this-userange 0} ; $w.f.userange deselect"
 
-        label $w.f.valuelabel -text "value:"
-        entry $w.f.value  -textvariable  $this-value
+        sci_label $w.f.valuelabel -text "value:"
+        sci_entry $w.f.value  -textvariable  $this-value
 
-        label $w.f.minrangelabel -text "min:"
-        entry $w.f.minrange  -textvariable  $this-minrange
-        label $w.f.maxrangelabel -text "max:"
-        entry $w.f.maxrange  -textvariable  $this-maxrange
-        checkbutton $w.f.includeouterboundary -text "Include outer boundary" -variable $this-includeouterboundary
-        checkbutton $w.f.innerboundaryonly -text "Include inner boundary only" -variable $this-innerboundaryonly
-        checkbutton $w.f.noinnerboundary -text "Exclude inner boundary" -variable $this-noinnerboundary
-        checkbutton $w.f.disconnect -text "Disconnect boundaries between different element types" -variable $this-disconnect
+        sci_label $w.f.minrangelabel -text "min:"
+        sci_entry $w.f.minrange  -textvariable  $this-minrange
+        sci_label $w.f.maxrangelabel -text "max:"
+        sci_entry $w.f.maxrange  -textvariable  $this-maxrange
+        sci_checkbutton $w.f.includeouterboundary -text "Include outer boundary" -variable $this-includeouterboundary
+        sci_checkbutton $w.f.innerboundaryonly -text "Include inner boundary only" -variable $this-innerboundaryonly
+        sci_checkbutton $w.f.noinnerboundary -text "Exclude inner boundary" -variable $this-noinnerboundary
+        sci_checkbutton $w.f.disconnect -text "Disconnect boundaries between different element types" -variable $this-disconnect
 
         grid $w.f.userange -column 0 -row 0 -columnspan 4 -sticky w
         grid $w.f.minrangelabel -column 0 -row 1 -sticky news

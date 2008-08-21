@@ -95,22 +95,6 @@ cd $DIR/src/itcl
 ############
 # Update Makefiles
 
-if test "$BITS" = "64" && test "$OSNAME" = "IRIX64"; then 
-    echo
-    echo "#### FIXING MAKEFILE FOR 64bit SGI BUILD ####"
-    echo
-
-    for dir in itcl/unix itk/unix; do
-        cd $dir
-        mv Makefile Makefile.orig
-        sed -e "s/-n32/-64/g" Makefile.orig > Makefile_s1
-        sed -e "s/CFLAGS =/CFLAGS = -64 /g" Makefile_s1 > Makefile_s2
-        # The following command is needed to create an RPATH for itk that includes itcl
-        sed -e "s% -o lib% \\$\\(LD_SEARCH_FLAGS\\) -o lib%g" Makefile_s2 > Makefile
-        cd ../..
-    done
-fi
-
 if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then 
     echo
     echo "#### FIXING MAKEFILE FOR 64bit DARWIN BUILD ####"
@@ -120,14 +104,31 @@ if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then
       cd $dir
 
       mv Makefile Makefile.old
-      sed -e 's:CC = gcc:CC = gcc -m64 :g' Makefile.old >Makefile
+      sed -e 's:CC = gcc:CC = gcc -m64 -arch ppc64 -arch x86_64 :g' Makefile.old >Makefile
       mv Makefile Makefile.old
-      sed -e 's:cc -dynamiclib:cc -dynamiclib -m64:g' Makefile.old >Makefile
+      sed -e 's:cc -dynamiclib:cc -dynamiclib -m64 -arch ppc64 -arch x86_64 :g' Makefile.old >Makefile
       cd ../..
 
     done   
-
 fi
+
+if test "$BITS" = "32" && test "$OSNAME" = "Darwin"; then 
+    echo
+    echo "#### FIXING MAKEFILE FOR 32bit DARWIN BUILD ####"
+    echo
+
+    for dir in itcl/unix itk/unix; do
+      cd $dir
+
+      mv Makefile Makefile.old
+      sed -e 's:CC = gcc:CC = gcc -arch ppc -arch i386  :g' Makefile.old >Makefile
+      mv Makefile Makefile.old
+      sed -e 's:cc -dynamiclib:cc -dynamiclib -arch ppc -arch i386 :g' Makefile.old >Makefile
+      cd ../..
+
+    done   
+fi
+
 
 if test "$OSNAME" = "Darwin"; then
 

@@ -47,7 +47,7 @@ itcl_class SCIRun_String_GetFileName {
             return
         }
 
-        toplevel $w -class TkFDialog
+        sci_toplevel $w -class TkFDialog
 
         set initdir ""
       

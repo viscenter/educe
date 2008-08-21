@@ -28,9 +28,9 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 
-#include <Core/Bundle/Bundle.h>
+
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/String.h>
 #include <Core/Datatypes/Matrix.h>
@@ -41,11 +41,11 @@
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <sstream>
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h> 
+ 
 
 namespace CardioWaveInterface {
 
@@ -102,7 +102,7 @@ void CBDAddMembrane::execute()
   
   if (MembraneBundle.get_rep() == 0)
   {
-    MembraneBundle = scinew Bundle();
+    MembraneBundle = new Bundle();
     if (MembraneBundle.get_rep() == 0)
     {
       error("Could not allocate new membrane bundle");
@@ -144,7 +144,7 @@ void CBDAddMembrane::execute()
   
   // Add a new bundle to the bundle with the data
   // from this module
-  Membrane = scinew Bundle();
+  Membrane = new Bundle();
   if (Membrane.get_rep() == 0)
   {
     error("Could not allocate new membrane bundle");
@@ -176,7 +176,7 @@ void CBDAddMembrane::execute()
   }
 
   std::string membranename = guimembranename_.get();
-  StringHandle MembraneName = scinew String(membranename);
+  StringHandle MembraneName = new String(membranename);
   Membrane->setString("Name",MembraneName);
   
   int membranetype = guimembranetype_.get();
@@ -189,7 +189,7 @@ void CBDAddMembrane::execute()
     paramstr += oss.str();
   }
   
-  StringHandle Parameters = scinew String(paramstr);
+  StringHandle Parameters = new String(paramstr);
   if (Parameters.get_rep() == 0)
   {
     error("Could not create parameter string");
@@ -197,7 +197,7 @@ void CBDAddMembrane::execute()
   } 
   Membrane->setString("Parameters",Parameters);
     
-  StringHandle SourceFile = scinew String(item.sourcefile);
+  StringHandle SourceFile = new String(item.sourcefile);
   Membrane->setString("SourceFile",SourceFile);
   
   send_output_handle("MembraneBundle",MembraneBundle,true);

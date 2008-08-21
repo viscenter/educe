@@ -36,6 +36,8 @@ AlgoParamList::set_bool(std::string key, bool value)
 {
   BoolParam* param = dynamic_cast<BoolParam*>(parameters_[key]);
   if (param) { param->value() = value; return (true); }
+  
+  throw std::string("key \""+key+"\" was not defined in algorithm");
   return (false); 
 }
 
@@ -44,7 +46,24 @@ AlgoParamList::get_bool(std::string key, bool& value)
 {
   BoolParam* param = dynamic_cast<BoolParam*>(parameters_[key]);
   if (param) { value = param->value(); return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
+}
+
+
+bool
+AlgoParamList::get_bool(std::string key)
+{
+  BoolParam* param = dynamic_cast<BoolParam*>(parameters_[key]);
+  if (param) { return(param->value()); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
 }
 
 bool 
@@ -59,6 +78,8 @@ AlgoParamList::set_int(std::string key, int value)
       param->value() = value; return (true); 
     }
   }
+
+  throw std::string("key \""+key+"\" was not defined in algorithm");
   return (false); 
 }
 
@@ -67,15 +88,36 @@ AlgoParamList::get_int(std::string key, int& value)
 {
   IntegerParam* param = dynamic_cast<IntegerParam*>(parameters_[key]);
   if (param) { value = param->value(); return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
 }
+
+int
+AlgoParamList::get_int(std::string key)
+{
+  IntegerParam* param = dynamic_cast<IntegerParam*>(parameters_[key]);
+  if (param) { return(param->value()); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (0); 
+  }
+}
+
 
 bool
 AlgoParamList::get_int_limits(std::string key, int& min, int& max)
 {
   IntegerParam* param = dynamic_cast<IntegerParam*>(parameters_[key]);
   if (param) { min = param->min(); max = param->max(); return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
 }
 
 bool 
@@ -90,6 +132,8 @@ AlgoParamList::set_scalar(std::string key, double value)
       param->value() = value; return (true); 
     }
   }
+
+  throw std::string("key \""+key+"\" was not defined in algorithm");
   return (false); 
 }
 
@@ -98,7 +142,23 @@ AlgoParamList::get_scalar(std::string key, double& value)
 {
   ScalarParam* param = dynamic_cast<ScalarParam*>(parameters_[key]);
   if (param) { value = param->value(); return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
+}
+
+double
+AlgoParamList::get_scalar(std::string key)
+{
+  ScalarParam* param = dynamic_cast<ScalarParam*>(parameters_[key]);
+  if (param) { return(param->value()); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (0.0); 
+  }
 }
 
 bool
@@ -106,7 +166,11 @@ AlgoParamList::get_scalar_limits(std::string key, double& min, double& max)
 {
   ScalarParam* param = dynamic_cast<ScalarParam*>(parameters_[key]);
   if (param) { min = param->min(); max = param->max(); return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
 }
 
 bool
@@ -117,17 +181,72 @@ AlgoParamList::set_color(std::string key, SCIRun::Color value)
   {
     param->value() = value; return (true); 
   }
+
+  throw std::string("key \""+key+"\" was not defined in algorithm");
   return (false); 
 }
+
 
 bool
 AlgoParamList::get_color(std::string key, SCIRun::Color& value)
 {
   ColorParam* param = dynamic_cast<ColorParam*>(parameters_[key]);
   if (param) { value = param->value(); return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
 }
 
+SCIRun::Color
+AlgoParamList::get_color(std::string key)
+{
+  ColorParam* param = dynamic_cast<ColorParam*>(parameters_[key]);
+  if (param) { return(param->value()); }
+  else 
+  {
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (SCIRun::Color(0.0,0.0,0.0)); 
+  }
+}
+
+bool
+AlgoParamList::set_colormap(std::string key, SCIRun::ColorMap* value)
+{
+  ColorMapParam* param = dynamic_cast<ColorMapParam*>(parameters_[key]);
+  if (param) 
+  {
+    param->value() = value; return (true); 
+  }
+
+  throw std::string("key \""+key+"\" was not defined in algorithm");
+  return (false); 
+}
+
+bool
+AlgoParamList::get_colormap(std::string key, SCIRun::ColorMap*& value)
+{
+  ColorMapParam* param = dynamic_cast<ColorMapParam*>(parameters_[key]);
+  if (param) { value = param->value().get_rep(); return (true); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
+}
+
+SCIRun::ColorMap*
+AlgoParamList::get_colormap(std::string key)
+{
+  ColorMapParam* param = dynamic_cast<ColorMapParam*>(parameters_[key]);
+  if (param) { return(param->value().get_rep()); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (0); 
+  }
+}
 
 bool
 AlgoParamList::set_vector(std::string key, SCIRun::Vector value)
@@ -137,6 +256,8 @@ AlgoParamList::set_vector(std::string key, SCIRun::Vector value)
   {
     param->value() = value; return (true); 
   }
+
+  throw std::string("key \""+key+"\" was not defined in algorithm");
   return (false); 
 }
 
@@ -145,16 +266,25 @@ AlgoParamList::get_vector(std::string key, SCIRun::Vector& value)
 {
   VectorParam* param = dynamic_cast<VectorParam*>(parameters_[key]);
   if (param) { value = param->value(); return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
 }
 
-bool
-AlgoParamList::get_point(std::string key, SCIRun::Point& value)
+SCIRun::Vector
+AlgoParamList::get_vector(std::string key)
 {
-  PointParam* param = dynamic_cast<PointParam*>(parameters_[key]);
-  if (param) { value = param->value(); return (true); }
-  else { return (false); }
+  VectorParam* param = dynamic_cast<VectorParam*>(parameters_[key]);
+  if (param) { return(param->value()); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (SCIRun::Vector(0.0,0.0,0.0)); 
+  }
 }
+
 
 bool
 AlgoParamList::set_point(std::string key, SCIRun::Point value)
@@ -164,7 +294,33 @@ AlgoParamList::set_point(std::string key, SCIRun::Point value)
   {
     param->value() = value; return (true); 
   }
+
+  throw std::string("key \""+key+"\" was not defined in algorithm");
   return (false); 
+}
+
+bool
+AlgoParamList::get_point(std::string key, SCIRun::Point& value)
+{
+  PointParam* param = dynamic_cast<PointParam*>(parameters_[key]);
+  if (param) { value = param->value(); return (true); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
+}
+
+SCIRun::Point
+AlgoParamList::get_point(std::string key)
+{
+  PointParam* param = dynamic_cast<PointParam*>(parameters_[key]);
+  if (param) { return(param->value()); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (SCIRun::Point(0.0,0.0,0.0)); 
+  }
 }
 
 bool
@@ -183,6 +339,8 @@ AlgoParamList::set_option(std::string key, std::string value)
       ++it;
     }
   }
+
+  throw std::string("key \""+key+"\" was not defined in algorithm");
   return (false);
 }
 
@@ -191,7 +349,23 @@ AlgoParamList::get_option(std::string key, std::string& value)
 {
   OptionParam* param = dynamic_cast<OptionParam*>(parameters_[key]);
   if (param) { value = param->value(); return (true); }
-  else { return (false); }
+  else 
+  { 
+   throw std::string("key \""+key+"\" was not defined in algorithm");
+   return (false); 
+  }
+}
+
+std::string
+AlgoParamList::get_option(std::string key)
+{
+  OptionParam* param = dynamic_cast<OptionParam*>(parameters_[key]);
+  if (param) { return(param->value()); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (""); 
+  }
 }
 
 bool 
@@ -199,7 +373,11 @@ AlgoParamList::set_string(std::string key, std::string value)
 {
   StringParam* param = dynamic_cast<StringParam*>(parameters_[key]);
   if (param) { param->value() = value; return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
 }
 
 bool
@@ -207,7 +385,23 @@ AlgoParamList::get_string(std::string key, std::string& value)
 {
   StringParam* param = dynamic_cast<StringParam*>(parameters_[key]);
   if (param) { value = param->value(); return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
+}
+
+std::string
+AlgoParamList::get_string(std::string key)
+{
+  StringParam* param = dynamic_cast<StringParam*>(parameters_[key]);
+  if (param) { return(param->value()); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (""); 
+  }
 }
 
 bool 
@@ -215,7 +409,11 @@ AlgoParamList::set_filename(std::string key, std::string value)
 {
   FilenameParam* param = dynamic_cast<FilenameParam*>(parameters_[key]);
   if (param) { param->value() = value; return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
 }
 
 bool
@@ -223,7 +421,23 @@ AlgoParamList::get_filename(std::string key, std::string& value)
 {
   FilenameParam* param = dynamic_cast<FilenameParam*>(parameters_[key]);
   if (param) { value = param->value(); return (true); }
-  else { return (false); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (false); 
+  }
+}
+
+std::string
+AlgoParamList::get_filename(std::string key)
+{
+  FilenameParam* param = dynamic_cast<FilenameParam*>(parameters_[key]);
+  if (param) { return(param->value()); }
+  else 
+  { 
+    throw std::string("key \""+key+"\" was not defined in algorithm");
+    return (""); 
+  }
 }
 
 
@@ -236,37 +450,62 @@ AlgoParamList::~AlgoParamList()
 }
 
 void
-AlgoParamList::add_bool(std::string key, bool defval)
+AlgoParamList::add_bool(std::string key, bool defval, int type)
 {
-  parameters_[key] = new BoolParam(defval);
+  parameters_[key] = new BoolParam(defval,type);
 }
 
 void
-AlgoParamList::add_int(std::string key, int defval)
+AlgoParamList::add_int(std::string key, int defval, int type)
 {
-  parameters_[key] = new IntegerParam(defval);
+  parameters_[key] = new IntegerParam(defval,type);
 }
 
 void
-AlgoParamList::add_int(std::string key, int defval, int min, int max)
+AlgoParamList::add_int(std::string key, int defval, int min, int max, int type)
 {
-  parameters_[key] = new IntegerParam(defval,min,max);
+  parameters_[key] = new IntegerParam(defval,min,max,type);
 }
 
 void
-AlgoParamList::add_scalar(std::string key, double defval)
+AlgoParamList::add_scalar(std::string key, double defval, int type)
 {
-  parameters_[key] = new ScalarParam(defval);
+  parameters_[key] = new ScalarParam(defval,type);
+}
+
+
+void
+AlgoParamList::add_color(std::string key, SCIRun::Color defval, int type)
+{
+  parameters_[key] = new ColorParam(defval,type);
 }
 
 void
-AlgoParamList::add_scalar(std::string key, double defval, double min, double max)
+AlgoParamList::add_vector(std::string key, SCIRun::Vector defval, int type)
 {
-  parameters_[key] = new ScalarParam(defval,min,max);
+  parameters_[key] = new VectorParam(defval,type);
 }
 
 void
-AlgoParamList::add_option(std::string key, std::string defval, std::string options)
+AlgoParamList::add_point(std::string key, SCIRun::Point defval, int type)
+{
+  parameters_[key] = new PointParam(defval,type);
+}
+
+void
+AlgoParamList::add_colormap(std::string key, SCIRun::ColorMap* defval, int type)
+{
+  parameters_[key] = new ColorMapParam(defval,type);
+}
+
+void
+AlgoParamList::add_scalar(std::string key, double defval, double min, double max, int type)
+{
+  parameters_[key] = new ScalarParam(defval,min,max,type);
+}
+
+void
+AlgoParamList::add_option(std::string key, std::string defval, std::string options, int type)
 {
   std::vector<std::string> opts;
   for (size_t j=0; j<options.size(); j++) options[j] = tolower(options[j]);
@@ -282,19 +521,25 @@ AlgoParamList::add_option(std::string key, std::string defval, std::string optio
     options = options.substr(loc+1);
   }
   
-  parameters_[key] = new OptionParam(defval,opts);
+  parameters_[key] = new OptionParam(defval,opts,type);
 }
 
 void
-AlgoParamList::add_string(std::string key, std::string defval)
+AlgoParamList::add_string(std::string key, std::string defval, int type)
 {
-  parameters_[key] = new StringParam(defval);
+  parameters_[key] = new StringParam(defval,type);
 }
 
 void
-AlgoParamList::add_filename(std::string key, std::string defval)
+AlgoParamList::add_filename(std::string key, std::string defval, int type)
 {
-  parameters_[key] = new FilenameParam(defval);
+  parameters_[key] = new FilenameParam(defval,type);
+}
+
+void
+AlgoParamList::add_handle(std::string key, int type)
+{
+  parameters_[key] = new HandleParam(type);
 }
 
 }

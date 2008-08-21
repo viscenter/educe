@@ -47,9 +47,9 @@ namespace SCIRun {
 template class GenericReader<PathHandle>;
 
 class ReadPath : public GenericReader<PathHandle> {
-public:
-  ReadPath(GuiContext* ctx);
-  virtual ~ReadPath();
+  public:
+    ReadPath(GuiContext* ctx);
+    virtual ~ReadPath() {}
 };
 
 DECLARE_MAKER(ReadPath)
@@ -57,11 +57,5 @@ ReadPath::ReadPath(GuiContext* ctx)
   : GenericReader<PathHandle>("ReadPath", ctx, "DataIO", "SCIRun")
 {
 }
-
-
-ReadPath::~ReadPath()
-{
-}
-
 
 } // End namespace SCIRun

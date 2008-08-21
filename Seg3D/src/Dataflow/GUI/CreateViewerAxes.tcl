@@ -95,7 +95,7 @@ proc setPercentage { var which val } {
 
 proc addLabeledFrame { w text } {
     set frame $w.[string tolower [join $text ""]]
-    iwidgets::labeledframe $frame -labelpos nw -labeltext $text
+    sci_labeledframe $frame -labelpos nw -labeltext $text
     pack $frame -side top -fill x -expand 0 -pady 0 -ipady 0
     set frame [$frame childsite]
 #    frame $frame
@@ -105,24 +105,24 @@ proc addLabeledFrame { w text } {
 
 proc displayRadios { w var text } {
     set w $w.[lindex [split $var -] end]
-    frame $w
-    label $w.label -width 10 -anchor w -text $text:
-    radiobutton $w.on -text On -value 1 -variable $var
-    radiobutton $w.off -text Off -value 0 -variable $var
-    radiobutton $w.auto -text Auto -value 2 -variable $var
+    sci_frame $w
+    sci_label $w.label -width 10 -anchor w -text $text:
+    sci_radiobutton $w.on -text On -value 1 -variable $var
+    sci_radiobutton $w.off -text Off -value 0 -variable $var
+    sci_radiobutton $w.auto -text Auto -value 2 -variable $var
     pack $w.label $w.off $w.on $w.auto -side left -expand 1 -fill x
     pack $w -side top -expand 0 -fill x
 }
 
 proc labeledSlider { w text var from to res {width 13}} {
     set frame $w.[lindex [split $var -] end]
-    frame $frame
+    sci_frame $frame
     pack $frame -side top -expand 1 -fill x
-    label $frame.label -text $text -anchor w -width $width
+    sci_label $frame.label -text $text -anchor w -width $width
     pack $frame.label -side left -expand 0 -fill none
-    scale $frame.scale -orient horizontal -variable $var \
-	-from $from -to $to -resolution $res -showvalue 0 
-    entry $frame.entry -text $var -width 4 -justify right
+    sci_scale $frame.scale -orient horizontal -variable $var \
+      -from $from -to $to -resolution $res -showvalue 0 
+    sci_entry $frame.entry -text $var -width 4 -justify right
     pack $frame.entry -side right -expand 0 -fill x
     pack $frame.scale -side right -expand 1 -fill x
     pack $frame -side top -expand 0 -fill x
@@ -281,7 +281,7 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
 	set fromPre [linkVars $planes $vars]
 	set tab [$tabs add -label "All"]
 	set tabframe $tab.frame
-	frame $tabframe
+	sci_frame $tabframe
 	pack $tabframe -expand 1 -fill both
 	set command [list $this compute_all_values $planes $vars]
 	bind $tabframe <Map> $command
@@ -322,28 +322,28 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
 	labeledSlider $Frame "Total \#:" $varPrefix-divisions 0 100 0.5 7
 	
 	set frame $Frame.end
-	frame $frame
+	sci_frame $frame
 	pack $frame -side top -expand 1 -fill x
-	label $frame.label -anchor w -text "Interval: " -width 7
+	sci_label $frame.label -anchor w -text "Interval: " -width 7
 	pack $frame.label -side left -expand 0 -fill none
 	
-	scale $frame.scale -orient horizontal -from 0 \
+	sci_scale $frame.scale -orient horizontal -from 0 \
 	    -to 100 -showvalue 0 -resolution 0.001 \
 	    -variable $varPrefix-percent
 	
-	entry $frame.percent -width 4 -justify right \
+	sci_entry $frame.percent -width 4 -justify right \
 	    -text $varPrefix-percent
-	label $frame.label2 -text "% = " -width 4
+	sci_label $frame.label2 -text "% = " -width 4
 	
-	entry $frame.absolute -width 7 -justify right \
+	sci_entry $frame.absolute -width 7 -justify right \
 	    -text $varPrefix-absolute
 	pack $frame.absolute $frame.label2 $frame.percent \
 	    -side right -expand 0
 	pack $frame.scale  -side left -expand 1 -fill x
 	
 	set frame $Frame.offset
-	frame $frame
-	checkbutton $frame.offset -variable $varPrefix-offset \
+	sci_frame $frame
+	sci_checkbutton $frame.offset -variable $varPrefix-offset \
 	    -text "Offset Intervals from Range Minimum" 
 	pack $frame.offset -side left -expand 0 -fill none
 	pack $frame -side top -expand 1 -fill x
@@ -363,40 +363,40 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
 	set Frame2 $Frame
 	
 	set frame $Frame.begin
-	frame $frame
+	sci_frame $frame
 	pack $frame -expand 1 -fill x
-	label $frame.label -text "Min: " -anchor w -width 4
+	sci_label $frame.label -text "Min: " -anchor w -width 4
 	pack $frame.label -side left -expand 0 -fill none
 	
-	scale $frame.scale -orient horizontal -from -100 \
+	sci_scale $frame.scale -orient horizontal -from -100 \
 	    -to 100 -showvalue 0 -resolution 1 \
 	    -variable $varPrefix-min-percent
 	
-	entry $frame.percent -width 4 -text $varPrefix-min-percent \
+	sci_entry $frame.percent -width 4 -text $varPrefix-min-percent \
 	    -justify right
-	label $frame.label2 -text "% = " -width 4
+	sci_label $frame.label2 -text "% = " -width 4
 	
-	entry $frame.absolute -width 7 -text $varPrefix-min-absolute \
+	sci_entry $frame.absolute -width 7 -text $varPrefix-min-absolute \
 	    -justify right
 	pack $frame.absolute $frame.label2 $frame.percent \
 	    -side right -expand 0
 	pack $frame.scale  -side left -expand 1 -fill x
 	
 	set frame $Frame.end
-	frame $frame
+	sci_frame $frame
 	pack $frame -expand 1 -fill x
-	label $frame.label -text "Max: " -anchor w -width 4
+	sci_label $frame.label -text "Max: " -anchor w -width 4
 	pack $frame.label -side left -expand 0 -fill none
 	
-	scale $frame.scale -orient horizontal -from 0 \
+	sci_scale $frame.scale -orient horizontal -from 0 \
 	    -to 200 -showvalue 0 -resolution 1 \
 	    -variable $varPrefix-max-percent
 	
-	entry $frame.percent -width 4 -text $varPrefix-max-percent \
+	sci_entry $frame.percent -width 4 -text $varPrefix-max-percent \
 	    -justify right
-	label $frame.label2 -text "% = " -width 4
+	sci_label $frame.label2 -text "% = " -width 4
 	
-	entry $frame.absolute -width 7 -text $varPrefix-max-absolute \
+	sci_entry $frame.absolute -width 7 -text $varPrefix-max-absolute \
 	    -justify right
 	pack $frame.absolute $frame.label2 $frame.percent \
 	    -side right -expand 0
@@ -409,7 +409,7 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
 	set Frame [addLabeledFrame $f "Display Options - (Click to Hide)"]
 	update idletasks
 	set Hidden [join [lrange [split $Frame .] 0 end-1] .]
-	button $f.but -text "Show Display Options" -command "showOptions $this"
+	sci_button $f.but -text "Show Display Options" -command "showOptions $this"
 	bind $Hidden.label <ButtonRelease> "hideOptions $this"
 	global $this-displayFrames $this-displayButtons
 	lappend $this-displayFrames $Hidden
@@ -419,11 +419,11 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
 	pack $f.but -side top -expand 0 -pady 0 -ipady 0;
 
 	set frame $Frame.text
-	frame $frame
+	sci_frame $frame
 	pack $frame -side top -expand 1 -fill x
-	label $frame.label -anchor w -text "Label Text: " -width 13
+	sci_label $frame.label -anchor w -text "Label Text: " -width 13
 	pack $frame.label -side left -expand 0
-	entry $frame.entry -text $varPrefix-text -justify right
+	sci_entry $frame.entry -text $varPrefix-text -justify right
 	pack $frame.entry -side left -expand 1 -fill x
 	
 	
@@ -456,9 +456,9 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
     method build_plane_tab { tabs axes { text "" }} {
 	set tab [$tabs add -label "[axisName $axes] Plane"]
 	set tabframe $tab.frame
-	frame $tabframe
+	sci_frame $tabframe
 	pack $tabframe -expand 1 -fill both
-	iwidgets::tabnotebook $tabframe.tabs -width 330 -raiseselect true \
+	sci_tabnotebook $tabframe.tabs -width 330 -raiseselect true \
 	    -tabpos n -backdrop gray -equaltabs 0 -bevelamount 5
 	pack $tabframe.tabs -expand 1 -fill both
 
@@ -466,7 +466,7 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
 	set fromPre [linkVars [list $axes] $vars]
 
 	set frame [$tabframe.tabs add -label "Both"].frame
-	frame $frame
+	sci_frame $frame
 	pack $frame -expand 1 -fill both
 	
 	set command [list $this compute_all_values [list $axes] $vars]
@@ -497,16 +497,16 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
 	pack $options -side top -expand 1 -fill both
 
 	set valueframe $options.valuefont
-	frame $valueframe -borderwidth 2 -relief groove
+	sci_frame $valueframe -borderwidth 2 -relief groove
 	pack $valueframe -side top -expand 0 -fill x
 
 	set frame2 $valueframe.valuefont
-	frame $frame2 -borderwidth 2
+	sci_frame $frame2 -borderwidth 2
 	pack $frame2 -side top -expand 0 -fill x
 
-	label $frame2.label -text "Value Font: " -anchor w
+	sci_label $frame2.label -text "Value Font: " -anchor w
 	pack $frame2.label -side left -expand 0 -fill none
-	menubutton $frame2.menu -indicatoron 1 -menu $frame2.menu.m \
+	sci_menubutton $frame2.menu -indicatoron 1 -menu $frame2.menu.m \
 	    -text "No Fonts in $dir"
 	pack $frame2.menu -side right -expand 1 -fill x
 	menu $frame2.menu.m -tearoff 0
@@ -519,16 +519,16 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
 	bind $rez <ButtonRelease> "$this-c needexecute"
 
 	set labelframe $options.labelfont
-	frame $labelframe -borderwidth 2 -relief groove
+	sci_frame $labelframe -borderwidth 2 -relief groove
 	pack $labelframe -side top -expand 0 -fill x
 	
 	set frame $labelframe.labelfont
-	frame $frame -borderwidth 2
+	sci_frame $frame -borderwidth 2
 	pack $frame -side top -expand 0 -fill x
 
-	label $frame.label -text "Label Font: " -anchor w
+	sci_label $frame.label -text "Label Font: " -anchor w
 	pack $frame.label -side left -expand 0 -fill none
-	menubutton $frame.menu -indicatoron 1 -menu $frame.menu.m \
+	sci_menubutton $frame.menu -indicatoron 1 -menu $frame.menu.m \
 	    -text "No Fonts in $dir"
 	pack $frame.menu -side right -expand 1 -fill x
 	menu $frame.menu.m -tearoff 0
@@ -571,24 +571,24 @@ itcl_class SCIRun_Visualization_CreateViewerAxes {
             raise $w
             return
         }
-        toplevel $w
-	moveToCursor $w
+        sci_toplevel $w
+        moveToCursor $w
 
- 	iwidgets::tabnotebook $w.tabs -height 600 -raiseselect true -tabpos n \
-	    -backdrop gray -equaltabs 0 -bevelamount 5 -borderwidth 0
-	pack $w.tabs -expand 1 -fill both
+        sci_tabnotebook $w.tabs -height 600 -raiseselect true -tabpos n \
+            -backdrop gray -equaltabs 0 -bevelamount 5 -borderwidth 0
+        pack $w.tabs -expand 1 -fill both
 
-	set dont_execute_ 1
-	build_all_tab $w.tabs
-	build_plane_tab $w.tabs "0 1"
-	build_plane_tab $w.tabs "0 2"
-	build_plane_tab $w.tabs "1 2"
-	build_options_tab $w.tabs
+        set dont_execute_ 1
+        build_all_tab $w.tabs
+        build_plane_tab $w.tabs "0 1"
+        build_plane_tab $w.tabs "0 2"
+        build_plane_tab $w.tabs "1 2"
+        build_options_tab $w.tabs
 
-	$w.tabs view 0
+        $w.tabs view 0
 
-	makeSciButtonPanel $w $w $this
-	set dont_execute_ 0
+        makeSciButtonPanel $w $w $this
+        set dont_execute_ 0
 
     }
 }

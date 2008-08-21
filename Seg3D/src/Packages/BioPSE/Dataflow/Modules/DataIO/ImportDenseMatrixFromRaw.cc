@@ -32,7 +32,7 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
@@ -101,11 +101,7 @@ ImportDenseMatrixFromRaw::execute()
 
   // If we haven't read yet, or if it's a new filename, 
   //  or if the datestamp has changed -- then read...
-#ifdef __sgi
-  time_t new_filemodification = buf.st_mtim.tv_sec;
-#else
   time_t new_filemodification = buf.st_mtime;
-#endif
 
   if (!handle_.get_rep() || 
       filename_.get() != old_filename_ || 
@@ -118,10 +114,13 @@ ImportDenseMatrixFromRaw::execute()
     FILE *f = fopen(filename_.get().c_str(), "rt");
     if (f) {
       float x,y,z;
-      while (!feof(f) && fscanf(f, "%f %f %f", &x, &y, &z) == 3) {
-	++rows;
+      while (!feof(f) && fscanf(f, "%f %f %f", &x, &y, &z) == 3) 
+      {
+        ++rows;
       }
-    } else {
+    } 
+    else 
+    {
       error("Could not open file: " + filename_.get());
       return;
     } 
@@ -134,21 +133,25 @@ ImportDenseMatrixFromRaw::execute()
       get_gui()->eval(get_id() + " working_files " + filename_.get(), dummy);
     }
 
-    DenseMatrix* mat = scinew DenseMatrix(rows, potfiles_.size());
+    DenseMatrix* mat = new DenseMatrix(rows, potfiles_.size());
     int col = 0;
     vector<string>::iterator iter = potfiles_.begin();
-    while (iter != potfiles_.end()) {
+    while (iter != potfiles_.end()) 
+    {
       int row = 0;
       FILE *f=fopen((*iter).c_str(), "rt");
-      if (f) {
-	double val;
-	while(!feof(f) && fscanf(f, "%lf", &val) == 1) {
-	  mat->put(row, col, val);
-	  ++row;
-	}
-      } else {
-	error("Could not open file: " + *iter);
-	return;
+      if (f) 
+      {
+        double val;
+        while(!feof(f) && fscanf(f, "%lf", &val) == 1) {
+          mat->put(row, col, val);
+          ++row;
+        }
+      } 
+      else 
+      {
+        error("Could not open file: " + *iter);
+        return;
       }
       ++col;
       ++iter;

@@ -46,11 +46,10 @@
 #include <Core/Persistent/Persistent.h>
 #include <stdio.h>
 
-#include <zlib.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <iosfwd>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Persistent/share.h>
 

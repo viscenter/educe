@@ -30,10 +30,10 @@
 //    Date   : Wed May 17 14:07:18 2006
 
 #include <Core/Geom/OpenGLContext.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 
 using std::string;

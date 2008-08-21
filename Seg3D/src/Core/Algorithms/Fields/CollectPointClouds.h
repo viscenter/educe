@@ -135,7 +135,7 @@ CollectPointClouds(ProgressReporter *pr,
   }
   else
   {
-    oMesh = scinew typename OFIELD::mesh_type();
+    oMesh = new typename OFIELD::mesh_type();
     
     if (oMesh == 0)
     {
@@ -201,7 +201,7 @@ CollectPointClouds(ProgressReporter *pr,
   // Have the new mesh now make a new field if needed.
   if( count == 0 )
   {
-    oField = scinew OFIELD(oMesh);
+    oField = new OFIELD(oMesh);
 
     if (oField == 0)
     {

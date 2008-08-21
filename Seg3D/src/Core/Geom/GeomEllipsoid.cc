@@ -30,14 +30,14 @@
 #include <Core/Geom/GeomEllipsoid.h>
 #include <Core/Geometry/BBox.h>
 //#include <Core/Geometry/BSphere.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCIRun {
 
 
 Persistent* make_GeomEllipsoid()
 {
-    return scinew GeomEllipsoid;
+    return new GeomEllipsoid;
 }
 
 PersistentTypeID GeomEllipsoid::type_id("GeomEllipsoid", "GeomSphere", make_GeomEllipsoid);

@@ -151,12 +151,12 @@ void ResampleTool::OnStartButtonClick( wxCommandEvent& event )
 {
   wxBeginBusyCursor();
   SCIRun::ThrowSkinnerSignalEvent *tsse =
-    new SCIRun::ThrowSkinnerSignalEvent("Painter::ResampleVolume");
+    new SCIRun::ThrowSkinnerSignalEvent("Painter::FinishTool");
   tsse->add_var( "Resample::x", SCIRun::to_string( mX->GetValue() ) );
   tsse->add_var( "Resample::y", SCIRun::to_string( mY->GetValue() ) );
   tsse->add_var( "Resample::z", SCIRun::to_string( mZ->GetValue() ) );
+  tsse->add_var( "Resample::filter", wx2std( mFilter->GetStringSelection() ) );
   SCIRun::Painter::ThrowSkinnerSignal(tsse);
-  SCIRun::Painter::ThrowSkinnerSignal("Painter::Autoview");
   wxEndBusyCursor();
 
   SCIRun::Painter::global_seg3dframe_pointer_->HideTool();

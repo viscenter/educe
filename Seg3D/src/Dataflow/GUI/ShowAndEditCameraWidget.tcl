@@ -46,19 +46,19 @@ itcl_class SCIRun_Render_ShowAndEditCameraWidget {
     }
 
     method set_defaults {} {    
-	setGlobal $this-playmode		once
-	setGlobal $this-execmode		pause
-	setGlobal $this-frame			1
-	setGlobal $this-inc			1
-	setGlobal $this-num_frames		100
-	setGlobal $this-delay			500
-	setGlobal $this-time			0
-	setGlobal $this-execmode		init
-	setGlobal $this-track			1
-	setGlobal $this-B			1.0
-	setGlobal $this-C			0.0
-	setGlobal $this-frameReady		1
-	setGlobal $this-frameCancelID		""
+        setGlobal $this-playmode		once
+        setGlobal $this-execmode		pause
+        setGlobal $this-frame			1
+        setGlobal $this-inc			1
+        setGlobal $this-num_frames		100
+        setGlobal $this-delay			500
+        setGlobal $this-time			0
+        setGlobal $this-execmode		init
+        setGlobal $this-track			1
+        setGlobal $this-B			1.0
+        setGlobal $this-C			0.0
+        setGlobal $this-frameReady		1
+        setGlobal $this-frameCancelID		""
     }
 
     method post_next_frame {} {
@@ -161,127 +161,127 @@ itcl_class SCIRun_Render_ShowAndEditCameraWidget {
     }
 
     method fastforward {} {
-	cancelFrame $this
-	upvar \#0 $this-num_frames num_frames
-	setGlobal $this-execmode pause
-	setGlobal $this-frame $num_frames
-	setGlobal $this-frameReady 1
-	$this-c needexecute
-    }
+      cancelFrame $this
+      upvar \#0 $this-num_frames num_frames
+      setGlobal $this-execmode pause
+      setGlobal $this-frame $num_frames
+      setGlobal $this-frameReady 1
+      $this-c needexecute
+        }
 
-    method create_keyframe_views_ui_frame { parent_frame } {
-	set w $parent_frame
-	set f $w.time
-	frame $f
-	label $f.timelabel -text "Keyframe \#:"
-	entry $f.time -textvariable $this-time -width 4
-	pack $f.timelabel $f.time -side left -expand yes -fill both
+        method create_keyframe_views_ui_frame { parent_frame } {
+      set w $parent_frame
+      set f $w.time
+      sci_frame $f
+      sci_label $f.timelabel -text "Keyframe \#:"
+      sci_entry $f.time -textvariable $this-time -width 4
+      pack $f.timelabel $f.time -side left -expand yes -fill both
 
-	set f $w.fps
-	frame $f
-	label $f.label -text "Total Frames:"
-	entry $f.entry -textvariable $this-num_frames -width 4 
-#	trace variable $this-num_frames w "[$W.tabs childsite 0].posf.cur configure -to \[set $this-num_frames\];\#"
-	pack $f.label $f.entry -side left -expand yes -fill x -anchor w
+      set f $w.fps
+      sci_frame $f
+      sci_label $f.label -text "Total Frames:"
+      sci_entry $f.entry -textvariable $this-num_frames -width 4 
+    #	trace variable $this-num_frames w "[$W.tabs childsite 0].posf.cur configure -to \[set $this-num_frames\];\#"
+      pack $f.label $f.entry -side left -expand yes -fill x -anchor w
 
-	set f $w.bee
-	frame $f
-	label $f.label -text B:
-	entry $f.entry -textvariable $this-B -width 4
-	pack $f.label $f.entry -side left -expand yes -fill both
+      set f $w.bee
+      sci_frame $f
+      sci_label $f.label -text B:
+      sci_entry $f.entry -textvariable $this-B -width 4
+      pack $f.label $f.entry -side left -expand yes -fill both
 
-	set f $w.cee
-	frame $f
-	label $f.label -text C:
-	entry $f.entry -textvariable $this-C -width 4
-	pack $f.label $f.entry -side left -expand yes -fill both
+      set f $w.cee
+      sci_frame $f
+      sci_label $f.label -text C:
+      sci_entry $f.entry -textvariable $this-C -width 4
+      pack $f.label $f.entry -side left -expand yes -fill both
 
-	set f $w.trackf
-	frame $f
-	label $f.label -text "Track Type"
-	radiobutton $f.at -text "Track At" \
-	    -variable $this-track -value 1
-	radiobutton $f.from -text "Track From" \
-	    -variable $this-track -value 2
-	radiobutton $f.both -text "Track Both" \
-	    -variable $this-track -value 3
-	pack $f.at $f.from $f.both -side top -expand yes -fill both -anchor w
+      set f $w.trackf
+      sci_frame $f
+      sci_label $f.label -text "Track Type"
+      sci_radiobutton $f.at -text "Track At" \
+          -variable $this-track -value 1
+      sci_radiobutton $f.from -text "Track From" \
+          -variable $this-track -value 2
+      sci_radiobutton $f.both -text "Track Both" \
+          -variable $this-track -value 3
+      pack $f.at $f.from $f.both -side top -expand yes -fill both -anchor w
 
 
-	set f $w
-	button $f.add -text "Add Keyframe" -command "$this-c add_frame; incr $this-time"
-	button $f.build -text "Build ShowAndEditCameraWidget Path" -command "$this-c create_frames"
+      set f $w
+      button $f.add -text "Add Keyframe" -command "$this-c add_frame; incr $this-time"
+      button $f.build -text "Build ShowAndEditCameraWidget Path" -command "$this-c create_frames"
 
-	pack $f.add $w.time $w.fps $w.trackf $w.bee $w.cee $w.build -side top -expand 0 -fill x
-	
+      pack $f.add $w.time $w.fps $w.trackf $w.bee $w.cee $w.build -side top -expand 0 -fill x
+      
     }
 
 
     method create_vcr_ui_frame { parent_frame } {
-	set w $parent_frame
+        set w $parent_frame
 
-	frame $w.playmode -relief groove -borderwidth 2
-	frame $w.vcr -relief groove -borderwidth 2
-        set playmode $w.playmode
-	set vcr $w.vcr
+        sci_frame $w.playmode -relief groove -borderwidth 2
+        sci_frame $w.vcr -relief groove -borderwidth 2
+              set playmode $w.playmode
+        set vcr $w.vcr
 
-	# load the VCR button bitmaps
-	set image_dir /gozer/SCIRun/src/pixmaps
-	set rewind [image create photo -file ${image_dir}/rewind-icon.ppm]
-	set stepb [image create photo -file ${image_dir}/step-back-icon.ppm]
-	set pause [image create photo -file ${image_dir}/pause-icon.ppm]
-	set play [image create photo -file ${image_dir}/play-icon.ppm]
-	set stepf [image create photo -file ${image_dir}/step-forward-icon.ppm]
-	set fforward [image create photo -file ${image_dir}/fast-forward-icon.ppm]
+        # load the VCR button bitmaps
+        set image_dir /gozer/SCIRun/src/pixmaps
+        set rewind [image create photo -file ${image_dir}/rewind-icon.ppm]
+        set stepb [image create photo -file ${image_dir}/step-back-icon.ppm]
+        set pause [image create photo -file ${image_dir}/pause-icon.ppm]
+        set play [image create photo -file ${image_dir}/play-icon.ppm]
+        set stepf [image create photo -file ${image_dir}/step-forward-icon.ppm]
+        set fforward [image create photo -file ${image_dir}/fast-forward-icon.ppm]
 
-	# Create and pack the VCR buttons frame
-	button $vcr.rewind -image $rewind -command "$this rewind"
-	button $vcr.stepb -image $stepb -command "$this stepb"
-	button $vcr.pause -image $pause -command "$this pause"
-	button $vcr.play -image $play -command "$this play"
-	button $vcr.stepf -image $stepf -command "$this stepf"
-	button $vcr.fforward -image $fforward -command "$this fastforward"
+        # Create and pack the VCR buttons frame
+        sci_button $vcr.rewind -image $rewind -command "$this rewind"
+        sci_button $vcr.stepb -image $stepb -command "$this stepb"
+        sci_button $vcr.pause -image $pause -command "$this pause"
+        sci_button $vcr.play -image $play -command "$this play"
+        sci_button $vcr.stepf -image $stepf -command "$this stepf"
+        sci_button $vcr.fforward -image $fforward -command "$this fastforward"
 
-	pack $vcr.rewind $vcr.stepb $vcr.pause \
-	    $vcr.play $vcr.stepf $vcr.fforward -side left -fill both -expand 1
-	global ToolTipText
-	Tooltip $vcr.rewind $ToolTipText(VCRrewind)
-	Tooltip $vcr.stepb $ToolTipText(VCRstepback)
-	Tooltip $vcr.pause $ToolTipText(VCRpause)
-	Tooltip $vcr.play $ToolTipText(VCRplay)
-	Tooltip $vcr.stepf $ToolTipText(VCRstepforward)
-	Tooltip $vcr.fforward $ToolTipText(VCRfastforward)
+        pack $vcr.rewind $vcr.stepb $vcr.pause \
+            $vcr.play $vcr.stepf $vcr.fforward -side left -fill both -expand 1
+        global ToolTipText
+        Tooltip $vcr.rewind $ToolTipText(VCRrewind)
+        Tooltip $vcr.stepb $ToolTipText(VCRstepback)
+        Tooltip $vcr.pause $ToolTipText(VCRpause)
+        Tooltip $vcr.play $ToolTipText(VCRplay)
+        Tooltip $vcr.stepf $ToolTipText(VCRstepforward)
+        Tooltip $vcr.fforward $ToolTipText(VCRfastforward)
 
-	set f $w.posf
-	frame $f
-        scale $f.cur -variable $this-frame \
-	    -showvalue true -orient horizontal -relief groove -length 200
-	pack $f.cur -fill x
-	
-	
-	# Create and pack the play mode frame
-	label $playmode.label -text "Play Mode"
-	radiobutton $playmode.once -text "Once" \
-	    -variable $this-playmode -value once
-	radiobutton $playmode.loop -text "Loop" \
-	    -variable $this-playmode -value loop
-	radiobutton $playmode.bounce1 -text "Bounce" \
-	    -variable $this-playmode -value bounce
+        set f $w.posf
+        sci_frame $f
+              scale $f.cur -variable $this-frame \
+            -showvalue true -orient horizontal -relief groove -length 200
+        pack $f.cur -fill x
+        
+        
+        # Create and pack the play mode frame
+        sci_label $playmode.label -text "Play Mode"
+        sci_radiobutton $playmode.once -text "Once" \
+            -variable $this-playmode -value once
+        sci_radiobutton $playmode.loop -text "Loop" \
+            -variable $this-playmode -value loop
+        sci_radiobutton $playmode.bounce1 -text "Bounce" \
+            -variable $this-playmode -value bounce
 
-	# Save the delay since the iwidget resets it
-	global $this-delay
-	set delay [set $this-delay]
-	iwidgets::spinint $playmode.delay -labeltext {Step Delay (ms)} \
-	    -range {0 86400000} -justify right -width 5 -step 10 \
-	    -textvariable $this-delay -repeatdelay 300 -repeatinterval 10
-	
-	$playmode.delay delete 0 end
-	$playmode.delay insert 0 $delay
-	trace variable $this-delay w "$this maybeRestart;\#"
+        # Save the delay since the iwidget resets it
+        global $this-delay
+        set delay [set $this-delay]
+        sci_spinint $playmode.delay -labeltext {Step Delay (ms)} \
+            -range {0 86400000} -justify right -width 5 -step 10 \
+            -textvariable $this-delay -repeatdelay 300 -repeatinterval 10
+        
+        $playmode.delay delete 0 end
+        $playmode.delay insert 0 $delay
+        trace variable $this-delay w "$this maybeRestart;\#"
 
-	pack $playmode.label -side top -expand yes -fill both
-	pack $playmode.once $playmode.loop \
-		$playmode.bounce1  $playmode.delay \
+        pack $playmode.label -side top -expand yes -fill both
+        pack $playmode.once $playmode.loop \
+          $playmode.bounce1  $playmode.delay \
 	        -side top -anchor w
 
         pack $w.vcr $w.posf $w.playmode  -padx 5 -pady 5 -fill x -expand 0
@@ -294,22 +294,22 @@ itcl_class SCIRun_Render_ShowAndEditCameraWidget {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	# create tabs
-	iwidgets::tabnotebook $w.tabs -equaltabs 1 -raiseselect 1 \
-	    -tabpos n -auto 1 -height 400
-	$w.tabs add -label "Play Mode"
-	$w.tabs add -label "Build Mode"
-	$w.tabs select 0
-	create_vcr_ui_frame [$w.tabs childsite 0]
-	create_keyframe_views_ui_frame [$w.tabs childsite 1]
-	pack $w.tabs -expand 1 -fill both
+        # create tabs
+        sci_tabnotebook $w.tabs -equaltabs 1 -raiseselect 1 \
+            -tabpos n -auto 1 -height 400
+        $w.tabs add -label "Play Mode"
+        $w.tabs add -label "Build Mode"
+        $w.tabs select 0
+        create_vcr_ui_frame [$w.tabs childsite 0]
+        create_keyframe_views_ui_frame [$w.tabs childsite 1]
+        pack $w.tabs -expand 1 -fill both
 
-	# Create the sci button panel
-	makeSciButtonPanel $w $w $this "-no_execute"
+        # Create the sci button panel
+        makeSciButtonPanel $w $w $this "-no_execute"
 
-	moveToCursor $w
+        moveToCursor $w
     }
 
 }

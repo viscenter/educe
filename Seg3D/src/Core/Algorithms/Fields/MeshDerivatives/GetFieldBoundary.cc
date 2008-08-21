@@ -35,16 +35,28 @@ namespace SCIRunAlgo {
 
 using namespace SCIRun;
 
+struct IndexHash {
+  static const size_t bucket_size = 4;
+  static const size_t min_buckets = 8;
+  
+  size_t operator()(const Field::index_type &idx) const
+    { return (static_cast<size_t>(idx)); }
+  
+  bool operator()(const Field::index_type &i1, const Field::index_type &i2) const
+    { return (i1 < i2); }
+};
+
 bool 
 GetFieldBoundaryAlgo::
 run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
 {
   //! Define types we need for mapping
 #ifdef HAVE_HASH_MAP
-  typedef hash_map<Field::index_type,Field::index_type> hash_map_type;
+  typedef hash_map<Field::index_type,Field::index_type,IndexHash> hash_map_type;
 #else
-  typedef map<Field::index_type,Field::index_type> hash_map_type;
+  typedef map<Field::index_type,Field::index_type,IndexHash> hash_map_type;
 #endif
+
   hash_map_type node_map;
   hash_map_type elem_map;
   
@@ -103,8 +115,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
   VField* ifield = input->vfield();
   VField* ofield = output->vfield();
   
-  imesh->synchronize_delems();
-  imesh->synchronize_elem_neighbors();
+  imesh->synchronize(Mesh::DELEMS_E|Mesh::ELEM_NEIGHBORS_E);
   
   //! These are all virtual iterators, virtual index_types and array_types
   VMesh::Elem::iterator be, ee;
@@ -137,8 +148,9 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
       if (includeface)
       {
         imesh->get_nodes(inodes,delems[p]);
-        if (onodes.size() == 0) onodes.resize(inodes.size());
-        for (size_t q=0; q<onodes.size(); q++)
+        onodes.resize(inodes.size());
+
+        for (size_t q=0; q<inodes.size(); q++)
         {
           a = inodes[q];
           hash_map_type::iterator it = node_map.find(a);
@@ -172,9 +184,9 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
 
     Matrix::size_type nrows = osize;
     Matrix::size_type ncols = isize;
-    Matrix::index_type *rr = scinew Matrix::index_type[nrows+1];
-    Matrix::index_type *cc = scinew Matrix::index_type[nrows];
-    double *d = scinew double[nrows];
+    Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+    Matrix::index_type *cc = new Matrix::index_type[nrows];
+    double *d = new double[nrows];
 
     for (Matrix::index_type p = 0; p < nrows; p++)
     {
@@ -201,7 +213,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
       ++it;
     }
     
-    mapping = scinew SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);
+    mapping = new SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);
   }
   else if (input->basis_order() == 1)
   {
@@ -212,9 +224,9 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
 
     Matrix::size_type nrows = osize;
     Matrix::size_type ncols = isize;
-    Matrix::index_type *rr = scinew Matrix::index_type[nrows+1];
-    Matrix::index_type *cc = scinew Matrix::index_type[nrows];
-    double *d = scinew double[nrows];
+    Matrix::index_type *rr = new Matrix::index_type[nrows+1];
+    Matrix::index_type *cc = new Matrix::index_type[nrows];
+    double *d = new double[nrows];
 
     for (Matrix::index_type p = 0; p < nrows; p++)
     {
@@ -239,7 +251,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
       ++it;
     }
     
-    mapping = scinew SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);
+    mapping = new SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);
   }
   
   // copy property manager
@@ -259,9 +271,9 @@ run(FieldHandle input, FieldHandle& output)
 {
   //! Define types we need for mapping
 #ifdef HAVE_HASH_MAP
-  typedef hash_map<Field::index_type,Field::index_type> hash_map_type;
+  typedef hash_map<Field::index_type,Field::index_type,IndexHash> hash_map_type;
 #else
-  typedef map<Field::index_type,Field::index_type> hash_map_type;
+  typedef map<Field::index_type,Field::index_type,IndexHash> hash_map_type;
 #endif
   hash_map_type node_map;
   hash_map_type elem_map;
@@ -321,8 +333,7 @@ run(FieldHandle input, FieldHandle& output)
   VField* ifield = input->vfield();
   VField* ofield = output->vfield();
   
-  imesh->synchronize_delems();
-  imesh->synchronize_elem_neighbors();
+  imesh->synchronize(Mesh::DELEMS_E|Mesh::ELEM_NEIGHBORS_E);
   
   //! These are all virtual iterators, virtual index_types and array_types
   VMesh::Elem::iterator be, ee;

@@ -45,7 +45,7 @@
 #define SCI_project_Point_Widget_h 1
 
 #include <Dataflow/Widgets/BaseWidget.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomSphere.h>
 #include <Core/Geom/GeomText.h>
 

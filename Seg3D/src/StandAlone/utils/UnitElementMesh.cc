@@ -97,7 +97,7 @@ void create_unit_element_mesh()
   assert(ei==0);
 
   typedef GenericField<MESH, FBASIS, vector<double> > FIELD;
-  FIELD *field = scinew FIELD(mesh);
+  FIELD *field = new FIELD(mesh);
   field->fdata().clear();
   FBASIS f;
 

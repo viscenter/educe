@@ -44,7 +44,7 @@
 #include <Dataflow/GuiInterface/TCLTask.h>
 #include <Dataflow/GuiInterface/GuiContext.h>
 #include <Core/Containers/StringUtil.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/Assert.h>
 #include <Core/Util/Environment.h>
 #include <Core/Thread/Thread.h>
@@ -136,7 +136,7 @@ void eventCheck(ClientData cd, int flags)
 {
   if (tclQueue.numItems() > 0) 
   {
-    Tcl_Event* event = scinew Tcl_Event;
+    Tcl_Event* event = new Tcl_Event;
     event->proc = eventCallback;
     Tcl_QueueEvent(event, TCL_QUEUE_HEAD);
   }
@@ -153,7 +153,7 @@ extern "C" {
 namespace SCIRun {
 
 TCLInterface::TCLInterface() :
-  pause_semaphore_(scinew Semaphore("TCL Task Pause Semaphore",0)),
+  pause_semaphore_(new Semaphore("TCL Task Pause Semaphore",0)),
   paused_(0)
                    
 {  
@@ -165,7 +165,7 @@ TCLInterface::TCLInterface() :
   const std::string itcl(itcl_dir);
 
   eval("set scirun2 0");
-  eval("lappend auto_path "+src+"/Dataflow/GUI "+itcl);
+  eval("lappend auto_path \""+src+"/Dataflow/GUI\" \""+itcl+"\"");
 }
 
 
@@ -207,7 +207,7 @@ TCLInterface::pause()
 void TCLInterface::source_once(const string& filename)
 {
   string result;
-  if(!eval("source " + filename, result)) {
+  if(!eval("source \"" + filename+"\"", result)) {
     char* msg = ccast_unsafe("Couldn't source file '" + filename + "'");
     Tcl_AddErrorInfo(the_interp,msg);
     Tk_BackgroundError(the_interp);
@@ -514,7 +514,7 @@ TCLInterface::add_command(const string&command , GuiCallback* callback,
 {
 #ifndef EXPERIMENTAL_TCL_THREAD
   TCLTask::lock();
-  TCLCommandData* command_data=scinew TCLCommandData;
+  TCLCommandData* command_data=new TCLCommandData;
   command_data->object=callback;
   command_data->userdata=userdata;
   Tcl_CreateCommand(the_interp, ccast_unsafe(command),
@@ -523,7 +523,7 @@ TCLInterface::add_command(const string&command , GuiCallback* callback,
 #else
   if (TCLTask::is_tcl_thread())
   {
-    TCLCommandData* command_data=scinew TCLCommandData;
+    TCLCommandData* command_data=new TCLCommandData;
     command_data->object=callback;
     command_data->userdata=userdata;
     Tcl_CreateCommand(the_interp, ccast_unsafe(command),
@@ -651,7 +651,7 @@ bool
 TCLInterface::complete_command(const string &command)
 {
   const int len = command.length()+1;
-  char *src = scinew char[len];
+  char *src = new char[len];
   strcpy (src, command.c_str());
   TCLTask::lock();
   Tcl_Parse parse;
@@ -717,7 +717,7 @@ SetEventMessage::execute()
 void 
 AddCommandEventMessage::execute()
 {
-  TCLCommandData* command_data=scinew TCLCommandData;
+  TCLCommandData* command_data=new TCLCommandData;
 
   command_data->object=callback_;
   command_data->userdata=userdata_;

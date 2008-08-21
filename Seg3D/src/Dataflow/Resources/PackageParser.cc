@@ -28,7 +28,7 @@
 
 
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Resources/Resources.h>
 #include <Dataflow/Resources/PackageParser.h>
 #include <Dataflow/Resources/ModuleParser.h>
@@ -39,8 +39,8 @@ namespace SCIRun {
 PackageParser::PackageParser( Resources *s )
   : ResourcesXMLParser(s)
 {
-  module_parser_ = scinew ModuleParser(s);
-  port_parser_ = scinew PortParser(s);
+  module_parser_ = new ModuleParser(s);
+  port_parser_ = new PortParser(s);
 }
 
 PackageParser::~PackageParser()

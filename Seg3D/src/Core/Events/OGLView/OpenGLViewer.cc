@@ -53,7 +53,7 @@
 #include <Core/Util/Environment.h>
 #include <Core/Util/FileUtils.h>
 #include <Core/Geom/GeomObj.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/DrawInfoOpenGL.h>
 #include <Core/Geom/GeomPick.h>
 #include <Core/Geom/PointLight.h>
@@ -71,11 +71,11 @@
 #include <slivr/ShaderProgramARB.h>
 
 
-#include <sgi_stl_warnings_off.h>
+
 #include   <iostream>
 #include   <fstream>
 using std::ofstream;
-#include <sgi_stl_warnings_on.h>
+
 
 #ifdef _WIN32
 #  include <windows.h>
@@ -264,7 +264,7 @@ public:
         if (geom_obj.get_rep())
         {
           GeomViewerItem* si =
-            scinew GeomViewerItem(geom_obj, gname, 0);
+            new GeomViewerItem(geom_obj, gname, 0);
           bool vis = true;
           if (ev->force_visibility_p()) vis = ev->forced_visibility_flag();
           visible_[gname] = vis;
@@ -473,11 +473,12 @@ OpenGLViewer::OpenGLViewer(OpenGLContext *oglc, string id) :
   fog_end_(0.714265),
   fog_visibleonly_(true),
   fbpick_(false),
-  focus_sphere_(scinew GeomSphere),
+  focus_sphere_(new GeomSphere),
   scene_graph_(new GeomIndexedGroup()),
   visible_(),
   obj_tag_(),
   draw_type_(GOURAUD_E),
+  capture_z_data_(false),
   need_redraw_(true),
   selection_set_(),
   selection_set_visible_(false),
@@ -488,27 +489,27 @@ OpenGLViewer::OpenGLViewer(OpenGLContext *oglc, string id) :
   fps_timer_.start();
 
   // Add a headlight
-  lighting_.lights.add(scinew HeadLight("Headlight", Color(1,1,1)));
+  lighting_.lights.add(new HeadLight("Headlight", Color(1,1,1)));
   for(int i = 1; i < 4; i++){ // only set up 3 more lights
     ostringstream str;
     str << "Light" << i;
-    lighting_.lights.add(scinew DirectionalLight(str.str(),
+    lighting_.lights.add(new DirectionalLight(str.str(),
 						 Vector(0,0,1),
 						 Color(1,1,1), false, false));
   }
 
   // 0 - Axes, visible
-  internal_objs_.push_back(scinew GeomViewerItem(create_viewer_axes(),
+  internal_objs_.push_back(new GeomViewerItem(create_viewer_axes(),
 						 "Axis",0));
   internal_objs_visible_p_.push_back(true);
 
   // 1 - Unicam control sphere, not visible by default.
-  MaterialHandle focus_color = scinew Material(Color(0.0, 0.0, 1.0));
-  internal_objs_.push_back(scinew GeomMaterial(focus_sphere_, focus_color));
+  MaterialHandle focus_color = new Material(Color(0.0, 0.0, 1.0));
+  internal_objs_.push_back(new GeomMaterial(focus_sphere_, focus_color));
   internal_objs_visible_p_.push_back(false);
 
   default_material_ =
-    scinew Material(Color(.1,.1,.1), Color(.6,0,0), Color(.7,.7,.7), 50);
+    new Material(Color(.1,.1,.1), Color(.6,0,0), Color(.7,.7,.7), 50);
 
   // Setup the tools in the right slots.
   init_tool_manager();
@@ -598,7 +599,7 @@ OpenGLViewer::clear_selection_set()
 void
 OpenGLViewer::set_selection_geom(GeomHandle geom)
 {
-  GeomViewerItem* si = scinew GeomViewerItem(geom, "Selection Geom", 0);
+  GeomViewerItem* si = new GeomViewerItem(geom, "Selection Geom", 0);
   selection_geom_ = si;
 }
 
@@ -666,40 +667,40 @@ GeomHandle
 OpenGLViewer::create_viewer_axes()
 {
   const Color black(0,0,0), grey(.5,.5,.5);
-  MaterialHandle dk_red =   scinew Material(black, Color(.2,0,0), grey, 20);
-  MaterialHandle dk_green = scinew Material(black, Color(0,.2,0), grey, 20);
-  MaterialHandle dk_blue =  scinew Material(black, Color(0,0,.2), grey, 20);
-  MaterialHandle lt_red =   scinew Material(black, Color(.8,0,0), grey, 20);
-  MaterialHandle lt_green = scinew Material(black, Color(0,.8,0), grey, 20);
-  MaterialHandle lt_blue =  scinew Material(black, Color(0,0,.8), grey, 20);
+  MaterialHandle dk_red =   new Material(black, Color(.2,0,0), grey, 20);
+  MaterialHandle dk_green = new Material(black, Color(0,.2,0), grey, 20);
+  MaterialHandle dk_blue =  new Material(black, Color(0,0,.2), grey, 20);
+  MaterialHandle lt_red =   new Material(black, Color(.8,0,0), grey, 20);
+  MaterialHandle lt_green = new Material(black, Color(0,.8,0), grey, 20);
+  MaterialHandle lt_blue =  new Material(black, Color(0,0,.8), grey, 20);
 
-  GeomGroup* xp = scinew GeomGroup;
-  GeomGroup* yp = scinew GeomGroup;
-  GeomGroup* zp = scinew GeomGroup;
-  GeomGroup* xn = scinew GeomGroup;
-  GeomGroup* yn = scinew GeomGroup;
-  GeomGroup* zn = scinew GeomGroup;
+  GeomGroup* xp = new GeomGroup;
+  GeomGroup* yp = new GeomGroup;
+  GeomGroup* zp = new GeomGroup;
+  GeomGroup* xn = new GeomGroup;
+  GeomGroup* yn = new GeomGroup;
+  GeomGroup* zn = new GeomGroup;
 
   const double sz = 1.0;
-  xp->add(scinew GeomCylinder(Point(0,0,0), Point(sz, 0, 0), sz/20));
-  xp->add(scinew GeomCone(Point(sz, 0, 0), Point(sz+sz/5, 0, 0), sz/10, 0));
-  yp->add(scinew GeomCylinder(Point(0,0,0), Point(0, sz, 0), sz/20));
-  yp->add(scinew GeomCone(Point(0, sz, 0), Point(0, sz+sz/5, 0), sz/10, 0));
-  zp->add(scinew GeomCylinder(Point(0,0,0), Point(0, 0, sz), sz/20));
-  zp->add(scinew GeomCone(Point(0, 0, sz), Point(0, 0, sz+sz/5), sz/10, 0));
-  xn->add(scinew GeomCylinder(Point(0,0,0), Point(-sz, 0, 0), sz/20));
-  xn->add(scinew GeomCone(Point(-sz, 0, 0), Point(-sz-sz/5, 0, 0), sz/10, 0));
-  yn->add(scinew GeomCylinder(Point(0,0,0), Point(0, -sz, 0), sz/20));
-  yn->add(scinew GeomCone(Point(0, -sz, 0), Point(0, -sz-sz/5, 0), sz/10, 0));
-  zn->add(scinew GeomCylinder(Point(0,0,0), Point(0, 0, -sz), sz/20));
-  zn->add(scinew GeomCone(Point(0, 0, -sz), Point(0, 0, -sz-sz/5), sz/10, 0));
-  GeomGroup* all=scinew GeomGroup;
-  all->add(scinew GeomMaterial(xp, lt_red));
-  all->add(scinew GeomMaterial(yp, lt_green));
-  all->add(scinew GeomMaterial(zp, lt_blue));
-  all->add(scinew GeomMaterial(xn, dk_red));
-  all->add(scinew GeomMaterial(yn, dk_green));
-  all->add(scinew GeomMaterial(zn, dk_blue));
+  xp->add(new GeomCylinder(Point(0,0,0), Point(sz, 0, 0), sz/20));
+  xp->add(new GeomCone(Point(sz, 0, 0), Point(sz+sz/5, 0, 0), sz/10, 0));
+  yp->add(new GeomCylinder(Point(0,0,0), Point(0, sz, 0), sz/20));
+  yp->add(new GeomCone(Point(0, sz, 0), Point(0, sz+sz/5, 0), sz/10, 0));
+  zp->add(new GeomCylinder(Point(0,0,0), Point(0, 0, sz), sz/20));
+  zp->add(new GeomCone(Point(0, 0, sz), Point(0, 0, sz+sz/5), sz/10, 0));
+  xn->add(new GeomCylinder(Point(0,0,0), Point(-sz, 0, 0), sz/20));
+  xn->add(new GeomCone(Point(-sz, 0, 0), Point(-sz-sz/5, 0, 0), sz/10, 0));
+  yn->add(new GeomCylinder(Point(0,0,0), Point(0, -sz, 0), sz/20));
+  yn->add(new GeomCone(Point(0, -sz, 0), Point(0, -sz-sz/5, 0), sz/10, 0));
+  zn->add(new GeomCylinder(Point(0,0,0), Point(0, 0, -sz), sz/20));
+  zn->add(new GeomCone(Point(0, 0, -sz), Point(0, 0, -sz-sz/5), sz/10, 0));
+  GeomGroup* all=new GeomGroup;
+  all->add(new GeomMaterial(xp, lt_red));
+  all->add(new GeomMaterial(yp, lt_green));
+  all->add(new GeomMaterial(zp, lt_blue));
+  all->add(new GeomMaterial(xn, dk_red));
+  all->add(new GeomMaterial(yn, dk_green));
+  all->add(new GeomMaterial(zn, dk_blue));
 
   return all;
 }
@@ -837,7 +838,7 @@ OpenGLViewer::render_and_save_image()
 
   if (ftype == "ppm" || ftype == "raw")
   {
-    image_file = scinew ofstream(fname.c_str());
+    image_file = new ofstream(fname.c_str());
     if ( !image_file )
     {
       setMovieMessage( "Error Opening File: " + fname, true );
@@ -858,7 +859,7 @@ OpenGLViewer::render_and_save_image()
     }
     else if (ftype == "raw")
     {
-      ofstream *nhdr_file = scinew ofstream((fname+string(".nhdr")).c_str());
+      ofstream *nhdr_file = new ofstream((fname+string(".nhdr")).c_str());
       if ( !nhdr_file )
       {
 	setMovieMessage( string("ERROR opening file: ") + fname + ".nhdr", true );
@@ -904,10 +905,10 @@ OpenGLViewer::render_and_save_image()
 
   // Write out a screen height X image width chunk of pixels at a time
   unsigned char* pixels =
-    scinew unsigned char[hi_res_.resx*vp[3]*pix_size];
+    new unsigned char[hi_res_.resx*vp[3]*pix_size];
 
   // Start writing image_file
-  unsigned char* tmp_row = scinew unsigned char[hi_res_.resx*pix_size];
+  unsigned char* tmp_row = new unsigned char[hi_res_.resx*pix_size];
 
   for (hi_res_.row = nrows - 1; hi_res_.row >= 0; --hi_res_.row)
   {
@@ -1641,7 +1642,7 @@ OpenGLViewer::dump_image(const string& fname, const string& ftype)
   glGetIntegerv(GL_VIEWPORT, vp);
   const int pix_size = 3;  // for RGB
   const int n = pix_size * vp[2] * vp[3];
-  unsigned char* pixels = scinew unsigned char[n];
+  unsigned char* pixels = new unsigned char[n];
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glReadBuffer(GL_FRONT);
   glReadPixels(0, 0, vp[2], vp[3], GL_RGB, GL_UNSIGNED_BYTE, pixels);
@@ -1729,7 +1730,7 @@ OpenGLViewer::dump_image(const string& fname, const string& ftype)
 
     // OpenGL renders upside-down to ppm_file writing.
     unsigned char *top_row, *bot_row;
-    unsigned char *tmp_row = scinew unsigned char[ vp[2] * pix_size];
+    unsigned char *tmp_row = new unsigned char[ vp[2] * pix_size];
     int top, bot;
     for ( top = vp[3] - 1, bot = 0; bot < vp[3]/2; top --, bot++){
       top_row = pixels + vp[2] * top * pix_size;
@@ -1750,7 +1751,7 @@ OpenGLViewer::dump_image(const string& fname, const string& ftype)
 void
 OpenGLViewer::put_scanline(int y, int width, Color* scanline, int repeat)
 {
-  float* pixels = scinew float[width*3];
+  float* pixels = new float[width*3];
   float* p = pixels;
   int i;
   for (i=0; i<width; i++)
@@ -2001,8 +2002,8 @@ OpenGLViewer::StartMpeg(const string& fname)
   // Get the default options.
   MPEGe_default_options( &mpeg_options_ );
   // Change a couple of the options.
-  char *pattern = scinew char[4];
-  pattern = "II\0";
+  char *pattern = new char[4];
+  strncpy(pattern, "II\0", 4);
   mpeg_options_.frame_pattern = pattern;
   mpeg_options_.search_range[1]=0;
   mpeg_options_.gop_size=1;
@@ -2055,7 +2056,7 @@ OpenGLViewer::AddMpegFrame()
 
 
   const int r = 3 * width;
-  unsigned char* row = scinew unsigned char[r];
+  unsigned char* row = new unsigned char[r];
   unsigned char* p0, *p1;
 
   int k, j;

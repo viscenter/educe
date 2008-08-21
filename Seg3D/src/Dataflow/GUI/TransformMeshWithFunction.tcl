@@ -46,77 +46,77 @@ itcl_class SCIRun_ChangeMesh_TransformMeshWithFunction {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	label $w.info -text "Function (x, y, z, v, result)"
-	label $w.info1 -text "where 'x', 'y', and 'z' are the original coordinate"
-	label $w.info2 -text "values and 'v' is the data value at that location."
+        sci_label $w.info -text "Function (x, y, z, v, result)"
+        sci_label $w.info1 -text "where 'x', 'y', and 'z' are the original coordinate"
+        sci_label $w.info2 -text "values and 'v' is the data value at that location."
 
-	option add *textBackground white	
-	iwidgets::scrolledtext $w.row1 -height 60 -hscrollmode dynamic
+        option add *textBackground white	
+        sci_scrolledtext $w.row1 -height 60 -hscrollmode dynamic
 
-	$w.row1 insert end [set $this-function]
+        $w.row1 insert end [set $this-function]
 
-	pack $w.info -side top -anchor w -padx 5 -pady 5
-	pack $w.row1 -side top -e y -f both -padx 5
-	pack $w.info1 -side top -anchor w -padx 5
-	pack $w.info2 -side top -anchor w -padx 5
+        pack $w.info -side top -anchor w -padx 5 -pady 5
+        pack $w.row1 -side top -e y -f both -padx 5
+        pack $w.info1 -side top -anchor w -padx 5
+        pack $w.info2 -side top -anchor w -padx 5
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 
 
     method labelcombo { win text1 arglist var} {
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 \
-		      -anchor w -just left
-	label $win.colon  -text ":" -width 2 -anchor w -just left
-	iwidgets::optionmenu $win.c -foreground darkred \
-		-command " $this comboget $win.c $var "
+        sci_frame $win 
+        pack $win -side top -padx 5
+        sci_label $win.l1 -text $text1 \
+                -anchor w -just left
+        sci_label $win.colon  -text ":" -width 2 -anchor w -just left
+        sci_optionmenu $win.c -foreground darkred \
+          -command " $this comboget $win.c $var "
 
-	set i 0
-	set found 0
-	set length [llength $arglist]
-	for {set elem [lindex $arglist $i]} {$i<$length} \
-	    {incr i 1; set elem [lindex $arglist $i]} {
-	    if {"$elem"=="[set $var]"} {
-		set found 1
-	    }
-	    $win.c insert end $elem
-	}
+        set i 0
+        set found 0
+        set length [llength $arglist]
+        for {set elem [lindex $arglist $i]} {$i<$length} \
+            {incr i 1; set elem [lindex $arglist $i]} {
+            if {"$elem"=="[set $var]"} {
+              set found 1
+            }
+            $win.c insert end $elem
+        }
 
-	if {!$found} {
-	    $win.c insert end [set $var]
-	}
+        if {!$found} {
+            $win.c insert end [set $var]
+        }
 
-	$win.c select [set $var]
+        $win.c select [set $var]
 
-	label $win.l2 -text "" -width 20 -anchor w -just left
+        sci_label $win.l2 -text "" -width 20 -anchor w -just left
 
-	# hack to associate optionmenus with a textvariable
-	# bind $win.c <Map> "$win.c select {[set $var]}"
+        # hack to associate optionmenus with a textvariable
+        # bind $win.c <Map> "$win.c select {[set $var]}"
 
-	pack $win.l1 $win.colon -side left
-	pack $win.c $win.l2 -side left	
+        pack $win.l1 $win.colon -side left
+        pack $win.c $win.l2 -side left	
     }
 
     method comboget { win var } {
-	if {![winfo exists $win]} {
-	    return
-	}
-	if { "$var"!="[$win get]" } {
-	    set $var [$win get]
-	}
+        if {![winfo exists $win]} {
+            return
+        }
+        if { "$var"!="[$win get]" } {
+            set $var [$win get]
+        }
     }
 
     method set_combobox { win var name1 name2 op } {
-	set w .ui[modname]
-	set menu $w.$win
-	if {[winfo exists $menu]} {
-	    $menu select $var
-	}
+        set w .ui[modname]
+        set menu $w.$win
+        if {[winfo exists $menu]} {
+            $menu select $var
+        }
     }
 }
 

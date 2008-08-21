@@ -30,21 +30,12 @@
 
 SET(Core_Init_SRCS
   init.cc 
-  matlabIEplugin.cc
-  nrrdIEplugin.cc 
-  NrrdToMatrix_Plugin.cc 
-  SimpleTextFileToMatrix_Plugin.cc 
-  SimpleTextFileToTriSurf_Plugin.cc 
 )
 
 SCIRUN_ADD_LIBRARY(Core_Init ${Core_Init_SRCS})
 
 TARGET_LINK_LIBRARIES(Core_Init 
-  Core_Algorithms_DataIO 
-  Core_Algorithms_Converter 
-  Core_Basis    
   Core_Containers   
-  Core_Datatypes
   Core_Exceptions   
   Core_Geometry     
   Core_ImportExport 

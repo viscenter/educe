@@ -339,56 +339,64 @@ SetPropertyModule< HANDLE_TYPE >::execute()
       if( p_int != atoi( values_[ic].c_str() ) )
 	inputs_changed_ = true;
 
-    } else if( types_[ic] == string( "float" ) &&
-	input_handle->get_property( properties_[ic], p_float ) ) {
-      if( p_float != atof( values_[ic].c_str() ) )
-	inputs_changed_ = true;
-
-    } else if( types_[ic] == string( "double" ) &&
-	input_handle->get_property( properties_[ic], p_double ) ) {
-      if( p_double != atof( values_[ic].c_str() ) )
-	inputs_changed_ = true;
-
-    } else if( types_[ic] == string( "string" ) &&
-	input_handle->get_property( properties_[ic], p_string ) ) {
-      if( p_string != values_[ic] )
-	inputs_changed_ = true;
+    } 
+    else if( types_[ic] == string( "float" ) &&
+              input_handle->get_property( properties_[ic], p_float ) ) 
+    {
+      float val; from_string(values_[ic],val);
+      if( p_float != val ) inputs_changed_ = true;
+    } 
+    else if( types_[ic] == string( "double" ) &&
+              input_handle->get_property( properties_[ic], p_double ) ) 
+    {
+      double val; from_string(values_[ic],val);
+      if( p_float != val ) inputs_changed_ = true;
+    } 
+    else if( types_[ic] == string( "string" ) &&
+                input_handle->get_property( properties_[ic], p_string ) ) 
+    {
+      if( p_string != values_[ic] ) inputs_changed_ = true;
     }
   }
 
   // Something changed so update the properties.
   if( inputs_changed_ ||
-      
       !output_handle_.get_rep() ||
-
-      execute_error_ == true  ) {
-
+      execute_error_ == true  ) 
+  {
     update_state(Executing);
 
     execute_error_ = false;
 
-    for( int ic=0; ic<gui_entries_.get(); ic++ ) {
-
-      if( types_[ic] == "int" ) {
-	int p_int = (int) atoi(values_[ic].c_str());
-	input_handle->set_property(properties_[ic], p_int, false);
-
-      } else if( types_[ic] == "float" ) {
-	float p_float = (float) atof(values_[ic].c_str());
-	input_handle->set_property(properties_[ic], p_float, false);
-
-      } else if( types_[ic] == "double" ) {
-	double p_double = (double) atof(values_[ic].c_str());
-	input_handle->set_property(properties_[ic], p_double, false);
-
-      } else if( types_[ic] == "string" ) {
-	string p_string = (string) values_[ic];
-	input_handle->set_property(properties_[ic], p_string, false);
-
-      } else if( types_[ic] == "unknown" ) {
-	error( properties_[ic] + " has an unknown type" );
-	execute_error_ = true;
-	return;
+    for( int ic=0; ic<gui_entries_.get(); ic++ ) 
+    {
+      if( types_[ic] == "int" ) 
+      {
+        int p_int = (int) atoi(values_[ic].c_str());
+        input_handle->set_property(properties_[ic], p_int, false);
+      } 
+      else if( types_[ic] == "float" ) 
+      {
+        float p_float;
+        from_string(values_[ic],p_float);
+        input_handle->set_property(properties_[ic], p_float, false);
+      } 
+      else if( types_[ic] == "double" ) 
+      {
+        double p_double;
+        from_string(values_[ic],p_double);
+        input_handle->set_property(properties_[ic], p_double, false);
+      } 
+      else if( types_[ic] == "string" ) 
+      {
+        string p_string = (string) values_[ic];
+        input_handle->set_property(properties_[ic], p_string, false);
+      } 
+      else if( types_[ic] == "unknown" ) 
+      {
+        error( properties_[ic] + " has an unknown type" );
+        execute_error_ = true;
+        return;
       }
     }
 

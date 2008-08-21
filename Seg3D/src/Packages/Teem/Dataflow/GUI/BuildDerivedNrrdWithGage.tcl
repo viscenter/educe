@@ -424,263 +424,263 @@ itcl_class Teem_Misc_BuildDerivedNrrdWithGage {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 	
-	puts "here: w is $w, this is $this"
-	
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	global $this-field_kind_
-	global $this-otype_
-	
-	#frame describing the field kind
-	frame $w.f.fieldKindFrame
-	
-	iwidgets::optionmenu $w.f.fieldKindFrame.fieldKindMenu \
-	-labeltext "Kind of Input Field: " -labelpos w \
-	-command "$this changeDataset $w.f.fieldKindFrame.fieldKindMenu"
-	
-	eval $w.f.fieldKindFrame.fieldKindMenu insert end "Scalar Vector"
-	$w.f.fieldKindFrame.fieldKindMenu select [set $this-field_kind_]
-	
-	grid $w.f.fieldKindFrame.fieldKindMenu -column 0 -row 0 -sticky w
-	
-	#frame describing the quantity the user wishes to measure
-	frame $w.f.quantityFrame -relief ridge
-	label $w.f.quantityFrame.quantityLabel -text "Quantity to Measure: "
-	iwidgets::optionmenu $w.f.quantityFrame.quantityMenu \
-	-command "$this update_quantity_description \
-	$w.f.quantityFrame.quantityMenu"
-	$w.f.quantityFrame.quantityMenu insert end "value" \
-	"gradient vector" \
-	"gradient magnitude" \
-	"normalized gradient" \
-	"tangent projector" \
-	"Hessian" \
-	"Laplacian" \
-	"Frob(Hessian)" \
-	"2nd DD along gradient" \
-	"geometry tensor"\
-	"kappa1" \
-	"kappa2" \
-	"total curvature" \
-	"shape trace" \
-	"shape index"\
-	"mean curvature" \
-	"Gaussian curvature" \
-	"1st curvature direction" \
-	"2nd curvature direction" \
-	"flowline curvature" \
-	"Hessian eigenvalues" \
-	"median"
-	$w.f.quantityFrame.quantityMenu select [set $this-quantity_]
-	
-	label $w.f.quantityFrame.descriptionLabel -text "Description: "
-	label $w.f.quantityFrame.description \
-	    -text "reconstructed scalar data value"
-	label $w.f.quantityFrame.otypeLabel -text "Output Type: "
-	iwidgets::optionmenu $w.f.quantityFrame.otypeMenu -command "$this \
-	update_otype $w.f.quantityFrame.otypeMenu"
-	$w.f.quantityFrame.otypeMenu insert end	"double" "float" "default"
-	$w.f.quantityFrame.otypeMenu select [set $this-otype_]
-	
-	grid $w.f.quantityFrame.quantityLabel -column 0 -row 0 -sticky w
-	grid configure $w.f.quantityFrame.quantityMenu -column 1 -row \
-	0 -sticky w
-	grid configure $w.f.quantityFrame.descriptionLabel -column 0 \
-	-row 1 -sticky w
-	grid configure $w.f.quantityFrame.description -column 1 -row 1 -sticky w
-	grid configure $w.f.quantityFrame.otypeLabel -column 0 -row 2 -sticky w
-	grid configure $w.f.quantityFrame.otypeMenu -column 1 -row 2 -sticky w
+        puts "here: w is $w, this is $this"
+        
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        global $this-field_kind_
+        global $this-otype_
+        
+        #frame describing the field kind
+        sci_frame $w.f.fieldKindFrame
+        
+        sci_optionmenu $w.f.fieldKindFrame.fieldKindMenu \
+        -labeltext "Kind of Input Field: " -labelpos w \
+        -command "$this changeDataset $w.f.fieldKindFrame.fieldKindMenu"
+        
+        eval $w.f.fieldKindFrame.fieldKindMenu insert end "Scalar Vector"
+        $w.f.fieldKindFrame.fieldKindMenu select [set $this-field_kind_]
+        
+        grid $w.f.fieldKindFrame.fieldKindMenu -column 0 -row 0 -sticky w
+        
+        #frame describing the quantity the user wishes to measure
+        sci_frame $w.f.quantityFrame -relief ridge
+        sci_label $w.f.quantityFrame.quantityLabel -text "Quantity to Measure: "
+        sci_optionmenu $w.f.quantityFrame.quantityMenu \
+        -command "$this update_quantity_description \
+        $w.f.quantityFrame.quantityMenu"
+        $w.f.quantityFrame.quantityMenu insert end "value" \
+        "gradient vector" \
+        "gradient magnitude" \
+        "normalized gradient" \
+        "tangent projector" \
+        "Hessian" \
+        "Laplacian" \
+        "Frob(Hessian)" \
+        "2nd DD along gradient" \
+        "geometry tensor"\
+        "kappa1" \
+        "kappa2" \
+        "total curvature" \
+        "shape trace" \
+        "shape index"\
+        "mean curvature" \
+        "Gaussian curvature" \
+        "1st curvature direction" \
+        "2nd curvature direction" \
+        "flowline curvature" \
+        "Hessian eigenvalues" \
+        "median"
+        $w.f.quantityFrame.quantityMenu select [set $this-quantity_]
+        
+        sci_label $w.f.quantityFrame.descriptionLabel -text "Description: "
+        sci_label $w.f.quantityFrame.description \
+            -text "reconstructed scalar data value"
+        sci_label $w.f.quantityFrame.otypeLabel -text "Output Type: "
+        sci_optionmenu $w.f.quantityFrame.otypeMenu -command "$this \
+        update_otype $w.f.quantityFrame.otypeMenu"
+        $w.f.quantityFrame.otypeMenu insert end	"double" "float" "default"
+        $w.f.quantityFrame.otypeMenu select [set $this-otype_]
+        
+        grid $w.f.quantityFrame.quantityLabel -column 0 -row 0 -sticky w
+        grid configure $w.f.quantityFrame.quantityMenu -column 1 -row \
+        0 -sticky w
+        grid configure $w.f.quantityFrame.descriptionLabel -column 0 \
+        -row 1 -sticky w
+        grid configure $w.f.quantityFrame.description -column 1 -row 1 -sticky w
+        grid configure $w.f.quantityFrame.otypeLabel -column 0 -row 2 -sticky w
+        grid configure $w.f.quantityFrame.otypeMenu -column 1 -row 2 -sticky w
 	
         $w.f.quantityFrame configure -borderwidth 2
+        
+        #frame for specifying kernels
+        sci_frame $w.f.kernelsFrame -borderwidth 3 -relief sunken
+        
+        sci_label $w.f.kernelsFrame.kernelsLabel \
+        -text "Kernels to Use: " -padx 5 -pady 10
+        
+        ##subframe for specifying the kernel parameters for 
+        ##reconstructing values
+        sci_frame $w.f.kernelsFrame.valuesFrame -borderwidth 3 -relief raised
+        
+        sci_label $w.f.kernelsFrame.valuesFrame.valuesLabel \
+        -text "Reconstructing Values" -padx 5 -pady 5
+        sci_label $w.f.kernelsFrame.valuesFrame.valuesTypeLabel \
+        -text "Kernel Type: " -padx 10
+        sci_optionmenu $w.f.kernelsFrame.valuesFrame.valuesTypeMenu \
+        -command "$this update_values_type \
+        $w.f.kernelsFrame.valuesFrame.valuesTypeMenu \
+        $w.f.kernelsFrame.valuesFrame.valuesNumParm1Desc \
+        $w.f.kernelsFrame.valuesFrame.valuesNumParm2Desc \
+        $w.f.kernelsFrame.valuesFrame.valuesNumParm3Desc \
+        $w.f.kernelsFrame.valuesFrame.valuesNumParm1Entry \
+        $w.f.kernelsFrame.valuesFrame.valuesNumParm2Entry \
+        $w.f.kernelsFrame.valuesFrame.valuesNumParm3Entry "
+        $w.f.kernelsFrame.valuesFrame.valuesTypeMenu insert end	"zero" \
+        "box" \
+        "tent" \
+        "cubic" \
+        "quartic" \
+        "gaussian" \
+        "hann" \
+        "blackman"
+        $w.f.kernelsFrame.valuesFrame.valuesTypeMenu \
+        select [set $this-valuesType_]
+        
+        sci_label $w.f.kernelsFrame.valuesFrame.valuesNumParmLabel \
+        -text "Numeric Parameters: " -padx 10
+        sci_label $w.f.kernelsFrame.valuesFrame.valuesNumParm1Desc \
+        -text "scale" -padx 20
+        sci_label $w.f.kernelsFrame.valuesFrame.valuesNumParm2Desc \
+        -text "B" -padx 20
+        sci_label $w.f.kernelsFrame.valuesFrame.valuesNumParm3Desc \
+        -text "C" -padx 20
+        sci_entry $w.f.kernelsFrame.valuesFrame.valuesNumParm1Entry \
+        -width 6 -textvariable $this-valuesNumParm1_
+        sci_entry $w.f.kernelsFrame.valuesFrame.valuesNumParm2Entry \
+        -width 6 -textvariable $this-valuesNumParm2_
+        sci_entry $w.f.kernelsFrame.valuesFrame.valuesNumParm3Entry \
+        -width 6 -textvariable $this-valuesNumParm3_
+        
+        grid $w.f.kernelsFrame.kernelsLabel -row 0 -sticky w
+        grid configure $w.f.kernelsFrame.valuesFrame -row 1 -sticky ew
+        grid $w.f.kernelsFrame.valuesFrame.valuesLabel -row 0 -column 0 \
+        -sticky w
+        grid $w.f.kernelsFrame.valuesFrame.valuesTypeLabel -row 1 -column 0 \
+        -sticky w
+        grid $w.f.kernelsFrame.valuesFrame.valuesTypeMenu -row 1 -column 2
+        grid $w.f.kernelsFrame.valuesFrame.valuesNumParmLabel -row 2 -column 0 \
+        -sticky w 
+        grid $w.f.kernelsFrame.valuesFrame.valuesNumParm1Desc -row 3 -column 0 \
+        -sticky w
+        grid $w.f.kernelsFrame.valuesFrame.valuesNumParm2Desc -row 4 -column 0 \
+        -sticky w
+        grid $w.f.kernelsFrame.valuesFrame.valuesNumParm3Desc -row 5 -column 0 \
+        -sticky w
+        grid $w.f.kernelsFrame.valuesFrame.valuesNumParm1Entry -row 3 -column 2
+        grid $w.f.kernelsFrame.valuesFrame.valuesNumParm2Entry -row 4 -column 2
+        grid $w.f.kernelsFrame.valuesFrame.valuesNumParm3Entry -row 5 -column 2
 	
-	#frame for specifying kernels
-	frame $w.f.kernelsFrame -borderwidth 3 -relief sunken
+        ##subframe for specifying the kernel parameters for 
+        ##measuring 1st derivative
+        sci_frame $w.f.kernelsFrame.dFrame -borderwidth 3 -relief raised
+        
+        sci_label $w.f.kernelsFrame.dFrame.dLabel \
+        -text "Measuring 1st Derivative" -padx 5 -pady 5
+        sci_label $w.f.kernelsFrame.dFrame.dTypeLabel -text "Kernel Type: " -padx 10
+        sci_optionmenu $w.f.kernelsFrame.dFrame.dTypeMenu \
+        -command "$this update_d_type \
+        $w.f.kernelsFrame.dFrame.dTypeMenu \
+        $w.f.kernelsFrame.dFrame.dNumParm1Desc \
+        $w.f.kernelsFrame.dFrame.dNumParm2Desc \
+        $w.f.kernelsFrame.dFrame.dNumParm3Desc \
+        $w.f.kernelsFrame.dFrame.dNumParm1Entry \
+        $w.f.kernelsFrame.dFrame.dNumParm2Entry \
+        $w.f.kernelsFrame.dFrame.dNumParm3Entry"
+        $w.f.kernelsFrame.dFrame.dTypeMenu insert end "zero" \
+        "box" \
+        "forwdiff" \
+        "centdiff" \
+        "cubicd" \
+        "quarticd" \
+        "gaussiand" \
+        "hannd" \
+        "blackmand"
+        $w.f.kernelsFrame.dFrame.dTypeMenu select [set $this-dType_]
+        
+        sci_label $w.f.kernelsFrame.dFrame.dNumParmLabel \
+        -text "Numeric Parameters: " -padx 10
+        sci_label $w.f.kernelsFrame.dFrame.dNumParm1Desc \
+        -text "scale" -padx 20
+        sci_label $w.f.kernelsFrame.dFrame.dNumParm2Desc \
+        -text "B" -padx 20
+        sci_label $w.f.kernelsFrame.dFrame.dNumParm3Desc \
+        -text "C" -padx 20
+        sci_entry $w.f.kernelsFrame.dFrame.dNumParm1Entry \
+        -width 6 -textvariable $this-dNumParm1_ 
+        sci_entry $w.f.kernelsFrame.dFrame.dNumParm2Entry \
+        -width 6 -textvariable $this-dNumParm2_
+        sci_entry $w.f.kernelsFrame.dFrame.dNumParm3Entry \
+        -width 6 -textvariable $this-dNumParm3_
 	
-	label $w.f.kernelsFrame.kernelsLabel \
-	-text "Kernels to Use: " -padx 5 -pady 10
+        grid $w.f.kernelsFrame.kernelsLabel -row 0 -sticky w
+        grid configure $w.f.kernelsFrame.dFrame -row 2 -sticky ew
+        grid $w.f.kernelsFrame.dFrame.dLabel -row 0 -column 0 -sticky w
+        grid $w.f.kernelsFrame.dFrame.dTypeLabel -row 1 -column 0 -sticky w
+        grid $w.f.kernelsFrame.dFrame.dTypeMenu -row 1 -column 2
+        grid $w.f.kernelsFrame.dFrame.dNumParmLabel -row 2 -column 0 -sticky w 
+        grid $w.f.kernelsFrame.dFrame.dNumParm1Desc -row 3 -column 0 -sticky w
+        grid $w.f.kernelsFrame.dFrame.dNumParm2Desc -row 4 -column 0 -sticky w
+        grid $w.f.kernelsFrame.dFrame.dNumParm3Desc -row 5 -column 0 -sticky w
+        grid $w.f.kernelsFrame.dFrame.dNumParm1Entry -row 3 -column 2
+        grid $w.f.kernelsFrame.dFrame.dNumParm2Entry -row 4 -column 2
+        grid $w.f.kernelsFrame.dFrame.dNumParm3Entry -row 5 -column 2
+        
+        ##subframe for specifying the kernel parameters for 
+        ##measuring 2nd derivative
+        sci_frame $w.f.kernelsFrame.ddFrame -borderwidth 3 -relief raised
+        
+        sci_label $w.f.kernelsFrame.ddFrame.ddLabel \
+        -text "Measuring 2nd Derivative" -padx 5 -pady 5
+        sci_label $w.f.kernelsFrame.ddFrame.ddTypeLabel \
+        -text "Kernel Type: " -padx 10
+        sci_optionmenu $w.f.kernelsFrame.ddFrame.ddTypeMenu \
+        -command "$this update_dd_type \
+        $w.f.kernelsFrame.ddFrame.ddTypeMenu \
+        $w.f.kernelsFrame.ddFrame.ddNumParm1Desc \
+        $w.f.kernelsFrame.ddFrame.ddNumParm2Desc \
+        $w.f.kernelsFrame.ddFrame.ddNumParm3Desc \
+        $w.f.kernelsFrame.ddFrame.ddNumParm1Entry \
+        $w.f.kernelsFrame.ddFrame.ddNumParm2Entry \
+        $w.f.kernelsFrame.ddFrame.ddNumParm3Entry"
+        $w.f.kernelsFrame.ddFrame.ddTypeMenu insert end "zero" \
+        "box" \
+        "cubicdd" \
+        "quarticdd" \
+        "gaussiandd" \
+        "hanndd" \
+        "blackmandd"
+        $w.f.kernelsFrame.ddFrame.ddTypeMenu select [set $this-ddType_]
 	
-	##subframe for specifying the kernel parameters for 
-	##reconstructing values
-	frame $w.f.kernelsFrame.valuesFrame -borderwidth 3 -relief raised
-	
-	label $w.f.kernelsFrame.valuesFrame.valuesLabel \
-	-text "Reconstructing Values" -padx 5 -pady 5
-	label $w.f.kernelsFrame.valuesFrame.valuesTypeLabel \
-	-text "Kernel Type: " -padx 10
-	iwidgets::optionmenu $w.f.kernelsFrame.valuesFrame.valuesTypeMenu \
-	-command "$this update_values_type \
-	$w.f.kernelsFrame.valuesFrame.valuesTypeMenu \
-	$w.f.kernelsFrame.valuesFrame.valuesNumParm1Desc \
-	$w.f.kernelsFrame.valuesFrame.valuesNumParm2Desc \
-	$w.f.kernelsFrame.valuesFrame.valuesNumParm3Desc \
-	$w.f.kernelsFrame.valuesFrame.valuesNumParm1Entry \
-	$w.f.kernelsFrame.valuesFrame.valuesNumParm2Entry \
-	$w.f.kernelsFrame.valuesFrame.valuesNumParm3Entry "
-	$w.f.kernelsFrame.valuesFrame.valuesTypeMenu insert end	"zero" \
-	"box" \
-	"tent" \
-	"cubic" \
-	"quartic" \
-	"gaussian" \
-	"hann" \
-	"blackman"
-	$w.f.kernelsFrame.valuesFrame.valuesTypeMenu \
-	select [set $this-valuesType_]
-	
-	label $w.f.kernelsFrame.valuesFrame.valuesNumParmLabel \
-	-text "Numeric Parameters: " -padx 10
-	label $w.f.kernelsFrame.valuesFrame.valuesNumParm1Desc \
-	-text "scale" -padx 20
-	label $w.f.kernelsFrame.valuesFrame.valuesNumParm2Desc \
-	-text "B" -padx 20
-	label $w.f.kernelsFrame.valuesFrame.valuesNumParm3Desc \
-	-text "C" -padx 20
-	entry $w.f.kernelsFrame.valuesFrame.valuesNumParm1Entry \
-	-width 6 -textvariable $this-valuesNumParm1_
-	entry $w.f.kernelsFrame.valuesFrame.valuesNumParm2Entry \
-	-width 6 -textvariable $this-valuesNumParm2_
-	entry $w.f.kernelsFrame.valuesFrame.valuesNumParm3Entry \
-	-width 6 -textvariable $this-valuesNumParm3_
-	
-	grid $w.f.kernelsFrame.kernelsLabel -row 0 -sticky w
-	grid configure $w.f.kernelsFrame.valuesFrame -row 1 -sticky ew
-	grid $w.f.kernelsFrame.valuesFrame.valuesLabel -row 0 -column 0 \
-	-sticky w
-	grid $w.f.kernelsFrame.valuesFrame.valuesTypeLabel -row 1 -column 0 \
-	-sticky w
-	grid $w.f.kernelsFrame.valuesFrame.valuesTypeMenu -row 1 -column 2
-	grid $w.f.kernelsFrame.valuesFrame.valuesNumParmLabel -row 2 -column 0 \
-	-sticky w 
-	grid $w.f.kernelsFrame.valuesFrame.valuesNumParm1Desc -row 3 -column 0 \
-	-sticky w
-	grid $w.f.kernelsFrame.valuesFrame.valuesNumParm2Desc -row 4 -column 0 \
-	-sticky w
-	grid $w.f.kernelsFrame.valuesFrame.valuesNumParm3Desc -row 5 -column 0 \
-	-sticky w
-	grid $w.f.kernelsFrame.valuesFrame.valuesNumParm1Entry -row 3 -column 2
-	grid $w.f.kernelsFrame.valuesFrame.valuesNumParm2Entry -row 4 -column 2
-	grid $w.f.kernelsFrame.valuesFrame.valuesNumParm3Entry -row 5 -column 2
-	
-	##subframe for specifying the kernel parameters for 
-	##measuring 1st derivative
-	frame $w.f.kernelsFrame.dFrame -borderwidth 3 -relief raised
-	
-	label $w.f.kernelsFrame.dFrame.dLabel \
-	-text "Measuring 1st Derivative" -padx 5 -pady 5
-	label $w.f.kernelsFrame.dFrame.dTypeLabel -text "Kernel Type: " -padx 10
-	iwidgets::optionmenu $w.f.kernelsFrame.dFrame.dTypeMenu \
-	-command "$this update_d_type \
-	$w.f.kernelsFrame.dFrame.dTypeMenu \
-	$w.f.kernelsFrame.dFrame.dNumParm1Desc \
-	$w.f.kernelsFrame.dFrame.dNumParm2Desc \
-	$w.f.kernelsFrame.dFrame.dNumParm3Desc \
-	$w.f.kernelsFrame.dFrame.dNumParm1Entry \
-	$w.f.kernelsFrame.dFrame.dNumParm2Entry \
-	$w.f.kernelsFrame.dFrame.dNumParm3Entry"
-	$w.f.kernelsFrame.dFrame.dTypeMenu insert end "zero" \
-	"box" \
-	"forwdiff" \
-	"centdiff" \
-	"cubicd" \
-	"quarticd" \
-	"gaussiand" \
-	"hannd" \
-	"blackmand"
-	$w.f.kernelsFrame.dFrame.dTypeMenu select [set $this-dType_]
-	
-	label $w.f.kernelsFrame.dFrame.dNumParmLabel \
-	-text "Numeric Parameters: " -padx 10
-	label $w.f.kernelsFrame.dFrame.dNumParm1Desc \
-	-text "scale" -padx 20
-	label $w.f.kernelsFrame.dFrame.dNumParm2Desc \
-	-text "B" -padx 20
-	label $w.f.kernelsFrame.dFrame.dNumParm3Desc \
-	-text "C" -padx 20
-	entry $w.f.kernelsFrame.dFrame.dNumParm1Entry \
-	-width 6 -textvariable $this-dNumParm1_ 
-	entry $w.f.kernelsFrame.dFrame.dNumParm2Entry \
-	-width 6 -textvariable $this-dNumParm2_
-	entry $w.f.kernelsFrame.dFrame.dNumParm3Entry \
-	-width 6 -textvariable $this-dNumParm3_
-	
-	grid $w.f.kernelsFrame.kernelsLabel -row 0 -sticky w
-	grid configure $w.f.kernelsFrame.dFrame -row 2 -sticky ew
-	grid $w.f.kernelsFrame.dFrame.dLabel -row 0 -column 0 -sticky w
-	grid $w.f.kernelsFrame.dFrame.dTypeLabel -row 1 -column 0 -sticky w
-	grid $w.f.kernelsFrame.dFrame.dTypeMenu -row 1 -column 2
-	grid $w.f.kernelsFrame.dFrame.dNumParmLabel -row 2 -column 0 -sticky w 
-	grid $w.f.kernelsFrame.dFrame.dNumParm1Desc -row 3 -column 0 -sticky w
-	grid $w.f.kernelsFrame.dFrame.dNumParm2Desc -row 4 -column 0 -sticky w
-	grid $w.f.kernelsFrame.dFrame.dNumParm3Desc -row 5 -column 0 -sticky w
-	grid $w.f.kernelsFrame.dFrame.dNumParm1Entry -row 3 -column 2
-	grid $w.f.kernelsFrame.dFrame.dNumParm2Entry -row 4 -column 2
-	grid $w.f.kernelsFrame.dFrame.dNumParm3Entry -row 5 -column 2
-	
-	##subframe for specifying the kernel parameters for 
-	##measuring 2nd derivative
-	frame $w.f.kernelsFrame.ddFrame -borderwidth 3 -relief raised
-	
-	label $w.f.kernelsFrame.ddFrame.ddLabel \
-	-text "Measuring 2nd Derivative" -padx 5 -pady 5
-	label $w.f.kernelsFrame.ddFrame.ddTypeLabel \
-	-text "Kernel Type: " -padx 10
-	iwidgets::optionmenu $w.f.kernelsFrame.ddFrame.ddTypeMenu \
-	-command "$this update_dd_type \
-	$w.f.kernelsFrame.ddFrame.ddTypeMenu \
-	$w.f.kernelsFrame.ddFrame.ddNumParm1Desc \
-	$w.f.kernelsFrame.ddFrame.ddNumParm2Desc \
-	$w.f.kernelsFrame.ddFrame.ddNumParm3Desc \
-	$w.f.kernelsFrame.ddFrame.ddNumParm1Entry \
-	$w.f.kernelsFrame.ddFrame.ddNumParm2Entry \
-	$w.f.kernelsFrame.ddFrame.ddNumParm3Entry"
-	$w.f.kernelsFrame.ddFrame.ddTypeMenu insert end "zero" \
-	"box" \
-	"cubicdd" \
-	"quarticdd" \
-	"gaussiandd" \
-	"hanndd" \
-	"blackmandd"
-	$w.f.kernelsFrame.ddFrame.ddTypeMenu select [set $this-ddType_]
-	
-	label $w.f.kernelsFrame.ddFrame.ddNumParmLabel \
-	-text "Numeric Parameters: " -padx 10
-	label $w.f.kernelsFrame.ddFrame.ddNumParm1Desc \
-	-text "scale" -padx 20
-	label $w.f.kernelsFrame.ddFrame.ddNumParm2Desc \
-	-text "B" -padx 20
-	label $w.f.kernelsFrame.ddFrame.ddNumParm3Desc \
-	-text "C" -padx 20
-	entry $w.f.kernelsFrame.ddFrame.ddNumParm1Entry \
-	-width 6 -textvariable $this-ddNumParm1_
-	entry $w.f.kernelsFrame.ddFrame.ddNumParm2Entry \
-	-width 6 -textvariable $this-ddNumParm2_
-	entry $w.f.kernelsFrame.ddFrame.ddNumParm3Entry \
-	-width 6 -textvariable $this-ddNumParm3_
-	
-	grid $w.f.kernelsFrame.kernelsLabel -row 0 -sticky w
-	grid configure $w.f.kernelsFrame.ddFrame -row 3 -sticky ew
-	grid $w.f.kernelsFrame.ddFrame.ddLabel -row 0 -column 0 -sticky w
-	grid $w.f.kernelsFrame.ddFrame.ddTypeLabel -row 1 -column 0 -sticky w
-	grid $w.f.kernelsFrame.ddFrame.ddTypeMenu -row 1 -column 2
-	grid $w.f.kernelsFrame.ddFrame.ddNumParmLabel -row 2 -column 0 -sticky w 
-	grid $w.f.kernelsFrame.ddFrame.ddNumParm1Desc -row 3 -column 0 -sticky w
-	grid $w.f.kernelsFrame.ddFrame.ddNumParm2Desc -row 4 -column 0 -sticky w
-	grid $w.f.kernelsFrame.ddFrame.ddNumParm3Desc -row 5 -column 0 -sticky w
-	grid $w.f.kernelsFrame.ddFrame.ddNumParm1Entry -row 3 -column 2
-	grid $w.f.kernelsFrame.ddFrame.ddNumParm2Entry -row 4 -column 2
-	grid $w.f.kernelsFrame.ddFrame.ddNumParm3Entry -row 5 -column 2
-		
-	pack $w.f.fieldKindFrame -expand yes -fill both -padx 3 -pady 10
-	pack $w.f.quantityFrame -expand yes -fill both
-	pack $w.f.kernelsFrame -expand yes -fill both -pady 10
-	
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
-	
-	pack $w.f -expand 1 -fill x
+        sci_label $w.f.kernelsFrame.ddFrame.ddNumParmLabel \
+        -text "Numeric Parameters: " -padx 10
+        sci_label $w.f.kernelsFrame.ddFrame.ddNumParm1Desc \
+        -text "scale" -padx 20
+        sci_label $w.f.kernelsFrame.ddFrame.ddNumParm2Desc \
+        -text "B" -padx 20
+        sci_label $w.f.kernelsFrame.ddFrame.ddNumParm3Desc \
+        -text "C" -padx 20
+        sci_entry $w.f.kernelsFrame.ddFrame.ddNumParm1Entry \
+        -width 6 -textvariable $this-ddNumParm1_
+        sci_entry $w.f.kernelsFrame.ddFrame.ddNumParm2Entry \
+        -width 6 -textvariable $this-ddNumParm2_
+        sci_entry $w.f.kernelsFrame.ddFrame.ddNumParm3Entry \
+        -width 6 -textvariable $this-ddNumParm3_
+        
+        grid $w.f.kernelsFrame.kernelsLabel -row 0 -sticky w
+        grid configure $w.f.kernelsFrame.ddFrame -row 3 -sticky ew
+        grid $w.f.kernelsFrame.ddFrame.ddLabel -row 0 -column 0 -sticky w
+        grid $w.f.kernelsFrame.ddFrame.ddTypeLabel -row 1 -column 0 -sticky w
+        grid $w.f.kernelsFrame.ddFrame.ddTypeMenu -row 1 -column 2
+        grid $w.f.kernelsFrame.ddFrame.ddNumParmLabel -row 2 -column 0 -sticky w 
+        grid $w.f.kernelsFrame.ddFrame.ddNumParm1Desc -row 3 -column 0 -sticky w
+        grid $w.f.kernelsFrame.ddFrame.ddNumParm2Desc -row 4 -column 0 -sticky w
+        grid $w.f.kernelsFrame.ddFrame.ddNumParm3Desc -row 5 -column 0 -sticky w
+        grid $w.f.kernelsFrame.ddFrame.ddNumParm1Entry -row 3 -column 2
+        grid $w.f.kernelsFrame.ddFrame.ddNumParm2Entry -row 4 -column 2
+        grid $w.f.kernelsFrame.ddFrame.ddNumParm3Entry -row 5 -column 2
+          
+        pack $w.f.fieldKindFrame -expand yes -fill both -padx 3 -pady 10
+        pack $w.f.quantityFrame -expand yes -fill both
+        pack $w.f.kernelsFrame -expand yes -fill both -pady 10
+        
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+        
+        pack $w.f -expand 1 -fill x
     }
 }
 

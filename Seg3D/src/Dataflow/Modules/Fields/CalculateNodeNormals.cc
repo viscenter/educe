@@ -26,68 +26,21 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-
-/*
- *  CalculateNodeNormals: Store/retrieve values from an input matrix to/from 
- *            the data of a field
- *
- *  Written by:
- *   Michael Callahan
- *   Department of Computer Science
- *   University of Utah
- *   January 2002
- *
- *  Copyright (C) 2001 SCI Institute
- */
+#include <Core/Datatypes/FieldInformation.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Mesh.h>
 
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Modules/Fields/CalculateNodeNormals.h>
-#include <Core/Datatypes/GenericField.h>
-#include <Core/Basis/Constant.h>
-#include <Core/Datatypes/PointCloudMesh.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Util/DynamicCompilation.h>
-
-#include <iostream>
-#include <stdio.h>
 
 namespace SCIRun {
 
-typedef PointCloudMesh<ConstantBasis<Point> >                 PCMesh;
-typedef ConstantBasis<Vector>                                 DatBasis;
-typedef GenericField<PCMesh, DatBasis, vector<Vector> >       PCField;  
-
-
-class PointAttractor : public Attractor
-{
-  Point point_;
-public:
-  PointAttractor(const Point &p) : point_(p) {}
-  virtual void execute(Vector &v, const Point &p);
-};
-
-class LineAttractor : public Attractor
-{
-  Point point_;
-  Vector direction_;
-
-  
-  
-public:
-  LineAttractor(const Point &p, const Vector &d) : point_(p), direction_(d)
-  { direction_.normalize(); }
-  virtual void execute(Vector &v, const Point &p);
-};
-
-
-
 class CalculateNodeNormals : public Module
 {
-public:
-  CalculateNodeNormals(GuiContext* ctx);
-  virtual ~CalculateNodeNormals();
-  virtual void execute();
+  public:
+    CalculateNodeNormals(GuiContext* ctx);
+    virtual ~CalculateNodeNormals() {}
+    virtual void execute();
 };
 
 
@@ -98,160 +51,105 @@ CalculateNodeNormals::CalculateNodeNormals(GuiContext* ctx)
 }
 
 
-
-CalculateNodeNormals::~CalculateNodeNormals()
-{
-}
-
-
-
 void
 CalculateNodeNormals::execute()
 {
-  // Get input field.
-  FieldHandle ifieldhandle;
-  if (!get_input_handle("Input Field", ifieldhandle)) return;
-
-  FieldHandle ipointhandle;
-  if (!get_input_handle("Input Point", ipointhandle)) return;
+  FieldHandle ifieldhandle, ofieldhandle, ipointhandle;
   
-  PCMesh *ipcm = dynamic_cast<PCMesh *>(ipointhandle->mesh().get_rep());
-  if (!ipcm)
-  {
-    error("Input point not in a PCField format.");
-    return;
-  }
-  
-  PCMesh::Node::iterator itr, eitr;
-  ipcm->begin(itr);
-  ipcm->end(eitr);
-  if (itr == eitr)
-  {
-    error("Empty PCField in Input Point Port.");
-    return;
-  }
-  Point attract_point;
-  ipcm->get_center(attract_point, *itr);
+  get_input_handle("Input Field", ifieldhandle,true);
+  get_input_handle("Input Point", ipointhandle,true);
 
-  AttractorHandle attractor = 0;
-  PCField *vpc = dynamic_cast<PCField*>(ipointhandle.get_rep());
-  if (vpc)
+  if ( inputs_changed_ || !oport_cached("Output Field"))
   {
+    VField* point_field = ipointhandle->vfield();
+    VMesh*  point_mesh  = ipointhandle->vmesh();
+    
+    if (point_mesh->num_nodes() != 1)
+    {
+      error("Input Point needs to have a single nopde only");
+      return;
+    }
+  
+    Point attract_point;
     Vector dir;
-    vpc->value(dir, *itr);
-    attractor = scinew LineAttractor(attract_point, dir);
+    bool has_vector = false;
+    point_mesh->get_center(attract_point,VMesh::Node::index_type(0));
+    
+    if (point_field->is_vector())
+    {
+      has_vector = true;
+      point_field->get_value(dir,0);
+    }
+    
+    VMesh*  mesh  = ifieldhandle->vmesh();
+    VField* field = ifieldhandle->vfield();
+    
+    VField::size_type num_values = field->num_values();
+    
+    FieldInformation fi(ifieldhandle);
+    if (fi.field_basis_order() < 1)
+    {
+      fi.make_lineardata();
+      fi.make_vector();
+    }
+    
+    fi.make_vector();
+    
+    ofieldhandle = CreateField(fi,ifieldhandle->mesh());
+    VField* ofield = ofieldhandle->vfield();
+    ofield->resize_values();
+    
+    int cnt = 0;
+    
+    if (field->is_scalar() && field->basis_order() == 1)
+    {
+      Point c; Vector vec; Vector diff; double val;
+      for (VField::index_type idx = 0; idx<num_values;idx++)
+      {
+        field->get_center(c,idx);
+        if (has_vector)
+        {
+           diff = c - attract_point;
+           vec = (dir*Dot(dir,diff)-diff);
+           vec.safe_normalize();
+        }
+        else
+        {
+          vec = (attract_point - c);
+          vec.safe_normalize();
+        }
+        
+        field->get_value(val,idx);
+        if (val == 0.0) val = 1e-3;
+        vec = vec*val;
+        ofield->set_value(vec,idx);
+        cnt++; if (cnt == 400) { cnt=0; update_progress(idx,num_values); }
+      }
+    }
+    else
+    {
+      Point c; Vector vec; Vector diff;
+      for (VField::index_type idx = 0; idx<num_values;idx++)
+      {
+        field->get_center(c,idx);
+        if (has_vector)
+        {
+           diff = c - attract_point;
+           vec = (dir*Dot(dir,diff)-diff);
+           vec.safe_normalize();
+        }
+        else
+        {
+          vec = (attract_point - c);
+          vec.safe_normalize();
+        }
+        ofield->set_value(vec,idx);
+        cnt++; if (cnt == 400) { cnt=0; update_progress(idx,num_values); }
+      }
+    }
+    
+    send_output_handle("Output Field", ofieldhandle,true);
   }
-  else
-  {
-    attractor = scinew PointAttractor(attract_point);
-  }
-
-  bool scale_p = false;
-  ScalarFieldInterfaceHandle sfi = ifieldhandle->query_scalar_interface(this);
-  if (sfi.get_rep())
-  {
-    scale_p = true;
-  }
-
-  const TypeDescription *ftd = ifieldhandle->get_type_description();
-  const TypeDescription *ltd = ifieldhandle->order_type_description();
-  const TypeDescription *mtd = ifieldhandle->mesh()->get_type_description();
-  const string oftn = 
-    ifieldhandle->get_type_description(Field::FIELD_NAME_ONLY_E)->get_name() + "<" +
-    ifieldhandle->get_type_description(Field::MESH_TD_E)->get_name() + ", " +
-    ifieldhandle->get_type_description(Field::BASIS_TD_E)->get_similar_name("Vector",
-                                                            0, "<", " >, ") +
-    ifieldhandle->get_type_description(Field::FDATA_TD_E)->get_similar_name("Vector",
-                                                            0, "<", " >") +
-    " > ";
-
-  CompileInfoHandle ci =
-    CalculateNodeNormalsAlgo::get_compile_info(ftd, ltd, mtd, oftn, scale_p);
-  Handle<CalculateNodeNormalsAlgo> algo;
-  if (!DynamicCompilation::compile(ci, algo, this)) return;
-
-  FieldHandle ofieldhandle(algo->execute(this, ifieldhandle, attractor));
-
-  send_output_handle("Output Field", ofieldhandle);
 }
-
-
-void
-Attractor::execute(Vector &v, const Point &p)
-{
-  v = p.asVector();
-}
-
-void
-Attractor::io(Piostream &)
-{
-}
-
-
-void
-PointAttractor::execute(Vector &v, const Point &p)
-{
-  v = point_ - p;
-  v.safe_normalize();
-}
-
-
-void
-LineAttractor::execute(Vector &v, const Point &p)
-{
-  Vector diff = p - point_;
-  Vector proj(direction_ * Dot(direction_, diff));
-  
-  v = proj - diff;
-
-  v.safe_normalize();
-}
-
-
-
-CompileInfoHandle
-CalculateNodeNormalsAlgo::get_compile_info(const TypeDescription *fsrc_td,
-				     const TypeDescription *floc_td,
-				     const TypeDescription *msrc_td,
-                                     const string &fdst,
-				     bool scale_p)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("CalculateNodeNormalsAlgoT");
-  static const string scale_template_class_name("CalculateNodeNormalsScaleAlgoT");
-  static const string base_class_name("CalculateNodeNormalsAlgo");
-
-  CompileInfo *rval;
-  if (scale_p)
-  {
-    rval = 
-      scinew CompileInfo(scale_template_class_name + "." +
-			 fsrc_td->get_filename() + "." +
-			 floc_td->get_filename() + ".",
-			 base_class_name, 
-			 scale_template_class_name, 
-			 fsrc_td->get_name() + ", " +
-			 floc_td->get_name() + ", " + fdst);
-  }
-  else
-  {
-    rval = 
-      scinew CompileInfo(template_class_name + "." +
-			 msrc_td->get_filename() + "." +
-			 floc_td->get_filename() + ".",
-			 base_class_name, 
-			 template_class_name, 
-			 msrc_td->get_name() + ", " +
-			 floc_td->get_name() + ", " + fdst);
-  }
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_data_include("Core/Geometry/Vector.h");
-  fsrc_td->fill_compile_info(rval);
-  return rval;
-}
-
 
 } // End namespace SCIRun

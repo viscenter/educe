@@ -48,7 +48,6 @@ TARGET_LINK_LIBRARIES(Core_Services
   Core_Exceptions 
   Core_Containers 
   Core_ICom 
-  Core_OS
   Core_SystemCall 
   Core_XMLUtil 
  ${XML2_LIBRARY}

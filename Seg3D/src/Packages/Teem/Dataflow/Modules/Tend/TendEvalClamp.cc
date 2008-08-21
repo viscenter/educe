@@ -30,10 +30,12 @@
 //    Author : Martin Cole
 //    Date   : Mon Sep  8 09:46:49 2003
 
+#include <Core/Containers/StringUtil.h>
+
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
+
 #include <teem/ten.h>
 
 #include <sstream>
@@ -84,9 +86,9 @@ TendEvalClamp::execute()
   min=max=AIR_NAN;
 
   if (min_.get() != "NaN" && min_.get() != "nan") 
-    min = atof(min_.get().c_str());
+    from_string(min_.get(),min);
   if (max_.get() != "NaN" && max_.get() != "nan")
-    max = atof(max_.get().c_str());
+    from_string(max_.get(),max);
 
   if (tenEigenvalueClamp(nout, nin, min, max)) {
     char *err = biffGetDone(TEN);
@@ -95,7 +97,7 @@ TendEvalClamp::execute()
     return;
   }
 
-  NrrdDataHandle ntmp(scinew NrrdData(nout));
+  NrrdDataHandle ntmp(new NrrdData(nout));
 
   send_output_handle("nout", ntmp);
 }

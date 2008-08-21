@@ -53,9 +53,9 @@
 #include <Core/Geometry/CompGeom.h>
 
 #include <Core/Containers/Array2.h>
+#include <Core/Containers/SearchGridT.h>
 
 #include <Core/Datatypes/ImageMesh.h>
-#include <Core/Datatypes/SearchGrid.h>
 
 //! Incude needed for Windows: declares SCISHARE
 #include <Core/Datatypes/share.h>
@@ -163,13 +163,13 @@ public:
   }
 
   double get_size(typename ImageMesh<Basis>::Cell::index_type) const
-  { return 0.0; }
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
   double get_length(typename ImageMesh<Basis>::Edge::index_type idx) const
   { return get_size(idx); }
   double get_area(const typename ImageMesh<Basis>::Face::index_type &idx) const
   { return get_size(idx); }
   double get_volume(typename ImageMesh<Basis>::Cell::index_type idx) const
-  { return get_size(idx); }
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
 
   void get_normal(Vector &,
                   const typename ImageMesh<Basis>::Node::index_type &) const;
@@ -178,37 +178,6 @@ public:
                   typename ImageMesh<Basis>::Elem::index_type eidx,
                   unsigned int)
   {
-  
-/*
-    if (this->basis_.polynomial_order() < 2) 
-    {
-      typename ImageMesh<Basis>::Node::array_type arr(3);
-      get_nodes(arr, eidx);
-
-      const double c0_0 = fabs(coords[0]);
-      const double c1_0 = fabs(coords[1]);
-      const double c0_1 = fabs(coords[0] - 1.0L);
-      const double c1_1 = fabs(coords[1] - 1.0L);
-
-      if (c0_0 < 1e-7 && c1_0 < 1e-7) {
-        //! arr[0]
-        result = normals_(arr[0].i_, arr[0].j_);
-        return;
-      } else if (c0_1 < 1e-7 && c1_0 < 1e-7) {
-        //! arr[1]
-        result = normals_(arr[1].i_, arr[1].j_);
-        return;
-      } else if (c0_1 < 1e-7 && c1_1 < 1e-7) {
-        //! arr[2]
-        result = normals_(arr[2].i_, arr[2].j_);
-        return;
-      } else if (c0_0 < 1e-7 && c1_1 < 1e-7) {
-        //! arr[3]
-        result = normals_(arr[3].i_, arr[3].j_);
-        return;
-      }
-    }
-*/
     ElemData ed(*this, eidx);
     vector<Point> Jv;
     this->basis_.derivate(coords, ed, Jv);
@@ -223,16 +192,45 @@ public:
   void get_center(Point &,
                   const typename ImageMesh<Basis>::Face::index_type &) const;
   void get_center(Point &,
-                  typename ImageMesh<Basis>::Cell::index_type) const {}
+                  typename ImageMesh<Basis>::Cell::index_type) const
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
 
-  bool locate(typename ImageMesh<Basis>::Node::index_type &,
-              const Point &) const;
-  bool locate(typename ImageMesh<Basis>::Edge::index_type &,
-              const Point &) const;
-  bool locate(typename ImageMesh<Basis>::Face::index_type &,
-              const Point &) const;
+  bool locate(typename ImageMesh<Basis>::Node::index_type &node, 
+              const Point &p) const
+    { return (locate_node(node,p)); }
+  bool locate(typename ImageMesh<Basis>::Edge::index_type &edge,
+              const Point &p) const
+    { return (locate_edge(edge,p)); }
+  bool locate(typename ImageMesh<Basis>::Face::index_type &face,
+              const Point &p ) const
+    { return (locate_elem(face,p)); }
   bool locate(typename ImageMesh<Basis>::Cell::index_type &,
-              const Point &) const;
+              const Point &) const
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
+
+  template <class ARRAY>
+  bool locate(typename ImageMesh<Basis>::Elem::index_type &elem,
+              ARRAY& coords,
+              const Point &p ) const
+    { return (locate_elem(elem,coords,p)); }
+    
+    
+  bool find_closest_node(double& pdist, Point &result, 
+                         typename ImageMesh<Basis>::Node::index_type &node, 
+                         const Point &p) const
+    {  return (find_closest_node(pdist,result,node,p,-1.0)); }
+
+  bool find_closest_node(double& pdist, Point &result, 
+                         typename ImageMesh<Basis>::Node::index_type &node, 
+                         const Point &p, double maxdist) const;
+
+  bool find_closest_elem(double& pdist, Point &result, 
+                         typename ImageMesh<Basis>::Elem::index_type &elem, 
+                         const Point &p) const;
+
+  bool find_closest_elems(double& pdist, Point &result, 
+                          vector<typename ImageMesh<Basis>::Elem::index_type> &elems, 
+                          const Point &p) const;
 
   int get_weights(const Point &p,
                   typename ImageMesh<Basis>::Node::array_type &l, double *w);
@@ -243,7 +241,7 @@ public:
                   typename ImageMesh<Basis>::Face::array_type &l, double *w);
   int get_weights(const Point & ,
                   typename ImageMesh<Basis>::Cell::array_type & , double * )
-  { ASSERTFAIL("StructQuadSurfMesh::get_weights for cells isn't supported"); }
+  { ASSERTFAIL("This mesh type does not have cells use \"elem\"."); }
 
 
   bool inside3_p(typename ImageMesh<Basis>::Face::index_type i,
@@ -521,6 +519,425 @@ public:
   }
 
 
+  template <class INDEX>
+  bool inside(INDEX idx, const Point &p) const
+  {
+    const Point &p0 = points_(idx.j_,idx.i_);
+    const Point &p1 = points_(idx.j_+1,idx.i_);
+    const Point &p2 = points_(idx.j_+1,idx.i_+1);
+    const Point &p3 = points_(idx.j_,idx.i_+1);
+    const double x0 = p0.x();
+    const double y0 = p0.y();
+    const double z0 = p0.z();
+    const double x1 = p1.x();
+    const double y1 = p1.y();
+    const double z1 = p1.z();
+    const double x2 = p2.x();
+    const double y2 = p2.y();
+    const double z2 = p2.z();
+    const double x3 = p3.x();
+    const double y3 = p3.y();
+    const double z3 = p3.z();
+
+    const double a0 = + x1*(y2*z3-y3*z2) + x2*(y3*z1-y1*z3) + x3*(y1*z2-y2*z1);
+    const double a1 = - x2*(y3*z0-y0*z3) - x3*(y0*z2-y2*z0) - x0*(y2*z3-y3*z2);
+    const double a2 = + x3*(y0*z1-y1*z0) + x0*(y1*z3-y3*z1) + x1*(y3*z0-y0*z3);
+    const double a3 = - x0*(y1*z2-y2*z1) - x1*(y2*z0-y0*z2) - x2*(y0*z1-y1*z0);
+    const double iV6 = 1.0 / (a0+a1+a2+a3);
+
+    const double b0 = - (y2*z3-y3*z2) - (y3*z1-y1*z3) - (y1*z2-y2*z1);
+    const double c0 = + (x2*z3-x3*z2) + (x3*z1-x1*z3) + (x1*z2-x2*z1);
+    const double d0 = - (x2*y3-x3*y2) - (x3*y1-x1*y3) - (x1*y2-x2*y1);
+    const double s0 = iV6 * (a0 + b0*p.x() + c0*p.y() + d0*p.z());
+    if (s0 < -1e-8) return (false);
+
+    const double b1 = + (y3*z0-y0*z3) + (y0*z2-y2*z0) + (y2*z3-y3*z2);
+    const double c1 = - (x3*z0-x0*z3) - (x0*z2-x2*z0) - (x2*z3-x3*z2);
+    const double d1 = + (x3*y0-x0*y3) + (x0*y2-x2*y0) + (x2*y3-x3*y2);
+    const double s1 = iV6 * (a1 + b1*p.x() + c1*p.y() + d1*p.z());
+    if (s1 < -1e-8) return (false);
+
+    const double b2 = - (y0*z1-y1*z0) - (y1*z3-y3*z1) - (y3*z0-y0*z3);
+    const double c2 = + (x0*z1-x1*z0) + (x1*z3-x3*z1) + (x3*z0-x0*z3);
+    const double d2 = - (x0*y1-x1*y0) - (x1*y3-x3*y1) - (x3*y0-x0*y3);
+    const double s2 = iV6 * (a2 + b2*p.x() + c2*p.y() + d2*p.z());
+    if (s2 < -1e-8) return (false);
+
+    const double b3 = +(y1*z2-y2*z1) + (y2*z0-y0*z2) + (y0*z1-y1*z0);
+    const double c3 = -(x1*z2-x2*z1) - (x2*z0-x0*z2) - (x0*z1-x1*z0);
+    const double d3 = +(x1*y2-x2*y1) + (x2*y0-x0*y2) + (x0*y1-x1*y0);
+    const double s3 = iV6 * (a3 + b3*p.x() + c3*p.y() + d3*p.z());
+    if (s3 < -1e-8) return (false);
+
+    return (true);
+  }
+
+
+  template <class INDEX>
+  inline bool locate_node(INDEX &node, const Point &p) const
+  {
+    //! If there are no nodes we cannot find a closest point
+    if (this->ni_ == 0 || this->nj_ == 0) return (false);
+
+    //! Check first guess
+    if (node.i_ >= 0 && node.i_ < this->ni_ &&
+        node.j_ >= 0 && node.j_ < this->nj_) 
+    {
+      node.mesh_ = this;
+      if ((p - points_(node.j_,node.i_)).length2() < epsilon2_) return (true);
+    }    
+
+    ASSERTMSG(synchronized_ & Mesh::NODE_LOCATE_E,
+              "QuadSurfMesh::locate_node requires synchronize(NODE_LOCATE_E).")
+
+    // get grid sizes
+    const size_type ni = node_grid_->get_ni()-1;
+    const size_type nj = node_grid_->get_nj()-1;
+    const size_type nk = node_grid_->get_nk()-1;
+
+    // Convert to grid coordinates.
+    index_type bi, bj, bk, ei, ej, ek;
+    node_grid_->unsafe_locate(bi, bj, bk, p);
+
+    // Clamp to closest point on the grid.
+    if (bi > ni) bi =ni; if (bi < 0) bi = 0;
+    if (bj > nj) bj =nj; if (bj < 0) bj = 0;
+    if (bk > nk) bk =nk; if (bk < 0) bk = 0;
+
+    ei = bi; 
+    ej = bj; 
+    ek = bk;
+    
+    double dmin = DBL_MAX;
+    bool found;
+    do 
+    {
+      found = true; 
+      //! This looks incorrect - but it is correct
+      //! We need to do a full shell without any elements that are closer
+      //! to make sure there no closer elements in neighboring searchgrid cells
+    
+      for (index_type i = bi; i <= ei; i++)
+      {
+        if (i < 0 || i > ni) continue;
+        for (index_type j = bj; j <= ej; j++)
+        {
+          if (j < 0 || j > nj) continue;
+          for (index_type k = bk; k <= ek; k++)
+          {
+            if (k < 0 || k > nk) continue;
+            if (i == bi || i == ei || j == bj || j == ej || k == bk || k == ek)
+            {
+              if (node_grid_->min_distance_squared(p, i, j, k) < dmin)
+              {
+                found = false;
+                typename SearchGridT<typename ImageMesh<Basis>::Node::index_type >::iterator it, eit;
+                node_grid_->lookup_ijk(it,eit, i, j, k);
+
+                while (it != eit)
+                {
+                  const Point point = points_((*it).j_,(*it).i_);
+                  const double dist = (p-point).length2();
+
+                  if (dist < dmin) 
+                  { 
+                    node = INDEX(*it);   
+                    dmin = dist; 
+                    
+                    if (dist < epsilon2_) return (true);
+                  }
+                  
+                  ++it;
+                }
+              }
+            }
+          }
+        }
+      }
+      bi--;ei++;
+      bj--;ej++;
+      bk--;ek++;
+    } 
+    while ((!found)||(dmin == DBL_MAX)) ;
+
+    return (true); 
+  }
+
+  //! This is currently implemented as an exhaustive search
+  template <class INDEX>
+  inline bool locate_edge(INDEX &idx, const Point &p) const
+  {
+    ASSERTMSG(synchronized_ & Mesh::EDGES_E,
+              "QuadSurfMesh::locate_node requires synchronize(EDGES_E).")
+              
+    typename ImageMesh<Basis>::Edge::iterator bi, ei;
+    typename ImageMesh<Basis>::Node::array_type nodes;
+    begin(bi);
+    end(ei);
+    idx = 0;
+
+    bool found = false;
+    double mindist = 0.0;
+    while (bi != ei)
+    {
+      get_nodes(nodes,*bi);
+      const double dist = distance_to_line2(p, points_(nodes[0].j_,nodes[0].i_),
+                                            points_(nodes[1].j_,nodes[1].i_),epsilon_);
+      if (!found || dist < mindist)
+      {
+        idx = static_cast<INDEX>(*bi);
+        mindist = dist;
+        found = true;
+      }
+      ++bi;
+    }
+    return (found);
+  }
+
+
+  template <class INDEX>
+  inline bool locate_elem(INDEX &elem, const Point &p) const
+  {
+    if (this->basis_.polynomial_order() > 1) return elem_locate(elem, *this, p);
+
+    ASSERTMSG(synchronized_ & Mesh::ELEM_LOCATE_E,
+              "StructQuadSurfMesh::locate_node requires synchronize(ELEM_LOCATE_E).")
+
+    typename ImageMesh<Basis>::Elem::size_type sz; size(sz);
+    if ((elem > 0)&&(elem < sz))
+    {
+      elem.mesh_ = this;
+      if (inside(elem,p)) return (true);
+    }
+
+    if (elem_grid_.get_rep() == 0) return (false);
+    
+    typename SearchGridT<typename ImageMesh<Basis>::Elem::index_type >::iterator it, eit;
+    if (elem_grid_->lookup(it,eit, p))
+    {
+      while (it != eit)
+      {
+        if (inside(typename ImageMesh<Basis>::Elem::index_type(*it), p))
+        {
+          elem = static_cast<INDEX>(*it);
+          return (true);
+        }
+        ++it;
+      }
+    }
+    return (false);
+  }
+
+
+  template <class INDEX, class ARRAY>
+  inline bool locate_elem(INDEX &elem, ARRAY& coords, const Point &p) const
+  {
+    if (this->basis_.polynomial_order() > 1) return elem_locate(elem, *this, p);
+
+    ASSERTMSG(synchronized_ & Mesh::ELEM_LOCATE_E,
+              "StructQuadSurfMesh::locate_node requires synchronize(ELEM_LOCATE_E).")
+
+    typename ImageMesh<Basis>::Elem::size_type sz; size(sz);
+    if ((elem > 0)&&(elem < sz))
+    {
+      elem.mesh_ = this;
+      if (inside(elem,p))
+      {
+        ElemData ed(*this,elem);
+        this->basis_.get_coords(coords,p,ed);
+        return (true);
+      }
+    }
+
+    if (elem_grid_.get_rep() == 0) return (false);
+    
+    typename SearchGridT<typename ImageMesh<Basis>::Elem::index_type >::iterator it, eit;
+    if (elem_grid_->lookup(it,eit, p))
+    {
+      while (it != eit)
+      {
+        if (inside(typename ImageMesh<Basis>::Elem::index_type(*it), p))
+        {
+          elem = static_cast<INDEX>(*it);
+          ElemData ed(*this,elem);
+          this->basis_.get_coords(coords,p,ed);
+          return (true);
+        }
+        ++it;
+      }
+    }
+    return (false);
+  }
+
+  template <class ARRAY>
+  bool find_closest_elem(double& pdist, Point &result, ARRAY& coords,
+    typename ImageMesh<Basis>::Elem::index_type &elem, const Point &p) const
+  {
+    return (find_closest_elem(pdist,result,coords,elem,p,-1.0));
+  }
+
+  template <class ARRAY>
+  bool find_closest_elem(double& pdist, Point &result, ARRAY& coords,
+    typename ImageMesh<Basis>::Elem::index_type &elem, 
+    const Point &p, double maxdist) const
+  {
+    //! If there are no nodes we cannot find the closest one
+    if (this->ni_ < 2 || this->nj_ < 2) return (false);
+
+    if (maxdist < 0.0) maxdist = DBL_MAX; else maxdist = maxdist*maxdist;
+
+    //! Test the one in face that is an initial guess
+    if (elem.i_ >= 0 && elem.i_ < (this->ni_-1) &&
+        elem.j_ >= 0 && elem.j_ < (this->nj_-1))
+    {
+      elem.mesh_ = this;
+      typename ImageMesh<Basis>::Node::array_type nodes;
+      
+      this->get_nodes(nodes,elem);
+      est_closest_point_on_quad(result, p,
+                           points_(nodes[0].j_,nodes[0].i_),
+                           points_(nodes[1].j_,nodes[1].i_),
+                           points_(nodes[2].j_,nodes[2].i_),
+                           points_(nodes[3].j_,nodes[3].i_));   
+                                                                 
+      double dist = (p-result).length2();
+      if ( dist < epsilon2_ )
+      {
+        //! As we computed an estimate, we use the Newton's method in the basis functions
+        //! compute a more refined solution. This function may slow down computation.
+        //! This piece of code will calculate the coordinates in the local element framework
+        //! (the newton's method of finding a minimum), then it will project this back
+        //! THIS CODE SHOULD BE FURTHER OPTIMIZED
+
+        ElemData ed(*this,elem);
+        this->basis_.get_coords(coords,result,ed);
+       
+        result = this->basis_.interpolate(coords,ed);        
+        pdist = sqrt((result-p).length2());
+        return (true);
+      }        
+    } 
+
+    ASSERTMSG(synchronized_ & Mesh::ELEM_LOCATE_E,
+              "StructQuadSurfMesh::find_closest_elem requires synchronize(ELEM_LOCATE_E).")
+
+    // get grid sizes
+    const size_type ni = elem_grid_->get_ni()-1;
+    const size_type nj = elem_grid_->get_nj()-1;
+    const size_type nk = elem_grid_->get_nk()-1;
+
+    // Convert to grid coordinates.
+    index_type bi, bj, bk, ei, ej, ek;
+    elem_grid_->unsafe_locate(bi, bj, bk, p);
+
+    // Clamp to closest point on the grid.
+    if (bi > ni) bi = ni; if (bi < 0) bi = 0;
+    if (bj > nj) bj = nj; if (bj < 0) bj = 0;
+    if (bk > nk) bk = nk; if (bk < 0) bk = 0;
+
+    ei = bi; ej = bj; ek = bk;
+    
+    double dmin = maxdist;
+    bool found;
+    bool found_one = false;
+
+    typename ImageMesh<Basis>::Node::array_type nodes;
+    typename ImageMesh<Basis>::Elem::index_type idx;
+    
+    do 
+    {
+      found = true; 
+      //! This looks incorrect - but it is correct
+      //! We need to do a full shell without any elements that are closer
+      //! to make sure there no closer elements in neighboring searchgrid cells
+    
+      for (index_type i = bi; i <= ei; i++)
+      {
+        if (i < 0 || i > ni) continue;
+        for (index_type j = bj; j <= ej; j++)
+        {
+          if (j < 0 || j > nj) continue;
+          for (index_type k = bk; k <= ek; k++)
+          {
+            if (k < 0 || k > nk) continue;
+            if (i == bi || i == ei || j == bj || j == ej || k == bk || k == ek)
+            {
+              if (elem_grid_->min_distance_squared(p, i, j, k) < dmin)
+              {
+                found = false;
+                typename SearchGridT<typename ImageMesh<Basis>::Elem::index_type>::iterator it, eit;
+                elem_grid_->lookup_ijk(it, eit, i, j, k);
+
+                while (it != eit)
+                {
+                  Point r;
+                  this->get_nodes(nodes,*it);
+                  est_closest_point_on_quad(r, p,
+                                       points_(nodes[0].j_,nodes[0].i_),
+                                       points_(nodes[1].j_,nodes[1].i_),
+                                       points_(nodes[2].j_,nodes[2].i_),
+                                       points_(nodes[3].j_,nodes[3].i_));
+                  const double dtmp = (p - r).length2();
+                  if (dtmp < dmin)
+                  {
+                    found_one = true;
+                    result = r;
+                    idx = *it;
+                    dmin = dtmp;
+
+                    if (dmin < epsilon2_) 
+                    {
+                      //! As we computed an estimate, we use the Newton's method in the basis functions
+                      //! compute a more refined solution. This function may slow down computation.
+                      //! This piece of code will calculate the coordinates in the local element framework
+                      //! (the newton's method of finding a minimum), then it will project this back
+                      //! THIS CODE SHOULD BE FURTHER OPTIMIZED
+
+                      ElemData ed(*this,idx);
+                      this->basis_.get_coords(coords,result,ed);
+                     
+                      result = this->basis_.interpolate(coords,ed);
+                      dmin = (result-p).length2();
+                      
+                      elem = idx;
+                      pdist = sqrt(dmin);
+                      return (true);
+                    }
+                  }
+                  ++it;
+                }
+              }
+            }
+          }
+        }
+      }
+      bi--;ei++;
+      bj--;ej++;
+      bk--;ek++;
+    } 
+    while (!found);
+
+    if (!found_one) return (false);
+
+    //! As we computed an estimate, we use the Newton's method in the basis functions
+    //! compute a more refined solution. This function may slow down computation.
+    //! This piece of code will calculate the coordinates in the local element framework
+    //! (the newton's method of finding a minimum), then it will project this back
+    //! THIS CODE SHOULD BE FURTHER OPTIMIZED
+
+    ElemData ed(*this,idx);
+    this->basis_.get_coords(coords,result,ed);
+   
+    result = this->basis_.interpolate(coords,ed);
+    dmin = (result-p).length2();
+
+    elem = idx;
+    pdist = dmin;
+    return (true);
+  }
+
+
+
   //! Export this class using the old Pio system
   virtual void io(Piostream&);
   //! These IDs are created as soon as this class will be instantiated
@@ -532,7 +949,8 @@ public:
   
   virtual bool synchronize(mask_type sync);
   virtual bool unsynchronize(mask_type sync);
-  
+  bool clear_synchronization();
+    
   //! Type description, used for finding names of the mesh class for
   //! dynamic compilation purposes. Soem of this should be obsolete     
   virtual const TypeDescription *get_type_description() const;
@@ -544,22 +962,33 @@ public:
   { return face_type_description(); }
 
   //! This function returns a maker for Pio.
-  static Persistent *maker() { return scinew StructQuadSurfMesh<Basis>(); }
+  static Persistent *maker() { return new StructQuadSurfMesh<Basis>(); }
   //! This function returns a handle for the virtual interface.
-  static MeshHandle mesh_maker() { return scinew StructQuadSurfMesh<Basis>(); }
+  static MeshHandle mesh_maker() { return new StructQuadSurfMesh<Basis>(); }
   //! This function returns a handle for the virtual interface.
-  static MeshHandle structquadsurf_maker(size_type x ,size_type y) { return scinew StructQuadSurfMesh<Basis>(x,y); }
+  static MeshHandle structquadsurf_maker(size_type x ,size_type y) { return new StructQuadSurfMesh<Basis>(x,y); }
 
   Array2<Point>& get_points() { return (points_); }
 
+
+
   double get_epsilon() const
-  { return (epsilon_); }
-  
+    { return (epsilon_); }
   
 protected:
 
-  void compute_epsilon();
+  void compute_node_grid(BBox& bb);
+  void compute_elem_grid(BBox& bb);
+  void compute_epsilon(BBox& bb);
+
   void compute_normals();
+
+  //! Used to recompute data for individual cells.  
+  void insert_elem_into_grid(typename ImageMesh<Basis>::Elem::index_type ci);
+  void remove_elem_from_grid(typename ImageMesh<Basis>::Elem::index_type ci);
+
+  void insert_node_into_grid(typename ImageMesh<Basis>::Node::index_type ci);
+  void remove_node_from_grid(typename ImageMesh<Basis>::Node::index_type ci);
 
   //! compute_edge_neighbors is not defined anywhere... do don't
   //! declare it...  void compute_edge_neighbors(double err = 1.0e-8);
@@ -572,9 +1001,14 @@ protected:
 
   Array2<Point>  points_;
   Array2<Vector> normals_; //! normalized per node
+
+  LockingHandle<SearchGridT<typename ImageMesh<Basis>::Node::index_type > > node_grid_;
+  LockingHandle<SearchGridT<typename ImageMesh<Basis>::Elem::index_type > > elem_grid_;
+  
   Mutex          synchronize_lock_;
   mask_type      synchronized_;
   double         epsilon_;
+  double         epsilon2_;
 
   
 };
@@ -588,9 +1022,12 @@ StructQuadSurfMesh<Basis>::type_idsqs(StructQuadSurfMesh<Basis>::type_name(-1),
 
 template <class Basis>
 StructQuadSurfMesh<Basis>::StructQuadSurfMesh()
-  : synchronize_lock_("StructQuadSurfMesh Normals Lock"),
+  : node_grid_(0),
+    elem_grid_(0),
+    synchronize_lock_("StructQuadSurfMesh Normals Lock"),
     synchronized_(Mesh::ALL_ELEMENTS_E),
-    epsilon_(0.0)
+    epsilon_(0.0),
+    epsilon2_(0.0)
 {
   //! Create a new virtual interface for this copy ! all pointers have
   //! changed hence create a new ! virtual interface class
@@ -603,9 +1040,12 @@ StructQuadSurfMesh<Basis>::StructQuadSurfMesh(size_type x, size_type y)
   : ImageMesh<Basis>(x, y, Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)),
     points_( y,x),
     normals_( y,x),
+    node_grid_(0),
+    elem_grid_(0),
     synchronize_lock_("StructQuadSurfMesh Normals Lock"),
     synchronized_(Mesh::ALL_ELEMENTS_E),
-    epsilon_(0.0)
+    epsilon_(0.0),
+    epsilon2_(0.0)
 {
   //! Create a new virtual interface for this copy ! all pointers have
   //! changed hence create a new ! virtual interface class
@@ -616,18 +1056,41 @@ StructQuadSurfMesh<Basis>::StructQuadSurfMesh(size_type x, size_type y)
 template <class Basis>
 StructQuadSurfMesh<Basis>::StructQuadSurfMesh(const StructQuadSurfMesh &copy)
   : ImageMesh<Basis>(copy),
+    node_grid_(0),
+    elem_grid_(0),
     synchronize_lock_("StructQuadSurfMesh Normals Lock"),
-    synchronized_(copy.synchronized_),
-    epsilon_(copy.epsilon_)
+    synchronized_(Mesh::NODES_E | Mesh::FACES_E | Mesh::CELLS_E)
 {
   StructQuadSurfMesh &lcopy = (StructQuadSurfMesh &)copy;
 
   points_.copy( copy.points_ );
 
   lcopy.synchronize_lock_.lock();
-  normals_.copy(copy.normals_);
-  synchronized_ &= ~Mesh::LOCATE_E;
-  synchronized_ |= copy.synchronized_ & Mesh::LOCATE_E;
+
+//  normals_ = copy.normals_;
+//  synchronized_ |= copy.synchronized_ & Mesh::NORMALS_E;
+    
+  // Copy node grid
+  synchronized_ &= ~Mesh::NODE_LOCATE_E;
+  if (copy.node_grid_.get_rep())
+  {
+    node_grid_ = new SearchGridT<typename ImageMesh<Basis>::Node::index_type >(*(copy.node_grid_.get_rep()));
+  }
+
+  // Copy element grid
+  synchronized_ &= ~Mesh::ELEM_LOCATE_E;
+  if (copy.elem_grid_.get_rep())
+  {
+    elem_grid_ = new SearchGridT<typename ImageMesh<Basis>::Elem::index_type >(*(copy.elem_grid_.get_rep()));
+  }
+
+  epsilon_ = copy.epsilon_;
+  epsilon2_ = copy.epsilon2_;
+    
+  synchronized_ |= copy.synchronized_ & Mesh::ELEM_LOCATE_E;
+  synchronized_ |= copy.synchronized_ & Mesh::NODE_LOCATE_E;
+  synchronized_ |= copy.synchronized_ & Mesh::EPSILON_E;
+
   lcopy.synchronize_lock_.unlock();
 
   //! Create a new virtual interface for this copy ! all pointers have
@@ -674,6 +1137,8 @@ template <class Basis>
 void
 StructQuadSurfMesh<Basis>::transform(const Transform &t)
 {
+  synchronize_lock_.lock();
+
   typename ImageMesh<Basis>::Node::iterator i, ie;
   begin(i);
   end(ie);
@@ -681,9 +1146,12 @@ StructQuadSurfMesh<Basis>::transform(const Transform &t)
   while (i != ie) 
   {
     points_((*i).j_,(*i).i_) = t.project(points_((*i).j_,(*i).i_));
-
     ++i;
   }
+
+  if (node_grid_.get_rep()) { node_grid_->transform(t); }
+  if (elem_grid_.get_rep()) { elem_grid_->transform(t); }
+  synchronize_lock_.unlock();
 }
 
 
@@ -742,91 +1210,6 @@ StructQuadSurfMesh<Basis>::get_center(Point &p,
   p.asVector() *= (1.0 / 4.0);
 }
 
-
-template <class Basis>
-bool
-StructQuadSurfMesh<Basis>::locate(typename ImageMesh<Basis>::Node::index_type &node,
-				  const Point &p) const
-{
-  node.mesh_ = this;
-  typename ImageMesh<Basis>::Face::index_type fi;
-  if (locate(fi, p)) { //! first try the fast way.
-    typename ImageMesh<Basis>::Node::array_type nodes;
-    get_nodes(nodes, fi);
-
-    double dmin = (p-points_(nodes[0].j_, nodes[0].i_)).length2();
-    node = nodes[0];
-    for (size_t i = 1; i < nodes.size(); i++)
-    {
-      const double d = (p-points_(nodes[i].j_, nodes[i].i_)).length2();
-      if (d < dmin)
-      {
-        dmin = d;
-        node = nodes[i];
-      }
-    }
-    return true;
-  }
-  else
-  {  //! do exhaustive search.
-    typename ImageMesh<Basis>::Node::iterator ni, nie;
-    begin(ni);
-    end(nie);
-    if (ni == nie) { return false; }
-
-    double min_dist = (p-points_((*ni).j_, (*ni).i_)).length2();
-    node = *ni;
-    ++ni;
-
-    while (ni != nie)
-    {
-      const double dist = (p-points_((*ni).j_, (*ni).i_)).length2();
-      if (dist < min_dist)
-      {
-        node = *ni;
-        min_dist = dist;
-      }
-      ++ni;
-    }
-    return true;
-  }
-}
-
-
-template <class Basis>
-bool
-StructQuadSurfMesh<Basis>::locate(typename ImageMesh<Basis>::Edge::index_type &loc,
-				  const Point &p) const
-{
-  typename ImageMesh<Basis>::Edge::iterator bi, ei;
-  typename ImageMesh<Basis>::Node::array_type nodes;
-  begin(bi);
-  end(ei);
-  loc = 0;
-
-  bool found = false;
-  double mindist = 0.0;
-  while (bi != ei)
-  {
-    get_nodes(nodes,*bi);
-
-    Point p0, p1;
-    get_center(p0, nodes[0]);
-    get_center(p1, nodes[1]);
-
-    const double dist = distance_to_line2(p, p0, p1,epsilon_);
-    if (!found || dist < mindist)
-    {
-      loc = *bi;
-      mindist = dist;
-      found = true;
-    }
-    ++bi;
-  }
-  return found;
-}
-
-
 template <class Basis>
 int
 StructQuadSurfMesh<Basis>::get_weights(const Point &p,
@@ -834,7 +1217,7 @@ StructQuadSurfMesh<Basis>::get_weights(const Point &p,
                                        double *w)
 {
   typename ImageMesh<Basis>::Face::index_type idx;
-  if (locate(idx, p))
+  if (locate_elem(idx, p))
   {
     l.resize(1);
     l[0] = idx;
@@ -852,7 +1235,7 @@ StructQuadSurfMesh<Basis>::get_weights(const Point &p,
                                        double *w)
 {
   typename ImageMesh<Basis>::Face::index_type idx;
-  if (locate(idx, p))
+  if (locate_elem(idx, p))
   {
     get_nodes(l,idx);
     vector<double> coords(2);
@@ -952,41 +1335,6 @@ StructQuadSurfMesh<Basis>::get_random_point(Point &p,
 
 
 template <class Basis>
-bool
-StructQuadSurfMesh<Basis>::locate( typename ImageMesh<Basis>::Face::index_type &face,
-				   const Point &p) const
-{
-  if (this->basis_.polynomial_order() > 1) return elem_locate(face, *this, p);
-  typename ImageMesh<Basis>::Face::iterator bi, ei;
-  begin(bi);
-  end(ei);
-
-  while (bi != ei) 
-  {
-    if( inside3_p( *bi, p ) ) 
-    {
-      face = *bi;
-      return true;
-    }
-
-    ++bi;
-  }
-  return false;
-}
-
-
-template <class Basis>
-bool
-StructQuadSurfMesh<Basis>::
-locate(typename ImageMesh<Basis>::Cell::index_type &loc,
-       const Point &) const
-{
-  loc = 0;
-  return false;
-}
-
-
-template <class Basis>
 void
 StructQuadSurfMesh<Basis>::set_point(const Point &point,
 				     const typename ImageMesh<Basis>::Node::index_type &index)
@@ -1005,12 +1353,36 @@ StructQuadSurfMesh<Basis>::synchronize(mask_type sync)
     compute_normals();
     synchronized_ |= Mesh::NORMALS_E;
   }
-  
-  if (sync & (Mesh::EPSILON_E|Mesh::LOCATE_E) &&
-      !(synchronized_ & (Mesh::EPSILON_E|Mesh::LOCATE_E)))
+
+  if (sync & (Mesh::NODE_LOCATE_E|Mesh::ELEM_LOCATE_E|Mesh::EPSILON_E) && 
+      ( !(synchronized_ & Mesh::NODE_LOCATE_E) ||
+        !(synchronized_ & Mesh::ELEM_LOCATE_E) ||
+        !(synchronized_ & Mesh::EPSILON_E) ))
   {
-    compute_epsilon();
-    synchronized_ |= (Mesh::EPSILON_E|Mesh::LOCATE_E);
+    //! These computations share the evalution of the bounding box
+    BBox bb = get_bounding_box(); 
+
+    //! Compute the epsilon for geometrical closeness comparisons
+    //! Mainly used by the grid lookup tables
+    if (sync & (Mesh::EPSILON_E|Mesh::LOCATE_E|Mesh::FIND_CLOSEST_E) && 
+        !(synchronized_ & Mesh::EPSILON_E))
+    {
+      compute_epsilon(bb);
+    }
+
+    //! Table for finding nodes in space
+    if (sync & (Mesh::NODE_LOCATE_E|Mesh::FIND_CLOSEST_NODE_E) && 
+        !(synchronized_ & Mesh::NODE_LOCATE_E))
+    {
+      compute_node_grid(bb);
+    }
+
+    //! Table for finding elements in space
+    if (sync & (Mesh::ELEM_LOCATE_E|Mesh::FIND_CLOSEST_ELEM_E) && 
+        !(synchronized_ & Mesh::ELEM_LOCATE_E))
+    {
+      compute_elem_grid(bb);
+    }
   }
   
   synchronize_lock_.unlock();
@@ -1024,12 +1396,147 @@ StructQuadSurfMesh<Basis>::unsynchronize(mask_type sync)
   return (true);
 }
 
+
+template <class Basis>
+bool
+StructQuadSurfMesh<Basis>::clear_synchronization()
+{
+  synchronize_lock_.lock();
+  // Undo marking the synchronization 
+  synchronized_ = Mesh::NODES_E | Mesh::ELEMS_E | Mesh::FACES_E;
+
+  // Free memory where possible
+  node_grid_ = 0;
+  elem_grid_ = 0;
+
+  synchronize_lock_.unlock();
+  return (true);
+}
+
 template <class Basis>
 void
-StructQuadSurfMesh<Basis>::compute_epsilon()
+StructQuadSurfMesh<Basis>::insert_elem_into_grid(typename ImageMesh<Basis>::Elem::index_type idx)
 {
-  epsilon_ = get_bounding_box().diagonal().length();
+  // TODO:  This can crash if you insert a new cell outside of the grid.
+  // Need to recompute grid at that point.
+  
+  BBox box;
+  box.extend(points_(idx.j_,idx.i_));
+  box.extend(points_(idx.j_+1,idx.i_));
+  box.extend(points_(idx.j_,idx.i_+1));
+  box.extend(points_(idx.j_+1,idx.i_+1));
+  box.extend(epsilon_);
+  elem_grid_->insert(idx, box);
 }
+
+
+template <class Basis>
+void
+StructQuadSurfMesh<Basis>::remove_elem_from_grid(typename ImageMesh<Basis>::Elem::index_type idx)
+{
+  BBox box;
+  box.extend(points_(idx.j_,idx.i_));
+  box.extend(points_(idx.j_+1,idx.i_));
+  box.extend(points_(idx.j_,idx.i_+1));
+  box.extend(points_(idx.j_+1,idx.i_+1));
+  box.extend(epsilon_);
+  elem_grid_->remove(idx, box);
+}
+
+
+template <class Basis>
+void
+StructQuadSurfMesh<Basis>::insert_node_into_grid(typename ImageMesh<Basis>::Node::index_type ni)
+{
+  // TODO:  This can crash if you insert a new cell outside of the grid.
+  // Need to recompute grid at that point.
+  node_grid_->insert(ni,points_[ni]);
+}
+
+
+template <class Basis>
+void
+StructQuadSurfMesh<Basis>::remove_node_from_grid(typename ImageMesh<Basis>::Node::index_type ni)
+{
+  node_grid_->remove(ni,points_[ni]);
+}
+
+template <class Basis>
+void
+StructQuadSurfMesh<Basis>::compute_node_grid(BBox& bb)
+{
+  if (bb.valid())
+  {
+    // Cubed root of number of elems to get a subdivision ballpark.
+    
+    typename ImageMesh<Basis>::Node::size_type esz;  size(esz);
+    
+    const size_type s = 3*static_cast<size_type>
+                  ((ceil(pow(static_cast<double>(esz) , (1.0/3.0))))/2.0 + 1.0);
+      
+    Vector diag  = bb.diagonal();
+    double trace = (diag.x()+diag.y()+diag.z());
+    size_type sx = static_cast<size_type>(ceil(diag.x()/trace*s));
+    size_type sy = static_cast<size_type>(ceil(diag.y()/trace*s));
+    size_type sz = static_cast<size_type>(ceil(diag.z()/trace*s));
+    
+    BBox b = bb; b.extend(10*epsilon_);
+    node_grid_ = new SearchGridT<typename ImageMesh<Basis>::Node::index_type >(sx, sy, sz, b.min(), b.max());
+
+    typename ImageMesh<Basis>::Node::iterator ni, nie;
+    begin(ni); end(nie);
+    while(ni != nie)
+    {
+      insert_node_into_grid(*ni);
+      ++ni;
+    }
+  }
+
+  synchronized_ |= Mesh::NODE_LOCATE_E;
+}
+
+template <class Basis>
+void
+StructQuadSurfMesh<Basis>::compute_elem_grid(BBox& bb)
+{
+  if (bb.valid())
+  {
+    // Cubed root of number of elems to get a subdivision ballpark.
+    
+    typename ImageMesh<Basis>::Elem::size_type esz;  size(esz);
+    
+    const size_type s = 3*static_cast<size_type>
+                  ((ceil(pow(static_cast<double>(esz) , (1.0/3.0))))/2.0 + 1.0);
+      
+    Vector diag  = bb.diagonal();
+    double trace = (diag.x()+diag.y()+diag.z());
+    size_type sx = static_cast<size_type>(ceil(diag.x()/trace*s));
+    size_type sy = static_cast<size_type>(ceil(diag.y()/trace*s));
+    size_type sz = static_cast<size_type>(ceil(diag.z()/trace*s));
+        
+    BBox b = bb; b.extend(10*epsilon_);
+    elem_grid_ = new SearchGridT<typename ImageMesh<Basis>::Elem::index_type>(sx, sy, sz, b.min(), b.max());
+
+    typename ImageMesh<Basis>::Elem::iterator ci, cie;
+    begin(ci); end(cie);
+    while(ci != cie)
+    {
+      insert_elem_into_grid(*ci);
+      ++ci;
+    }
+  }
+
+  synchronized_ |= Mesh::ELEM_LOCATE_E;
+}
+
+template <class Basis>
+void
+StructQuadSurfMesh<Basis>::compute_epsilon(BBox& bb)
+{
+  epsilon_ =  bb.diagonal().length();
+  epsilon2_ = epsilon_*epsilon_; 
+}
+
 
 template <class Basis>
 void
@@ -1163,9 +1670,9 @@ get_type_description(StructQuadSurfMesh<Basis> *)
   if (!td)
   {
     const TypeDescription *sub = SCIRun::get_type_description((Basis*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("StructQuadSurfMesh", subs,
+    td = new TypeDescription("StructQuadSurfMesh", subs,
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1191,7 +1698,7 @@ StructQuadSurfMesh<Basis>::node_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((StructQuadSurfMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Node",
+    td = new TypeDescription(me->get_name() + "::Node",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1209,7 +1716,7 @@ StructQuadSurfMesh<Basis>::edge_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((StructQuadSurfMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Edge",
+    td = new TypeDescription(me->get_name() + "::Edge",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1227,7 +1734,7 @@ StructQuadSurfMesh<Basis>::face_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((StructQuadSurfMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Face",
+    td = new TypeDescription(me->get_name() + "::Face",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
@@ -1245,13 +1752,261 @@ StructQuadSurfMesh<Basis>::cell_type_description()
   {
     const TypeDescription *me =
       SCIRun::get_type_description((StructQuadSurfMesh<Basis> *)0);
-    td = scinew TypeDescription(me->get_name() + "::Cell",
+    td = new TypeDescription(me->get_name() + "::Cell",
                                 string(__FILE__),
                                 "SCIRun",
                                 TypeDescription::MESH_E);
   }
   return td;
 }
+
+
+template <class Basis>
+bool 
+StructQuadSurfMesh<Basis>::find_closest_node(double& pdist, Point &result, 
+   typename ImageMesh<Basis>::Node::index_type &node, const Point &p,
+   double maxdist) const
+{
+  //! If there are no nodes we cannot find a closest point
+  if (this->ni_ == 0 || this->nj_ == 0) return (false);
+  if (maxdist < 0.0) maxdist = DBL_MAX; else maxdist = maxdist*maxdist;
+ 
+  //! Check first guess
+  if (node.i_ >= 0 && node.i_ < this->ni_ &&
+      node.j_ >= 0 && node.j_ < this->nj_) 
+  {
+    node.mesh_ = this;
+    Point point = points_(node.j_,node.i_); 
+    double dist = (point-p).length2();
+    
+    if ( dist < epsilon2_ )
+    {
+      result = point;
+      pdist = sqrt(dist);
+      return (true);
+    }           
+  } 
+  
+  ASSERTMSG(synchronized_ & Mesh::NODE_LOCATE_E,
+            "StructQuadSurfMesh::find_closest_elem requires synchronize(NODELOCATE_E).")
+
+  // get grid sizes
+  const size_type ni = node_grid_->get_ni()-1;
+  const size_type nj = node_grid_->get_nj()-1;
+  const size_type nk = node_grid_->get_nk()-1;
+
+  // Convert to grid coordinates.
+  index_type bi, bj, bk, ei, ej, ek;
+  node_grid_->unsafe_locate(bi, bj, bk, p);
+
+  // Clamp to closest point on the grid.
+  if (bi > ni) bi = ni; if (bi < 0) bi = 0;
+  if (bj > nj) bj = nj; if (bj < 0) bj = 0;
+  if (bk > nk) bk = nk; if (bk < 0) bk = 0;
+
+  ei = bi; ej = bj; ek = bk;
+  
+  typename ImageMesh<Basis>::Node::array_type nodes;
+  
+  double dmin = maxdist;
+  bool found = true;
+  bool found_one = false;
+  
+  do 
+  {
+    found = true; 
+    //! This looks incorrect - but it is correct
+    //! We need to do a full shell without any elements that are closer
+    //! to make sure there no closer elements in neighboring searchgrid cells
+  
+    for (index_type i = bi; i <= ei; i++)
+    {
+      if (i < 0 || i > ni) continue;
+      for (index_type j = bj; j <= ej; j++)
+      {
+        if (j < 0 || j > nj) continue;
+        for (index_type k = bk; k <= ek; k++)
+        {
+          if (k < 0 || k > nk) continue;
+          if (i == bi || i == ei || j == bj || j == ej || k == bk || k == ek)
+          {
+            if (node_grid_->min_distance_squared(p, i, j, k) < dmin)
+            {
+              typename SearchGridT<typename ImageMesh<Basis>::Node::index_type>::iterator it, eit;
+              node_grid_->lookup_ijk(it,eit, i, j, k);
+
+              while (it != eit)
+              {
+                const typename ImageMesh<Basis>::Node::index_type idx = *it;
+                const Point pnt = points_(idx.j_,idx.i_);
+                const double dist = (p-pnt).length2();
+                if (dist < dmin) 
+                { 
+                  found_one = true;
+                  result = pnt; 
+                  node = idx; 
+                  dmin = dist; 
+
+                  //! If we are closer than eps^2 we found a node close enough
+                  if (dmin < epsilon2_) 
+                  {
+                    pdist = sqrt(dmin);
+                    return (true);
+                  }
+                }
+                ++it;
+              }
+            }
+          }
+        }
+      }
+    }
+    bi--;ei++;
+    bj--;ej++;
+    bk--;ek++;
+  } 
+  while (!found) ;
+
+  if (!found_one) return (false);
+  
+  pdist = sqrt(dmin);
+  return (true);
+}
+
+
+//! This function will find the closest element and the location on that
+//! element that is the closest
+
+template <class Basis>
+bool 
+StructQuadSurfMesh<Basis>::find_closest_elem(double& pdist, 
+                       Point &result, 
+                       typename ImageMesh<Basis>::Elem::index_type &elem, 
+                       const Point &p) const
+{ 
+  StackVector<double,2> coords;
+  return(find_closest_elem(pdist,result,coords,elem,p,-1.0));
+}
+
+
+template <class Basis>
+bool 
+StructQuadSurfMesh<Basis>::find_closest_elems(double& pdist, 
+  Point &result, 
+  vector<typename ImageMesh<Basis>::Elem::index_type> &elems, 
+  const Point &p) const
+{
+  elems.clear();
+
+  //! If there are no nodes we cannot find the closest one
+  if (this->ni_ < 2 || this->nj_ < 2) return (false);
+
+  ASSERTMSG(synchronized_ & Mesh::ELEM_LOCATE_E,
+            "StructQuadSurfMesh::find_closest_elem requires synchronize(ELEM_LOCATE_E).")
+
+  // get grid sizes
+  const size_type ni = elem_grid_->get_ni()-1;
+  const size_type nj = elem_grid_->get_nj()-1;
+  const size_type nk = elem_grid_->get_nk()-1;
+
+  // Convert to grid coordinates.
+  index_type bi, bj, bk, ei, ej, ek;
+  elem_grid_->unsafe_locate(bi, bj, bk, p);
+
+  // Clamp to closest point on the grid.
+  if (bi > ni) bi = ni; if (bi < 0) bi = 0;
+  if (bj > nj) bj = nj; if (bj < 0) bj = 0;
+  if (bk > nk) bk = nk; if (bk < 0) bk = 0;
+
+  ei = bi; ej = bj; ek = bk;
+
+  double dmin = DBL_MAX;
+
+  typename ImageMesh<Basis>::Node::array_type nodes;
+  typename ImageMesh<Basis>::Elem::index_type last_idx;
+  
+  bool found = true;
+  do 
+  {
+    found = true; 
+    //! This looks incorrect - but it is correct
+    //! We need to do a full shell without any elements that are closer
+    //! to make sure there no closer elements
+    for (index_type i = bi; i <= ei; i++)
+    {
+      if (i < 0 || i > ni) continue;
+      for (index_type j = bj; j <= ej; j++)
+      {
+        if (j < 0 || j > nj) continue;
+        for (index_type k = bk; k <= ek; k++)
+        {
+          if (k < 0 || k > nk) continue;
+          if (i == bi || i == ei || j == bj || j == ej || k == bk || k == ek)
+          {
+            if (elem_grid_->min_distance_squared(p, i, j, k) < dmin)
+            {
+              found = false;
+              typename SearchGridT<typename ImageMesh<Basis>::Elem::index_type>::iterator it, eit;
+              elem_grid_->lookup_ijk(it,eit, i, j, k);
+
+              while (it != eit)
+              {
+                Point r;
+                this->get_nodes(nodes,*it);
+                est_closest_point_on_quad(r, p,
+                                     points_(nodes[0].j_,nodes[0].i_),
+                                     points_(nodes[1].j_,nodes[1].i_),
+                                     points_(nodes[2].j_,nodes[2].i_),
+                                     points_(nodes[3].j_,nodes[3].i_));
+                const double dtmp = (p - r).length2();
+                
+                if (dtmp < dmin - epsilon2_)
+                {
+                  elems.clear();
+                  result = r;
+                  last_idx = *it;
+                  elems.push_back(*it);
+                  dmin = dtmp;
+                }
+                else if (dtmp < dmin + epsilon2_)
+                {
+                  elems.push_back(*it);
+                }
+                ++it;
+              }
+            }
+          }
+        }
+      }
+    }
+    bi--;ei++;
+    bj--;ej++;
+    bk--;ek++;
+  } 
+  while ((!found)||(dmin == DBL_MAX)) ;
+
+
+  // As we computed an estimate, we use the Newton's method in the basis functions
+  // compute a more refined solution. This function may slow down computation.
+  // This piece of code will calculate the coordinates in the local element framework
+  // (the newton's method of finding a minimum), then it will project this back
+  // THIS CODE SHOULD BE FURTHER OPTIMIZED
+
+  if (elems.size() == 1)
+  {
+    // if the number of faces is more then one the point we found is located
+    // on the node or on the edge, which means the estimate is correct.
+    StackVector<double,3> coords;
+    ElemData ed(*this,last_idx);
+    this->basis_.get_coords(coords,result,ed);
+    result = this->basis_.interpolate(coords,ed);
+    dmin = (result-p).length2();
+  }
+  
+  pdist = sqrt(dmin);
+  return (true);
+}
+
 
 } //! namespace SCIRun
 

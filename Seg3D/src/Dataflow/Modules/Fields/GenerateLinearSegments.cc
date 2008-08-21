@@ -40,11 +40,15 @@
  *  Copyright (C) 2001 SCI Group
  */
 
-#include <Dataflow/Network/Module.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/FieldInformation.h>
+
 #include <Dataflow/Network/Ports/FieldPort.h>
+#include <Dataflow/Network/Module.h>
 #include <Core/Containers/Handle.h>
 
-#include <Dataflow/Modules/Fields/GenerateLinearSegments.h>
+#include <sstream>
 
 namespace SCIRun {
 
@@ -52,7 +56,7 @@ class GenerateLinearSegments : public Module
 {
 public:
   GenerateLinearSegments(GuiContext* ctx);
-  virtual ~GenerateLinearSegments();
+  virtual ~GenerateLinearSegments() {}
 
   virtual void execute();
 
@@ -75,22 +79,14 @@ GenerateLinearSegments::GenerateLinearSegments(GuiContext* ctx)
 {
 }
 
-GenerateLinearSegments::~GenerateLinearSegments()
-{
-}
-
 void
 GenerateLinearSegments::execute()
 {
   FieldHandle field_input_handle;
 
-  if( !get_input_handle( "Input Field", field_input_handle, true ) )
-    return;
+  get_input_handle( "Input Field", field_input_handle, true );
 
-  if (!field_input_handle->query_vector_interface(this).get_rep()) {
-    error( "This module only works on vector data.");
-    return;
-  }
+
 
   // Check to see if the input field(s) has changed.
   if( inputs_changed_ ||
@@ -102,68 +98,143 @@ GenerateLinearSegments::execute()
   {
     update_state(Executing);
 
-    Field *iField = field_input_handle.get_rep();
+    if (!(field_input_handle->vfield()->is_vector())) 
+    {
+      error( "This module only works on vector data.");
+      return;
+    }
 
-    const TypeDescription *iftd = iField->get_type_description();
+    if (!(field_input_handle->vfield()->is_lineardata())) 
+    {
+      error( "This module only works for data on the nodes of the mesh.");
+      return;
+    }
     
-    const TypeDescription *ifdtd = 
-      (*iField->get_type_description(Field::FDATA_TD_E)->get_sub_type())[0];
-    const TypeDescription *iltd = iField->order_type_description();
+    VField* ifield = field_input_handle->vfield();
+    VMesh*  imesh  = field_input_handle->vmesh();
 
-    string dsttype;
-    if (gui_value_.get() == 0)
-      dsttype = ifdtd->get_name();
-    else
-    dsttype = "double";
+    string datatype;
+    FieldInformation fi("CurveMesh",1,"double");
+    if (gui_value_.get() == 0) fi.make_vector();
+    FieldHandle field_output_handle = CreateField(fi);
+    
+    
+    VField* ofield = field_output_handle->vfield();
+    VMesh*  omesh  = field_output_handle->vmesh();
 
-    const string dftn =
-      "GenericField<CurveMesh<CrvLinearLgn<Point> >, CrvLinearLgn<" +
-      dsttype + ">, vector<" + dsttype + "> > ";
+    int step_size = gui_step_size_.get();
+		int max_steps = gui_max_steps_.get();
+    int direction = gui_direction_.get();
+    int value = gui_value_.get();
 
-    CompileInfoHandle aci =
-      GenerateLinearSegmentsAlgo::get_compile_info(iftd, iltd,
-						    dftn, gui_value_.get());
+    Point seed;
+    Vector vec;
+    std::vector<Point> nodes;
+    VMesh::Node::array_type edge(2);
+    nodes.reserve(direction==1?2*max_steps:max_steps);
 
-    Handle<GenerateLinearSegmentsAlgo> accalgo;
-    if (!module_dynamic_compile(aci, accalgo)) return;
-      
-    FieldHandle field_output_handle =
-      accalgo->execute(this, field_input_handle,
-		       gui_step_size_.get(),
-		       gui_max_steps_.get(),
-		       gui_direction_.get(),
-		       gui_value_.get());
+    VMesh::size_type num_nodes = imesh->num_nodes();
+    
+    std::vector<Point>::iterator node_iter;
+    VMesh::Node::index_type n1, n2;
 
+    int cnt = 0;
+    for(VMesh::Node::index_type idx=0; idx < num_nodes; idx++)
+    {
+      imesh->get_center(seed, idx);
+      ifield->get_value(vec, idx);
+
+      cnt++; if (cnt == 100) { cnt = 0; update_progress(cnt, num_nodes); }
+
+      nodes.clear();
+      nodes.push_back(seed);
+
+      size_t cc = 0;
+
+      // Find the negative segments.
+      if( direction <= 1 )
+      {
+        for (int i=1; i < max_steps; i++)
+        {
+          nodes.push_back(seed+(double)i*step_size*(-vec));
+        }
+        if ( direction == 1 )
+        {
+          std::reverse(nodes.begin(), nodes.end());
+          cc = nodes.size();
+          cc = -(cc - 1);
+        }
+      }
+      // Append the positive segments.
+      if( direction >= 1 )
+      {
+        for (int i=1; i < max_steps; i++)
+        {
+          nodes.push_back(seed+(double)i*step_size*vec);
+        }
+      }
+
+      node_iter = nodes.begin();
+
+      if (node_iter != nodes.end())
+      {
+        n1 = omesh->add_node(*node_iter);
+
+        std::ostringstream str;
+        str << "Segment " << idx << " Node Index";      
+        ofield->set_property( str.str(), static_cast<index_type>(n1), false );
+
+        ofield->resize_values();
+
+        if (value == 0)
+        {
+          ofield->copy_value(ifield,idx,n1);
+        }
+        else if( value == 1)
+        {
+          ofield->set_value(idx,n1);
+        }
+        else if (value == 2)
+        {
+          ofield->set_value(fabs((double)cc),n1);        
+        }
+
+        ++node_iter;
+
+        cc++;
+
+        while (node_iter != nodes.end())
+        {
+          n2 = omesh->add_node(*node_iter);
+          ofield->resize_values();
+        
+          if (value == 0)
+          {
+             ofield->copy_value(ifield,idx,n2);
+          }
+          else if( value == 1)
+          {
+            ofield->set_value(idx,n2);
+          }
+          else if (value == 2)
+          {
+            ofield->set_value(fabs((double)cc),n2);        
+          }
+          
+          edge[0] = n1;
+          edge[1] = n2;
+          omesh->add_elem(edge);
+
+          n1 = n2;
+          ++node_iter;
+          cc++;
+        }
+      }
+    }
+    
+    ofield->set_property( "Segment Count", num_nodes, false );
     send_output_handle( "Output Linear Segments", field_output_handle );
   }
-}
-
-
-CompileInfoHandle
-GenerateLinearSegmentsAlgo::get_compile_info(const TypeDescription *fsrc,
-					      const TypeDescription *sloc,
-					      const string &fdst,
-					      int value)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("GenerateLinearSegmentsAlgoT");
-  static const string base_class_name("GenerateLinearSegmentsAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + (value?"M":"F") + "." +
-		       fsrc->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name + (value?"M":"F"),
-		       fsrc->get_name() + ", " +
-                       fdst);
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_basis_include("Core/Basis/CrvLinearLgn.h");
-  rval->add_mesh_include("Core/Datatypes/CurveMesh.h");
-  fsrc->fill_compile_info(rval);
-  return rval;
 }
 
 } // End namespace SCIRun

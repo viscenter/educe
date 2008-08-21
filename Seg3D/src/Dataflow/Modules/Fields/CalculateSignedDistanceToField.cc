@@ -40,6 +40,7 @@ using namespace SCIRun;
 class CalculateSignedDistanceToField : public Module {
   public:
     CalculateSignedDistanceToField(GuiContext*);
+    virtual ~CalculateSignedDistanceToField() {}
     virtual void execute();
 };
 

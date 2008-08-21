@@ -26,103 +26,49 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+#include <Core/Algorithms/Fields/TransformMesh/TransformMeshWithTransform.h>
 
-
-/*
- *  TransformMeshWithTransform.cc:  Rotate and flip field to get it into "standard" view
- *
- *  Written by:
- *   Michael Callahan
- *   Department of Computer Science
- *   University of Utah
- *   March 2001
- *
- *  Copyright (C) 2001 SCI Group
- */
-
-#include <Dataflow/Network/Module.h>
-#include <Core/Datatypes/DenseMatrix.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Geometry/Transform.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Math/MiscMath.h>
-#include <iostream>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+
+#include <Dataflow/Network/Module.h>
+
 
 namespace SCIRun {
 
-
 class TransformMeshWithTransform : public Module
 {
-public:
-  TransformMeshWithTransform(GuiContext* ctx);
-  virtual ~TransformMeshWithTransform();
+  public:
+    TransformMeshWithTransform(GuiContext* ctx);
+    virtual ~TransformMeshWithTransform() {} 
+    virtual void execute();
 
-  virtual void execute();
-
-  void matrix_to_transform(MatrixHandle mH, Transform& t);
-  
-protected:
-  int ifield_generation_;
-  int imatrix_generation_;
+  private:
+    SCIRunAlgo::TransformMeshWithTransformAlgo algo_;
 };
 
 
 DECLARE_MAKER(TransformMeshWithTransform)
 
 TransformMeshWithTransform::TransformMeshWithTransform(GuiContext* ctx)
-  : Module("TransformMeshWithTransform", ctx, Filter, "ChangeMesh", "SCIRun"),
-    ifield_generation_(0),
-    imatrix_generation_(0)
+  : Module("TransformMeshWithTransform", ctx, Filter, "ChangeMesh", "SCIRun")
 {
+  algo_.set_progress_reporter(this);
 }
-
-
-TransformMeshWithTransform::~TransformMeshWithTransform()
-{
-}
-
-
-void
-TransformMeshWithTransform::matrix_to_transform(MatrixHandle mH, Transform& t)
-{
-  double a[16];
-  double *p=&(a[0]);
-  for (int i=0; i<4; i++)
-    for (int j=0; j<4; j++)
-      *p++= mH->get(i, j);
-  t.set(a);
-}
-
 
 void
 TransformMeshWithTransform::execute()
 {
   // Get input field.
-  FieldHandle ifield;
-  if (!get_input_handle("Input Field", ifield)) return;
+  FieldHandle ifield, ofield;
+  get_input_handle("Input Field", ifield,true);
 
   MatrixHandle imatrix;
-  if (!get_input_handle("Transform Matrix", imatrix)) return;
+  get_input_handle("Transform Matrix", imatrix,true);
 
-  if (ifield_generation_ != ifield->generation ||
-      imatrix_generation_ != imatrix->generation ||
-      !oport_cached("Transformed Field"))
+  if (inputs_changed_ || !oport_cached("Transformed Field"))
   {
-    ifield_generation_ = ifield->generation;
-    imatrix_generation_ = imatrix->generation;
-
-    Transform trans;
-    matrix_to_transform(imatrix, trans);
-
-    FieldHandle ofield(ifield->clone());
-    ofield->mesh_detach();
-  
-    ofield->mesh()->transform(trans);
-    
+    if(!(algo_.run(ifield,imatrix,ofield))) return;    
     send_output_handle("Transformed Field", ofield);
   }
 }

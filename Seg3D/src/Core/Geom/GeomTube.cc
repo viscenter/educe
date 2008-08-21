@@ -44,7 +44,7 @@
 #include <Core/Geometry/BBox.h>
 #include <Core/Geom/GeomLine.h>
 #include <Core/Util/NotFinished.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/TrigTable.h>
 #include <iostream>
 using std::ostream;
@@ -53,7 +53,7 @@ namespace SCIRun {
 
 Persistent* make_GeomTube()
 {
-    return scinew GeomTube;
+    return new GeomTube;
 }
 
 PersistentTypeID GeomTube::type_id("GeomTube", "GeomObj", make_GeomTube);
@@ -75,7 +75,7 @@ GeomTube::~GeomTube()
 
 GeomObj* GeomTube::clone() 
 {
-    return scinew GeomTube(*this); 
+    return new GeomTube(*this); 
 }
 
 void  GeomTube::get_bounds(BBox& bb)

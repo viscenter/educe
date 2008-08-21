@@ -34,10 +34,10 @@
 #include <Core/Persistent/Pstreams.h>
 #include <Core/Datatypes/Field.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <iostream>
 #include <fstream>
-#include <sgi_stl_warnings_off.h>
+
 
 #include <stdlib.h>
 

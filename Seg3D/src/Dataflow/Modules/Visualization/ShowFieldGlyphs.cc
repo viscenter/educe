@@ -40,9 +40,9 @@
  *  Copyright (C) 2007 SCI Institute
  */
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/Field.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
@@ -70,144 +70,150 @@ using namespace SCIRunAlgo;
 
 class ShowFieldGlyphs : public Module, public RenderStateBase
 {
-public:
-  ShowFieldGlyphs(GuiContext* ctx);
-  virtual ~ShowFieldGlyphs();
+  public:
+    ShowFieldGlyphs(GuiContext* ctx);
+    virtual ~ShowFieldGlyphs();
 
-  virtual void execute();
-  virtual void tcl_command(GuiArgs& args, void* userdata);
+    virtual void execute();
+    virtual void tcl_command(GuiArgs& args, void* userdata);
 
-  virtual void post_read();
+    virtual void post_read();
 
-protected:
-  //! input ports
-  int                      pfld_mesh_generation_;
-  int                      sfld_mesh_generation_;
-  int                      tfld_mesh_generation_;
-  bool                     secondary_field_present_;
-  bool                     tertiary_field_present_;
-  bool                     color_map_present_;
+  protected:
+    //! input ports
+    int                      pfld_mesh_generation_;
+    int                      sfld_mesh_generation_;
+    int                      tfld_mesh_generation_;
+    bool                     secondary_field_present_;
+    bool                     tertiary_field_present_;
+    bool                     color_map_present_;
 
-  //! output port
-  GeometryOPort           *ogeom_;
+    //! Scene graph ID's
+    int                      data_id_;
+    int                      text_id_;
 
-  //! Scene graph ID's
-  int                      data_id_;
-  int                      text_id_;
+    //! top level nodes for switching on and off.
 
-  //! top level nodes for switching on and off.
+    //! Options for rendering data.
+    GuiInt                   scalars_has_data_;
+    GuiInt                   scalars_on_;
+    GuiString                scalars_display_type_;
+    GuiInt                   scalars_transparency_;
+    GuiInt                   scalars_normalize_;
+    GuiInt                   scalars_color_type_;
+    GuiDouble                scalars_scale_;
+    GuiDouble                scalars_scaleNV_;
+    GuiDouble                scalars_threshold_;
+    GuiDouble                scalars_thresholdNV_;
+    GuiInt                   scalars_resolution_;
+    GuiInt                   scalars_small_is_dot_;
 
-  //! Options for rendering data.
-  GuiInt                   scalars_has_data_;
-  GuiInt                   scalars_on_;
-  GuiString                scalars_display_type_;
-  GuiInt                   scalars_transparency_;
-  GuiInt                   scalars_normalize_;
-  GuiInt                   scalars_color_type_;
-  GuiDouble                scalars_scale_;
-  GuiDouble                scalars_scaleNV_;
-  GuiInt                   scalars_resolution_;
+    GuiInt                   vectors_has_data_;
+    GuiInt                   vectors_on_;
+    GuiString                vectors_display_type_;
+    GuiInt                   vectors_transparency_;
+    GuiInt                   vectors_normalize_;
+    GuiInt                   vectors_color_type_;
+    GuiDouble                vectors_scale_;
+    GuiDouble                vectors_scaleNV_;
+    GuiDouble                vectors_threshold_;
+    GuiDouble                vectors_thresholdNV_;
+    GuiInt                   vectors_resolution_;
+    GuiInt                   vectors_bidirectional_;
+    GuiInt                   vectors_small_is_dot_;
 
-  GuiInt                   vectors_has_data_;
-  GuiInt                   vectors_on_;
-  GuiString                vectors_display_type_;
-  GuiInt                   vectors_transparency_;
-  GuiInt                   vectors_normalize_;
-  GuiInt                   vectors_color_type_;
-  GuiDouble                vectors_scale_;
-  GuiDouble                vectors_scaleNV_;
-  GuiInt                   vectors_resolution_;
-  GuiInt                   vectors_bidirectional_;
+    GuiInt                   tensors_has_data_;
+    GuiInt                   tensors_on_;
+    GuiString                tensors_display_type_;
+    GuiInt                   tensors_transparency_;
+    GuiInt                   tensors_normalize_;
+    GuiInt                   tensors_color_type_;
+    GuiDouble                tensors_scale_;
+    GuiDouble                tensors_scaleNV_;
+    GuiDouble                tensors_threshold_;
+    GuiDouble                tensors_thresholdNV_;
+    GuiInt                   tensors_resolution_;
+    GuiDouble                tensors_emphasis_;
+    GuiInt                   tensors_small_is_dot_;
 
-  GuiInt                   tensors_has_data_;
-  GuiInt                   tensors_on_;
-  GuiString                tensors_display_type_;
-  GuiInt                   tensors_transparency_;
-  GuiInt                   tensors_normalize_;
-  GuiInt                   tensors_color_type_;
-  GuiDouble                tensors_scale_;
-  GuiDouble                tensors_scaleNV_;
-  GuiInt                   tensors_resolution_;
-  GuiDouble                tensors_emphasis_;
+    GuiInt                   secondary_has_data_;
+    GuiInt                   secondary_on_;
+    GuiString                secondary_display_type_;
+    GuiInt                   secondary_color_type_;
+    GuiInt                   secondary_alpha_;
+    GuiInt                   secondary_value_;
+    GuiDouble                secondary_scale_;
+    GuiDouble                secondary_scaleNV_;
 
-  GuiInt                   secondary_has_data_;
-  GuiInt                   secondary_on_;
-  GuiString                secondary_display_type_;
-  GuiInt                   secondary_color_type_;
-  GuiInt                   secondary_alpha_;
-  GuiInt                   secondary_value_;
-  GuiDouble                secondary_scale_;
-  GuiDouble                secondary_scaleNV_;
+    GuiInt                   tertiary_has_data_;
+    GuiInt                   tertiary_on_;
+    GuiString                tertiary_display_type_;
+    GuiInt                   tertiary_color_type_;
+    GuiInt                   tertiary_alpha_;
+    GuiInt                   tertiary_value_;
+    GuiDouble                tertiary_scale_;
+    GuiDouble                tertiary_scaleNV_;
 
-  GuiInt                   tertiary_has_data_;
-  GuiInt                   tertiary_on_;
-  GuiString                tertiary_display_type_;
-  GuiInt                   tertiary_color_type_;
-  GuiInt                   tertiary_alpha_;
-  GuiInt                   tertiary_value_;
-  GuiDouble                tertiary_scale_;
-  GuiDouble                tertiary_scaleNV_;
+    //! Options for rendering text.
+    GuiInt                   text_on_;
+    GuiInt                   text_color_type_;
+    GuiDouble                text_color_r_;
+    GuiDouble                text_color_g_;
+    GuiDouble                text_color_b_;
+    GuiInt                   text_backface_cull_;
+    GuiInt                   text_always_visible_;
+    GuiInt                   text_fontsize_;
+    GuiInt                   text_precision_;
+    GuiInt                   text_render_locations_;
+    GuiInt                   text_show_data_;
+    GuiInt                   text_show_nodes_;
+    GuiInt                   text_show_edges_;
+    GuiInt                   text_show_faces_;
+    GuiInt                   text_show_cells_;
+    MaterialHandle           text_material_;
 
-  //! Options for rendering text.
-  GuiInt                   text_on_;
-  GuiInt                   text_color_type_;
-  GuiDouble                text_color_r_;
-  GuiDouble                text_color_g_;
-  GuiDouble                text_color_b_;
-  GuiInt                   text_backface_cull_;
-  GuiInt                   text_always_visible_;
-  GuiInt                   text_fontsize_;
-  GuiInt                   text_precision_;
-  GuiInt                   text_render_locations_;
-  GuiInt                   text_show_data_;
-  GuiInt                   text_show_nodes_;
-  GuiInt                   text_show_edges_;
-  GuiInt                   text_show_faces_;
-  GuiInt                   text_show_cells_;
-  MaterialHandle           text_material_;
+    string                   field_data_basis_type_;
 
-  string                   field_data_basis_type_;
+    //! default color and material
+    GuiDouble                def_color_r_;
+    GuiDouble                def_color_g_;
+    GuiDouble                def_color_b_;
+    GuiDouble                def_color_a_;
+    MaterialHandle           def_material_;
 
-  //! default color and material
-  GuiDouble                def_color_r_;
-  GuiDouble                def_color_g_;
-  GuiDouble                def_color_b_;
-  GuiDouble                def_color_a_;
-  MaterialHandle           def_material_;
+    GuiString                active_tab_; //! for saving nets state
+    GuiString                interactive_mode_;
+    GuiInt                   showProgress_;
 
-  GuiString                active_tab_; //! for saving nets state
-  GuiString                interactive_mode_;
-  GuiInt                   showProgress_;
+    GuiString                gui_field_name_;
+    GuiInt                   gui_field_name_override_;
 
-  GuiString                gui_field_name_;
-  GuiInt                   gui_field_name_override_;
+    //! Refinement resolution for cylinders and spheres
+    GuiInt                   approx_div_;
 
-  //! Refinement resolution for cylinders and spheres
-  GuiInt                   approx_div_;
+    LockingHandle<RenderFieldBase>   text_renderer_;
+    LockingHandle<RenderScalarField> scalar_renderer_;
+    LockingHandle<RenderVectorField> vector_renderer_;
+    LockingHandle<RenderTensorField> tensor_renderer_;
 
-  LockingHandle<RenderFieldBase>        text_renderer_;
-  LockingHandle<RenderScalarFieldBase>  scalar_renderer_;
-  LockingHandle<RenderVectorFieldBase>  vector_renderer_;
-  LockingHandle<RenderTensorFieldBase>  tensor_renderer_;
+    // variables related to default scale factor usage.
+    GuiInt                  gui_use_default_size_;
+    double                  cur_mesh_scale_factor_;
 
-  // variables related to default scale factor usage.
-  GuiInt                  gui_use_default_size_;
-  double                  cur_mesh_scale_factor_;
+    unsigned int            render_state_[5];
 
-  unsigned int            render_state_[5];
+    enum toggle_type_e {
+      SCALAR    = 0,
+      VECTOR    = 1,
+      TENSOR    = 2,
+      SECONDARY = 3,
+      TERTIARY  = 4,
+      TEXT      = 5,
+      ALL   = 6
+    };
 
-  enum toggle_type_e {
-    SCALAR    = 0,
-    VECTOR    = 1,
-    TENSOR    = 2,
-    SECONDARY = 3,
-    TERTIARY  = 4,
-    TEXT      = 5,
-    ALL   = 6
-  };
-
-  void maybe_execute(toggle_type_e dis_type);
-  void set_default_display_values();
+    void maybe_execute(toggle_type_e dis_type);
+    void set_default_display_values();
 };
 
 ShowFieldGlyphs::ShowFieldGlyphs(GuiContext* ctx) :
@@ -218,7 +224,6 @@ ShowFieldGlyphs::ShowFieldGlyphs(GuiContext* ctx) :
   secondary_field_present_(false),
   tertiary_field_present_(false),
   color_map_present_(false),
-  ogeom_(0),
   data_id_(0),
   text_id_(0),
 
@@ -230,7 +235,10 @@ ShowFieldGlyphs::ShowFieldGlyphs(GuiContext* ctx) :
   scalars_color_type_(get_ctx()->subVar("scalars_color_type"), 1),
   scalars_scale_(get_ctx()->subVar("scalars_scale")),
   scalars_scaleNV_(get_ctx()->subVar("scalars_scaleNV")),
+  scalars_threshold_(get_ctx()->subVar("scalars_threshold"),1.0e-5),
+  scalars_thresholdNV_(get_ctx()->subVar("scalars_thresholdNV")),
   scalars_resolution_(get_ctx()->subVar("scalars_resolution"), 6),
+  scalars_small_is_dot_(get_ctx()->subVar("scalars_small_is_dot"), 1),
 
   vectors_has_data_(get_ctx()->subVar("vectors_has_data"), 0),
   vectors_on_(get_ctx()->subVar("vectors_on"), 0),
@@ -240,8 +248,11 @@ ShowFieldGlyphs::ShowFieldGlyphs(GuiContext* ctx) :
   vectors_color_type_(get_ctx()->subVar("vectors_color_type"), 1),
   vectors_scale_(get_ctx()->subVar("vectors_scale")),
   vectors_scaleNV_(get_ctx()->subVar("vectors_scaleNV")),
+  vectors_threshold_(get_ctx()->subVar("vectors_threshold"),1.0e-5),
+  vectors_thresholdNV_(get_ctx()->subVar("vectors_thresholdNV")),
   vectors_resolution_(get_ctx()->subVar("vectors_resolution"), 6),
   vectors_bidirectional_(get_ctx()->subVar("vectors_bidirectional"), 0),
+  vectors_small_is_dot_(get_ctx()->subVar("vectors_small_is_dot"), 1),
 
   tensors_has_data_(get_ctx()->subVar("tensors_has_data"), 0),
   tensors_on_(get_ctx()->subVar("tensors_on"), 0),
@@ -251,9 +262,12 @@ ShowFieldGlyphs::ShowFieldGlyphs(GuiContext* ctx) :
   tensors_color_type_(get_ctx()->subVar("tensors_color_type"), 1),
   tensors_scale_(get_ctx()->subVar("tensors_scale")),
   tensors_scaleNV_(get_ctx()->subVar("tensors_scaleNV")),
+  tensors_threshold_(get_ctx()->subVar("tensors_threshold"),1.0e-5),
+  tensors_thresholdNV_(get_ctx()->subVar("tensors_thresholdNV")),
   tensors_resolution_(get_ctx()->subVar("tensors_resolution"), 6),
   tensors_emphasis_(get_ctx()->subVar("tensors_emphasis"), 0.825),
-
+  tensors_small_is_dot_(get_ctx()->subVar("tensors_small_is_dot"), 1),
+  
   secondary_has_data_(get_ctx()->subVar("secondary_has_data"), 0),
   secondary_on_(get_ctx()->subVar("secondary_on"), 0),
   secondary_display_type_(get_ctx()->subVar("secondary_display_type"), "Major Radius"),
@@ -287,7 +301,7 @@ ShowFieldGlyphs::ShowFieldGlyphs(GuiContext* ctx) :
   text_show_edges_(get_ctx()->subVar("text_show_edges"), 0),
   text_show_faces_(get_ctx()->subVar("text_show_faces"), 0),
   text_show_cells_(get_ctx()->subVar("text_show_cells"), 0),
-  text_material_(scinew Material(Color(0.75, 0.75, 0.75))),
+  text_material_(new Material(Color(0.75, 0.75, 0.75))),
 
   field_data_basis_type_("none"),
 
@@ -295,7 +309,7 @@ ShowFieldGlyphs::ShowFieldGlyphs(GuiContext* ctx) :
   def_color_g_(get_ctx()->subVar("def_color-g"), 0.5),
   def_color_b_(get_ctx()->subVar("def_color-b"), 0.5),
   def_color_a_(get_ctx()->subVar("def_color-a"), 0.5),
-  def_material_(scinew Material(Color(0.5, 0.5, 0.5))),
+  def_material_(new Material(Color(0.5, 0.5, 0.5))),
 
   active_tab_(get_ctx()->subVar("active_tab"), "Scalars"),
   interactive_mode_(get_ctx()->subVar("interactive_mode"), "Interactive"),
@@ -333,7 +347,8 @@ ShowFieldGlyphs::execute()
 {
   bool update_algo = false;
 
-  ogeom_ = (GeometryOPort *) get_oport("Scene Graph");
+  GeometryOPortHandle ogeom;
+  get_oport_handle("Scene Graph",ogeom);
 
   FieldHandle pfld_handle;
   if( !get_input_handle("Primary Data", pfld_handle, !in_power_app() ) )
@@ -545,101 +560,29 @@ ShowFieldGlyphs::execute()
     // If the field basis type or the mesh has changed update the algorithm.
     if (update_algo)
     {
-      if ( //0 &&
-	  !(pfld_handle->vfield()->is_tensor()) &&
-	  pfld_handle->has_virtual_interface() &&
-	  sfld_handle->has_virtual_interface() &&
-	  tfld_handle->has_virtual_interface())
+      text_renderer_ = new RenderFieldV;
+      scalar_renderer_ = new RenderScalarField;
+      vector_renderer_ = new RenderVectorField;
+      tensor_renderer_ = new RenderTensorField;
+      
+      BBox bbox = pfld_handle->vmesh()->get_bounding_box();
+   
+      if (bbox.valid()) 
+      {  
+        Vector diag = bbox.diagonal(); 
+        cur_mesh_scale_factor_ = diag.length();
+      } 
+      else 
       {
-        text_renderer_ = scinew RenderFieldV;
-        scalar_renderer_ = scinew RenderScalarFieldV;
-        vector_renderer_ = scinew RenderVectorFieldV;
-        tensor_renderer_ = scinew RenderTensorFieldV;
-        
-        BBox bbox = pfld_handle->vmesh()->get_bounding_box();
-     
-        if (bbox.valid()) 
-        {  
-          Vector diag = bbox.diagonal(); 
-          cur_mesh_scale_factor_ = diag.length();
-        } 
-        else 
-        {
-          cur_mesh_scale_factor_ = 1.0;
-        }
-      
-        gui_use_default_size_.reset();
-        if (gui_use_default_size_.get() || 
-            sci_getenv_p("SCIRUN_USE_DEFAULT_SETTINGS")) 
-        {
-          set_default_display_values();
-        }        
+        cur_mesh_scale_factor_ = 1.0;
       }
-      else
+    
+      gui_use_default_size_.reset();
+      if (gui_use_default_size_.get() || 
+          sci_getenv_p("SCIRUN_USE_DEFAULT_SETTINGS")) 
       {
-        const TypeDescription *pftd = pfld_handle->get_type_description();
-        const TypeDescription *sftd = sfld_handle->get_type_description();
-        const TypeDescription *tftd = tfld_handle->get_type_description();
-        const TypeDescription *pltd = pfld_handle->order_type_description();
-        // Get the Algorithms.
-        CompileInfoHandle ci = RenderFieldBase::get_compile_info(pftd, pltd);
-        if (!module_dynamic_compile(ci, text_renderer_))
-        {
-          return;
-        }
-
-        FieldInformation fi(pfld_handle);
-        
-        if ( fi.is_scalar())
-        {
-          CompileInfoHandle dci =
-            RenderScalarFieldBase::get_compile_info(pftd, sftd, tftd, pltd);
-          if (!module_dynamic_compile(dci, scalar_renderer_))
-          {
-            return;
-          }
-        }
-
-        else if ( fi.is_vector())
-        {
-          CompileInfoHandle dci =
-            RenderVectorFieldBase::get_compile_info(pftd, sftd, tftd, pltd);
-          if (!module_dynamic_compile(dci, vector_renderer_))
-          {
-            return;
-          }
-        }
-
-        else if ( fi.is_tensor())
-        {
-          CompileInfoHandle dci =
-            RenderTensorFieldBase::get_compile_info(pftd, sftd, tftd, pltd);
-          if (!module_dynamic_compile(dci, tensor_renderer_))
-          {
-            return;
-          }
-        }
-      
-        // set new scale defaults based on input.
-        BBox bbox = pfld_handle->mesh()->get_bounding_box();
-     
-        if (bbox.valid()) 
-        {  
-          Vector diag = bbox.diagonal(); 
-          cur_mesh_scale_factor_ = diag.length();
-        } 
-        else 
-        {
-          cur_mesh_scale_factor_ = 1.0;
-        }
-      
-        gui_use_default_size_.reset();
-        if (gui_use_default_size_.get() || 
-            sci_getenv_p("SCIRUN_USE_DEFAULT_SETTINGS")) 
-        {
-          set_default_display_values();
-        }
-      }
+        set_default_display_values();
+      }        
     }
   }
 
@@ -828,6 +771,10 @@ ShowFieldGlyphs::execute()
   switch_flag( render_state_[VECTOR], NORMALIZE_DATA, vectors_normalize_.get() );
   switch_flag( render_state_[TENSOR], NORMALIZE_DATA, tensors_normalize_.get() );
 
+  switch_flag( render_state_[SCALAR], SMALL_IS_DOT, scalars_small_is_dot_.get() );
+  switch_flag( render_state_[VECTOR], SMALL_IS_DOT, vectors_small_is_dot_.get() );
+  switch_flag( render_state_[TENSOR], SMALL_IS_DOT, tensors_small_is_dot_.get() );
+
   switch_flag( render_state_[VECTOR], BIDIRECTIONAL ,vectors_bidirectional_.get() );
 
   switch_flag( render_state_[SECONDARY], USE_ALPHA, secondary_alpha_.get() );
@@ -861,15 +808,16 @@ ShowFieldGlyphs::execute()
 				    scalars_scale_.get(),
 				    secondary_scale_.get(),
 				    tertiary_scale_.get(),
+            scalars_threshold_.get(),
 				    scalars_resolution_.get(),
 				    render_state_[SCALAR],
 				    render_state_[SECONDARY],
 				    render_state_[TERTIARY]);
 
-    GeomHandle gmat = scinew GeomMaterial(data_geometry, def_material_);
-    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
-    if (data_id_) ogeom_->delObj(data_id_);
-    data_id_ = ogeom_->addObj(geom, fname +
+    GeomHandle gmat = new GeomMaterial(data_geometry, def_material_);
+    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
+    if (data_id_) ogeom->delObj(data_id_);
+    data_id_ = ogeom->addObj(geom, fname +
 			      (scalars_transparency_.get()?"Transparent Scalars":"Scalars"));
   }  
   else if(get_flag(render_state_[VECTOR], (IS_ON|HAS_DATA|DIRTY))) 
@@ -883,21 +831,22 @@ ShowFieldGlyphs::execute()
 				    vectors_scale_.get(),
 				    secondary_scale_.get(),
 				    tertiary_scale_.get(),
+            vectors_threshold_.get(),
 				    vectors_resolution_.get(),
 				    render_state_[VECTOR],
 				    render_state_[SECONDARY],
 				    render_state_[TERTIARY]);
 
-    GeomHandle gmat = scinew GeomMaterial(data_geometry, def_material_);
-    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
+    GeomHandle gmat = new GeomMaterial(data_geometry, def_material_);
+    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
     const string vdname = vectors_transparency_.get() ?
       "Transparent Vectors":
       ((vectors_display_type_.get()=="Needles" ||
-	vectors_display_type_.get()=="Comets" ) ?
+        vectors_display_type_.get()=="Comets" ) ?
        "Transparent Vectors":"Vectors");
 
-    if (data_id_) ogeom_->delObj(data_id_);
-    data_id_ = ogeom_->addObj(geom, fname + vdname);
+    if (data_id_) ogeom->delObj(data_id_);
+    data_id_ = ogeom->addObj(geom, fname + vdname);
   }
   else if(get_flag(render_state_[TENSOR], (IS_ON|HAS_DATA|DIRTY))) 
   {
@@ -908,19 +857,21 @@ ShowFieldGlyphs::execute()
 				    tensors_display_type_.get(),
 				    tensors_scale_.get(),
 				    secondary_scale_.get(),
+            0.0,
+            tensors_threshold_.get(),
 				    tensors_resolution_.get(),
 				    tensors_emphasis_.get(),
 				    render_state_[TENSOR],
 				    render_state_[SECONDARY],
 				    render_state_[TERTIARY]);
 
-    GeomHandle gmat = scinew GeomMaterial(data_geometry, def_material_);
-    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
+    GeomHandle gmat = new GeomMaterial(data_geometry, def_material_);
+    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
     const string tdname = tensors_transparency_.get() ?
       "Transparent Tensors":"Tensors";
 
-    if (data_id_) ogeom_->delObj(data_id_);
-    data_id_ = ogeom_->addObj(geom, fname + tdname);
+    if (data_id_) ogeom->delObj(data_id_);
+    data_id_ = ogeom->addObj(geom, fname + tdname);
   }
 
   if (get_flag(render_state_[TEXT], (IS_ON|DIRTY)))
@@ -941,10 +892,10 @@ ShowFieldGlyphs::execute()
 				  text_show_cells_.get(),
 				  text_always_visible_.get());
     
-    GeomHandle gmat = scinew GeomMaterial(text_geometry, text_material_);
-    GeomHandle geom = scinew GeomSwitch(scinew GeomColorMap(gmat, cmap_handle));
-    if (text_id_) ogeom_->delObj(text_id_);
-    text_id_ = ogeom_->addObj(geom, fname +
+    GeomHandle gmat = new GeomMaterial(text_geometry, text_material_);
+    GeomHandle geom = new GeomSwitch(new GeomColorMap(gmat, cmap_handle));
+    if (text_id_) ogeom->delObj(text_id_);
+    text_id_ = ogeom->addObj(geom, fname +
 			      (text_backface_cull_.get()?"Culled Text Data":"Text Data"));
   }
 
@@ -953,7 +904,7 @@ ShowFieldGlyphs::execute()
   clear_flag( render_state_[TENSOR], DIRTY);
   clear_flag( render_state_[TEXT], DIRTY);
 
-  ogeom_->flushViews();
+  ogeom->flushViews();
 }
 
 void
@@ -963,6 +914,10 @@ ShowFieldGlyphs::set_default_display_values()
   vectors_scaleNV_.set(fact * 0.0735);
   tensors_scaleNV_.set(fact * 0.0735);
   scalars_scaleNV_.set(fact * 0.0735);
+
+  vectors_thresholdNV_.set(fact * 1e-5);
+  tensors_thresholdNV_.set(fact * 1e-5);
+  scalars_thresholdNV_.set(fact * 1e-5);
 
   set_flag( render_state_[SCALAR], DIRTY);
   set_flag( render_state_[VECTOR], DIRTY);
@@ -975,63 +930,72 @@ ShowFieldGlyphs::maybe_execute(toggle_type_e dis_type)
   bool do_execute = false;
 
   interactive_mode_.reset();
-  if (interactive_mode_.get() == "Interactive") {
-    switch(dis_type) {
+  if (interactive_mode_.get() == "Interactive") 
+  {
+    switch(dis_type) 
+    {
     case SCALAR :
       do_execute = scalars_on_.get();
-	break;
+      break;
     case VECTOR :
       do_execute = vectors_on_.get();
       break;
     case TENSOR :
       do_execute = tensors_on_.get();
-	break;
+      break;
     case TEXT :
       do_execute = text_on_.get();
-	break;
+      break;
     case ALL :
     default:
       do_execute = true;
-	break;
+      break;
     }
   }
 
-  if (do_execute) {
+  if (do_execute) 
+  {
     want_to_execute();
   }
 }
 
 
 void
-ShowFieldGlyphs::tcl_command(GuiArgs& args, void* userdata) {
-  if(args.count() < 2){
+ShowFieldGlyphs::tcl_command(GuiArgs& args, void* userdata) 
+{
+  if(args.count() < 2)
+  {
     args.error("ShowFieldGlyphs needs a minor command");
     return;
   }
 
-  if (args[1] == "scalars_scale" || args[1] == "scalars_resolution")
+  if (args[1] == "scalars_threshold" || args[1] == "scalars_scale" || args[1] == "scalars_resolution")
   {
     set_flag( render_state_[SCALAR], DIRTY);
     maybe_execute(SCALAR);
 
-  } else if (args[1] == "vectors_scale" || args[1] == "vectors_resolution") {
+  } 
+  else if (args[1] == "vectors_threshold" || args[1] == "vectors_scale" || args[1] == "vectors_resolution") 
+  {
     set_flag( render_state_[VECTOR], DIRTY);
     maybe_execute(VECTOR);
-
-  } else if (args[1] == "tensors_scale" ) {
+  } 
+  else if (args[1] == "tensors_threshold" || args[1] == "tensors_scale" ) 
+  {
     set_flag( render_state_[TENSOR], DIRTY);
     maybe_execute(TENSOR);
-
-  } else if (args[1] == "tensors_resolution") {
-
+  } 
+  else if (args[1] == "tensors_resolution") 
+  {
     if (tensors_display_type_.get() == "Ellipsoids" ||
-	tensors_display_type_.get() == "Superquadrics")
+        tensors_display_type_.get() == "Superquadrics")
     {
       set_flag( render_state_[TENSOR], DIRTY);
       maybe_execute(TENSOR);
     }
-
-  } else if (args[1] == "default_color_change") {
+  } 
+  else if (args[1] == "default_color_change") 
+  {
     def_color_r_.reset();
     def_color_g_.reset();
     def_color_b_.reset();
@@ -1039,16 +1003,24 @@ ShowFieldGlyphs::tcl_command(GuiArgs& args, void* userdata) {
     def_material_->diffuse =
       Color(def_color_r_.get(), def_color_g_.get(), def_color_b_.get());
     def_material_->transparency = def_color_a_.get();
-    if (ogeom_) ogeom_->flushViews();
-  } else if (args[1] == "text_color_change") {
+    GeometryOPortHandle ogeom;
+    get_oport_handle("Scene Graph",ogeom);
+    if (ogeom.get_rep()) ogeom->flushViews();
+  } 
+  else if (args[1] == "text_color_change") 
+  {
     text_color_r_.reset();
     text_color_g_.reset();
     text_color_b_.reset();
     text_material_->diffuse =
       Color(text_color_r_.get(), text_color_g_.get(), text_color_b_.get());
-    if (ogeom_) ogeom_->flushViews();
+    GeometryOPortHandle ogeom;
+    get_oport_handle("Scene Graph",ogeom);
+    if (ogeom.get_rep()) ogeom->flushViews();
 
-  } else if (args[1] == "toggle_display_scalars"){
+  } 
+  else if (args[1] == "toggle_display_scalars")
+  {
     // Toggle the GeomSwitch.
     scalars_on_.reset();
     if (scalars_on_.get())
@@ -1058,11 +1030,18 @@ ShowFieldGlyphs::tcl_command(GuiArgs& args, void* userdata) {
     }
     else if (data_id_)
     {
-      ogeom_->delObj(data_id_);
-      ogeom_->flushViews();
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Scene Graph",ogeom);
+      if (ogeom.get_rep())
+      {
+        ogeom->delObj(data_id_);
+        ogeom->flushViews();
+      }
       data_id_ = 0;
     }
-  } else if (args[1] == "toggle_display_vectors"){
+  } 
+  else if (args[1] == "toggle_display_vectors")
+  {
     // Toggle the GeomSwitch.
     vectors_on_.reset();
     if (vectors_on_.get())
@@ -1072,11 +1051,18 @@ ShowFieldGlyphs::tcl_command(GuiArgs& args, void* userdata) {
     }
     else if (data_id_)
     {
-      ogeom_->delObj(data_id_);
-      ogeom_->flushViews();
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Scene Graph",ogeom);
+      if (ogeom.get_rep())
+      {
+        ogeom->delObj(data_id_);
+        ogeom->flushViews();
+      }
       data_id_ = 0;
     }
-  } else if (args[1] == "toggle_display_tensors"){
+  } 
+  else if (args[1] == "toggle_display_tensors")
+  {
     // Toggle the GeomSwitch.
     tensors_on_.reset();
     if (tensors_on_.get())
@@ -1086,11 +1072,18 @@ ShowFieldGlyphs::tcl_command(GuiArgs& args, void* userdata) {
     }
     else if (data_id_)
     {
-      ogeom_->delObj(data_id_);
-      ogeom_->flushViews();
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Scene Graph",ogeom);
+      if (ogeom.get_rep())
+      {
+        ogeom->delObj(data_id_);
+        ogeom->flushViews();
+      }
       data_id_ = 0;
     }
-  } else if (args[1] == "toggle_display_text"){
+  } 
+  else if (args[1] == "toggle_display_text")
+  {
     // Toggle the GeomSwitch.
     text_on_.reset();
     if ((text_on_.get()) && (text_id_ == 0))
@@ -1100,34 +1093,54 @@ ShowFieldGlyphs::tcl_command(GuiArgs& args, void* userdata) {
     }
     else if (!text_on_.get() && text_id_)
     {
-      ogeom_->delObj(text_id_);
-      ogeom_->flushViews();
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Scene Graph",ogeom);
+      if (ogeom.get_rep())
+      {
+        ogeom->delObj(text_id_);
+        ogeom->flushViews();
+      }
       text_id_ = 0;
     }
-  } else if (args[1] == "rerender_all" ) {
+  } 
+  else if (args[1] == "rerender_all" ) 
+  {
     set_flag( render_state_[SCALAR], DIRTY);
     set_flag( render_state_[VECTOR], DIRTY);
     set_flag( render_state_[TENSOR], DIRTY);
     maybe_execute(ALL);
 
-  } else if (args[1] == "rerender_scalars") {
+  } 
+  else if (args[1] == "rerender_scalars") 
+  {
     set_flag( render_state_[SCALAR], DIRTY);
     maybe_execute(SCALAR);
-  } else if (args[1] == "rerender_vectors") {
+  } 
+  else if (args[1] == "rerender_vectors") 
+  {
     set_flag( render_state_[VECTOR], DIRTY);
     maybe_execute(VECTOR);
-  } else if (args[1] == "rerender_tensors") {
+  } 
+  else if (args[1] == "rerender_tensors") 
+  {
     set_flag( render_state_[TENSOR], DIRTY);
     maybe_execute(TENSOR);
-  } else if (args[1] == "rerender_text"){
+  } 
+  else if (args[1] == "rerender_text")
+  {
     set_flag( render_state_[TEXT], DIRTY);
     maybe_execute(TEXT);
-
-  } else if (args[1] == "execute_policy"){
-  } else if (args[1] == "calcdefs") {
+  } 
+  else if (args[1] == "execute_policy")
+  {
+  } 
+  else if (args[1] == "calcdefs") 
+  {
     set_default_display_values();
     maybe_execute(ALL);
-  } else {
+  } 
+  else 
+  {
     Module::tcl_command(args, userdata);
   }
 }
@@ -1139,59 +1152,38 @@ ShowFieldGlyphs::post_read()
 		            {"normalize-vectors", "vectors_normalize" },
 		            {"has_vector_data", "vectors_has_data" },
 		            {"bidirectional", "vectors_bidirectional" },
-// Special case	            {"vectors-usedefcolor", "vectors_color_type" },
-
 		            {"tensors-on", "tensors_on" },
 		            {"has_tensor_data", "tensors_has_data" },
-// Special case	            {"tensors-usedefcolor","tensors_color_type"  },
 		            {"tensors-emphasis", "tensors_emphasis" },
-
 		            {"scalars-on", "scalars_on" },
 		            {"scalars-transparency", "scalars_transparency" },
-// Special case	            {"scalars-usedefcolor", "scalars_color_type" },
 		            {"has_scalar_data", "scalars_has_data" },
-
-			    {"text-on", "text_on" },
-			    {"text-use-default-color", "text_color_type" },
-			    {"text-color-r", "text_color-r" },
-			    {"text-color-g", "text_color-g" },
-			    {"text-color-b", "text_color-b" },
-			    {"text-backface-cull", "text_backface_cull" },
-			    {"text-always_visible", "text_always_visible" },
-			    {"text-fontsize", "text_fontsize" },
-			    {"text-precision","text_precision"  },
-			    {"text-render_locations", "text_render_locations" },
-			    {"text-show-data",  "text_show_data" },
-			    {"text-show-nodes", "text_show_nodes" },
-			    {"text-show-edges", "text_show_edges" },
-			    {"text-show-faces", "text_show_faces" },
-			    {"text-show-cells", "text_show_cells" },
-		       
-			    {"def-color-r", "def_color-r" },
-			    {"def-color-g", "def_color-g" },
-			    {"def-color-b", "def_color-b" },
-// Special case		    {"def-color-a", "def_color-a" },
-
+                {"text-on", "text_on" },
+                {"text-use-default-color", "text_color_type" },
+                {"text-color-r", "text_color-r" },
+                {"text-color-g", "text_color-g" },
+                {"text-color-b", "text_color-b" },
+                {"text-backface-cull", "text_backface_cull" },
+                {"text-always_visible", "text_always_visible" },
+                {"text-fontsize", "text_fontsize" },
+                {"text-precision","text_precision"  },
+                {"text-render_locations", "text_render_locations" },
+                {"text-show-data",  "text_show_data" },
+                {"text-show-nodes", "text_show_nodes" },
+                {"text-show-edges", "text_show_edges" },
+                {"text-show-faces", "text_show_faces" },
+                {"text-show-cells", "text_show_cells" },
+                {"def-color-r", "def_color-r" },
+                {"def-color-g", "def_color-g" },
+                {"def-color-b", "def_color-b" },
 		            {"data_display_type", "vectors_display_type" },
 		            {"tensor_display_type", "tensors_display_type" },
 		            {"scalar_display_type", "scalars_display_type" },
-
-// No Change		    {"scalars_scale",   "scalars_scale" },
-// No Change		    {"scalars_scaleNV", "scalars_scaleNV" },
-// No Change		    {"vectors_scale",   "vectors_scale" },
-// No Change		    {"vectors_scaleNV", "vectors_scaleNV" },
-// No Change		    {"tensors_scale",   "tensors_scale" },
-// No Change		    {"tensors_scaleNV", "tensors_scaleNV"  },
-
-// No Change		    {"active_tab", "active_tab" },
-// No Change		    {"interactive_mode", "interactive_mode" },
-// No Change		    {"show_progress", "show_progress" },
-			    {"field-name","field_name"  },
-			    {"field-name-override","field_name_override"  },
-//		            {"field-name-update", },
+                {"field-name","field_name"  },
+                {"field-name-override","field_name_override"  },
 		            {"data-resolution", "vectors_resolution" },
-			    {"approx-div", "approx_div" },
-			    {"use-default-size", "use_default_size" } };
+                {"approx-div", "approx_div" },
+                {"use-default-size", "use_default_size" } };
 
   // Get the module name
   const string modName = get_ctx()->getfullname() + "-";
@@ -1229,7 +1221,8 @@ ShowFieldGlyphs::post_read()
 
   if( get_gui()->get(modName+"def-color-a", val, get_ctx()) )
   {
-    double dval = atof( val.c_str() );
+    double dval;
+    from_string(val,dval);
 
     dval = dval * dval * dval * dval;
 

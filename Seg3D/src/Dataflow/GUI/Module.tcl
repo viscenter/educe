@@ -99,7 +99,7 @@ itcl_class Module {
     protected min_text_width 0
     protected make_progress_graph 1
     protected make_time 1
-    protected graph_width 50
+    protected graph_width 60
     protected old_width 0
     protected indicator_width 15
     protected initial_width 0
@@ -253,13 +253,17 @@ itcl_class Module {
     #  Make the modules icon on a particular canvas
     method make_icon {modx mody { ignore_placement 0 } } {
         global Disabled Subnet Color ToolTipText
+        global minicanvas maincanvas
+        global ui_font modname_font time_font
+        
         set done_building_icon 0
         set Disabled([modname]) 0
         set canvas $Subnet(Subnet$Subnet([modname])_canvas)
         set minicanvas $Subnet(Subnet$Subnet([modname])_minicanvas)
-        
+
         set modframe $canvas.module[modname]
-        frame $modframe -relief raised -borderwidth 3 
+        frame $modframe -relief raised -borderwidth 2\
+          -background $Color(Module)
         
         bind $modframe <1> "moduleStartDrag [modname] %X %Y 0"
         bind $modframe <B1-Motion> "moduleDrag [modname] %X %Y"
@@ -267,79 +271,96 @@ itcl_class Module {
         bind $modframe <Control-Button-1> "moduleStartDrag [modname] %X %Y 1"
         bind $modframe <3> "moduleMenu %X %Y [modname]"
         
-        frame $modframe.ff
+        frame $modframe.ff -background $Color(Module)
         set p $modframe.ff
-        pack $p -side top -expand yes -fill both -padx 5 -pady 6
-
-        global ui_font modname_font time_font
-        if {[have_ui]} {
-            button $p.ui -text "UI" -borderwidth 2 -font $ui_font \
-                -anchor center -command "$this initialize_ui"
-            pack $p.ui -side left -ipadx 5 -ipady 2
-            Tooltip $p.ui $ToolTipText(ModuleUI)
-        }
-
-        if {[have_play_stop_button]} {
-      if { ![info exists $this-play-stop] } {
-        global $this-play-stop 
-        set $this-play-stop 1
-      }
-      global $this-play-stop 
-
-      button $p.play_stop -text ">" -command "$this toggle_play_stop $p.play_stop $modframe"
-      
-      if {[set $this-play-stop] == 1} {
-        $p.play_stop configure -text ">"
-      } else {
-        $p.play_stop configure -text "||"
-      }
-
-            pack $p.play_stop -side left -ipadx 5 -ipady 2 -pady 3
-      set make_time 0
-      set make_progress_graph 0
-        }
+        pack $p -side top -expand yes -fill both -padx 3 -pady 6
 
 
         # Make the title
-        label $p.title -text "$name" -font $modname_font -anchor w
-        pack $p.title -side [expr $make_progress_graph?"top":"left"] \
-            -padx 2 -anchor w
+        label $p.title -text "$name" -font $modname_font -anchor w\
+          -background $Color(Module)
+        pack $p.title -side top -padx 2 -pady 0 -anchor nw
         bind $p.title <Map> "$this setDone"
 
-        # Make the time label
-        if {$make_time} {
-            label $p.time -text "00.00" -font $time_font
-            pack $p.time -side left -padx 2
-            Tooltip $p.time $ToolTipText(ModuleTime)
-            setGlobal $this-time_mapped 0
-            bind $p.time <Map> "setGlobal $this-time_mapped 1; $this setDone"
-        } else {
-            setGlobal $this-time_mapped 1
+        if {[have_ui]} {
+          if {$make_progress_graph} {
+            frame $p.ui -relief sunken -height 14 -width 22 -borderwidth 1 
+            pack $p.ui -side left -fill y -padx 2 -pady 0
+            frame $p.ui.indicator -relief raised -width 22 \
+                -borderwidth 1 -background $Color(ModuleButton)
+            button $p.ui.indicator.text -text "UI" -font $time_font \
+                -background $Color(ModuleButton) -borderwidth 0 \
+                -activebackground $Color(MenuSelectBackGround)  \
+                -activeforeground $Color(MenuSelectForeGround)
+
+            bind $p.ui.indicator <Button-1> "$this initialize_ui" 
+            bind $p.ui.indicator.text <Button-1> "$this initialize_ui" 
+
+            place $p.ui.indicator -relheight 1
+            pack $p.ui.indicator.text -padx 0 -pady 0
+          } else {
+            frame $p.ui -relief sunken -height 14 -width 36 -borderwidth 1 
+            pack $p.ui -side left -fill y -padx 2 -pady 0
+            frame $p.ui.indicator -relief raised -width 36 \
+                -borderwidth 1 -background $Color(ModuleButton)
+            button $p.ui.indicator.text -text "VIEW" -font $time_font \
+              -background $Color(ModuleButton) -borderwidth 0 \
+              -activebackground $Color(MenuSelectBackGround)  \
+              -activeforeground $Color(MenuSelectForeGround)
+            bind $p.ui.indicator <Button-1> "$this initialize_ui" 
+            bind $p.ui.indicator.text <Button-1> "$this initialize_ui" 
+
+            place $p.ui.indicator -relheight 1
+            pack $p.ui.indicator.text -padx 0 -pady 0     
+          }
         }
 
         # Make the progress graph
         if {$make_progress_graph} {
-            frame $p.inset -relief sunken -height 4 \
-                -borderwidth 2 -width $graph_width
-            pack $p.inset -side left -fill y -padx 2 -pady 2
+            frame $p.inset -relief sunken -height 16 \
+                -borderwidth 1 -width [expr $graph_width-4] -background $Color(ModuleButton)
+            pack $p.inset -side left -fill y -padx 0 -pady 0
             frame $p.inset.graph -relief raised \
-                -width 0 -borderwidth 2 -background green
-            Tooltip $p.inset $ToolTipText(ModuleProgress)
+                -width 0 -borderwidth 1 -background $Color(ModuleProgress)
+            label $p.inset.graph.time -text "" -font $time_font -background $Color(ModuleProgress) -foreground white 
+            place $p.inset.graph.time -relheight 1
             setGlobal $this-progress_mapped 0
+            
             bind $p.inset <Map> "setGlobal $this-progress_mapped 1; $this setDone"
         } else {
             setGlobal $this-progress_mapped 1
         }
 
         # Make the message indicator
-        frame $p.msg -relief sunken -height 15 -borderwidth 1 \
-            -width [expr $indicator_width+2]
-        pack $p.msg -side [expr $make_progress_graph?"left":"right"] \
-            -padx 2 -pady 2
-        frame $p.msg.indicator -relief raised -width 0 -height 0 \
-            -borderwidth 2 -background blue
+        frame $p.msg -relief sunken -height 16 -borderwidth 1 -width 14
+        frame $p.msg.indicator -relief raised -width 14 -height 0 \
+            -borderwidth 1 -background $Color(ModuleButton)
+        place $p.msg.indicator -relheight 1
+        button $p.msg.indicator.text -text "i" -font $time_font \
+          -background $Color(ModuleButton) -borderwidth 0 \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround)
+        pack  $p.msg.indicator.text -padx 0 -pady 0
+
+        # Make the help indicator
+        frame $p.help -relief sunken -height 16 -borderwidth 1 -width 14
+        frame $p.help.indicator -relief raised -width 14 -height 0 \
+            -borderwidth 1 -background $Color(ModuleButton)
+        place $p.help.indicator -relheight 1
+        button $p.help.indicator.text -text "?" -font $time_font \
+          -background $Color(ModuleButton) -borderwidth 0 \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround)
+        pack  $p.help.indicator.text -padx 0 -pady 0
+
+
+        pack $p.msg $p.help -side right \
+            -padx 2 -pady 0
+
         bind $p.msg.indicator <Button-1> "$this displayLog"
-        Tooltip $p.msg.indicator $ToolTipText(ModuleMessageBtn)
+        bind $p.msg.indicator.text <Button-1> "$this displayLog"
+        bind $p.help.indicator <Button-1> "moduleHelp [modname]"
+        bind $p.help.indicator.text <Button-1> "moduleHelp [modname]"
 
         update_msg_state
         update_progress
@@ -360,13 +381,18 @@ itcl_class Module {
         set pos [scalePath $pos]
         $minicanvas create rectangle [lindex $pos 0] [lindex $pos 1] \
             [expr [lindex $pos 0]+6] [expr [lindex $pos 1]+2] \
-            -outline {} -fill $Color(Basecolor) -tags "[modname] module"
+            -outline {} -fill $Color(Module) -tags "[modname] module"
 
         # Create, draw, and bind all input and output ports
         drawPorts [modname]
         
         # create the Module Menu
-        menu $p.menu -tearoff false -disabledforeground white
+        menu $p.menu -tearoff false -disabledforeground white\
+          -bd 2 -activeborderwidth 0 \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround) \
+          -background $Color(MenuBackGround) \
+          -foreground $Color(MenuForeGround)
 
         Tooltip $p $ToolTipText(Module)
 
@@ -374,9 +400,7 @@ itcl_class Module {
         bindtags $p.title [linsert [bindtags $p.title] 1 $modframe]
         bindtags $p.msg [linsert [bindtags $p.msg] 1 $modframe]
         bindtags $p.msg.indicator [linsert [bindtags $p.msg.indicator] 1 $modframe]
-        if {$make_time} {
-            bindtags $p.time [linsert [bindtags $p.time] 1 $modframe]
-        }
+
         if {$make_progress_graph} {
             bindtags $p.inset [linsert [bindtags $p.inset] 1 $modframe]
         }
@@ -391,7 +415,7 @@ itcl_class Module {
         
         fadeinIcon [modname]
     }
-    # end make_icon
+    # end 
     
     method setColorAndTitle { { color "" } args} {
         global Subnet Color Disabled
@@ -399,9 +423,9 @@ itcl_class Module {
         set m $canvas.module[modname]
         if { ![winfo exists $m] } return
         if ![string length $color] {
-            set color $Color(Basecolor)
-            if { [$this is_stopped] } { set color red }
+            set color $Color(Module)
             if { [$this is_selected] } { set color $Color(Selected) }
+            if { $state == "Executing"} { set color $Color(Executing) }
             setIfExists disabled Disabled([modname]) 0
             if { $disabled } { set color [blend $color $Color(Disabled)] }
         }
@@ -409,17 +433,17 @@ itcl_class Module {
         if { ![llength $args] && [isaSubnetIcon [modname]] } {
             set args $Subnet(Subnet$Subnet([modname]_num)_Name)
         }
+        if {$isSubnetModule} { 
+          set instance $Subnet(Subnet$Subnet([modname]_num)_Instance)
+          set args "$args $instance"
+        }
+
         $m configure -background $color
         $m.ff configure -background $color
         if {[$this have_ui]} { $m.ff.ui configure -background $color }
-        if {$make_time} { $m.ff.time configure -background $color }
         if {$isSubnetModule} { $m.ff.subnet configure -background $color }
         if {![llength $args]} { set args $name }
         $m.ff.title configure -text "$args" -justify left -background $color
-        if {$isSubnetModule} { 
-            $m.ff.type configure -text $Subnet(Subnet$Subnet([modname]_num)_Instance) \
-                -justify left -background $color
-        }
             
     }
 
@@ -446,7 +470,7 @@ itcl_class Module {
     
     method update_progress {} {
         if { !($progress >= 0) } { set progress 0 }
-        set width [expr int($progress*($graph_width-4))]
+        set width [expr int($progress*($graph_width-6))]
         if {!$make_progress_graph || $width == $old_width } return
         global Subnet
         set canvas $Subnet(Subnet$Subnet([modname])_canvas)
@@ -461,55 +485,62 @@ itcl_class Module {
     }
         
     method update_time {} {
-        global Subnet
+        global Subnet Color
         set canvas $Subnet(Subnet$Subnet([modname])_canvas)
-        set timeframe $canvas.module[modname].ff.time
+        set timeframe $canvas.module[modname].ff.inset.graph.time
         if { !$make_time || ![winfo exists $timeframe] } return
 
         if {$state == "JustStarted"} {
-            set tstr " ?.??"
+          setColorAndTitle $Color(Waiting)
+          set tstr " ?.??"
         } else {
-            if {$time < 60} {
-                set secs [expr floor($time)]
-                set frac [expr floor(100*($time-$secs))]
-                set isecs [expr int($secs)]
-                set ifrac [expr int($frac)]
-                set tstr [format "%2d.%02d" $isecs $ifrac]
-            } elseif {$time < 3600} {
-                set mins [expr floor($time/60)]
-                set secs [expr floor($time-$mins*60)]
-                set isecs [expr int($secs)]
-                set imins [expr int($mins)]
-                set tstr [format "%2d:%02d" $imins $isecs]
-            } else {
-                set hrs [expr floor($time/3600)]
-                set mins [expr floor($time-$hrs*3600)]
-                set ihrs [expr int($hrs)]
-                set imins [expr int($mins)]
-                set tstr [format "%d::%02d" $ihrs $imins]
-            }
+          if {$time < 60} {
+              set secs [expr floor($time)]
+              set frac [expr floor(100*($time-$secs))]
+              set isecs [expr int($secs)]
+              set ifrac [expr int($frac)]
+              set tstr [format "%2d.%02d" $isecs $ifrac]
+          } elseif {$time < 3600} {
+              set mins [expr floor($time/60)]
+              set secs [expr floor($time-$mins*60)]
+              set isecs [expr int($secs)]
+              set imins [expr int($mins)]
+              set tstr [format "%2d:%02d" $imins $isecs]
+          } else {
+              set hrs [expr floor($time/3600)]
+              set mins [expr floor($time-$hrs*3600)]
+              set ihrs [expr int($hrs)]
+              set imins [expr int($mins)]
+              set tstr [format "%d::%02d" $ihrs $imins]
+          }
         }
         $timeframe configure -text $tstr
     }
 
     method update_state {} {
+        global Color
         if {!$make_progress_graph} return
         if {$state == "JustStarted 1123"} {
             set progress 0.5
             set color red
+            setColorAndTitle $Color(Waiting)
         } elseif {$state == "Executing"} {
             set progress 0
-            set color green
+            set color $Color(ModuleProgress)
+            setColorAndTitle $Color(Executing)
         } elseif {$state == "NeedData"} {
             set progress 1
             set color yellow
+            setColorAndTitle $Color(Waiting)
         } elseif {$state == "Completed"} {
             set progress 1
-            set color green
+            set color $Color(ModuleProgress)
+            setColorAndTitle $Color(Module)
         } else {
             set width 0
-            set color grey75
+            set color $Color(Module)
             set progress 0
+            setColorAndTitle $Color(Module)
         }
 
         if { [winfo exists .standalone] } {
@@ -526,29 +557,31 @@ itcl_class Module {
     }
 
     method update_msg_state {} { 
+        global Color Subnet
+        
         if {$msg_state == "Error"} {
             set p 1
-            set color red
+            set color $Color(ModuleError)
         } elseif {$msg_state == "Warning"} {
             set p 1
-            set color yellow
+            set color $Color(ModuleWarning)
         } elseif {$msg_state == "Remark"} {
             set p 1
-            set color blue
+            set color $Color(ModuleRemark)
         }  elseif {$msg_state == "Reset"} {
             set p 1
-            set color grey75
+            set color $Color(ModuleButton)
         } else {
             set p 0
-            set color grey75
+            set color $Color(ModuleButton)
         }
-        global Subnet
+
         set number $Subnet([modname])
         set canvas $Subnet(Subnet${number}_canvas)
         set indicator $canvas.module[modname].ff.msg.indicator
         if { [winfo exists $indicator] } {
-            place $indicator -relheight 1 -anchor nw
-            $indicator configure -width $indicator_width -background $color
+            $indicator configure -background $color
+            $indicator.text configure -background $color
         }
 
         if $number {
@@ -578,6 +611,8 @@ itcl_class Module {
     }
 
     method displayLog {} {
+        global Color
+    
         if [$this is_subnet] return
         set w .mLogWnd[modname]
         
@@ -587,53 +622,50 @@ itcl_class Module {
         }
         
         # Create the window (immediately withdraw it to avoid flicker).
-        toplevel $w; wm withdraw $w
+        sci_toplevel $w; wm withdraw $w
         update
 
         append t "Log for " [modname]
         set t "$t -- pid=[$this-c getpid]"
         wm title $w $t
         
-        frame $w.log
+        sci_frame $w.log 
         # Create the txt in the "disabled" state so that a user cannot type into the text field.
         # Also, must give it a width and a height so that it will be allowed to automatically
         # change the width and height (go figure?).
-        text $w.log.txt -relief sunken -bd 2 -yscrollcommand "$w.log.sb set" -state disabled \
+        sci_text $w.log.txt -yscrollcommand "$w.log.sb set" -state disabled \
             -height 2 -width 10
-        scrollbar $w.log.sb -relief sunken -command "$w.log.txt yview"
-        pack $w.log.txt -side left -padx 5 -pady 2 -expand 1 -fill both
+        sci_scrollbar $w.log.sb -command "$w.log.txt yview" 
+        pack $w.log.txt -side left -padx 0 -pady 0 -expand 1 -fill both
 
         # Set up our color tags.
         $w.log.txt config -state normal
         $w.log.txt tag configure red -foreground red
         $w.log.txt tag configure blue -foreground blue
-        $w.log.txt tag configure yellow -foreground yellow
+        $w.log.txt tag configure yellow -foreground "\#808000"
         $w.log.txt tag configure black -foreground "grey20"
         $w.log.txt config -state disabled
 
         foreach thingy [set $this-backlog] {
-            append_log_aux [lindex $thingy 0] [lindex $thingy 1]
+          append_log_aux [lindex $thingy 0] [lindex $thingy 1]
         }
 
-        pack $w.log.sb -side left -padx 0 -pady 2 -fill y
+        pack $w.log.sb -side left -padx 0 -pady 0 -fill y
 
-        frame $w.fbuttons 
-        # TODO: unregister only for streams with the supplied output
-        button $w.fbuttons.clear -text "Clear" -command "$this clearStreamOutput"
-        button $w.fbuttons.ok    -text "Close" -command "wm withdraw $w"
-        bind $w <Escape> "wm withdraw $w"
+        frame $w.fbuttons -background $Color(MainBackGround) -bd 1 -relief raised
         
-        Tooltip $w.fbuttons.ok "Close this window.  The log is not effected."
-        TooltipMultiline $w.fbuttons.clear \
-            "If the log indicates anything but an error, the Clear button\n" \
-            "will clear the message text from the log and reset the warning\n" \
-            "indicator to No Message.  Error messages cannot be cleared -- you\n" \
-            "must fix the problem and re-execute the module."
+        sci_button $w.fbuttons.clear -text "Clear" -command "$this clearStreamOutput" 
+        
+        sci_button $w.fbuttons.ok -text "Close" -command "wm withdraw $w" 
+                  
+        frame $w.fbuttons.space -background $Color(MainBackGround) -width 24
 
-        pack $w.fbuttons.clear $w.fbuttons.ok -side left -expand yes -fill both \
-            -padx 5 -pady 5 -ipadx 3 -ipady 3
-        pack $w.log      -side top -padx 5 -pady 2 -fill both -expand 1
-        pack $w.fbuttons -side top -padx 5 -pady 2 -fill x
+        bind $w <Escape> "wm withdraw $w"
+
+        pack $w.fbuttons.space $w.fbuttons.ok $w.fbuttons.clear -side right -fill y \
+            -padx 5 -pady 4
+        pack $w.log      -side top -padx 0 -pady 0 -fill both -expand 1
+        pack $w.fbuttons -side top -padx 0 -pady 0 -fill x
 
         wm minsize $w 450 150
 
@@ -695,6 +727,7 @@ itcl_class Module {
 
 
     method setDone {} {
+        
         #module already mapped to the canvas
         upvar \#0 $this-progress_mapped progress_mapped
         upvar \#0 $this-time_mapped time_mapped
@@ -712,7 +745,7 @@ itcl_class Module {
             set progress_width [winfo width $canvas.module[modname].ff.inset]
         }
         if {$make_time} {
-            set time_width [winfo width $canvas.module[modname].ff.time]
+            set time_width [winfo width $canvas.module[modname].ff.inset.graph.time]
         }
         set min_text_width [expr $progress_width+$time_width]
         set text_width [winfo width $canvas.module[modname].ff.title]
@@ -734,6 +767,7 @@ itcl_class Module {
     }
 
     method compile_error { filename } {
+        global Color
         set ccfile [netedit getenv SCIRUN_ON_THE_FLY_LIBS_DIR]/${filename}cc
         if { ![file exists $ccfile] || ![file readable $ccfile] } return
         
@@ -742,25 +776,25 @@ itcl_class Module {
         if { [winfo exists $w] } {
             destroy $w
         }
-        toplevel $w
+        sci_toplevel $w
         wm title $w "$name failed to compile"
         
         # create frame to display source code
-        frame $w.f1
+        sci_frame $w.f1
         text $w.f1.txt -relief sunken -wrap char \
             -bd 2 -yscrollcommand "$w.f1.sb set" \
             -font -*-fixed-*-*-*-*-*-120-*-*-*-*-*-1
 
-        scrollbar $w.f1.sb -relief sunken -command "$w.f1.txt yview"
+        sci_scrollbar $w.f1.sb -relief sunken -command "$w.f1.txt yview"
         pack $w.f1.sb -side right -padx 5 -pady 5 -fill y
         pack $w.f1.txt -side left -padx 5 -pady 5 -expand 1 -fill both 
 
         # create button to close dialog window
-        frame $w.fbuttons 
-        button $w.fbuttons.ok -text "Close" -command "destroy $w"
+        frame $w.fbuttons -background $Color(MainBackGround) -bd 1
+        sci_button $w.fbuttons.ok -text "Close" -command "destroy $w"
         
         pack $w.fbuttons.ok -side top -padx 5 -pady 5
-        pack $w.fbuttons -side bottom     
+        pack $w.fbuttons -side bottom -fill x -expand 1     
         pack $w.f1 -side top -padx 5 -pady 2 -expand 1 -fill both
                         
         # open the cc file and append its contents into the text widget
@@ -784,13 +818,13 @@ itcl_class Module {
         if { ![file exists $logfile] || ![file readable $logfile] } return
 
         # Create extra widgets to display error messages for each line
-        frame $w.f2
-        label $w.f2.label -anchor w \
+        sci_frame $w.f2
+        sci_label $w.f2.label -anchor w \
             -text "Mouse over highligted line for compiler message:"
         text $w.f2.txt -relief sunken -wrap char -height 6 \
             -bd 2 -yscrollcommand "$w.f2.sb set" \
             -font -*-fixed-*-*-*-*-*-120-*-*-*-*-*-1            
-        scrollbar $w.f2.sb -relief sunken -command "$w.f2.txt yview"
+        sci_scrollbar $w.f2.sb -relief sunken -command "$w.f2.txt yview"
         pack $w.f2.label -side top -padx 0 -pady 0 -expand 1 -fill x
         pack $w.f2.sb -side right -padx 5 -fill y
         pack $w.f2.txt -side left -padx 5 -pady 0 -expand 1 -fill both 
@@ -941,47 +975,47 @@ itcl_class Module {
     }
 
     method labelpair { win text1 text2 } {
-        frame $win 
+        sci_frame $win 
         pack $win -side top -padx 5
-        label $win.l1 -text $text1 -width [set $this-firstwidth] \
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
                       -anchor w -just left
-        label $win.colon  -text ":" -width 2 -anchor w -just left 
-        label $win.l2 -textvar $text2 -width 100 -anchor w -just left \
+        sci_label $win.colon  -text ":" -width 2 -anchor w -just left 
+        sci_label $win.l2 -textvar $text2 -width 140 -anchor w -just left \
                 -fore darkred
         pack $win.l1 $win.colon $win.l2 -side left
     } 
 
     method labelpair2 { win text1 text2x text2y } {
-        frame $win 
+        sci_frame $win 
         pack $win -side top -padx 5
-        label $win.l1 -text $text1 -width [set $this-firstwidth] \
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
                       -anchor w -just left
-        label $win.colon  -text ": " -width 2 -anchor w -just left
-        label $win.l2x -textvar $text2x -anchor w -just left \
+        sci_label $win.colon  -text ": " -width 2 -anchor w -just left
+        sci_label $win.l2x -textvar $text2x -anchor w -just left \
             -fore darkred -borderwidth 0
-        label $win.comma1  -text ", " -anchor w -just left  \
+        sci_label $win.comma1  -text ", " -anchor w -just left  \
             -fore darkred -borderwidth 0
-        label $win.l2y -textvar $text2y -anchor w -just left \
+        sci_label $win.l2y -textvar $text2y -anchor w -just left \
             -fore darkred -borderwidth 0
         pack $win.l1 $win.colon \
             $win.l2x $win.comma1 $win.l2y -side left -padx 0
     } 
 
     method labelpair3 { win text1 text2x text2y text2z } {
-        frame $win 
+        sci_frame $win 
         pack $win -side top -padx 5
-        label $win.l1 -text $text1 -width [set $this-firstwidth] \
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
                       -anchor w -just left
-        label $win.colon  -text ": " -width 2 -anchor w -just left
-        label $win.l2x -textvar $text2x -anchor w -just left \
+        sci_label $win.colon  -text ": " -width 2 -anchor w -just left
+        sci_label $win.l2x -textvar $text2x -anchor w -just left \
             -fore darkred -borderwidth 0
-        label $win.comma1  -text ", " -anchor w -just left  \
+        sci_label $win.comma1  -text ", " -anchor w -just left  \
             -fore darkred -borderwidth 0
-        label $win.l2y -textvar $text2y -anchor w -just left \
+        sci_label $win.l2y -textvar $text2y -anchor w -just left \
             -fore darkred -borderwidth 0
-        label $win.comma2  -text ", " -anchor w -just left \
+        sci_label $win.comma2  -text ", " -anchor w -just left \
             -fore darkred -borderwidth 0
-        label $win.l2z -textvar $text2z -anchor w -just left \
+        sci_label $win.l2z -textvar $text2z -anchor w -just left \
             -fore darkred -borderwidth 0
         pack $win.l1 $win.colon \
             $win.l2x $win.comma1 $win.l2y $win.comma2 $win.l2z \
@@ -989,45 +1023,45 @@ itcl_class Module {
     } 
 
     method labelentry { win text var } {
-        frame $win 
-        label $win.l -text $text -anchor w
-        entry $win.e -width 10 -just left -textvariable $var
+        sci_frame $win 
+        sci_label $win.l -text $text -anchor w
+        sci_entry $win.e -width 10 -just left -textvariable $var
         pack $win.l $win.e -padx 5 -side left
         pack $win -side top -padx 5
     }
 
     method labelentry2 { win text1 text2 text3 var } {
-        frame $win 
+        sci_frame $win 
         pack $win -side top -padx 5
         global $var
-        checkbutton $win.b -var $var
-        label $win.l1 -text $text1 -width [set $this-firstwidth] \
+        sci_checkbutton $win.b -var $var
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
                       -anchor w -just left
-        label $win.colon  -text ":" -width 2 -anchor w -just left 
-        entry $win.l2 -width 10 -just left \
+        sci_label $win.colon  -text ":" -width 2 -anchor w -just left 
+        sci_entry $win.l2 -width 10 -just left \
                 -fore darkred -text $text2
-        entry $win.l3 -width 10 -just left \
+        sci_entry $win.l3 -width 10 -just left \
                 -fore darkred -text $text3
-        label $win.l4 -width 40
+        sci_label $win.l4 -width 40
         pack $win.b $win.l1 $win.colon -side left
         pack $win.l2 $win.l3 $win.l4 -padx 5 -side left
     }
 
     method labelentry3 { win text1 text2 text3 text4 func var } {
-        frame $win 
+        sci_frame $win 
         pack $win -side top -padx 5
         global $var
-        checkbutton $win.b -var $var
-        label $win.l1 -text $text1 -width [set $this-firstwidth] \
+        sci_checkbutton $win.b -var $var
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
                       -anchor w -just left
-        label $win.colon  -text ":" -width 2 -anchor w -just left 
-        entry $win.l2 -width 10 -just left \
+        sci_label $win.colon  -text ":" -width 2 -anchor w -just left 
+        sci_entry $win.l2 -width 10 -just left \
                 -fore darkred -text $text2
-        entry $win.l3 -width 10 -just left \
+        sci_entry $win.l3 -width 10 -just left \
                 -fore darkred -text $text3
-        entry $win.l4 -width 10 -just left \
+        sci_entry $win.l4 -width 10 -just left \
                 -fore darkred -text $text4
-        label $win.l5 -width 40
+        sci_label $win.l5 -width 40
         pack $win.b $win.l1 $win.colon -side left
         pack $win.l2 $win.l3 $win.l4 $win.l5 -padx 5 -side left
 
@@ -1103,7 +1137,7 @@ proc selection_handler { args } {
 }
 
 proc regenModuleMenu { modid menu_id } {
-    global network_executing
+    global regenModuleMenu
     # Wipe the menu clean...
     set num_entries [$menu_id index end]
     if { $num_entries == "none" } { 
@@ -1119,9 +1153,8 @@ proc regenModuleMenu { modid menu_id } {
     $menu_id add separator
 
     # 'Execute Menu Option
-    if {$network_executing == "0"} {
-        $menu_id add command -label "Execute" -command "$modid execute"
-    }
+    $menu_id add command -label "Execute" -command "$modid execute"
+    
     # 'Help' Menu Option
     if { ![$modid is_subnet] } {
         $menu_id add command -label "Help" -command "moduleHelp $modid"
@@ -1131,23 +1164,14 @@ proc regenModuleMenu { modid menu_id } {
     $menu_id add command -label "Notes" \
         -command "notesWindow $modid notesDoneModule"
 
-    # 'Destroy' module Menu Option
-    if {$network_executing == "0"} {
-        $menu_id add command -label "Destroy" \
-            -command "moduleDestroySelected $modid"
-    }
     # 'Duplicate' module Menu Option
-    if {$network_executing == "0"} {
-        if { ![$modid is_subnet] } {
-            $menu_id add command -label "Duplicate" -command "moduleDuplicate $modid"
-        }
+    if { ![$modid is_subnet] } {
+        $menu_id add command -label "Duplicate" -command "moduleDuplicate $modid"
     }
 
     # 'Replace' module Menu Option
-    if {$network_executing == "0"} {
-        if { ![$modid is_subnet] && [moduleReplaceMenu $modid $menu_id.replace] } {
-            $menu_id add cascade -label "Replace With" -menu $menu_id.replace
-        }
+    if { ![$modid is_subnet] && [moduleReplaceMenu $modid $menu_id.replace] } {
+        $menu_id add cascade -label "Replace With" -menu $menu_id.replace
     }
     
     # 'Show Log' module Menu Option
@@ -1156,40 +1180,32 @@ proc regenModuleMenu { modid menu_id } {
     }
     
     # 'Make Sub-Network' Menu Option
-    if {$network_executing == "0"} {
-        set mods [expr [$modid is_selected]?"$CurrentlySelectedModules":"$modid"]
-        $menu_id add command -label "Make Sub-Network" \
-            -command "createSubnetFromModules $mods"
-    }
+    set mods [expr [$modid is_selected]?"$CurrentlySelectedModules":"$modid"]
+    $menu_id add command -label "Make Sub-Network" \
+        -command "createSubnetFromModules $mods"
+
     # 'Expand Sub-Network' Menu Option
-    if {$network_executing == "0"} {
-        if { [$modid is_subnet] } {
-            $menu_id add command -label "Expand Sub-Network" \
-                -command "expandSubnet $modid"
-        }
+    if { [$modid is_subnet] } {
+        $menu_id add command -label "Expand Sub-Network" \
+            -command "expandSubnet $modid"
     }
 
     # 'Enable/Disable' Menu Option
-    if {$network_executing == "0"} {
-        if {[llength $Subnet(${modid}_connections)]} {
-            setIfExists disabled Disabled($modid) 0
-            if $disabled {
-                $menu_id add command -label "Enable" \
-                    -command "disableModule $modid 0"
-            } else {
-                $menu_id add command -label "Disable" \
-                    -command "disableModule $modid 1"
-            }
+    if {[llength $Subnet(${modid}_connections)]} {
+        setIfExists disabled Disabled($modid) 0
+        if $disabled {
+            $menu_id add command -label "Enable" \
+                -command "disableModule $modid 0"
+        } else {
+            $menu_id add command -label "Disable" \
+                -command "disableModule $modid 1"
         }
     }
 
-    # 'Fetch/Return UI' Menu Option
-    if { ![$modid is_subnet] && [envBool SCIRUN_GUI_UseGuiFetch] } {
-#  These functions do not really work, remove them for now
-#        $menu_id add separator
-#        $menu_id add command -label "Fetch UI"  -command "$modid fetch_ui"
-#        $menu_id add command -label "Return UI" -command "$modid return_ui"
-    }
+    # 'Destroy' module Menu Option
+    $menu_id add separator
+    $menu_id add command -label "Destroy" \
+        -command "moduleDestroySelected $modid"
 }
 
 
@@ -1205,28 +1221,28 @@ proc notesWindow { id {done ""} } {
     set w .notes$id
     if { [winfo exists $w] } { destroy $w }
     setIfExists cache Notes($id) ""
-    toplevel $w
+    sci_toplevel $w
     wm title $w $id
-    text $w.input -relief sunken -bd 2 -height 20
+    sci_text $w.input -relief sunken -bd 2 -height 10
     bind $w.input <KeyRelease> \
         "set Notes($id) \[$w.input get 1.0 \"end - 1 chars\"\]"
-    frame $w.b
-    button $w.b.done -text "Done" \
+    sci_frame $w.b
+    sci_button $w.b.done -text "Done" \
         -command "okNotesWindow $id \"$done\""
-    button $w.b.clear -text "Clear" -command "$w.input delete 1.0 end; set Notes($id) {}"
-    button $w.b.cancel -text "Cancel" -command \
+    sci_button $w.b.clear -text "Clear" -command "$w.input delete 1.0 end; set Notes($id) {}"
+    sci_button $w.b.cancel -text "Cancel" -command \
         "set Notes($id) \{$cache\}; destroy $w"
 
     setIfExists rgb Color($id) white
-    button $w.b.reset -fg black -text "Reset Color" -command \
+    sci_button $w.b.reset -fg black -text "Reset Color" -command \
         "set Notes($id-Color) $rgb; $w.b.color configure -bg $rgb"
 
     setIfExists rgb Notes($id-Color) $rgb
-    button $w.b.color -fg black -bg $rgb -text "Text Color" -command \
+    sci_button $w.b.color -fg black -bg $rgb -text "Text Color" -command \
         "colorNotes $id"
     setIfExists Notes($id-Color) Notes($id-Color) $rgb
 
-    frame $w.d -relief groove -borderwidth 2
+    sci_frame $w.d -relief groove -borderwidth 2
 
     setIfExists Notes($id-Position) Notes($id-Position) def
 
@@ -1424,7 +1440,7 @@ proc moduleDrag {modid x y} {
 
 proc do_moduleDrag {modid x y} {
     networkHasChanged
-    global Subnet lastX lastY grouplastX grouplastY SCALEX SCALEY botFrame
+    global Subnet lastX lastY grouplastX grouplastY SCALEX SCALEY
     set canvas $Subnet(Subnet$Subnet($modid)_canvas)
     set minicanvas $Subnet(Subnet$Subnet($modid)_minicanvas)
 
@@ -1506,7 +1522,7 @@ proc do_moduleDrag {modid x y} {
     if { [expr $x-$Xbounds] > $width } {
         cursor warp $canvas $width [expr $y-$Ybounds]
         set currx $width
-        set scrollwidth [$botFrame.vscroll cget -width]
+        set scrollwidth [.frame.vscroll cget -width]
         set grouplastX [expr $Xbounds + $width - 5 - $scrollwidth]
     }
     if { [expr $x-$Xbounds] < 0 } {
@@ -1518,7 +1534,7 @@ proc do_moduleDrag {modid x y} {
     #cursor-boundary check and warp for y-axis
     if { [expr $y-$Ybounds] > $height } {
         cursor warp $canvas $currx $height
-        set scrollwidth [$botFrame.hscroll cget -width]
+        set scrollwidth [.frame.hscroll cget -width]
         set grouplastY [expr $Ybounds + $height - 5 - $scrollwidth]
     }
     if { [expr $y-$Ybounds] < 0 } {
@@ -1627,6 +1643,8 @@ proc drawNotes { args } {
 
 
 proc moduleEndDrag {modid x y} {
+    raise .frame.editor.canvas.mini        
+
     global Subnet ignoreModuleMove CurrentlySelectedModules startX startY
     if $ignoreModuleMove return
     $Subnet(Subnet$Subnet($modid)_canvas) delete tempbox
@@ -1840,7 +1858,7 @@ proc moduleDestroy {modid} {
         netedit deletemodule $modid
     }
     
-
+    raise .frame.editor.canvas.mini
 }
 
 proc moduleDuplicate { module } {
@@ -1947,7 +1965,7 @@ proc findModuleReplacements { module } {
 
 
 proc moduleReplaceMenu { module menu } {
-    global ModuleMenu
+    global ModuleMenu time_font Color
     # return if there is no information to put in menu
     if { ![info exists ModuleMenu] } { return 0 }
     set moduleList [findModuleReplacements $module]
@@ -1955,27 +1973,31 @@ proc moduleReplaceMenu { module menu } {
     # destroy the old menu
     if { [winfo exists $menu] } { destroy $menu }
     # create a new menu
-    menu $menu -tearoff false -disabledforeground black
+    menu $menu -tearoff false -disabledforeground black -bd 2 -activeborderwidth 0 \
+      -activebackground $Color(MenuSelectBackGround)  \
+      -activeforeground $Color(MenuSelectForeGround) \
+      -background $Color(MenuBackGround) \
+      -foreground $Color(MenuForeGround)
 
     set added ""
     foreach path $moduleList {
-        if { [lsearch $added [lindex $path 0]] == -1 } {
-            lappend added [lindex $path 0]
-            # Add a menu separator if this package isn't the first one
-            if { [$menu index end] != "none" } {
-                $menu add separator 
-            }
-            # Add a label for the Package name
-            $menu add command -label [lindex $path 0] -state disabled
-        }
+      if { [lsearch $added [lindex $path 0]] == -1 } {
+        lappend added [lindex $path 0]
+        # Add a label for the Package name
+        $menu add command -label [lindex $path 0] -state disabled
+      }
 
-        set submenu $menu.menu_[join [lrange $path 0 1] _]
-        if { ![winfo exists $submenu] } {
-            menu $submenu -tearoff false
-            $menu add cascade -label "  [lindex $path 1]" -menu $submenu
-        }
-        set command "replaceModule $module $path"
-        $submenu add command -label [lindex $path 2] -command $command
+      set submenu $menu.menu_[join [lrange $path 0 1] _]
+      if { ![winfo exists $submenu] } {
+        menu $submenu -tearoff false -bd 2 -activeborderwidth 0 \
+          -activebackground $Color(MenuSelectBackGround)  \
+          -activeforeground $Color(MenuSelectForeGround) \
+          -background $Color(MenuBackGround) \
+          -foreground $Color(MenuForeGround)
+        $menu add cascade -label "  [lindex $path 1]" -menu $submenu 
+      }
+      set command "replaceModule $module $path"
+      $submenu add command -label [lindex $path 2] -command $command
     }
     update idletasks
     return 1

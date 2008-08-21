@@ -36,6 +36,7 @@ namespace SCIRun {
 class AppendDataArrays : public Module {
 public:
   AppendDataArrays(GuiContext*);
+  virtual ~AppendDataArrays() {}
   virtual void execute();
 };
 
@@ -50,11 +51,11 @@ void
 AppendDataArrays::execute()
 {
   std::vector<MatrixHandle> matrixlist;
-
-  if (!(get_dynamic_input_handles("Array",matrixlist,true)));
+  get_dynamic_input_handles("Array",matrixlist,true);
   
   if (inputs_changed_ || !oport_cached("Array"))
   {
+    update_state(Executing);  
     size_t numinputs = matrixlist.size();
   
     int m = 0;
@@ -79,7 +80,7 @@ AppendDataArrays::execute()
       m += matrixlist[p]->nrows();
     }
   
-    MatrixHandle omatrix = scinew DenseMatrix(m, n);
+    MatrixHandle omatrix = new DenseMatrix(m, n);
     double *dataptr = omatrix->get_data_pointer();
 
     for (size_t p=0;p<numinputs; p++)

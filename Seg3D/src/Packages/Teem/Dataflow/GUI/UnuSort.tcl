@@ -44,50 +44,50 @@ itcl_class Teem_UnuNtoZ_UnuSort {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-	global $this-index
-	global $this-min
-	global $this-max
+        global $this-index
+        global $this-min
+        global $this-max
 
-	set index_tmp [set $this-index]
-	set min_tmp [set $this-min]
-	set max_tmp [set $this-max]
+        set index_tmp [set $this-index]
+        set min_tmp [set $this-min]
+        set max_tmp [set $this-max]
 
-	iwidgets::spinint $w.index -labeltext "Index for sorting: " \
-	    -range "$min_tmp $max_tmp" -step 1 \
-	    -textvariable $this-index \
-	    -width 10 -fixed 10 -justify right
-	
-	pack $w.index -side top -expand 1 -fill x -padx 5
+        sci_spinint $w.index -labeltext "Index for sorting: " \
+            -range "$min_tmp $max_tmp" -step 1 \
+            -textvariable $this-index \
+            -width 10 -fixed 10 -justify right
+        
+        pack $w.index -side top -expand 1 -fill x -padx 5
 
-	$w.index delete 0 end
-	$w.index insert 0 $index_tmp
+        $w.index delete 0 end
+        $w.index insert 0 $index_tmp
 
         makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        moveToCursor $w
     }
 
     method set_min_max { } {
-	set w .ui[modname]
+        set w .ui[modname]
 
-	global $this-index
-	global $this-min
-	global $this-max
+        global $this-index
+        global $this-min
+        global $this-max
 
-	set index_tmp [set $this-index]
-	set min_tmp [set $this-min]
-	set max_tmp [set $this-max]
+        set index_tmp [set $this-index]
+        set min_tmp [set $this-min]
+        set max_tmp [set $this-max]
 
-	if [ expr [winfo exists $w] ] {
+        if [ expr [winfo exists $w] ] {
 
-            if { $max_tmp == $min_tmp } {
-                set max_tmp [expr $min_tmp + 1]
-            }
+                  if { $max_tmp == $min_tmp } {
+                      set max_tmp [expr $min_tmp + 1]
+                  }
 
-	    $w.index configure -range "$min_tmp $max_tmp"
-	    $w.index delete 0 end
-	    $w.index insert 0 $index_tmp
-	}
+            $w.index configure -range "$min_tmp $max_tmp"
+            $w.index delete 0 end
+            $w.index insert 0 $index_tmp
+        }
     }
 }

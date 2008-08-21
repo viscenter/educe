@@ -31,7 +31,7 @@
    DEALINGS IN THE SOFTWARE.
 -->
 
-<component name="CalculateDataArray" category="DataArrayMath">
+<component name="CalculateDataArray" category="DataArrayMath" dynamic="true">
   <overview>
     <authors>
       <author>Jeroen Stinstra</author>

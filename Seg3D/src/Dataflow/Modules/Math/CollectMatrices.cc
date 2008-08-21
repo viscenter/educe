@@ -157,7 +157,7 @@ CollectMatrices::execute()
 	  warning("SubMatrix and CompositeMatrix must have same number of columns");
 	  return;
 	} else {
-	  omatrix=scinew DenseMatrix(matrixH_->nrows()+bH->nrows(),matrixH_->ncols());
+	  omatrix=new DenseMatrix(matrixH_->nrows()+bH->nrows(),matrixH_->ncols());
 	  if (front) concat_rows(bH,matrixH_,omatrix);
 	  else concat_rows(matrixH_,bH,omatrix);
 	}
@@ -166,7 +166,7 @@ CollectMatrices::execute()
 	  warning("SubMatrix and CompositeMatrix must have same number of rows");
 	  return;
 	} else {
-	  omatrix=scinew DenseMatrix(matrixH_->nrows(),matrixH_->ncols()+bH->ncols());
+	  omatrix=new DenseMatrix(matrixH_->nrows(),matrixH_->ncols()+bH->ncols());
 	  if (front) concat_cols(bH,matrixH_,omatrix);
 	  else concat_cols(matrixH_,bH,omatrix);
 	} // columns
@@ -178,7 +178,7 @@ CollectMatrices::execute()
 	warning("BaseMatrix and CompositeMatrix must have same number of columns");
 	return;
       } else {
-	omatrix=scinew DenseMatrix(aH->nrows()+bH->nrows(),aH->ncols());
+	omatrix=new DenseMatrix(aH->nrows()+bH->nrows(),aH->ncols());
 	if (front) concat_rows(bH,aH,omatrix);
 	else concat_rows(aH,bH,omatrix);
       }
@@ -187,7 +187,7 @@ CollectMatrices::execute()
 	warning("BaseMatrix and CompositeMatrix must have same number of rows");
 	return;
       } else {
-	omatrix=scinew DenseMatrix(aH->nrows(),aH->ncols()+bH->ncols());
+	omatrix=new DenseMatrix(aH->nrows(),aH->ncols()+bH->ncols());
 	if (front) concat_cols(bH,aH,omatrix);
 	else concat_cols(aH,bH,omatrix);
       } // columns

@@ -117,7 +117,7 @@ static unsigned char error_bits[] = {
 
 proc createSciDialog { args } {
 
-  global question_bits warning_bits error_bits info_bits
+  global question_bits warning_bits error_bits info_bits Color
 
   set outside_pad 4
 
@@ -133,7 +133,7 @@ proc createSciDialog { args } {
       return -1
   }
 
-  toplevel .sci_dialog
+  sci_toplevel .sci_dialog
 
   wm protocol .sci_dialog WM_DELETE_WINDOW ";"
   # Would like to turn off iconify too, but "WM_INCONIFY_WINDOW"
@@ -141,8 +141,8 @@ proc createSciDialog { args } {
   #
   # wm protocol .sci_dialog WM_INCONIFY_WINDOW ";"
 
-  frame .sci_dialog.msgBox
-  frame .sci_dialog.btnBox
+  frame .sci_dialog.msgBox -background $Color(UIBackGround) 
+  frame .sci_dialog.btnBox -background $Color(MainBackGround) -borderwidth 0 -relief raised
 
   pack .sci_dialog.msgBox -padx $outside_pad -pady $outside_pad -fill x
  
@@ -164,59 +164,62 @@ proc createSciDialog { args } {
 	  incr arg
 	  set title [lindex $args $arg]
       } elseif { $argName == "-message" } {
-	  incr arg
-	  label .sci_dialog.msgBox.message -text "[lindex $args $arg]" -justify left
-	  pack .sci_dialog.msgBox.message -padx $outside_pad -pady $outside_pad -expand true -fill both -side right
+        incr arg
+        sci_label .sci_dialog.msgBox.message -text "[lindex $args $arg]" -justify left
+        pack .sci_dialog.msgBox.message -padx $outside_pad -pady $outside_pad -expand true -fill both -side right
       } elseif { $argName == "-button1" } {
-	  incr arg
-	  set btnName [lindex $args $arg]
-	  set size [string length $btnName]
-	  if { $size < $minBtnSize } { set size $minBtnSize }
-	  button .sci_dialog.btnBox.b1 -text $btnName -width $size -command {set ::sci_dialog_result 1 }
-	  pack .sci_dialog.btnBox.b1 -side left -padx $outside_pad -pady $outside_pad -expand 1
-	  set buttonSpecified true
+        incr arg
+        set btnName [lindex $args $arg]
+        set size [string length $btnName]
+        if { $size < $minBtnSize } { set size $minBtnSize }
+        sci_button .sci_dialog.btnBox.b1 -text $btnName -width $size\
+          -command {set ::sci_dialog_result 1 }  
+        pack .sci_dialog.btnBox.b1 -side left -padx $outside_pad -pady 3 -expand 1
+        set buttonSpecified true
       } elseif { $argName == "-button2" } {
-	  incr arg
-	  set btnName [lindex $args $arg]
-	  set size [string length $btnName]
-	  if { $size < $minBtnSize } { set size $minBtnSize }
-	  button .sci_dialog.btnBox.b2 -text $btnName -width $size -command {set ::sci_dialog_result 2 }
-	  pack .sci_dialog.btnBox.b2 -side left -padx $outside_pad -pady $outside_pad -expand 1
-	  set buttonSpecified true
+        incr arg
+        set btnName [lindex $args $arg]
+        set size [string length $btnName]
+        if { $size < $minBtnSize } { set size $minBtnSize }
+        sci_button .sci_dialog.btnBox.b2 -bd 0 -text $btnName -width $size\
+          -command {set ::sci_dialog_result 2 }     
+        pack .sci_dialog.btnBox.b2 -side left -padx $outside_pad -pady 3 -expand 1
+        set buttonSpecified true
       } elseif { $argName == "-button3" } {
-	  incr arg
-	  set btnName [lindex $args $arg]
-	  set size [string length $btnName]
-	  if { $size < $minBtnSize } { set size $minBtnSize }
-	  button .sci_dialog.btnBox.b3 -text $btnName -width $size -command {set ::sci_dialog_result 3 }
-	  pack .sci_dialog.btnBox.b3 -side left -padx $outside_pad -pady $outside_pad -expand 1
-	  set buttonSpecified true
+        incr arg
+        set btnName [lindex $args $arg]
+        set size [string length $btnName]
+        if { $size < $minBtnSize } { set size $minBtnSize }
+        sci_button .sci_dialog.btnBox.b3 -text $btnName -width $size -bd 0\
+          -command {set ::sci_dialog_result 3 }               
+        pack .sci_dialog.btnBox.b3 -side left -padx $outside_pad -pady 3 -expand 1
+        set buttonSpecified true
       } elseif { $argName == "-parent" } {
-	  incr arg
-	  set parent [lindex $args $arg]
-	  # This is a hack at finding the middle... someone needs to think about it more
-	  # a few seconds longer.... probably need to know the size of this window... but
-	  # we don't have that yet... so perhaps we need to delay this calculation.
-	  set windowXLoc [expr [winfo rootx $parent] + ([winfo width $parent]/5)]
-	  set windowYLoc [expr [winfo rooty $parent] + ([winfo height $parent]/5)]
-	  set placeInParent "true"
+        incr arg
+        set parent [lindex $args $arg]
+        # This is a hack at finding the middle... someone needs to think about it more
+        # a few seconds longer.... probably need to know the size of this window... but
+        # we don't have that yet... so perhaps we need to delay this calculation.
+        set windowXLoc [expr [winfo rootx $parent] + ([winfo width $parent]/5)]
+        set windowYLoc [expr [winfo rooty $parent] + ([winfo height $parent]/5)]
+        set placeInParent "true"
       } elseif { $argName == "-question" } {
-	  if { $title == "" } { set title "Question" }
-	  set icon $question_bits
+        if { $title == "" } { set title "Question" }
+        set icon $question_bits
       } elseif { $argName == "-warning" } {
-	  if { $title == "" } { set title "Warning" }
-	  set icon $warning_bits
+        if { $title == "" } { set title "Warning" }
+        set icon $warning_bits
       } elseif { $argName == "-info" } {
-	  if { $title == "" } { set title "Info" }
-	  set icon $info_bits
+        if { $title == "" } { set title "Info" }
+        set icon $info_bits
       } elseif { $argName == "-error" } {
-	  if { $title == "" } { set title "Error" }
-	  set icon $error_bits
+      if { $title == "" } { set title "Error" }
+      set icon $error_bits
       } elseif { $argName == "-message_tip" } {
-	  if { ![winfo exists .sci_dialog.msgBox.message] } {
-	      puts "Error with createSciDialog.  Message tip specified before message text."
-	      destroy .sci_dialog
-	      return -1
+        if { ![winfo exists .sci_dialog.msgBox.message] } {
+            puts "Error with createSciDialog.  Message tip specified before message text."
+            destroy .sci_dialog
+            return -1
 	  }
 	  incr arg
 	  Tooltip .sci_dialog.msgBox.message [lindex $args $arg]
@@ -251,21 +254,19 @@ proc createSciDialog { args } {
       }
   }
 
-  frame .sci_dialog.separator -height 2 -relief sunken -borderwidth 2
-  pack .sci_dialog.separator -fill x
-
   pack .sci_dialog.btnBox -anchor e -fill x
 
   wm title .sci_dialog $title
 
   if { $buttonSpecified == "false" } {
-      button .sci_dialog.btnBox.ok -width $minBtnSize -text "Ok" -command { set ::sci_dialog_result 1 }
+      sci_button .sci_dialog.btnBox.ok -width $minBtnSize -text "Ok" \
+        -command { set ::sci_dialog_result 1 }     
       pack .sci_dialog.btnBox.ok -padx $outside_pad -pady $outside_pad
   }
 
   # Create the Icon
   image create bitmap iconImg -data $icon
-  label .sci_dialog.msgBox.icon -image iconImg
+  sci_label .sci_dialog.msgBox.icon -image iconImg
   pack .sci_dialog.msgBox.icon -side left -padx 10 -pady $outside_pad
 
 
@@ -281,9 +282,7 @@ proc createSciDialog { args } {
   wm resizable .sci_dialog 0 0
 
   # Wait for a response
-  #wm maxsize .sci_dialog 600 2000
   wm deiconify .sci_dialog
-  #raise .sci_dialog
 
   catch {grab .sci_dialog}
 
@@ -294,15 +293,4 @@ proc createSciDialog { args } {
 
   return $::sci_dialog_result
 }
-
-# Test runs:
-#
-#button .b -text hello
-#pack .b
-#
-#createSciDialog  -title "This is a title" -message "this is a message" -message_tip "this is a tip"
-#createSciDialog -title "Hello" -warning -button1 "Hello" -button2 "Goodbye" -button3 "Whats up?" -message "this is a message" -button3_tip "This is the b3 tip" 
-#createSciDialog -error -button1 "Hello" -button2 "Goodbye" -button3 "Whats up?" -message "this is an error"
-
-#createSciDialog -error -button1 "Hello" -button2 "Goodbye" -button3 "Whats up?" 
 

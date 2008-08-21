@@ -39,11 +39,6 @@
 
 #include <sci_comp_warn_fixes.h>
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#  pragma set woff 1424
-#  pragma set woff 1209 
-#endif
-
 namespace SCIRun { 
 
   ServiceFrame::ServiceFrame(IComSocket socket, ServiceDBHandle db, ServiceLogHandle log) :
@@ -404,8 +399,3 @@ namespace SCIRun {
   }
 
 } // namespace
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209 
-#endif

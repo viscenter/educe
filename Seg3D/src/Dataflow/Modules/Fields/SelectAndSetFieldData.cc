@@ -27,14 +27,11 @@
 */
 
 // Include all code for the dynamic engine
-#include <Core/Algorithms/ArrayMath/ArrayObject.h>
-#include <Core/Algorithms/ArrayMath/ArrayEngine.h>
-#include <Core/Algorithms/ArrayMath/ArrayEngineHelp.h>
-#include <Core/Algorithms/ArrayMath/ArrayEngineMath.h>
-
-#include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/String.h>
+#include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/Field.h>
+#include <Core/Parser/ArrayMathEngine.h>
+
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
@@ -45,11 +42,8 @@ namespace SCIRun {
 class SelectAndSetFieldData : public Module {
   public:
     SelectAndSetFieldData(GuiContext*);
-
-    virtual ~SelectAndSetFieldData();
-
+    virtual ~SelectAndSetFieldData() {}
     virtual void execute();
-
     virtual void tcl_command(GuiArgs&, void*);
 
   private:
@@ -83,18 +77,13 @@ SelectAndSetFieldData::SelectAndSetFieldData(GuiContext* ctx)
 }
 
 
-SelectAndSetFieldData::~SelectAndSetFieldData()
-{
-}
-
-
 void
 SelectAndSetFieldData::execute()
 {
   FieldHandle field;
   std::vector<MatrixHandle> matrices;
   
-  if (!(get_input_handle("Field",field,true))) return;
+  get_input_handle("Field",field,true);
   get_dynamic_input_handles("Array",matrices,false);
 
   get_gui()->lock();
@@ -117,38 +106,21 @@ SelectAndSetFieldData::execute()
       return;
     }
     
-    SCIRunAlgo::ArrayObjectList inputlist(numinputs+4,SCIRunAlgo::ArrayObject(this));
-    SCIRunAlgo::ArrayObjectList outputlist(1,SCIRunAlgo::ArrayObject(this));
-    
+    NewArrayMathEngine engine;
+    engine.set_progress_reporter(this);    
+
     // Create the DATA object for the function
     // DATA is the data on the field
-    if(!(inputlist[0].create_input_data(field,"DATA")))
-    {
-      error("Failed to read field data");
-      return;
-    }
+    if(!(engine.add_input_fielddata("DATA",field))) return;
 
     // Create the POS, X,Y,Z, data location objects.  
-    if(!(inputlist[1].create_input_location(field,"POS","X","Y","Z")))
-    {
-      error("Failed to read node/element location data");
-      return;
-    }
+
+    if(!(engine.add_input_fielddata_location("POS",field))) return;
+    if(!(engine.add_input_fielddata_coordinates("X","Y","Z",field))) return;
 
     // Create the ELEMENT object describing element properties
-    if(!(inputlist[2].create_input_element(field,"ELEMENT")))
-    {
-      error("Failed to read element data");
-      return;
-    }
-
-    // Add an object for getting the index and size of the array.
-    if(!(inputlist[3].create_input_index("INDEX","SIZE")))
-    {
-      error("Internal error in module");
-      return;
-    }
-
+    if(!(engine.add_input_fielddata_element("ELEMENT",field))) return;
+    
     // Loop through all matrices and add them to the engine as well
     char mname = 'A';
     std::string matrixname("A");
@@ -157,54 +129,26 @@ SelectAndSetFieldData::execute()
     {
       if (matrices[p].get_rep() == 0)
       {
-        error("No matrix was found on input port");
+        error("No matrix was found on input port.");
         return;      
       }
 
-      matrixname[0] = mname++;    
-      if (!(inputlist[p+4].create_input_data(matrices[p],matrixname)))
-      {
-        std::ostringstream oss;
-        oss << "Input matrix " << p+1 << "is not a valid ScalarArray, VectorArray, or TensorArray";
-        error(oss.str());
-        return;
-      }
+      matrixname[0] = mname++;
+      if (!(engine.add_input_matrix(matrixname,matrices[p]))) return;
     }
-
-    // Check the validity of the input
-    int n = 1;
-    for (size_t r=0; r<inputlist.size();r++)
-    {
-      if (n == 1) n = inputlist[r].size();
-      if ((inputlist[r].size() != n)&&(inputlist[r].size() != 1))
-      {
-        if (r < 4)
-        {
-          error("Number of data entries does not seem to match number of elements/nodes");
-          return;
-        }
-        else
-        {
-          std::ostringstream oss;
-          oss << "The number of rows in matrix " << r-2 << "does not seem to match the number of datapoints in the field";
-          error(oss.str());
-        }
-      }
-    }
-
-    // Create the engine to compute new data
-    SCIRunAlgo::ArrayEngine engine(this);
     
+
+    int basis_order = field->vfield()->basis_order();
     std::string format = guiformat_.get();
     if (format == "") format = "double";
     
-    // Add as well the output object
-    FieldHandle ofield;
-    if(!(outputlist[0].create_output_data(field,format,"RESULT",ofield)))
-    {
-      return;
-    }
-        
+    if(!(engine.add_output_fielddata("RESULT",field,basis_order,format))) return;
+
+    // Add an object for getting the index and size of the array.
+
+    if(!(engine.add_index("INDEX"))) return;
+    if(!(engine.add_size("SIZE"))) return;
+            
     std::string function1 = guifunction1_.get();
     std::string selection1 = guiselection1_.get();
     std::string function2 = guifunction2_.get();
@@ -226,22 +170,29 @@ SelectAndSetFieldData::execute()
     if (function4.size() > 0) while ((function4[function4.size()-1] == '\n')||(function4[function4.size()-1] == ' ')||(function4[function4.size()-1] == '\r')) { function4 = function4.substr(0,function4.size()-1); if (function4.size() == 0) break; }
     if (functiondef.size() > 0) while ((functiondef[functiondef.size()-1] == '\n')||(functiondef[functiondef.size()-1] == ' ')||(functiondef[functiondef.size()-1] == '\r')) { functiondef = functiondef.substr(0,functiondef.size()-1); if (functiondef.size() == 0) break; }
     
-    std::string f = "\n";
-    if ((selection1.size()) && (function1.size())) f += "if ("+selection1+")\n{\n RESULT = " + function1 + ";}\n else ";
-    if ((selection2.size()) && (function2.size())) f += "if ("+selection2+")\n{\n RESULT = " + function2 + ";}\n else ";
-    if ((selection3.size()) && (function3.size())) f += "if ("+selection3+")\n{\n RESULT = " + function3 + ";}\n else ";
-    if ((selection4.size()) && (function4.size())) f += "if ("+selection4+")\n{\n RESULT = " + function4 + ";}\n else ";
-    if (functiondef.size()) f += "\n{\n RESULT = " + functiondef + ";\n}\n"; else f += "\n {\n }\n";
-     
+    std::string f = "RESULT = ";
+    std::string fend = "";
+    if ((selection1.size()) && (function1.size())) { f += "select("+selection1+"," + function1 + ","; fend += ")"; }
+    if ((selection2.size()) && (function2.size())) { f += "select("+selection2+"," + function2 + ","; fend += ")"; }
+    if ((selection3.size()) && (function3.size())) { f += "select("+selection3+"," + function3 + ","; fend += ")"; }
+    if ((selection4.size()) && (function4.size())) { f += "select("+selection4+"," + function4 + ","; fend += ")"; }
+
+    if (functiondef.size()) f += functiondef + fend + ";;";
+    else f += "0.0" + fend + ";;";
+    
+    if(!(engine.add_expressions(f))) return;
+
     // Actual engine call, which does the dynamic compilation, the creation of the
     // code for all the objects, as well as inserting the function and looping 
     // over every data point
-    if (!engine.engine(inputlist,outputlist,f))
-    {
-      error("An error occured while executing function");
-      return;
-    }
-    
+
+    if (!(engine.run())) return;
+
+    // Get the result from the engine
+    FieldHandle ofield;    
+    engine.get_field("RESULT",ofield);
+
+    // send new output if there is any: 
     send_output_handle("Field", ofield);
   }
 }
@@ -260,12 +211,11 @@ SelectAndSetFieldData::tcl_command(GuiArgs& args, void* userdata)
 
   if( args[1] == "gethelp" )
   {
-    DataArrayMath::ArrayEngineHelp Help;
-    get_gui()->lock();
-    get_gui()->eval("global " + get_id() +"-help");
-    get_gui()->eval("set " + get_id() + "-help {" + Help.gethelp(true) +"}");
-    get_gui()->unlock();
-
+//    DataArrayMath::ArrayEngineHelp Help;
+//    get_gui()->lock();
+//    get_gui()->eval("global " + get_id() +"-help");
+//    get_gui()->eval("set " + get_id() + "-help {" + Help.gethelp(true) +"}");
+//    get_gui()->unlock();
     return;
   }
   else

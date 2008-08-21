@@ -77,16 +77,16 @@ itcl_class SCIRun_Bundle_GetBundlesFromBundle {
         global $this-bundle5-entry
         global $this-bundle6-entry
 
-        toplevel $w 
+        sci_toplevel $w 
 
         wm minsize $w 100 150
 
         
-        iwidgets::labeledframe $w.frame -labeltext "BUNDLE SUB-BUNDLE OUTPUTS"
+        sci_labeledframe $w.frame -labeltext "BUNDLE SUB-BUNDLE OUTPUTS"
         set childframe [$w.frame childsite]
         pack $w.frame -fill both -expand yes
 
-        iwidgets::tabnotebook $childframe.pw -width 400 -tabpos n
+        sci_tabnotebook $childframe.pw -width 400 -tabpos n
         $childframe.pw add -label "Bundle1"
         $childframe.pw add -label "Bundle2" 
         $childframe.pw add -label "Bundle3" 
@@ -104,98 +104,98 @@ itcl_class SCIRun_Bundle_GetBundlesFromBundle {
         set bundle5 [$childframe.pw childsite 4]
         set bundle6 [$childframe.pw childsite 5]
 
-        frame $bundle1.name
-        frame $bundle1.sel
+        sci_frame $bundle1.name
+        sci_frame $bundle1.sel
         pack $bundle1.name -side top -fill x -expand no -padx 5p
         pack $bundle1.sel -side top -fill both -expand yes -padx 5p
 
-        label $bundle1.name.label -text "Name"
-        entry $bundle1.name.entry -textvariable $this-bundle1-name
+        sci_label $bundle1.name.label -text "Name"
+        sci_entry $bundle1.name.entry -textvariable $this-bundle1-name
         set $this-bundle1-entry $bundle1.name.entry
         pack $bundle1.name.label -side left
         pack $bundle1.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $bundle1.sel.listbox  -selectioncommand [format "%s ChooseBundle1" $this]
+        sci_scrolledlistbox $bundle1.sel.listbox  -selectioncommand [format "%s ChooseBundle1" $this]
         set $this-bundle1-listbox $bundle1.sel.listbox
         $bundle1.sel.listbox component listbox configure -listvariable $this-bundle-selection -selectmode browse
         pack $bundle1.sel.listbox -fill both -expand yes
 
-        frame $bundle2.name
-        frame $bundle2.sel
+        sci_frame $bundle2.name
+        sci_frame $bundle2.sel
         pack $bundle2.name -side top -fill x -expand no -padx 5p
         pack $bundle2.sel -side top -fill both -expand yes -padx 5p
 
-        label $bundle2.name.label -text "Name"
-        entry $bundle2.name.entry -textvariable $this-bundle2-name
+        sci_label $bundle2.name.label -text "Name"
+        sci_entry $bundle2.name.entry -textvariable $this-bundle2-name
         set $this-bundle2-entry $bundle2.name.entry
         pack $bundle2.name.label -side left 
         pack $bundle2.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $bundle2.sel.listbox  -selectioncommand [format "%s ChooseBundle2" $this]
+        sci_scrolledlistbox $bundle2.sel.listbox  -selectioncommand [format "%s ChooseBundle2" $this]
         set $this-bundle2-listbox $bundle2.sel.listbox
         $bundle2.sel.listbox component listbox configure -listvariable $this-bundle-selection -selectmode browse
         pack $bundle2.sel.listbox -fill both -expand yes
         
-        frame $bundle3.name
-        frame $bundle3.sel
+        sci_frame $bundle3.name
+        sci_frame $bundle3.sel
         pack $bundle3.name -side top -fill x -expand no -padx 5p
         pack $bundle3.sel -side top -fill both -expand yes -padx 5p
 
-        label $bundle3.name.label -text "Name"
-        entry $bundle3.name.entry -textvariable $this-bundle3-name
+        sci_label $bundle3.name.label -text "Name"
+        sci_entry $bundle3.name.entry -textvariable $this-bundle3-name
         set $this-bundle3-entry $bundle3.name.entry
         pack $bundle3.name.label -side left 
         pack $bundle3.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $bundle3.sel.listbox  -selectioncommand [format "%s ChooseBundle3" $this]
+        sci_scrolledlistbox $bundle3.sel.listbox  -selectioncommand [format "%s ChooseBundle3" $this]
         set $this-bundle3-listbox $bundle3.sel.listbox
         $bundle3.sel.listbox component listbox configure -listvariable $this-bundle-selection -selectmode browse
         pack $bundle3.sel.listbox -fill both -expand yes
 
-        frame $bundle4.name
-        frame $bundle4.sel
+        sci_frame $bundle4.name
+        sci_frame $bundle4.sel
         pack $bundle4.name -side top -fill x -expand no -padx 5p
         pack $bundle4.sel -side top -fill both -expand yes -padx 5p
 
-        label $bundle4.name.label -text "Name"
-        entry $bundle4.name.entry -textvariable $this-bundle4-name
+        sci_label $bundle4.name.label -text "Name"
+        sci_entry $bundle4.name.entry -textvariable $this-bundle4-name
         set $this-bundle4-entry $bundle4.name.entry
         pack $bundle4.name.label -side left 
         pack $bundle4.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $bundle4.sel.listbox  -selectioncommand [format "%s ChooseBundle4" $this]
+        sci_scrolledlistbox $bundle4.sel.listbox  -selectioncommand [format "%s ChooseBundle4" $this]
         set $this-bundle4-listbox $bundle4.sel.listbox
         $bundle4.sel.listbox component listbox configure -listvariable $this-bundle-selection -selectmode browse
         pack $bundle4.sel.listbox -fill both -expand yes
 
-        frame $bundle5.name
-        frame $bundle5.sel
+        sci_frame $bundle5.name
+        sci_frame $bundle5.sel
         pack $bundle5.name -side top -fill x -expand no -padx 5p
         pack $bundle5.sel -side top -fill both -expand yes -padx 5p
 
-        label $bundle5.name.label -text "Name"
-        entry $bundle5.name.entry -textvariable $this-bundle5-name
+        sci_label $bundle5.name.label -text "Name"
+        sci_entry $bundle5.name.entry -textvariable $this-bundle5-name
         set $this-bundle5-entry $bundle5.name.entry
         pack $bundle5.name.label -side left 
         pack $bundle5.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $bundle5.sel.listbox  -selectioncommand [format "%s ChooseBundle5" $this]
+        sci_scrolledlistbox $bundle5.sel.listbox  -selectioncommand [format "%s ChooseBundle5" $this]
         set $this-bundle5-listbox $bundle5.sel.listbox
         $bundle5.sel.listbox component listbox configure -listvariable $this-bundle-selection -selectmode browse
         pack $bundle5.sel.listbox -fill both -expand yes
         
-        frame $bundle6.name
-        frame $bundle6.sel
+        sci_frame $bundle6.name
+        sci_frame $bundle6.sel
         pack $bundle6.name -side top -fill x -expand no -padx 5p
         pack $bundle6.sel -side top -fill both -expand yes -padx 5p
 
-        label $bundle6.name.label -text "Name"
-        entry $bundle6.name.entry -textvariable $this-bundle6-name
+        sci_label $bundle6.name.label -text "Name"
+        sci_entry $bundle6.name.entry -textvariable $this-bundle6-name
         set $this-bundle6-entry $bundle6.name.entry
         pack $bundle6.name.label -side left 
         pack $bundle6.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $bundle6.sel.listbox  -selectioncommand [format "%s ChooseBundle6" $this]
+        sci_scrolledlistbox $bundle6.sel.listbox  -selectioncommand [format "%s ChooseBundle6" $this]
         set $this-bundle6-listbox $bundle6.sel.listbox
         $bundle6.sel.listbox component listbox configure -listvariable $this-bundle-selection -selectmode browse
         pack $bundle6.sel.listbox -fill both -expand yes

@@ -68,6 +68,7 @@
 #include <Core/Thread/ThreadGroup.h>
 #include <Core/Thread/WorkQueue.h>
 #include <Core/Thread/Thread_unix.h>
+#include <Core/Thread/Time.h>
 #include <errno.h>
 extern "C" {
 #include <semaphore.h>
@@ -86,15 +87,6 @@ extern "C" {
 
 #include <TauProfilerForSCIRun.h>
 
-//#define __ia64__
-#ifdef __ia64__
-#  ifndef __int64
-#    define __int64 long
-#  endif
-#  include <ia64intrin.h>
-#endif
-
-
 
 /*
  * The pthread implementation uses the default version of AtomicCounter,
@@ -103,10 +95,7 @@ extern "C" {
  *
  */
 
-#ifndef __ia64__
-#include <Core/Thread/Barrier_default.cc>
-#include <Core/Thread/AtomicCounter_default.cc>
-#endif
+
 #include <Core/Thread/CrowdMonitor_default.cc>
 
 using std::string;
@@ -121,11 +110,6 @@ using SCIRun::ThreadGroup;
 static bool exiting = false;
 
 #define MAXBSTACK 10
-
-#if defined(_AIX) && defined(MAXTHREADS)
-#  undef MAXTHREADS
-#endif
-
 #define MAXTHREADS 4000
 
 namespace SCIRun {
@@ -529,11 +513,10 @@ Thread::exitAll(int code)
         // send signal to thread.
         pthread_kill(t->threadid, SIGUSR2);
         // wait for signal handler to finish with the thread.
-        int numtries = 10000;
+        int numtries = 100;
         while (--numtries && !t->is_blocked) 
         {
-          // wait for checking again
-          sched_yield();
+          Time::waitFor(0.01);
         }
         if (!numtries)
         {
@@ -545,7 +528,7 @@ Thread::exitAll(int code)
       }
     }
   }
-  ::exit(code);
+  ::_Exit(code);
 }
 
 /*
@@ -618,11 +601,7 @@ Thread::print_threads()
  */
 static
 void
-#if defined(PPC) || defined(_AIX)
-handle_quit(int sig, struct sigcontext* ctx)
-#else
 handle_quit(int sig)
-#endif
 {
   if (Thread::isInitialized())
   {
@@ -740,20 +719,6 @@ exit_handler()
   if (exiting)
     return;
   Thread_shutdown(Thread::self());
-}
-
-
-void
-Thread::allow_sgi_OpenGL_page0_sillyness()
-{
-  // Nothing necessary here
-}
-
-
-void
-Thread::disallow_sgi_OpenGL_page0_sillyness()
-{
-  // Nothing necessary here
 }
 
 
@@ -904,15 +869,15 @@ Mutex::lock()
   }
 
   // Temporary hack:
-  // On OSX and AIX, this call may come before the constructor (for
+  // On OSX, this call may come before the constructor (for
   // static vars) for some reason.  To solve this problem we allocate
   // priv_ and init it if the constructor was not called yet.
   // Note:  This would appear to cause a deadlock or crash
   // if we lock on priv_ and then call the constructor to replace it.
-  if ( !priv_ ) {
-    priv_=new Mutex_private;
-    pthread_mutex_init(&priv_->mutex, NULL);
-  }
+  //if ( !priv_ ) {
+  //  priv_=new Mutex_private;
+  //  pthread_mutex_init(&priv_->mutex, NULL);
+  //}
 
   int status = pthread_mutex_lock(&priv_->mutex);
   if (status)
@@ -1196,7 +1161,15 @@ ConditionVariable::~ConditionVariable()
 {
   if (pthread_cond_destroy(&priv_->cond) != 0)
   {
-    ThreadError("pthread_cond_destroy:  Threads are currently waiting on this condition.");
+// TODO: Need to reactivate this one at some point in the future
+// Currently the EventManagement stuff does not clean up properly, and deletes
+// mailboxes before threads waiting for it are deleted. It seems it was not
+// designed to have working destructors. As a consequence it crashes SCIRun on
+// exit on occasions. This is a temporary fix, until the EvenManagement 
+// classes are fixed and have working desctructors and that play well in a multi
+// threaded environment, in which exits can come from anywhere.  
+
+//    ThreadError("pthread_cond_destroy:  Threads are currently waiting on this condition.");
   }
   delete priv_;
   priv_=0;
@@ -1219,8 +1192,55 @@ ConditionVariable::wait(Mutex& m)
 }
 
 
+void
+ConditionVariable::wait(RecursiveMutex& m)
+{
+  Thread* self = Thread::self();
+  int oldstate = 0;
+  Thread_private* p = 0;
+  if (self) {
+    p = Thread::self()->priv_;
+    oldstate = Thread::push_bstack(p, Thread::BLOCK_ANY, name_);
+  }
+  pthread_cond_wait(&priv_->cond, &m.priv_->mutex);
+  if (self)
+    Thread::pop_bstack(p, oldstate);
+}
+
+
+
 bool
 ConditionVariable::timedWait(Mutex& m, const struct timespec* abstime)
+{
+  Thread* self = Thread::self();
+  int oldstate = 0;
+  Thread_private* p = 0;
+  if (self) {
+    p = Thread::self()->priv_;
+    oldstate = Thread::push_bstack(p, Thread::BLOCK_ANY, name_);
+  }
+  bool success;
+  if (abstime){
+    int err = pthread_cond_timedwait(&priv_->cond, &m.priv_->mutex, abstime);
+    if (err != 0){
+      if (err == ETIMEDOUT)
+	success = false;
+      else
+	throw ThreadError("pthread_cond_timedwait:  Interrupted by a signal.");
+    } else {
+      success = true;
+    }
+  } else {
+    pthread_cond_wait(&priv_->cond, &m.priv_->mutex);
+    success = true;
+  }
+  if (self) Thread::pop_bstack(p, oldstate);
+  return success;
+}
+
+
+bool
+ConditionVariable::timedWait(RecursiveMutex& m, const struct timespec* abstime)
 {
   Thread* self = Thread::self();
   int oldstate = 0;
@@ -1262,177 +1282,3 @@ ConditionVariable::conditionBroadcast()
   pthread_cond_broadcast(&priv_->cond);
 }
 
-#ifdef __ia64__
-
-using SCIRun::Barrier;
-
-namespace SCIRun {
-struct Barrier_private {
-  Barrier_private();
-
-  //  long long amo_val;
-  char pad0[128];
-  __int64 amo_val;
-  char pad1[128];
-  volatile int flag;
-  char pad2[128];
-};
-} // namespace SCIRun
-
-
-using SCIRun::Barrier_private;
-
-
-Barrier_private::Barrier_private()
-{
-  flag = 0;
-  amo_val = 0;
-}
-
-
-Barrier::Barrier(const char* name)
-  : name_(name)
-{
-  if (!Thread::isInitialized())
-  {
-    if (getenv("THREAD_SHOWINIT"))
-      std::cerr << "Barrier: " << name << std::endl;
-    Thread::initialize();
-  }
-  priv_=new Barrier_private;
-}
-
-
-Barrier::~Barrier()
-{
-  delete priv_;
-  priv_=0;
-}
-
-
-void
-Barrier::wait(int n)
-{
-  Thread* self = Thread::self();
-  int oldstate;
-  Thread_private* p;
-  if (self) {
-    p = Thread::self()->priv_;
-    oldstate = Thread::push_bstack(p, Thread::BLOCK_BARRIER, name_);
-  }
-  int gen = priv_->flag;
-  __int64 val = __sync_fetch_and_add_di(&(priv_->amo_val),1);
-  if (val == n-1){
-    priv_->amo_val = 0;
-    priv_->flag++;
-  }
-  while(priv_->flag==gen)
-    /* spin */ ;
-  if (self) Thread::pop_bstack(p, oldstate);
-}
-
-
-using SCIRun::AtomicCounter;
-
-
-namespace SCIRun {
-struct AtomicCounter_private {
-  AtomicCounter_private();
-
-  // These variables used only for non fectchop implementation
-  //  long long amo_val;
-  char pad0[128];
-  __int64 amo_val;
-  char pad1[128];
-};
-} // namespace SCIRun
-
-using SCIRun::AtomicCounter_private;
-
-
-AtomicCounter_private::AtomicCounter_private()
-{
-}
-
-
-AtomicCounter::AtomicCounter(const char* name)
-  : name_(name)
-{
-  if (!Thread::isInitialized())
-  {
-    if (getenv("THREAD_SHOWINIT"))
-      std::cerr << "AtomicCounter: " << name << std::endl;
-    Thread::initialize();
-  }
-  priv_=new AtomicCounter_private;
-  priv_->amo_val = 0;
-}
-
-
-AtomicCounter::AtomicCounter(const char* name, int value)
-  : name_(name)
-{
-  if (!Thread::isInitialized())
-  {
-    if (getenv("THREAD_SHOWINIT"))
-      std::cerr << "AtomicCounter: " << name << std::endl;
-    Thread::initialize();
-  }
-  priv_=new AtomicCounter_private;
-  priv_->amo_val = value;
-}
-
-
-AtomicCounter::~AtomicCounter()
-{
-  delete priv_;
-  priv_=0;
-}
-
-
-AtomicCounter::operator int() const
-{
-  return (int)(priv_->amo_val);
-}
-
-// Preincrement
-int
-AtomicCounter::operator++()
-{
-  __int64 val = __sync_fetch_and_add_di(&(priv_->amo_val),1);
-  return (int)val+1;
-}
-
-
-// Postincrement
-int
-AtomicCounter::operator++(int)
-{
-  __int64 val = __sync_fetch_and_add_di(&(priv_->amo_val),1);
-  return (int)val;
-}
-
-// Predecrement
-int
-AtomicCounter::operator--()
-{
-  __int64 val = __sync_fetch_and_add_di(&(priv_->amo_val),-1);
-  return (int)val-1;
-}
-
-// Postdecrement
-int
-AtomicCounter::operator--(int)
-{
-  __int64 val = __sync_fetch_and_add_di(&(priv_->amo_val),-1);
-  return (int)val;
-}
-
-
-void
-AtomicCounter::set(int v)
-{
-  priv_->amo_val = v;
-}
-
-#endif // end #ifdef __ia64__

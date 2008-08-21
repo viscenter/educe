@@ -116,18 +116,6 @@ Thread::initialize()
 }
 
 void
-Thread::allow_sgi_OpenGL_page0_sillyness()
-{
-  // Nothing necessary here
-}
-
-void
-Thread::disallow_sgi_OpenGL_page0_sillyness()
-{
-  // Nothing necessary here
-}
-
-void
 Thread::exit()
 {
   exitAll(0);
@@ -248,30 +236,13 @@ handle_abort_signals(int sig, int /* code */, sigcontext context)
 
   Thread* self=Thread::self();
   const char* tname=self?self->getThreadName():"idle or main";
-#if defined(__sgi)
-#  if defined(_LONGLONG)
-     caddr_t addr=(caddr_t)ctx->sc_badvaddr;
-#  else
-     caddr_t addr=(caddr_t)ctx->sc_badvaddr.lo32;
-#  endif
-#else
+
 #  if defined(PPC)
     void* addr=(void*)ctx.regs->dsisr;
 #  else
-#    if defined(_AIX)
-       // Not sure if this is correct, but here it is.
-       // On IMB SP2 sigcontext is defined in /usr/include/sys/context.h
-#      if defined(SCI_64BITS)
-         void* addr=(void*)ctx.sc_jmpbuf.jmp_context.except;
-#      else
-         void* addr=(void*)ctx.sc_jmpbuf.jmp_context.o_vaddr;
-#      endif
-#    else
-//     void* addr=(void*)ctx.cr2;
-       void* addr=0;
-#    endif
+    void* addr=0;
 #  endif
-#endif
+
   char* signam=Core_Thread_signal_name(sig, addr);
   fprintf(stderr, "%c%c%cThread \"%s\"(pid %d) caught signal %s\n", 7,7,7,tname, getpid(), signam);
   Thread::niceAbort();
@@ -524,6 +495,17 @@ ConditionVariable::wait(Mutex& m)
 
 bool
 ConditionVariable::timedWait(Mutex& m, const struct timespec* abstime)
+{
+  return true;
+}
+
+void
+ConditionVariable::wait(RecursiveMutex& m)
+{
+}
+
+bool
+ConditionVariable::timedWait(RecursiveMutex& m, const struct timespec* abstime)
 {
   return true;
 }

@@ -14,13 +14,13 @@ itcl_class SCIRun_String_CreateString {
             return
         }
 
-        toplevel $w
-        frame $w.f     
+        sci_toplevel $w
+        sci_frame $w.f     
         pack $w.f -expand yes -fill both
 
         option add *textBackground white	
-        iwidgets::scrolledtext $w.f.str -vscrollmode dynamic \
-            -labeltext "String Contents" 
+        sci_scrolledtext $w.f.str -vscrollmode dynamic \
+            -labeltext "String Contents" -height 100
         $w.f.str insert end [set $this-inputstring]
         pack $w.f.str -fill both -expand yes
 

@@ -13,6 +13,6 @@ using namespace std;
 
 extern "C" {
 MapFieldDataFromSourceToDestinationAlgo* maker_MpFldDtFrmSrcTDstntnAlgT_GFldLtVlMhHxTLLgnPtHxTLLgndblFDt3ddblLtVlMhHxTLLgnPt_LtVlMhHxTLLgnPtNd_GFldTrSrfMhTrLnrLgnPtTrLnrLgndblvctrdbl_TrSrfMhTrLnrLgnPtNd () {
-  return scinew MapFieldDataFromSourceToDestinationAlgoT<GenericField<LatVolMesh<HexTrilinearLgn<Point> > ,HexTrilinearLgn<double> ,FData3d<double,LatVolMesh<HexTrilinearLgn<Point> > > > , LatVolMesh<HexTrilinearLgn<Point> > ::Node, GenericField<TriSurfMesh<TriLinearLgn<Point> > , TriLinearLgn<double >, vector<double > >, TriSurfMesh<TriLinearLgn<Point> > ::Node>;
+  return new MapFieldDataFromSourceToDestinationAlgoT<GenericField<LatVolMesh<HexTrilinearLgn<Point> > ,HexTrilinearLgn<double> ,FData3d<double,LatVolMesh<HexTrilinearLgn<Point> > > > , LatVolMesh<HexTrilinearLgn<Point> > ::Node, GenericField<TriSurfMesh<TriLinearLgn<Point> > , TriLinearLgn<double >, vector<double > >, TriSurfMesh<TriLinearLgn<Point> > ::Node>;
 }
 }

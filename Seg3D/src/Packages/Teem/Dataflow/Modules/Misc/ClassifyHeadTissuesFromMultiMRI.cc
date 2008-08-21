@@ -1083,7 +1083,7 @@ ClassifyHeadTissuesFromMultiMRI::EM_CSF_GM_WM (ColumnMatrix &CSF_mean,
                                    float *WM_prior,
                                    int label)
 {
-  int x, y, z, n, flag, it, j, k, flops, memrefs;    
+  int x, y, z, n, flag, it, j, k;    
   ColumnMatrix CSF_meanp, GM_meanp, WM_meanp;
   float sum, sum2, dist, CSF_const, GM_const, WM_const;
   ColumnMatrix feature(3), diff(3), temp(3);
@@ -1132,19 +1132,19 @@ ClassifyHeadTissuesFromMultiMRI::EM_CSF_GM_WM (ColumnMatrix &CSF_mean,
 	      if (feature.nrows() != 3) feature.resize(3);
             
 	      Sub(diff, feature, CSF_mean); //  diff=feature-CSF_mean;
-	      CSF_icov.mult(diff, temp, flops, memrefs); // CSF_icov*diff = temp
+	      CSF_icov.mult(diff, temp); // CSF_icov*diff = temp
 	      dist=Max(Dot(diff, temp),0.0);
 	      prob[k]=exp(-0.5*dist)*(*CSF_prior)*CSF_const;
 	      sum=prob[k];
 	      
 	      Sub(diff, feature, GM_mean); // diff=feature-GM_mean;
-	      GM_icov.mult(diff, temp, flops, memrefs);    
+	      GM_icov.mult(diff, temp);    
 	      dist=Max(Dot(diff,temp),0.0);// dist=Max(diff.dot(GM_icov*diff),0.0);            
 	      prob[k+1]=exp(-0.5*dist)*(*GM_prior)*GM_const;
 	      sum+=prob[k+1];
 	      
 	      Sub(diff, feature, WM_mean); // diff=feature-WM_mean;
-	      WM_icov.mult(diff, temp, flops, memrefs);    
+	      WM_icov.mult(diff, temp);    
 	      dist=Max(Dot(diff,temp),0.0);// dist=Max(diff.dot(GM_icov*diff),0.0);            
 	      prob[k+2]=exp(-0.5*dist)*(*WM_prior)*WM_const;
 	      sum+=prob[k+2];
@@ -1276,7 +1276,7 @@ ClassifyHeadTissuesFromMultiMRI::EM_Muscle_Fat (ColumnMatrix &Muscle_mean,
                                     DenseMatrix &Fat_cov, float *Fat_prior,
 				    int label, int dim)
 {
-  int x, y, z, n, flag, it, j, k, flops, memrefs;    
+  int x, y, z, n, flag, it, j, k;    
   ColumnMatrix Muscle_meanp(dim), Fat_meanp(dim);
   float sum, sum2, dist, Muscle_const, Fat_const;
   ColumnMatrix diff(dim), data(dim), temp(dim);
@@ -1329,13 +1329,13 @@ ClassifyHeadTissuesFromMultiMRI::EM_Muscle_Fat (ColumnMatrix &Muscle_mean,
             data = get_m_Data(x,y,z);
             
 	    Sub(diff, data, Muscle_mean); //  diff=data-Muscle_mean;
-	    Muscle_icov.mult(diff, temp, flops, memrefs); // Muscle_icov*diff = temp
+	    Muscle_icov.mult(diff, temp); // Muscle_icov*diff = temp
 	    dist = Max(Dot(diff, temp), 0.0);
             prob[k]=exp(-0.5*dist)*(*Muscle_prior)*Muscle_const;
             sum=prob[k];
 
             Sub(diff, data, Fat_mean); //diff=data-Fat_mean;
-	    Fat_icov.mult(diff, temp, flops, memrefs); // Fat_icov*diff = temp
+	    Fat_icov.mult(diff, temp); // Fat_icov*diff = temp
 	    dist = Max(Dot(diff, temp), 0.0);
             prob[k+1]=exp(-0.5*dist)*(*Fat_prior)*Fat_const;
             sum+=prob[k+1];
@@ -3565,7 +3565,7 @@ ClassifyHeadTissuesFromMultiMRI::gaussian(const NrrdDataHandle &data, double sig
   info->boundary = nrrdBoundaryBleed;
   info->type = data->nrrd_->type;
   info->renormalize = AIR_TRUE;
-  NrrdData *nrrd = scinew NrrdData;
+  NrrdData *nrrd = new NrrdData;
   if (nrrdSpatialResample(nrrd->nrrd_, data->nrrd_, info)) {
     char *err = biffGetDone(NRRD);
     error(string("Trouble resampling: ") +  err);
@@ -3838,8 +3838,8 @@ ClassifyHeadTissuesFromMultiMRI::closing(NrrdDataHandle data, NrrdDataHandle mas
   NrrdDataHandle temp = dilate(padim, mask);
   padim = erode(temp, mask);
 
-  size_t *min = scinew size_t[2];
-  size_t *max = scinew size_t[2];
+  size_t *min = new size_t[2];
+  size_t *max = new size_t[2];
   min[X_AXIS] = px;
   max[X_AXIS] = px+w-1;
   min[Y_AXIS] = py;
@@ -4000,7 +4000,7 @@ ClassifyHeadTissuesFromMultiMRI::extract_nrrd_slice_int(NrrdDataHandle data, int
 NrrdDataHandle
 ClassifyHeadTissuesFromMultiMRI::create_nrrd_of_ints(int x, int y, int z)
 {
-  NrrdData *data = scinew NrrdData();
+  NrrdData *data = new NrrdData();
   size_t size[NRRD_DIM_MAX];
   size[0] = x; size[1] = y; size[2] = z;
   if (nrrdAlloc_nva(data->nrrd_, nrrdTypeInt, 3, size)) {
@@ -4015,7 +4015,7 @@ ClassifyHeadTissuesFromMultiMRI::create_nrrd_of_ints(int x, int y, int z)
 NrrdDataHandle
 ClassifyHeadTissuesFromMultiMRI::create_nrrd_of_floats(int x, int y, int z) 
 {
-  NrrdData *data = scinew NrrdData();
+  NrrdData *data = new NrrdData();
   size_t size[NRRD_DIM_MAX];
   size[0] = x; size[1] = y; size[2] = z;
   nrrdAlloc_nva(data->nrrd_, nrrdTypeFloat, 3, size);
@@ -4036,7 +4036,7 @@ ClassifyHeadTissuesFromMultiMRI::nrrd_check_bounds(NrrdDataHandle data,
 NrrdDataHandle
 ClassifyHeadTissuesFromMultiMRI::create_nrrd_of_ints(int x, int y)
 {
-  NrrdData *data = scinew NrrdData();
+  NrrdData *data = new NrrdData();
   size_t size[NRRD_DIM_MAX];
   size[0] = x; size[1] = y;
   nrrdAlloc_nva(data->nrrd_, nrrdTypeInt, 2, size);
@@ -4047,7 +4047,7 @@ ClassifyHeadTissuesFromMultiMRI::create_nrrd_of_ints(int x, int y)
 NrrdDataHandle
 ClassifyHeadTissuesFromMultiMRI::create_nrrd_of_floats(int x, int y) 
 {
-  NrrdData *data = scinew NrrdData();
+  NrrdData *data = new NrrdData();
   size_t size[NRRD_DIM_MAX];
   size[0] = x; size[1] = y;
   nrrdAlloc_nva(data->nrrd_, nrrdTypeFloat, 2, size);

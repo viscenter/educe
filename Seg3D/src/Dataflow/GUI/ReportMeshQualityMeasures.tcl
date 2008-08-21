@@ -40,12 +40,12 @@ itcl_class SCIRun_ChangeFieldData_ReportMeshQualityMeasures {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-	frame       $w.f
-#	entry       $w.f.entry -textvariable $this-isoval
-#	radiobutton $w.f.lte -text "Less Than"    -value 1 -variable $this-lte
-#	radiobutton $w.f.gte -text "Greater Than" -value 0 -variable $this-lte
+        sci_frame       $w.f
+#	sci_entry       $w.f.entry -textvariable $this-isoval
+#	sci_radiobutton $w.f.lte -text "Less Than"    -value 1 -variable $this-lte
+#	sci_radiobutton $w.f.gte -text "Greater Than" -value 0 -variable $this-lte
 
 #	pack $w.f.lte   -pady 2
 #	pack $w.f.gte   -pady 2

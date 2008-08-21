@@ -41,7 +41,7 @@
  */
 
 #include <Dataflow/Network/Ports/ColorMapPort.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #undef SCISHARE
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
@@ -54,10 +54,10 @@ namespace SCIRun {
 
 extern "C" {
 SCISHARE IPort* make_ColorMapIPort(Module* module, const string& name) {
-  return scinew SimpleIPort<ColorMapHandle>(module,name);
+  return new SimpleIPort<ColorMapHandle>(module,name);
 }
 SCISHARE OPort* make_ColorMapOPort(Module* module, const string& name) {
-  return scinew SimpleOPort<ColorMapHandle>(module,name);
+  return new SimpleOPort<ColorMapHandle>(module,name);
 }
 }
 

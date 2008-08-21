@@ -1,51 +1,23 @@
-#
-#  For more information, please see: http://software.sci.utah.edu
-# 
-#  The MIT License
-# 
-#  Copyright (c) 2004 Scientific Computing and Imaging Institute,
-#  University of Utah.
-# 
-#  
-#  Permission is hereby granted, free of charge, to any person obtaining a
-#  copy of this software and associated documentation files (the "Software"),
-#  to deal in the Software without restriction, including without limitation
-#  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-#  and/or sell copies of the Software, and to permit persons to whom the
-#  Software is furnished to do so, subject to the following conditions:
-# 
-#  The above copyright notice and this permission notice shall be included
-#  in all copies or substantial portions of the Software.
-# 
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-#  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-#  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-#  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-#  DEALINGS IN THE SOFTWARE.
-#
-
-
 itcl_class SCIRun_NewField_ClipFieldByFunction {
     inherit Module
-
     constructor {config} {
         set name ClipFieldByFunction
+        set_defaults
+    }
+
+   method set_defaults {} {
+      global $this-function
+      global $this-help
+
+      set $this-function "DATA < 0;"
+      set $this-help ""
     }
 
     method update_text {} {
-	set w .ui[modname]
-        if {[winfo exists $w]} {
-	    set $this-function [$w.function.row1 get 1.0 end]
-        }
-    }
-
-    method set_text {} {
-	set w .ui[modname]
-        if {[winfo exists $w]} {
-	    $w.function.row1 clear
-	    $w.function.row1 insert end [set $this-function]
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+        set function [$w.ff childsite]
+        set $this-function [$function.function get 1.0 end]
         }
     }
 
@@ -55,54 +27,101 @@ itcl_class SCIRun_NewField_ClipFieldByFunction {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-	set cmd "$this-c needexecute"
+        sci_labeledframe $w.inf -labeltext "Create Clipping Expression"
+        set infoframe [$w.inf childsite]
+        sci_frame $infoframe.info
+        pack $infoframe.info -side left
+        set info $infoframe.info
+        sci_label $info.info1 -text "Function: expression(DATA,A,B,C,...)"
+        sci_label $info.info2 -text "Input array: DATA (scalar/vector/tensor: data from field port) "
+        sci_label $info.info3 -text "Input array: X, Y, Z (scalar: Cartensian coordinates of node/element)"
+        sci_label $info.info4 -text "Input array: POS (vector: vector with node/element position)"
+        sci_label $info.info5 -text "Input array: A, B, C, ... (scalar/vector/tensor: data from matrix ports)"
+        sci_label $info.info6 -text "Input array: INDEX (scalar: number of the element)"
+        sci_label $info.info7 -text "Input array: SIZE (scalar: number of elements)"
+        sci_label $info.info8 -text "Input array: ELEMENT (element: object containing element properties)"
 
-# Location
-	iwidgets::labeledframe $w.location -labelpos nw \
-	    -labeltext "Location To Test"
-	set location [$w.location childsite]
+        grid $info.info1 -row 0 -column 0 -columnspan 2 -sticky w
+        grid $info.info2 -row 1 -column 0 -sticky w
+        grid $info.info3 -row 2 -column 0 -sticky w
+        grid $info.info4 -row 3 -column 0 -sticky w
+        grid $info.info5 -row 4 -column 0 -sticky w
+        grid $info.info6 -row 1 -column 1 -sticky w
+        grid $info.info7 -row 2 -column 1 -sticky w
+        grid $info.info8 -row 3 -column 1 -sticky w
 
-        Tooltip $location "The user defined function will be evaluated at this location to determine which elements are preserved.\nThe v variable will be zero if the location does not match the field basis."
+        pack $w.inf -side top -anchor w -fill x
 
-	radiobutton $location.cell -text "Element Center" \
-	    -variable $this-mode -value element -command $cmd
-	radiobutton $location.nodeone -text "One Node" \
-	    -variable $this-mode -value onenode -command $cmd
-	radiobutton $location.nodemost -text "Most Nodes" \
-	    -variable $this-mode -value mostnodes -command $cmd
-	radiobutton $location.nodeall -text "All Nodes" \
-	    -variable $this-mode -value allnodes -command $cmd
+        sci_labeledframe $w.ff -labeltext "Expression"
+        set function [$w.ff childsite]
+        option add *textBackground white	
+        sci_scrolledtext $function.function -height 60 -hscrollmode dynamic
+        $function.function insert end [set $this-function]
+        bind $function.function <Leave> "$this update_text"
 
-	pack $location.cell $location.nodeone $location.nodemost \
-	    $location.nodeall -side top -anchor w
+        pack $w.ff -side top -anchor w -fill both 
+        pack $function.function -side top -fill both 
+  
+        sci_labeledframe $w.clip -labeltext "Clipping location"
+        set clip [$w.clip childsite]
+        
+        sci_radiobutton $clip.cell -text "Element Center" \
+            -variable $this-method -value element
+        sci_radiobutton $clip.nodeone -text "One Node" \
+            -variable $this-method -value onenode
+        sci_radiobutton $clip.nodemost -text "Most Nodes" \
+            -variable $this-method -value mostnodes
+        sci_radiobutton $clip.nodeall -text "All Nodes" \
+            -variable $this-method -value allnodes
+ 
+        pack $w.clip -side top -anchor w -fill x
 
-	pack $w.location -side top -fill x -padx 5 -pady 5
+        grid $clip.cell -row 0 -column 0 -sticky w
+        grid $clip.nodeone -row 0 -column 1 -sticky w
+        grid $clip.nodemost -row 0 -column 2 -sticky w
+        grid $clip.nodeall -row 0 -column 3 -sticky w
 
-# Function
-	frame $w.function -borderwidth 2
 
-	label $w.function.info -text "F(x, y, z, v0, v1, ...):"
-	label $w.function.info1 -text "where 'x', 'y', and 'z' are the coordinate values, 'v0', 'v1', 'v2', etc."
-	label $w.function.info2 -text "are data values that correspond to each valid input field. The last"
-	label $w.function.info3 -text "statement must be a 'return' with a conditional value."
+        sci_button $w.help -text "Parser Help" -command "$this showhelp"
+        pack $w.help -side top -anchor e    
 
-	option add *textBackground white
-	iwidgets::scrolledtext $w.function.row1 -height 60 -hscrollmode dynamic
-
-	$w.function.row1 insert end [set $this-function]
-
-	pack $w.function.info  -side top -anchor w -padx 5 -pady 5
-	pack $w.function.row1  -side top -expand y -fill both -padx 5 -pady 5
-	pack $w.function.info1 -side top -anchor w -padx 5
-	pack $w.function.info2 -side top -anchor w -padx 5
-	pack $w.function.info3 -side top -anchor w -padx 5
-
-	pack $w.function -side top -expand y -fill both \
-	    -padx 5 -pady 5
-
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
+    
+     method showhelp { } {
+
+      # Create a unique name for the file selection window
+      set w [format "%s-functionhelp" .ui[modname]]
+
+      if { [winfo exists $w] } {
+        if { [winfo ismapped $w] == 1} {
+          raise $w
+        } else {
+          wm deiconify $w
+        }
+	    	return
+      }
+	
+      sci_toplevel $w -class TkFDialog
+
+      global $this-help
+      $this-c gethelp   
+            
+      sci_labeledframe $w.hf -labeltext "Parser Help"
+      set help [$w.hf childsite]
+      option add *textBackground white	
+      sci_scrolledhtml $help.help -height 60 -hscrollmode dynamic -width 500p -height 300p        
+      
+      set helpfile [file join [netedit getenv SCIRUN_SRCDIR] Dataflow GUI ArrayMathFunctionHelp.html]
+      $help.help import $helpfile
+      
+      pack $help.help -side top -anchor w -fill both -expand yes
+      pack $w.hf -side top -anchor w -fill both -expand yes
+    }
+    
 }
+
+

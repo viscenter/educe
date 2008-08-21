@@ -37,17 +37,17 @@ itcl_class Teem_UnuAtoM_UnuCCmerge {
     }
 
     method set_defaults {} {
-	global $this-dir
-	set $this-dir 0
+        global $this-dir
+        set $this-dir 0
 
-	global $this-maxsize
-	set $this-maxsize 0
+        global $this-maxsize
+        set $this-maxsize 0
 
-	global $this-maxneigh
-	set $this-maxneigh 1
+        global $this-maxneigh
+        set $this-maxneigh 1
 
-	global $this-connectivity
-	set $this-connectivity 1
+        global $this-connectivity
+        set $this-connectivity 1
     }
 
     method ui {} {
@@ -55,53 +55,54 @@ itcl_class Teem_UnuAtoM_UnuCCmerge {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	iwidgets::labeledframe $w.f.options.dir \
-	    -labeltext "Value Driven Merging" \
-	    -labelpos nw
-	pack $w.f.options.dir -side top -expand yes -fill x
+        sci_labeledframe $w.f.options.dir \
+            -labeltext "Value Driven Merging" \
+            -labelpos nw
+        pack $w.f.options.dir -side top -expand yes -fill x
 
-	set dir [$w.f.options.dir childsite]
+        set dir [$w.f.options.dir childsite]
 
-	radiobutton $dir.dir1 \
-	    -text "Default - Merging can go either way" \
-	    -variable $this-dir \
-	    -value {0}
-	
-	radiobutton $dir.dir2 \
-	    -text "Dark islands get merged with bright surrounds" \
-	    -variable $this-dir \
-	    -value 1
+        sci_radiobutton $dir.dir1 \
+            -text "Default - Merging can go either way" \
+            -variable $this-dir \
+            -value {0}
+        
+        sci_radiobutton $dir.dir2 \
+            -text "Dark islands get merged with bright surrounds" \
+            -variable $this-dir \
+            -value 1
 
-	radiobutton $dir.dir3 \
-	    -text "Bright surrounds get merged with dark islands" \
-	    -variable $this-dir \
-	    -value {-1}
+        sci_radiobutton $dir.dir3 \
+            -text "Bright surrounds get merged with dark islands" \
+            -variable $this-dir \
+            -value {-1}
 
         pack $dir.dir1 $dir.dir2 $dir.dir3 -side top -anchor nw
-        iwidgets::entryfield $w.f.options.maxsize \
-	    -labeltext "Max Size:" -textvariable $this-maxsize
+        sci_entryfield $w.f.options.maxsize \
+          -labeltext "Max Size:" -textvariable $this-maxsize
         pack $w.f.options.maxsize -side top -expand yes -fill x
 
 
-        iwidgets::entryfield $w.f.options.maxneigh \
-	    -labeltext "Max Neighbors:" -textvariable $this-maxneigh
+        sci_entryfield $w.f.options.maxneigh \
+          -labeltext "Max Neighbors:" -textvariable $this-maxneigh
         pack $w.f.options.maxneigh -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.connectivity \
-	    -labeltext "Connectivity:" -textvariable $this-connectivity
+        sci_entryfield $w.f.options.connectivity \
+          -labeltext "Connectivity:" -textvariable $this-connectivity
         pack $w.f.options.connectivity  -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+
     }
 }

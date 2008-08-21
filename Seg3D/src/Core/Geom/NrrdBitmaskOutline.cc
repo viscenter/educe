@@ -54,7 +54,8 @@ NrrdBitmaskOutline::NrrdBitmaskOutline(NrrdDataHandle &nin_handle) :
   line_coords_(32),
   point_coords_(32),
   bit_verts_(32),
-  dirty_(true)
+  dirty_(true),
+  fat_lines_(true)
 {
   SLIVR::ColorMap *scm = ColorMap::create_pseudo_random(201);
   colormap_ = new SCIRun::ColorMap(*scm);
@@ -138,8 +139,14 @@ NrrdBitmaskOutline::draw_lines(float width, unsigned int mask)
     if (!lines.empty()) {
       glVertexPointer(2, GL_FLOAT, 0, &(lines.front()));
       glEnableClientState(GL_VERTEX_ARRAY);
-      glDrawArrays(GL_LINES, 0, lines.size()/2);
-      //glDrawArrays(GL_QUADS, 0, lines.size()/2);
+      if (fat_lines_)
+      {
+        glDrawArrays(GL_LINES, 0, lines.size()/2);
+      }
+      else
+      {
+        glDrawArrays(GL_QUADS, 0, lines.size()/2);
+      }
     }
 
     verts_t &points = point_coords_[*biter];
@@ -162,11 +169,25 @@ NrrdBitmaskOutline::compute_iso_lines()
   switch (nrrd_handle_->nrrd_->type)
   {
   case nrrdTypeUChar:
-    compute_iso_linesT<unsigned char>();
+    if (fat_lines_)
+    {
+      compute_iso_lines_fatT<unsigned char>();
+    }
+    else
+    {
+      compute_iso_lines_thinT<unsigned char>();
+    }
     break;
 
   case nrrdTypeUInt:
-    compute_iso_linesT<unsigned int>();
+    if (fat_lines_)
+    {
+      compute_iso_lines_fatT<unsigned int>();
+    }
+    else
+    {
+      compute_iso_lines_thinT<unsigned int>();
+    }
     break;
 
   default:
@@ -175,10 +196,9 @@ NrrdBitmaskOutline::compute_iso_lines()
 }
 
 
-#if 1
 template <class T>
 void
-NrrdBitmaskOutline::compute_iso_linesT()
+NrrdBitmaskOutline::compute_iso_lines_fatT()
 {
   const int cols = nrrd_handle_->nrrd_->axis[1].size;
   const int rows = nrrd_handle_->nrrd_->axis[2].size;
@@ -237,10 +257,12 @@ NrrdBitmaskOutline::compute_iso_linesT()
     }
   }
 }
-#else
+
+
+
 template <class T>
 void
-NrrdBitmaskOutline::compute_iso_linesT()
+NrrdBitmaskOutline::compute_iso_lines_thinT()
 {
   const float off0 = 1.0/3.0;
   const float off1 = 1.0 - off0;
@@ -396,7 +418,6 @@ NrrdBitmaskOutline::compute_iso_linesT()
     }
   }
 }
-#endif
 
 
 void
@@ -681,6 +702,17 @@ NrrdBitmaskOutline::get_bounds(BBox &bbox)
   bbox.extend(min_);
   bbox.extend(min_+xdir_);
   bbox.extend(min_+ydir_);
+}
+
+
+void
+NrrdBitmaskOutline::set_line_style(bool fat)
+{
+  if (fat != fat_lines_)
+  {
+    fat_lines_ = fat;
+    set_dirty();
+  }
 }
 
 

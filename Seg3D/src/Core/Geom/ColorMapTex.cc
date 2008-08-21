@@ -40,7 +40,7 @@
  *  Copyright (c) 199? SCI Group
  */
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Geom/ColorMapTex.h>
 #include <Core/Geom/GeomColorMap.h>
 #include <Core/Geom/GeomQuads.h>
@@ -51,7 +51,7 @@ namespace SCIRun {
 
 Persistent *make_ColorMapTex()
 {
-  return scinew ColorMapTex( Point(0,0,0), Point(0,1,0), Point(1,1,0),
+  return new ColorMapTex( Point(0,0,0), Point(0,1,0), Point(1,1,0),
 			     Point(1,0,0),  0);
 }
 
@@ -64,11 +64,11 @@ ColorMapTex::ColorMapTex(const Point &p1, const Point &p2,
 			 ColorMapHandle cmap)
   : GeomContainer(0)
 {
-  GeomFastQuads *quad = scinew GeomFastQuads();
+  GeomFastQuads *quad = new GeomFastQuads();
   const double min = cmap->getMin();
   const double max = cmap->getMax();
   quad->add (p1, min, p2, max, p3, max, p4, min);
-  child_ = scinew GeomColorMap(quad, cmap);
+  child_ = new GeomColorMap(quad, cmap);
 }
 
 
@@ -86,7 +86,7 @@ ColorMapTex::~ColorMapTex()
 GeomObj*
 ColorMapTex::clone()
 {
-  return scinew ColorMapTex( *this );
+  return new ColorMapTex( *this );
 }
 
 
@@ -109,9 +109,9 @@ ColorMapTex::io(Piostream& stream)
     Pio(stream, p3);
     Pio(stream, p4);
 
-    GeomFastQuads *quad = scinew GeomFastQuads();
+    GeomFastQuads *quad = new GeomFastQuads();
     quad->add (p1, 0.0, p2, 1.0, p3, 1.0, p4, 0.0);
-    child_ = scinew GeomColorMap(quad, 0);
+    child_ = new GeomColorMap(quad, 0);
   }
   stream.end_class();
 }

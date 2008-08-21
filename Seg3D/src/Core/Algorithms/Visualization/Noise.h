@@ -162,7 +162,7 @@ void Noise<Tesselator>::set_field( Field *f )
     tess_ = new Tesselator( field );
     if ( !field->get_property( "spanspace", space_ ) )
     {
-      space_ = scinew SpanSpace<value_type, cell_index_type>;
+      space_ = new SpanSpace<value_type, cell_index_type>;
       space_->init( field );
       field->set_property( "spanspace", space_, true );
     }
@@ -180,7 +180,7 @@ void NoiseFace<Tesselator>::set_field( Field *f )
     if ( !field->get_property( "spanspace", this->space_ ) )
     {
       SpanSpaceFace<value_type, cell_index_type> *space =
-	scinew SpanSpaceFace<value_type, cell_index_type>;
+	new SpanSpaceFace<value_type, cell_index_type>;
       space->init_face( field );
       this->space_ = space;
       field->set_property( "spanspace", this->space_, true );
@@ -198,7 +198,7 @@ void NoiseCell<Tesselator>::set_field( Field *f )
     if ( !field->get_property( "spanspace", this->space_ ) )
     {
       SpanSpaceCell<value_type, cell_index_type> *space =
-	scinew SpanSpaceCell<value_type, cell_index_type>;
+	new SpanSpaceCell<value_type, cell_index_type>;
       space->init_cell( field );
       this->space_ = space;
       field->set_property( "spanspace", this->space_, true );
@@ -318,14 +318,15 @@ void Noise<Tesselator>::search_max( span_point p[], int n )
   
   span_point *point = p + n/2;
   
-  if ( point->max > v ) {
+  if ( point->max > v ) 
+  {
     tess_->extract(point->index, v );
     
-    if ( n > 1 ) {
+    if ( n > 1 ) 
+    {
       span_point *child = p+n/4;
       
-      if ( child->max > v )
-	tess_->extract(child->index, v );
+      if ( child->max > v ) tess_->extract(child->index, v );
       
       search_max( p, n/4 );
       search_max( child+1, (n-2)/4 );
@@ -333,11 +334,11 @@ void Noise<Tesselator>::search_max( span_point p[], int n )
     collect( point+1, (n-1)/2 );
   }
   else
-    if ( n > 1 ) {
+    if ( n > 1 ) 
+    {
       span_point *child = point+1+(n-1)/4;
       
-      if ( child->max > v )
-	tess_->extract(child->index, v );
+      if ( child->max > v ) tess_->extract(child->index, v );
       
       search_max( point+1, (n-1)/4 );
       search_max( child+1, (n-3)/4 );

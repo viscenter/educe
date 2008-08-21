@@ -26,119 +26,46 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+#include <Core/Datatypes/Field.h>
+#include <Core/Algorithms/Fields/FieldData/CalculateLatVolGradientsAtNodes.h>
 
-
-/*
- *  CalculateLatVolGradientsAtNodes.cc:  Unfinished modules
- *
- *  Written by:
- *   Michael Callahan
- *   Department of Computer Science
- *   University of Utah
- *   June 2004
- *
- *  Copyright (C) 2004 SCI Group
- */
-
-#include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Containers/Handle.h>
-
-#include <Dataflow/Modules/Fields/CalculateLatVolGradientsAtNodes.h>
+#include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
 
 class CalculateLatVolGradientsAtNodes : public Module
 {
-public:
-  CalculateLatVolGradientsAtNodes(GuiContext* ctx);
-  virtual ~CalculateLatVolGradientsAtNodes();
+  public:
+    CalculateLatVolGradientsAtNodes(GuiContext* ctx);
+    virtual ~CalculateLatVolGradientsAtNodes() {}
 
-  virtual void execute();
+    virtual void execute();
 
-protected:
-  FieldHandle fieldout_;
-
-  int fGeneration_;
+  private:
+    SCIRunAlgo::CalculateLatVolGradientsAtNodesAlgo algo_;
 };
 
 
 DECLARE_MAKER(CalculateLatVolGradientsAtNodes)
 
 CalculateLatVolGradientsAtNodes::CalculateLatVolGradientsAtNodes(GuiContext* ctx)
-  : Module("CalculateLatVolGradientsAtNodes", ctx, Filter, "ChangeFieldData", "SCIRun"),
-    fGeneration_(-1)
+  : Module("CalculateLatVolGradientsAtNodes", ctx, Filter, "ChangeFieldData", "SCIRun")
 {
-}
-
-CalculateLatVolGradientsAtNodes::~CalculateLatVolGradientsAtNodes()
-{
+  algo_.set_progress_reporter(this);
 }
 
 void
 CalculateLatVolGradientsAtNodes::execute()
 {
-  FieldHandle fieldin;
-  if (!get_input_handle("Input Field", fieldin)) return;
+  FieldHandle input, output;
+  get_input_handle("Input Field", input, true);
 
-  if (!fieldin->query_scalar_interface(this).get_rep() )
+  if (inputs_changed_ || !oport_cached("Output Gradient"))
   {
-    error( "This module only works on fields of scalar data.");
-    return;
+    if (!(algo_.run(input,output))) return;
+    send_output_handle("Output Gradient", output);
   }
-
-  if (fieldin->basis_order() != 1)
-  {
-    error("This module only works on fields containing data at nodes.");
-    return;
-  }
-  
-  if (fieldin->get_type_description(Field::MESH_TD_E)->get_name().find("LatVolMesh", 0) == 
-      string::npos)
-  {
-    error("This module only works on fields with based on LatVolMesh.");
-  }
-
-  // If no data or a changed recalcute.
-  if( !fieldout_.get_rep() || fGeneration_ != fieldin->generation )
-  {
-    fGeneration_ = fieldin->generation;
-
-    const TypeDescription *ftd = fieldin->get_type_description();
-
-    CompileInfoHandle ci = CalculateLatVolGradientsAtNodesAlgo::get_compile_info(ftd);
-    Handle<CalculateLatVolGradientsAtNodesAlgo> algo;
-    if (!module_dynamic_compile(ci, algo)) return;
-
-    fieldout_ = algo->execute(fieldin);
-  }
-
-  send_output_handle("Output Gradient", fieldout_, true);
-}
-
-
-
-CompileInfoHandle
-CalculateLatVolGradientsAtNodesAlgo::get_compile_info(const TypeDescription *ftd)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("CalculateLatVolGradientsAtNodesAlgoT");
-  static const string base_class_name("CalculateLatVolGradientsAtNodesAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       ftd->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       ftd->get_name());
-  
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_basis_include("Core/Basis/HexTrilinearLgn.h");
-  rval->add_mesh_include("Core/Datatypes/LatVolMesh.h");
-  ftd->fill_compile_info(rval);
-  return rval;
 }
 
 } // End namespace SCIRun

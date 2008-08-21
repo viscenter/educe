@@ -43,53 +43,20 @@
 #include <libxml/xpathInternals.h>
 #include <iostream>
 
-
+#include <wx/wfstream.h>
+#include <wx/tarstrm.h>
+#include <wx/zstream.h>
+#include <StandAlone/Apps/Seg3D/Seg3DwxGuiUtils.h>
 
 namespace SCIRun {
 
-bool
-SessionWriter::write_session(const string &filename, Painter *painter)
+struct ndh_less_than
 {
-  // TODO:  We could pack the label volume bitplanes here for smaller
-  // output file size.
-  // painter->pack_labels();
-
-  pair<string, string> dir_file = split_filename(filename);
-  if (!write_volumes(painter->volumes_, dir_file.first)) {
-    return false;
+  bool operator()(const NrrdDataHandle &s1, const NrrdDataHandle &s2) const
+  {
+    return s1.get_rep() < s2.get_rep();
   }
-
-  /*
-   * this initialize the library and check potential ABI mismatches
-   * between the version it was compiled for and the actual shared
-   * library used.
-   */
-  
-  LIBXML_TEST_VERSION;
-  
-  /* the parser context */
-  xmlParserCtxtPtr ctxt = xmlNewParserCtxt();
-  if (!ctxt) {
-    std::cerr << "SessionWriter failed xmlNewParserCtx()\n";
-    return false;
-  }
-      
-  /* parse the file, activating the DTD validation option */
-  xmlDocPtr doc = xmlNewDoc(to_xml_ch_ptr("1.0"));
-  xmlNodePtr root = xmlNewNode(0,to_xml_ch_ptr("Seg3D"));
-  xmlDocSetRootElement(doc, root);
-
-  xmlNewProp(root, to_xml_ch_ptr("version"), to_xml_ch_ptr("2.0"));
-
-  add_volume_nodes(root, painter->volumes_);
-  add_appearance_nodes(root, painter);
-  
-  xmlSaveFormatFileEnc(filename.c_str(), doc, "UTF-8", 1);
-
-  xmlFreeDoc(doc);
-
-  return true;
-}
+};
 
 
 static string
@@ -102,6 +69,122 @@ color_to_string(const Color &c)
           (unsigned char)(c.b() * 255.0 + 0.5),
           255);
   return string(temp);
+}
+
+
+bool
+SessionWriter::write_session(const string &filename, Painter *painter)
+{
+  /*
+   * Initialize libxml and check potential ABI mismatches
+   * between the version it was compiled for and the actual shared
+   * library used.
+   */
+  
+  LIBXML_TEST_VERSION;
+  
+  // TODO:  We could pack the label volume bitplanes here for smaller
+  // output file size.
+  // painter->pack_labels();
+
+  // Open up the session archive.
+  wxFFileOutputStream out(std2wx(filename));
+  wxZlibOutputStream gzout(out, wxZ_BEST_SPEED, wxZLIB_GZIP);
+  wxTarOutputStream tar(gzout);
+
+  // Create the session.xml document.
+  xmlDocPtr doc = xmlNewDoc(to_xml_ch_ptr("1.0"));
+  xmlNodePtr root = xmlNewNode(0,to_xml_ch_ptr("Seg3D"));
+  xmlDocSetRootElement(doc, root);
+
+  xmlNewProp(root, to_xml_ch_ptr("version"), to_xml_ch_ptr("2.0"));
+
+  std::map<NrrdDataHandle, string, ndh_less_than> entries;
+
+  int dcounter = 1;
+  int lcounter = 1;
+  for (size_t i = 0; i < painter->volumes_.size(); i++)
+  {
+    NrrdVolumeHandle volume = painter->volumes_[i];
+
+    string entry;
+    std::map<NrrdDataHandle, string, ndh_less_than>::iterator entry_loc =
+      entries.find(volume->nrrd_handle_);
+    if (entry_loc == entries.end())
+    {
+      if (volume->label_)
+      {
+        entry = "label" + to_string(lcounter++) + ".nrrd";
+      }
+      else
+      {
+        entry = "data" + to_string(dcounter++) + ".nrrd";
+      }
+      entries[volume->nrrd_handle_] = entry;
+    }
+    else
+    {
+      entry = entries[volume->nrrd_handle_];
+    }
+
+    xmlNodePtr cnode = xmlNewChild(root, 0, to_xml_ch_ptr("volume"), 0);
+    add_var_node(cnode, "name", volume->name_);
+    add_var_node(cnode, "filename", entry);
+    add_var_node(cnode, "label", to_string(volume->label_));
+    add_var_node(cnode, "label_color",
+                 color_to_string(volume->get_label_color()));
+    add_var_node(cnode, "visible", to_string(volume->visible()));
+    add_var_node(cnode, "opacity", to_string(volume->opacity_));
+  }
+
+  add_appearance_nodes(root, painter);
+  
+  xmlChar *buffer;
+  int buffersize;
+  xmlDocDumpFormatMemory(doc, &buffer, &buffersize, 1);
+
+  // Add session.xml to the session archive.
+  wxTarEntry *tarentry =
+    new wxTarEntry(_T("session.xml"), wxDateTime::Now(), buffersize);
+  tar.PutNextEntry(tarentry);
+  tar.Write(buffer, buffersize);
+
+  xmlFree(buffer);
+  xmlFreeDoc(doc);
+
+  // Add the volumes to the session archive.
+
+  std::map<NrrdDataHandle, string, ndh_less_than>::iterator eitr = entries.begin();
+  while (eitr != entries.end())
+  {
+    NrrdDataHandle nrrd_handle = (*eitr).first;
+    const string entry = (*eitr).second;
+    const string nhdr = NrrdVolume::create_nrrd_header(nrrd_handle->nrrd_);
+    const size_t nsize = VolumeOps::nrrd_data_size(nrrd_handle);
+    
+    wxTarEntry *tarentry =
+      new wxTarEntry(std2wx(entry), wxDateTime::Now(), nhdr.size() + nsize);
+    tar.PutNextEntry(tarentry);
+
+    tar.Write(nhdr.c_str(), nhdr.size());
+
+    size_t totalwsize = nsize;
+    char *wbuffer = (char *)(nrrd_handle->nrrd_->data);
+    while (totalwsize)
+    {
+      size_t wsize = 1<<30;
+      if (wsize > totalwsize) wsize = totalwsize;
+      tar.Write(wbuffer, wsize);
+      totalwsize -= wsize;
+      wbuffer += wsize;
+    }
+    
+    ++eitr;
+  }
+
+  tar.Close();
+
+  return true;
 }
 
 
@@ -122,20 +205,17 @@ remove_extension(const string &filename)
 void
 SessionWriter::add_appearance_nodes(xmlNodePtr node, Painter *painter)
 {
+  painter->set_session_appearance_vars();
   Skinner::Variables *vars = painter->get_vars();
   xmlNodePtr cnode = xmlNewChild(node, 0, to_xml_ch_ptr("appearance"), 0);
   
   add_var_node(cnode, "Painter::volume_visible", vars);
+  add_var_node(cnode, "Painter::active_volume_index", vars);
+  // Probe is currently broken, so don't use it.
+  //add_var_node(cnode, "Painter::probe::x", vars);
+  //add_var_node(cnode, "Painter::probe::y", vars);
+  //add_var_node(cnode, "Painter::probe::z", vars);
 }
-
-
-struct ndh_less_than
-{
-  bool operator()(const NrrdDataHandle &s1, const NrrdDataHandle &s2) const
-  {
-    return s1.get_rep() < s2.get_rep();
-  }
-};
 
 
 bool
@@ -202,7 +282,7 @@ SessionWriter::add_volume_nodes(xmlNodePtr node, NrrdVolumes &volumes)
     add_var_node(cnode, "label", to_string(volume->label_));
     add_var_node(cnode, "label_color",
                  color_to_string(volume->get_label_color()));
-    add_var_node(cnode, "visible", to_string(volume->visible_ ? 1 : 0));
+    add_var_node(cnode, "visible", to_string(volume->visible()));
     add_var_node(cnode, "opacity", to_string(volume->opacity_));
   }
 }

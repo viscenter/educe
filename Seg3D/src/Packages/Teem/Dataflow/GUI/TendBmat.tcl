@@ -46,8 +46,8 @@ itcl_class Teem_Tend_TendBmat {
     }
 
     method send_text {} {
-	$this update_text
-	$this-c needexecute
+        $this update_text
+        $this-c needexecute
     }
 
     method ui {} {
@@ -57,26 +57,24 @@ itcl_class Teem_Tend_TendBmat {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-
-
-	option add *textBackground white	
-	iwidgets::scrolledtext $w.f.options.gradient_list -vscrollmode dynamic \
-		-labeltext "List of gradients. example: (one gradient per line) 0.5645 0.32324 0.4432454"
-	set cmmd "$this send_text"
-	catch {$w.f.options.gradient_list insert end [set $this-gradient_list]}
+        option add *textBackground white	
+        sci_scrolledtext $w.f.options.gradient_list -vscrollmode dynamic \
+          -labeltext "List of gradients. example: (one gradient per line) 0.5645 0.32324 0.4432454"
+        set cmmd "$this send_text"
+        catch {$w.f.options.gradient_list insert end [set $this-gradient_list]}
 
         pack $w.f.options.gradient_list -side top -expand yes -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
-	pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+        pack $w.f -expand 1 -fill x
     }
 }

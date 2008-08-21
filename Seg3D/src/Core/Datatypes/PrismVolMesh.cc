@@ -118,6 +118,7 @@ public:
   virtual void get_delems(VMesh::DElem::array_type& delems,
                           VMesh::Elem::index_type i) const;
 
+  virtual VMesh::index_type* get_elems_pointer() const;
 };
 
 //! Functions for creating the virtual interface for specific mesh types
@@ -133,7 +134,7 @@ public:
 //! Create virtual interface 
 VMesh* CreateVPrismVolMesh(PrismVolMesh<PrismLinearLgn<Point> >* mesh)
 {
-  return scinew VPrismVolMesh<PrismVolMesh<PrismLinearLgn<Point> > >(mesh);
+  return new VPrismVolMesh<PrismVolMesh<PrismLinearLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -147,7 +148,7 @@ static MeshTypeID PrismVolMesh_MeshID1(PrismVolMesh<PrismLinearLgn<Point> >::typ
 //! Create virtual interface 
 VMesh* CreateVPrismVolMesh(PrismVolMesh<PrismQuadraticLgn<Point> >* mesh)
 {
-  return scinew VPrismVolMesh<PrismVolMesh<PrismQuadraticLgn<Point> > >(mesh);
+  return new VPrismVolMesh<PrismVolMesh<PrismQuadraticLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -162,7 +163,7 @@ static MeshTypeID PrismVolMesh_MeshID2(PrismVolMesh<PrismQuadraticLgn<Point> >::
 //! Create virtual interface 
 VMesh* CreateVPrismVolMesh(PrismVolMesh<PrismCubicHmt<Point> >* mesh)
 {
-  return scinew VPrismVolMesh<PrismVolMesh<PrismCubicHmt<Point> > >(mesh);
+  return new VPrismVolMesh<PrismVolMesh<PrismCubicHmt<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -415,6 +416,16 @@ VPrismVolMesh<MESH>::get_delems(VMesh::DElem::array_type &delems,
 {
   delems.resize(1); delems[0] = static_cast<VMesh::DElem::index_type>(idx);
 }
+
+template <class MESH>
+VMesh::index_type*
+VPrismVolMesh<MESH>::
+get_elems_pointer() const
+{
+  if (this->mesh_->cells_.size() == 0) return (0);
+   return (&(this->mesh_->cells_[0]));
+}
+
 
 } // namespace SCIRun
 

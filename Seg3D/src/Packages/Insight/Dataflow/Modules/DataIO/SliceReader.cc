@@ -40,7 +40,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 
@@ -159,11 +159,7 @@ SliceReader::execute()
 
   // If we haven't read yet, or if it's a new filename, 
   //  or if the datestamp has changed -- then read...
-#ifdef __sgi
-  time_t new_filemodification = buf.st_mtim.tv_sec;
-#else
   time_t new_filemodification = buf.st_mtime;
-#endif
 
   if (fn != old_filename_ ||
       new_filemodification != old_filemodification_) {
@@ -204,8 +200,8 @@ SliceReader::execute()
     get_gui()->execute(get_id() + " configure_slice_slider " + to_string(size_2_.get()-1));
   }
 
-  //NrrdData *nd = scinew NrrdData();
-  ITKDatatype *nd = scinew ITKDatatype;
+  //NrrdData *nd = new NrrdData();
+  ITKDatatype *nd = new ITKDatatype;
 
   // pixel type
   itk::ImageIOBase::IOComponentType p_type = io_->GetComponentType();

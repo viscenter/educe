@@ -643,7 +643,8 @@ Transform::invert()
   double tmp;
   compute_imat();
   for (int i=0; i<4; i++)
-    for (int j=0; j<4; j++) {
+    for (int j=0; j<4; j++) 
+    {
       tmp=mat[i][j];
       mat[i][j]=imat[i][j];
       imat[i][j]=tmp;
@@ -665,16 +666,18 @@ Transform::compute_imat() const
     - m*b*g*l + m*b*h*k + m*f*c*l - m*f*d*k - m*j*c*h + m*j*d*g;
 
 
-  // Warning!  This test should be based on the condition number of the
-  // matrix.  Transforms for very small domains can be falsely accused
-  // of being singular!
-  if (fabs(q)<0.000000000001) {
+  // This test is imperfect. The condition number may be a good indicator,
+  // however this is not a perfect indicator neither.
+  
+  if (fabs(q)==0.0) 
+  {
     imat[0][0]=imat[1][1]=imat[2][2]=imat[3][3]=1;
-    imat[1][0]=imat[1][2]=imat[1][3]=0;
-    imat[2][0]=imat[2][1]=imat[2][3]=0;
-    imat[3][0]=imat[3][1]=imat[3][2]=0;
+    imat[1][0]=imat[1][2]=imat[1][3]=imat[0][1]=0;
+    imat[2][0]=imat[2][1]=imat[2][3]=imat[0][2]=0;
+    imat[3][0]=imat[3][1]=imat[3][2]=imat[0][3]=0;
     return;
   }
+  
   imat[0][0]=(f*k*p - f*l*o - j*g*p + j*h*o + n*g*l - n*h*k)/q;
   imat[0][1]=-(b*k*p - b*l*o - j*c*p + j*d*o + n*c*l - n*d*k)/q;
   imat[0][2]=(b*g*p - b*h*o - f*c*p + f*d*o + n*c*h - n*d*g)/q;

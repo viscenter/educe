@@ -36,8 +36,10 @@
 
 #include <string>
 #include <vector>
+
 #include <Core/Datatypes/NrrdData.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
+
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/BBox.h>
@@ -70,6 +72,15 @@ public:
 
   void                  get_bounds(BBox&);
 
+  // There are now two line styles.  Fat (true) is the prior default
+  // and is a wide line.  Non-fat is an inside the bitmask outline
+  // made of rectangles and matches the data.  Which looks better
+  // depends upon how far out the data is zoomed as matching the data
+  // at tiny scale doesn't show up well but zoomed in looks much more
+  // accurate.
+  void                  set_line_style(bool fat);
+  bool                  get_line_style()  {  return fat_lines_; }
+
 private:
 
   void                  compute_iso_glyphs(int x1 = -1, int y1 = -1, 
@@ -100,7 +111,10 @@ private:
                                            int border = -1);
 
   template <class T> 
-  void                  compute_iso_linesT();
+  void                  compute_iso_lines_fatT();
+
+  template <class T> 
+  void                  compute_iso_lines_thinT();
 
   enum cardinal_t {
     SW = 0, S = 1, SE = 2, E = 3, W = 4, NW = 5, N = 6, NE = 7, C = 8, 
@@ -126,6 +140,7 @@ private:
   Vector                        ydir_;
   float                         width_;
   float                         sso_;
+  bool                          fat_lines_;
 };
 
 typedef LockingHandle<NrrdBitmaskOutline> NrrdBitmaskOutlineHandle;

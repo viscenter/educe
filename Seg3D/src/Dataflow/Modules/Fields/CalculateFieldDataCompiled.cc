@@ -51,7 +51,7 @@ class CalculateFieldDataCompiled : public Module
 {
 public:
   CalculateFieldDataCompiled(GuiContext* ctx);
-  virtual ~CalculateFieldDataCompiled();
+  virtual ~CalculateFieldDataCompiled() {}
 
   virtual void execute();
   virtual void tcl_command(GuiArgs& args, void* userdata);
@@ -81,12 +81,6 @@ CalculateFieldDataCompiled::CalculateFieldDataCompiled(GuiContext* ctx)
     field_output_handle_(0)
 {
 }
-
-
-CalculateFieldDataCompiled::~CalculateFieldDataCompiled()
-{
-}
-
 
 void
 CalculateFieldDataCompiled::execute()

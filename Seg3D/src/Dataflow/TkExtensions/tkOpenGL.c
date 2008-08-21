@@ -38,12 +38,15 @@
 #include <Dataflow/TkExtensions/tkOpenGL.h>
 #include <string.h>
 
+#include <Dataflow/TkExtensions/share.h>
+
 #if (TCL_MINOR_VERSION >= 4)
 #define TCLCONST const
 #else
 #define TCLCONST
 #endif
 
+/*
 #ifdef _WIN32
 #  undef SCISHARE
 #  include <windows.h>
@@ -55,6 +58,7 @@
 #else
 #  define SCISHARE
 #endif
+*/
 
 SCISHARE int sci_glew_init()
 {
@@ -784,9 +788,6 @@ OpenGLListVisuals(interp, OpenGLPtr)
   int  id, level, db, stereo, r,g,b,a, depth, stencil, ar, ag, ab, aa;
   //int able;
   char samples_string[20] = "";
-#ifdef __sgi
-  int  samples_sgis;
-#endif
   int nvis;
   XVisualInfo* vinfo=XGetVisualInfo(OpenGLPtr->display, 0, NULL, &nvis);
   if(!vinfo)
@@ -823,12 +824,6 @@ OpenGLListVisuals(interp, OpenGLPtr)
     score += stereo?1:0;
     score += r+g+b+a;
     score += depth*5;
-
-#ifdef __sgi
-    GETCONFIG(GLX_SAMPLES_SGIS, samples_sgis);
-    score += samples_sgis?50:0;
-    sprintf(samples_string, "samples=%d, ", samples_sgis);
-#endif
 
     sprintf (buf, "{id=%02x, level=%d, %s%srgba=%d:%d:%d:%d, depth=%d, stencil=%d, accum=%d:%d:%d:%d, %sscore=%d} ",
 	     id, level, db?"double, ":"single, ", stereo?"stereo, ":"", 

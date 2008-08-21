@@ -29,13 +29,13 @@
 #ifndef CORE_DATATYPES_FIELDVINDEX_H
 #define CORE_DATATYPES_FIELDVINDEX_H 1
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Persistent/Persistent.h>
 #include <Core/Util/TypeDescription.h>
 #include <Core/Datatypes/TypeName.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 namespace SCIRun {
 
@@ -54,16 +54,20 @@ public:
   operator T const &() const { return index_; }
 
   inline FieldVIndexBase<T> operator+(const int) const;
+  inline FieldVIndexBase<T> operator+(const long long) const;
   inline FieldVIndexBase<T> operator+(const FieldVIndexBase<T>&) const;
   inline FieldVIndexBase<T> operator-(const int) const;    
+  inline FieldVIndexBase<T> operator-(const long long) const;    
   inline FieldVIndexBase<T> operator-(const FieldVIndexBase<T>&) const;
   inline FieldVIndexBase<T>& operator++();
   inline void                operator++(int);
   inline FieldVIndexBase<T>& operator--();
   inline void                operator--(int);
   inline FieldVIndexBase<T>& operator+=(const int);
+  inline FieldVIndexBase<T>& operator+=(const long long);
   inline FieldVIndexBase<T>& operator+=(const FieldVIndexBase<T>&);
   inline FieldVIndexBase<T>& operator-=(const int);
+  inline FieldVIndexBase<T>& operator-=(const long long);
   inline FieldVIndexBase<T>& operator-=(const FieldVIndexBase<T>&);
 
   
@@ -82,6 +86,13 @@ inline FieldVIndexBase<T> FieldVIndexBase<T>::operator+(const int i) const
 }
 
 template<class T>
+inline FieldVIndexBase<T> FieldVIndexBase<T>::operator+(const long long i) const
+{
+  return (FieldVIndexBase<T>(index_+i));
+}
+
+
+template<class T>
 inline FieldVIndexBase<T> FieldVIndexBase<T>::operator+(const FieldVIndexBase<T>& i) const
 {
   return (FieldVIndexBase<T>(index_+i.index_));
@@ -89,6 +100,12 @@ inline FieldVIndexBase<T> FieldVIndexBase<T>::operator+(const FieldVIndexBase<T>
 
 template<class T>
 inline FieldVIndexBase<T> FieldVIndexBase<T>::operator-(const int i) const
+{
+  return (FieldVIndexBase<T>(index_-i));
+}
+
+template<class T>
+inline FieldVIndexBase<T> FieldVIndexBase<T>::operator-(const long long i) const
 {
   return (FieldVIndexBase<T>(index_-i));
 }
@@ -102,8 +119,17 @@ inline FieldVIndexBase<T> FieldVIndexBase<T>::operator-(const FieldVIndexBase<T>
 template<class T>
 inline FieldVIndexBase<T>& FieldVIndexBase<T>::operator+=(const int i)
 {
-  index_ += static_cast<unsigned int>(i);
+  index_ += static_cast<T>(i);
+  return *this;
 }
+
+template<class T>
+inline FieldVIndexBase<T>& FieldVIndexBase<T>::operator+=(const long long i)
+{
+  index_ += static_cast<T>(i);
+  return *this;
+}
+
 
 template<class T>
 inline FieldVIndexBase<T>& FieldVIndexBase<T>::operator++()
@@ -142,9 +168,17 @@ inline FieldVIndexBase<T>& FieldVIndexBase<T>::operator+=(const FieldVIndexBase<
 template<class T>
 inline FieldVIndexBase<T>& FieldVIndexBase<T>::operator-=(const int i)
 {
-  index_ -= static_cast<unsigned int>(i);
+  index_ -= static_cast<T>(i);
   return (*this);
 }
+
+template<class T>
+inline FieldVIndexBase<T>& FieldVIndexBase<T>::operator-=(const long long i)
+{
+  index_ -= static_cast<T>(i);
+  return (*this);
+}
+
 
 template<class T>
 inline FieldVIndexBase<T>& FieldVIndexBase<T>::operator-=(const FieldVIndexBase<T>& i)

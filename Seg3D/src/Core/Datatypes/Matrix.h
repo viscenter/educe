@@ -43,15 +43,17 @@
 #ifndef CORE_DATATYPES_MATRIX_H
 #define CORE_DATATYPES_MATRIX_H 1
 
-#include <Core/Datatypes/Types.h>
-#include <Core/Datatypes/PropertyManager.h>
+#include <Core/Util/CheckSum.h>
+#include <Core/Containers/LockingHandle.h>
 #include <Core/Containers/Array1.h>
 #include <Core/Geometry/Transform.h>
-#include <Core/Containers/LockingHandle.h>
-#include <sgi_stl_warnings_off.h>
+#include <Core/Datatypes/Types.h>
+#include <Core/Datatypes/PropertyManager.h>
+
 #include <iosfwd>
-#include <sgi_stl_warnings_on.h>
+
 #include <Core/Datatypes/share.h>
+
 
 namespace SCIRun {
 using namespace std;
@@ -114,6 +116,7 @@ public:
   
   virtual double  min() = 0;
   virtual double  max() = 0;
+  virtual int compute_checksum() =0;
 
   // getRowNonzerosNocopy returns:
   //   vals = The values.  They are not guaranteed 
@@ -132,10 +135,8 @@ public:
 
   virtual Matrix* transpose() const = 0;
   virtual void mult(const ColumnMatrix& x, ColumnMatrix& b,
-		    int& flops, int& memrefs,
 		    index_type beg=-1, index_type end=-1, int spVec=0) const=0;
   virtual void mult_transpose(const ColumnMatrix& x, ColumnMatrix& b,
-			      int& flops, int& memrefs,
 			      index_type beg=-1, index_type end=-1, int spVec=0) const=0;
   virtual MatrixHandle submatrix(index_type r1, index_type c1, 
                                  index_type r2, index_type c2) = 0;
@@ -146,26 +147,22 @@ public:
   DenseMatrix *iterative_inverse();
   int cg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
 	       double &err, int &niter,
-	       int& flops, int& memrefs, 
 	       double max_error=1.e-6, int toomany=0,
 	       int useLhsAsGuess=0) const;
   int cg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs) const;
   int cg_solve(const DenseMatrix& rhs, DenseMatrix& lhs,
 	       double &err, int &niter,
-	       int& flops, int& memrefs, 
 	       double max_error=1.e-6, int toomany=0, 
 	       int useLhsAsGuess=0) const;
   int cg_solve(const DenseMatrix& rhs, DenseMatrix& lhs) const;
 
   int bicg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs,
 		 double &err, int &niter,
-		 int& flops, int& memrefs, 
 		 double max_error=1.e-6, int toomany=0,
 		 int useLhsAsGuess=0) const;
   int bicg_solve(const ColumnMatrix& rhs, ColumnMatrix& lhs) const;
   int bicg_solve(const DenseMatrix& rhs, DenseMatrix& lhs,
 		 double &err, int &niter,
-		 int& flops, int& memrefs, 
 		 double max_error=1.e-6, int toomany=0,
 		 int useLhsAsGuess=0) const;
   int bicg_solve(const DenseMatrix& rhs, DenseMatrix& lhs) const;

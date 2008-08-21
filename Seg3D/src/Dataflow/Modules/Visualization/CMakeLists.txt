@@ -44,11 +44,14 @@ SET(Dataflow_Modules_Visualization_SRCS
   ShowColorMap.cc
   ShowFieldGlyphs.cc
   ShowField.cc
+  ShowLinePath.cc
   ShowMatrix.cc
   ShowMeshBoundingBox.cc
+  ShowPointPath.cc
   GenerateStreamLines.cc
   GenerateStreamLinesWithPlacementHeuristic.cc
   ShowTextureSlices.cc
+  ShowTextureSurface.cc
   ShowTextureVolume.cc
   ShowString.cc
 )

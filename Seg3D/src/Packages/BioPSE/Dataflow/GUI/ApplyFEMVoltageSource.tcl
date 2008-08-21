@@ -55,16 +55,16 @@ itcl_class BioPSE_Forward_ApplyFEMVoltageSource {
             raise $w
             return;
         }
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 20
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
         global $this-bcFlag
         make_labeled_radio $w.f.r "Boundary Conditions:" "" \
                 left 2 $this-bcFlag \
                 {{"Apply Dirichlet" DirSub} \
-		{"Ground Node Zero" GroundZero}}
-	pack $w.f.r -side top -expand 1 -fill x
-	pack $w.f -expand 1 -fill x
+                {"Ground Node Zero" GroundZero}}
+        pack $w.f.r -side top -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

@@ -31,9 +31,9 @@
 
 #include <Core/Datatypes/GenericField.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 namespace SCIRun {
 using std::vector;
@@ -123,11 +123,11 @@ MultiLevelField<Mesh, Basis, FData>::get_type_description(Field::td_info_e td) c
     {
       static TypeDescription* tdn1 = 0;
       if (tdn1 == 0) {
-	TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(3);
+	TypeDescription::td_vec *subs = new TypeDescription::td_vec(3);
 	(*subs)[0] = sub1;
 	(*subs)[1] = sub2;
 	(*subs)[2] = sub3;
-	tdn1 = scinew TypeDescription(name, subs, path, namesp, 
+	tdn1 = new TypeDescription(name, subs, path, namesp, 
 				      TypeDescription::FIELD_E);
       } 
       return tdn1;
@@ -136,7 +136,7 @@ MultiLevelField<Mesh, Basis, FData>::get_type_description(Field::td_info_e td) c
     {
       static TypeDescription* tdn0 = 0;
       if (tdn0 == 0) {
-	tdn0 = scinew TypeDescription(name, 0, path, namesp, 
+	tdn0 = new TypeDescription(name, 0, path, namesp, 
 				      TypeDescription::FIELD_E);
       }
       return tdn0;

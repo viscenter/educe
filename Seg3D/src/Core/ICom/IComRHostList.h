@@ -31,10 +31,10 @@
 #ifndef CORE_ICOM_ICOMRHOSTLIST_H
 #define CORE_ICOM_ICOMRHOSTLIST_H 1
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/ICom/IComAddress.h>
 #include <Core/ICom/share.h>

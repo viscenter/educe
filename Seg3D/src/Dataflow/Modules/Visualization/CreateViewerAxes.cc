@@ -55,10 +55,11 @@
 #include <Core/Geom/GeomSticky.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Core/Geom/GeomText.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomTransform.h>
 #include <Core/Geom/GeomTriangles.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 
 #include <Dataflow/GuiInterface/GuiVar.h>
@@ -127,9 +128,9 @@ CreateViewerAxes::CreateViewerAxes(GuiContext* ctx)
     value_font_(0),
 #endif
     bbox_(Point(-1.,-1.,-1.),Point(1.,1.,1.)),
-    white_(scinew Material(Color(0,0,0), Color(1,1,1), Color(1,1,1), 20)),
-    red_(scinew Material(Color(0,0,0), Color(1,0.4,0.4), Color(1,0.4,0.4), 20)),
-    green_(scinew Material(Color(0,0,0), Color(0.4,1.,0.4), Color(0.4,1.,0.4), 20)),
+    white_(new Material(Color(0,0,0), Color(1,1,1), Color(1,1,1), 20)),
+    red_(new Material(Color(0,0,0), Color(1,0.4,0.4), Color(1,0.4,0.4), 20)),
+    green_(new Material(Color(0,0,0), Color(0.4,1.,0.4), Color(0.4,1.,0.4), 20)),
     vars_()
 {
   add_GuiString("title");
@@ -293,21 +294,21 @@ CreateViewerAxes::get_GuiBool(const string &str) {
 void
 CreateViewerAxes::add_GuiString(const string &str) {
   DEBUGPRINT;
-  vars_.insert(make_pair(str,scinew GuiString(get_ctx()->subVar(str))));
+  vars_.insert(make_pair(str,new GuiString(get_ctx()->subVar(str))));
 }
 
 
 void
 CreateViewerAxes::add_GuiDouble(const string &str) {
   DEBUGPRINT;
-  vars_.insert(make_pair(str,scinew GuiDouble(get_ctx()->subVar(str))));
+  vars_.insert(make_pair(str,new GuiDouble(get_ctx()->subVar(str))));
 }
 
 
 void
 CreateViewerAxes::add_GuiInt(const string &str) {
   DEBUGPRINT;
-  vars_.insert(make_pair(str,scinew GuiInt(get_ctx()->subVar(str))));
+  vars_.insert(make_pair(str,new GuiInt(get_ctx()->subVar(str))));
 }
 
 void
@@ -322,13 +323,13 @@ CreateViewerAxes::generateLines(const Point  start,
 		       const Vector dir,
 		       const double num)
 {
-  GeomLines *lines = scinew GeomLines();
+  GeomLines *lines = new GeomLines();
   for (int i = 0; i <= Round(num); i++) {
     const Point pos = start + delta*i;    
     lines->add(pos, pos + dir);
   }
   
-  return scinew GeomMaterial(lines, white_);
+  return new GeomMaterial(lines, white_);
 }
 
 void 
@@ -348,7 +349,7 @@ CreateViewerAxes::tcl_command(GuiArgs& args, void* userdata) {
 GeomHandle
 CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
 {
-  GeomGroup *group = scinew GeomGroup();
+  GeomGroup *group = new GeomGroup();
 
   const double scale = bbox_.diagonal().maxComponent();
   const double radians = 2.0*M_PI/360.0;
@@ -422,7 +423,7 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
     
     GeomHandle obj;
     
-    GeomLines *lines = scinew GeomLines();
+    GeomLines *lines = new GeomLines();
     double line_width = get_GuiDouble(base+"width");
     if (line_width < 0.05) line_width = 0.05;
     lines->setLineWidth(line_width);
@@ -433,12 +434,12 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
       lines->add(pos, pos + secondary);
     }
     
-    obj = scinew GeomMaterial(lines, white_);
+    obj = new GeomMaterial(lines, white_);
 
 
     int show = get_GuiInt(base+"lines");
-    GeomGroup *grid = scinew GeomGroup();
-    grid->add(scinew GeomSwitch(scinew GeomCull(obj,(show<2)?0:&normal),show>0));
+    GeomGroup *grid = new GeomGroup();
+    grid->add(new GeomSwitch(new GeomCull(obj,(show<2)?0:&normal),show>0));
 
     // Create Tickmarks
     Vector tick_vec = secondary;
@@ -448,7 +449,7 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
 
     Point Zero(0.,0.,0.), One = tick_vec.asPoint();
 
-    GeomLines *tickline = scinew GeomLines();
+    GeomLines *tickline = new GeomLines();
     tickline->add(Zero, white_,One,white_);
     tickline->setLineWidth(line_width);
 
@@ -461,7 +462,7 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
     trans.project_inplace(tick_vec);
 
 
-    GeomTransform *tilted_tick = scinew GeomTransform(tickline, trans);
+    GeomTransform *tilted_tick = new GeomTransform(tickline, trans);
 
     Vector textup = secondary;
     textup.normalize();
@@ -473,9 +474,9 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
 			     get_GuiDouble(base+"valuesize")*1.1)/100.0;
 
 
-    GeomGroup *ticks = scinew GeomGroup();
+    GeomGroup *ticks = new GeomGroup();
 #ifdef HAVE_FTGL
-    GeomGroup *values = scinew GeomGroup();
+    GeomGroup *values = new GeomGroup();
     const int precision = get_GuiInt("precision");
 #endif
     Vector squash(1.,1.,1.);
@@ -483,7 +484,7 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
       get_GuiDouble(base+"valuesquash")*get_GuiDouble("squash");
     
     for (int i = 0; i <= num; i++) {
-      GeomTransform *ttick = scinew GeomTransform(tilted_tick);
+      GeomTransform *ttick = new GeomTransform(tilted_tick);
       ttick->translate(delta*i);
       ticks->add(ttick);
       
@@ -493,11 +494,11 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
 	ostr.precision(precision);
 	ostr << (origin+delta*i).asVector()[axisleft];
 	//      value_font_->set_resolution(textup.length()*5,72);
-	GeomTextTexture *value_text = scinew GeomTextTexture
+	GeomTextTexture *value_text = new GeomTextTexture
 	  (value_font_, ostr.str(), Zero, textup, primary);
 	value_text->set_anchor(GeomTextTexture::c);
 	if (axisleft == 1 && axisup == 0) value_text->up_hack_ = true;
-	GeomTransform *value = scinew GeomTransform(value_text);
+	GeomTransform *value = new GeomTransform(value_text);
 	value->scale(squash);
 	value->translate(delta*i+tick_vec+textup*0.55);
 	values->add(value);
@@ -512,16 +513,16 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
     trans.pre_rotate(angle,left);
     trans.pre_translate((origin+secondary).asVector());
 
-    obj = scinew GeomTransform(ticks, trans);
+    obj = new GeomTransform(ticks, trans);
     show = get_GuiInt(base+"maxticks");
-    obj = scinew GeomSwitch(scinew GeomCull(obj, show<2?0:&secondary),show>0);
-    grid->add(scinew GeomSwitch(scinew GeomCull(obj, show<2?0:&normal),show>0));
+    obj = new GeomSwitch(new GeomCull(obj, show<2?0:&secondary),show>0);
+    grid->add(new GeomSwitch(new GeomCull(obj, show<2?0:&normal),show>0));
 #ifdef HAVE_FTGL
     if (value_font_.get_rep()) {
-      obj = scinew GeomTransform(values,trans);
+      obj = new GeomTransform(values,trans);
       show = get_GuiInt(base+"maxvalue");
-      obj = scinew GeomSwitch(scinew GeomCull(obj,show<2?0:&secondary),show>0);
-      grid->add(scinew GeomSwitch(scinew GeomCull(obj,show<2?0:&normal),show>0));
+      obj = new GeomSwitch(new GeomCull(obj,show<2?0:&secondary),show>0);
+      grid->add(new GeomSwitch(new GeomCull(obj,show<2?0:&normal),show>0));
     }
 #endif
 
@@ -535,7 +536,7 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
 
     One = tick_vec.asPoint();
 
-    tickline = scinew GeomLines();
+    tickline = new GeomLines();
     tickline->add(Zero, white_,One,white_);
     tickline->setLineWidth(line_width);
 
@@ -551,14 +552,14 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
 
 //    min_offset *= textup.length()*1.1;
 
-    tilted_tick = scinew GeomTransform(tickline, trans);
-    ticks = scinew GeomGroup();    
+    tilted_tick = new GeomTransform(tickline, trans);
+    ticks = new GeomGroup();    
 #ifdef HAVE_FTGL
-    values = scinew GeomGroup();
+    values = new GeomGroup();
 #endif
 
     for (int i = 0; i <= num; i++) {
-      GeomTransform *ttick = scinew GeomTransform(tilted_tick);
+      GeomTransform *ttick = new GeomTransform(tilted_tick);
       ttick->translate(delta*i);
       ticks->add(ttick);
       
@@ -567,11 +568,11 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
 	ostringstream ostr;
 	ostr.precision(3);
 	ostr << (origin+delta*i).asVector()[axisleft];
-	GeomTextTexture *value_text = scinew GeomTextTexture
+	GeomTextTexture *value_text = new GeomTextTexture
 	  (value_font_, ostr.str(), Zero, textup, primary);
 	value_text->set_anchor(GeomTextTexture::c);
 	if (axisleft == 1 && axisup == 0) value_text->up_hack_ = true;
-	GeomTransform *value = scinew GeomTransform(value_text);
+	GeomTransform *value = new GeomTransform(value_text);
 	value->scale(squash);
 	value->translate(delta*i+tick_vec-textup*0.55);
 	values->add(value);
@@ -584,32 +585,32 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
     trans.pre_rotate(-angle,left);
     trans.pre_translate(origin.asVector());
 
-    obj = scinew GeomTransform(ticks, trans);
+    obj = new GeomTransform(ticks, trans);
     show = get_GuiInt(base+"minticks");
-    obj = scinew GeomSwitch(scinew GeomCull(obj, show<2?0:&nsecondary),show>0);
-    grid->add(scinew GeomSwitch(scinew GeomCull(obj, show<2?0:&normal),show>0));
+    obj = new GeomSwitch(new GeomCull(obj, show<2?0:&nsecondary),show>0);
+    grid->add(new GeomSwitch(new GeomCull(obj, show<2?0:&normal),show>0));
 #ifdef HAVE_FTGL
     if (value_font_.get_rep()) {
-      obj = scinew GeomTransform(values, trans);
+      obj = new GeomTransform(values, trans);
       show = get_GuiInt(base+"minvalue");
-      obj = scinew GeomSwitch(scinew GeomCull(obj,show<2?0:&nsecondary),show>0);
-      grid->add(scinew GeomSwitch(scinew GeomCull(obj,show<2?0:&normal),show>0));
+      obj = new GeomSwitch(new GeomCull(obj,show<2?0:&nsecondary),show>0);
+      grid->add(new GeomSwitch(new GeomCull(obj,show<2?0:&normal),show>0));
     }
 #endif
 
 
 #if 0
-    ticks = scinew GeomGroup();
+    ticks = new GeomGroup();
     for (int i = 0; i <= Round(divisions); i++) {
-      GeomTransform *ttick = scinew GeomTransform(tick);
+      GeomTransform *ttick = new GeomTransform(tick);
       tick->rotate(M_PI,primary);
       ttick->translate((origin+delta*i).asVector());
       ticks->add(ttick);
     }
 
     show = get_GuiInt(base+"minticks");
-    obj = scinew GeomSwitch(scinew GeomCull(ticks, show<2?0:&nsecondary),show>0);
-    grid->add(scinew GeomSwitch(scinew GeomCull(obj, show<2?0:&normal),show>0));
+    obj = new GeomSwitch(new GeomCull(ticks, show<2?0:&nsecondary),show>0);
+    grid->add(new GeomSwitch(new GeomCull(obj, show<2?0:&normal),show>0));
 #endif
 
 #ifdef HAVE_FTGL
@@ -626,28 +627,28 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
       //    const string text = get_GuiString(base+"text"); 
       const string text(get_GuiString(base+"text"));//J^A^3^A^L   <<");
       //    label_font_->set_resolution(textup.length()*10,72);
-      label = scinew GeomTextTexture
+      label = new GeomTextTexture
 	(label_font_, text, origin+secondary+textup/2.+primary/2+max_offset, 
 	 textup, primary);
       if (axisleft == 1 && axisup == 0) label->up_hack_ = true;
       label->set_anchor(GeomTextTexture::c);
       
       show = get_GuiInt(base+"maxlabel");
-      obj = scinew GeomSwitch(scinew GeomCull(label,(show<2?0:&secondary)),show>0);    
-      grid->add(scinew GeomSwitch(scinew GeomCull(obj,show<2?0:&normal),show>0));
-      label = scinew GeomTextTexture
+      obj = new GeomSwitch(new GeomCull(label,(show<2?0:&secondary)),show>0);    
+      grid->add(new GeomSwitch(new GeomCull(obj,show<2?0:&normal),show>0));
+      label = new GeomTextTexture
 	(label_font_, text, origin-textup/2+primary/2+min_offset, textup, primary);
       if (axisleft == 1 && axisup == 0) label->up_hack_ = true;
       label->set_anchor(GeomTextTexture::c);
       
       show = get_GuiInt(base+"minlabel");
-      obj = scinew GeomSwitch(scinew GeomCull(label,show<2?0:&nsecondary),show>0);
-      grid->add(scinew GeomSwitch(scinew GeomCull(obj,show<2?0:&normal),show>0));
+      obj = new GeomSwitch(new GeomCull(label,show<2?0:&nsecondary),show>0);
+      grid->add(new GeomSwitch(new GeomCull(obj,show<2?0:&normal),show>0));
     }
 #endif
 
     obj = grid;
-    GeomTransform *mirror = scinew GeomTransform(grid);
+    GeomTransform *mirror = new GeomTransform(grid);
     Vector center = origin.asVector()+bbox_.diagonal()/2.;
     
     mirror->translate(-center);
@@ -655,19 +656,19 @@ CreateViewerAxes::generateAxisLines(int prim, int sec, int ter)
     mirror->translate(center);
     
     //    show = get_GuiInt(base+"minplane");
-    //obj = scinew GeomSwitch(scinew GeomCull(grid, show<2?0:&normal),show>0);
+    //obj = new GeomSwitch(new GeomCull(grid, show<2?0:&normal),show>0);
     //group->add(obj);
 
     //show = get_GuiInt(base+"maxplane");
-    //obj = scinew GeomSwitch(scinew GeomCull(mirror, show<2?0:&nnormal),show>0);
+    //obj = new GeomSwitch(new GeomCull(mirror, show<2?0:&nnormal),show>0);
     //group->add(obj);
     
-    //    grid->add(scinew GeomSwitch(scinew GeomCull(obj, show<2?0:&normal),show>0));
+    //    grid->add(new GeomSwitch(new GeomCull(obj, show<2?0:&normal),show>0));
     group->add(grid);
     group->add(mirror);
   }
 
-  GeomPoints *points = scinew GeomPoints();
+  GeomPoints *points = new GeomPoints();
   points->add(bbox_.min());
   group->add(points);
 
@@ -689,7 +690,7 @@ void CreateViewerAxes::check_for_changed_fonts() {
     
   if (!label_font_.get_rep() && get_gui()->eval("validFile "+filename) == "1") {
     std::cerr << "loading " << filename;
-    label_font_ = scinew GeomFTGLFontRenderer(filename,
+    label_font_ = new GeomFTGLFontRenderer(filename,
 					      get_GuiInt("labelrez")+1,72);
   }
   
@@ -706,7 +707,7 @@ void CreateViewerAxes::check_for_changed_fonts() {
   
   if (!value_font_.get_rep() && get_gui()->eval("validFile "+filename) == "1") {
     std::cerr << "loading " << filename << "rez of " << get_GuiInt("valuerez") << std::endl;
-    value_font_ = scinew GeomFTGLFontRenderer(filename, 
+    value_font_ = new GeomFTGLFontRenderer(filename, 
 					      get_GuiInt("valuerez")+1,72);
   }
 #endif

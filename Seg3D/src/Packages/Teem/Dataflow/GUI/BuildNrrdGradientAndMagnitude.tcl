@@ -48,18 +48,18 @@ itcl_class Teem_Misc_BuildNrrdGradientAndMagnitude {
     method set_defaults {} {
         global $this-minf
         global $this-maxf
-	global $this-useinputmin
-	global $this-useinputmax
-	global $this-realmin
-	global $this-realmax
+        global $this-useinputmin
+        global $this-useinputmax
+        global $this-realmin
+        global $this-realmax
         global $this-valuesonly
 
         set $this-minf 0
         set $this-maxf 255
-	set $this-useinputmin 1
-	set $this-useinputmax 1
-	set $this-realmin "unknown"
-	set $this-realmax "unknown"
+        set $this-useinputmin 1
+        set $this-useinputmax 1
+        set $this-realmin "unknown"
+        set $this-realmax "unknown"
         set $this-valuesonly 0
     }
 
@@ -69,65 +69,65 @@ itcl_class Teem_Misc_BuildNrrdGradientAndMagnitude {
             return
         }
 	
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 200 80
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
 
 
- 	frame $w.f.vals 
- 	pack $w.f.vals -side top -anchor nw -expand yes -fill x
+        sci_frame $w.f.vals 
+        pack $w.f.vals -side top -anchor nw -expand yes -fill x
 
-	frame $w.f.vals.min
- 	pack $w.f.vals.min -side left -anchor nw -expand yes -fill x \
-	    -padx 4
+        sci_frame $w.f.vals.min
+        pack $w.f.vals.min -side left -anchor nw -expand yes -fill x \
+            -padx 4
 
-        label $w.f.vals.min.l -text "Min:" 
-	entry $w.f.vals.min.v -textvariable $this-realmin \
-	    -width 10 -state disabled -relief flat -foreground "#663399"
+        sci_label $w.f.vals.min.l -text "Min:" 
+        sci_entry $w.f.vals.min.v -textvariable $this-realmin \
+          -width 10 -state disabled -relief flat -foreground "#663399"
         pack $w.f.vals.min.l $w.f.vals.min.v -side left -expand yes -fill x
 
-	frame $w.f.vals.max
- 	pack $w.f.vals.max -side left -anchor nw -expand yes -fill x \
-	    -padx 4
+        sci_frame $w.f.vals.max
+        pack $w.f.vals.max -side left -anchor nw -expand yes -fill x \
+          -padx 4
 
-        label $w.f.vals.max.l -text "Max:" 
-	entry $w.f.vals.max.v -textvariable $this-realmax \
-	    -width 10 -state disabled -relief flat -foreground "#663399"
+        sci_label $w.f.vals.max.l -text "Max:" 
+        sci_entry $w.f.vals.max.v -textvariable $this-realmax \
+          -width 10 -state disabled -relief flat -foreground "#663399"
         pack $w.f.vals.max.l $w.f.vals.max.v -side left -expand yes -fill x
 
-	frame $w.f.min -relief groove -borderwidth 2
-	pack $w.f.min -side top -expand yes -fill x
+        sci_frame $w.f.min -relief groove -borderwidth 2
+        pack $w.f.min -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.min.v -labeltext "Min:" \
-	    -textvariable $this-minf
+        sci_entryfield $w.f.min.v -labeltext "Min:" \
+          -textvariable $this-minf
         pack $w.f.min.v -side top -expand yes -fill x
 
-        checkbutton $w.f.min.useinputmin \
-	    -text "Use lowest value of input nrrd as min" \
-	    -variable $this-useinputmin
+        sci_checkbutton $w.f.min.useinputmin \
+          -text "Use lowest value of input nrrd as min" \
+          -variable $this-useinputmin
         pack $w.f.min.useinputmin -side top -expand yes -fill x
 
 
-	frame $w.f.max -relief groove -borderwidth 2
-	pack $w.f.max -side top -expand yes -fill x
+        sci_frame $w.f.max -relief groove -borderwidth 2
+        pack $w.f.max -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.max.v -labeltext "Max:" \
-	    -textvariable $this-maxf
+        sci_entryfield $w.f.max.v -labeltext "Max:" \
+          -textvariable $this-maxf
         pack $w.f.max.v -side top -expand yes -fill x
 
-        checkbutton $w.f.max.useinputmax \
-	    -text "Use highest value of input nrrd as max" \
-	    -variable $this-useinputmax
+        sci_checkbutton $w.f.max.useinputmax \
+          -text "Use highest value of input nrrd as max" \
+          -variable $this-useinputmax
         pack $w.f.max.useinputmax -side top -expand yes -fill x
 
-        checkbutton $w.vonly -text "Don't output normals" \
+        sci_checkbutton $w.vonly -text "Don't output normals" \
             -variable $this-valuesonly
         pack $w.vonly
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

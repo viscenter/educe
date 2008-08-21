@@ -33,6 +33,7 @@
 #define SEG3D_CLUTLevelsTool_h
 
 #include <Core/Events/BaseTool.h>
+#include <StandAlone/Apps/Seg3D/NrrdVolume.h>
 
 namespace SCIRun {
 
@@ -52,6 +53,7 @@ private:
   double              wl_;
   int                 x_;
   int                 y_;
+  NrrdVolumeHandle    volume_;
 };
 
 }

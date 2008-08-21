@@ -29,20 +29,6 @@ else
     exit
 fi
 
-if test "$BITS" = "64"; then 
-    if test "$OSNAME" = "IRIX64"; then
-        BITS_FLAG="-64"
-    elif test "$OSNAME" = "AIX"; then
-        BITS_FLAG="-q64"
-    fi
-else
-    if test "$OSNAME" = "IRIX64"; then
-        BITS_FLAG="-n32"
-    elif test "$OSNAME" = "AIX"; then
-        BITS_FLAG="-q32"
-    fi
-fi
-
 echo
 echo "Installing png: $DIR $OSNAME $SH_LIB_EXT $BITS $TAR $SHARED_LIBS $MAKE_FLAGS"
 echo
@@ -84,8 +70,16 @@ GNUMAKE=$MAKE ./configure $SHARED_LIBS_FLAG --prefix=$DIR $BITS_FLAG \
 # Make
 
 if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then
-    mv Makefile Makefile.old
-    sed 's:= gcc:= gcc -m64 -DPNG_NO_ASSEMBLER_CODE:g' Makefile.old >Makefile
+    mv scripts/makefile.darwin Makefile.new
+    sed 's:prefix=/usr/local:prefix='${DIR}':g' Makefile.new >Makefile.new2
+    sed 's:-current_version $(PNGVER) -compatibility_version $(PNGVER)::g' Makefile.new2 >Makefile.new3
+    sed 's:CC=cc:CC=cc -m64 -arch x86_64 -arch ppc64 -DPNG_NO_ASSEMBLER_CODE:g' Makefile.new3 >Makefile
+fi
+if test "$BITS" = "32" && test "$OSNAME" = "Darwin"; then
+    mv scripts/makefile.darwin Makefile.new
+    sed 's:prefix=/usr/local:prefix='${DIR}':g' Makefile.new >Makefile.new2
+    sed 's:-current_version $(PNGVER) -compatibility_version $(PNGVER)::g' Makefile.new2 >Makefile.new3
+    sed 's:CC=cc:CC=cc -arch ppc -arch i386 -DPNG_NO_ASSEMBLER_CODE:g' Makefile.new3 >Makefile
 fi
 
 $MAKE $MAKE_FLAGS 

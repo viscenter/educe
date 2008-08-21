@@ -26,7 +26,7 @@
         <int default="1"/>
       </type>
     </parameter>
-    <parameter name="p_cmap_size">
+    <parameter name="p_cmap2_width">
       <type>
         <int default="8"/>
       </type>

@@ -45,22 +45,21 @@ SET(Dataflow_Modules_DataArrayMath_SRCS
 SCIRUN_ADD_LIBRARY(Dataflow_Modules_DataArrayMath ${Dataflow_Modules_DataArrayMath_SRCS})
 
 TARGET_LINK_LIBRARIES(Dataflow_Modules_DataArrayMath
-  Core_Datatypes 
-  Dataflow_Network 
-  Core_Persistent 
-  Core_Containers 
-  Core_Util 
-  Core_Exceptions 
-  Core_Thread 
-  Dataflow_GuiInterface 
-  Core_Geom 
-  Core_Datatypes 
-  Core_Geometry 
-  Core_GeomInterface 
-  Dataflow_TkExtensions 
-  Core_Algorithms_ArrayMath 
+  Core_Containers
+  Core_Datatypes
+  Core_Exceptions
+  Core_Geom
+  Core_Geometry
+  Core_GeomInterface
+  Core_Parser
+  Core_Persistent
+  Core_Thread
+  Core_Util
+  Dataflow_GuiInterface
+  Dataflow_Network
+  Dataflow_TkExtensions
   ${TK_LIBRARY}
-  ${GL_LIBRARY} 
+  ${GL_LIBRARY}
   ${M_LIBRARY}
   ${TEEM_LIBRARY}
 )

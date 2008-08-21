@@ -39,7 +39,7 @@
 #include <iostream>
 #include <sci_gl.h>
 #include <sci_algorithm.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/ColorMappedNrrdTextureObj.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Core/Skinner/GeomSkinnerVarSwitch.h>
@@ -103,11 +103,12 @@ VolumeSlice::VolumeSlice(NrrdVolume *volume,
   }
 
   ColorMapHandle cmap = volume_->get_colormap();
-  texture_ = new ColorMappedNrrdTextureObj(nrrd_handle_, cmap);
+  texture_ =
+    new ColorMappedNrrdTextureObj(nrrd_handle_, cmap, volume_->label_);
+  texture_->set_label_color(volume_->get_label_color());
   outline_ = new NrrdBitmaskOutline(nrrd_handle_);
   geom_texture_ = new GeomColorMappedNrrdTextureObj(texture_);
   tex_dirty_ = true;
-  
 }
 
 
@@ -383,9 +384,14 @@ static GLubyte stripe4[4*36] = {
 void
 VolumeSlice::draw()
 {
-  if (!volume_->button_->layer_visible_) return;
+  if (!volume_->visible()) return;
   if (!nrrd_handle_.get_rep()) return;
   if (!texture_.get_rep() || !outline_.get_rep()) return;
+
+  const bool use_stipple_ =
+    volume_->painter_->get_vars()->get_bool("Painter::appearance::stipple");
+  const bool fat_outlines_ = 
+    volume_->painter_->get_vars()->get_bool("Painter::appearance::fatlines");
 
   glDisable(GL_CULL_FACE);
   glEnable(GL_BLEND);
@@ -397,37 +403,49 @@ VolumeSlice::draw()
 
   if (tex_dirty_) {
     tex_dirty_ = false;
-    texture_->set_label(volume_->label_);
+    texture_->set_label_color(volume_->get_label_color());
     texture_->set_clut_minmax(volume_->clut_min_, volume_->clut_max_);
     ColorMapHandle cmap = volume_->get_colormap();
     texture_->set_colormap(cmap);
     outline_->set_colormap(cmap);
   }
    
-  if (texture_.get_rep()) {    
-    if (volume_->label_) {
-      const int depth = volume_->depth();
-      GLubyte *pattern = stripe4;
-      switch (depth % 4) {
-      case 0: pattern = stripe4; break;
-      case 1: pattern = stripe4+8; break;
-      case 2: pattern = stripe3; break;
-      default:
-      case 3: pattern = stripe3+8; break;
-      }
+  if (texture_.get_rep())
+  {
+    if (volume_->label_)
+    {
+      if (use_stipple_)
+      {
+        const int depth = volume_->bit();
+        GLubyte *pattern = stripe4;
+        switch (depth % 4) {
+        case 0: pattern = stripe4; break;
+        case 1: pattern = stripe3+8; break;
+        case 2: pattern = stripe4+8; break;
+        default:
+        case 3: pattern = stripe3; break;
+        }
 
-      glPolygonStipple(pattern);
-      glEnable(GL_POLYGON_STIPPLE);
+        glPolygonStipple(pattern);
+        glEnable(GL_POLYGON_STIPPLE);
+      }
+      else
+      {
+        volume_->opacity_ = 0.5;
+      }
     }
+
     texture_->set_opacity(volume_->opacity_);
     texture_->set_coords(pos_, xdir_, ydir_);
     texture_->draw_quad();
-    if (volume_->label_) {
+
+    if (use_stipple_ && volume_->label_) {
       glDisable(GL_POLYGON_STIPPLE);
     }    
   }
   
   if (volume_->label_ && outline_.get_rep()) {
+    outline_->set_line_style(fat_outlines_);
     outline_->set_coords(pos_, xdir_, ydir_);
     outline_->draw_lines(3.0, volume_->label_);
   }

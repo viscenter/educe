@@ -52,24 +52,24 @@ itcl_class SCIRun_ChangeFieldData_CalculateIsInsideField {
             return
         }
         
-        toplevel $w
+        sci_toplevel $w
         
-        frame $w.f
+        sci_frame $w.f
         pack $w.f
-        label $w.f.lab1 -text "Data location"
+        sci_label $w.f.lab1 -text "Data location"
         grid $w.f.lab1 -row 0 -column 0 -sticky e
-        label $w.f.lab2 -text "Data type"
+        sci_label $w.f.lab2 -text "Data type"
         grid $w.f.lab2 -row 1 -column 0 -sticky e
-        label $w.f.lab3 -text "Outside value"
+        sci_label $w.f.lab3 -text "Outside value"
         grid $w.f.lab3 -row 2 -column 0 -sticky e
-        label $w.f.lab4 -text "Inside value"
+        sci_label $w.f.lab4 -text "Inside value"
         grid $w.f.lab4 -row 3 -column 0 -sticky e
         
         
         myselectionbutton $w.f.sel2 1 1 { "same as input" "char" "short" "unsigned short" "unsigned int" "int" "float" "double" } $this-outputtype
 
-        entry $w.f.e1 -textvariable $this-outval
-        entry $w.f.e2 -textvariable $this-inval        
+        sci_entry $w.f.e1 -textvariable $this-outval
+        sci_entry $w.f.e2 -textvariable $this-inval        
         grid $w.f.e1 -row 2 -column 1 -sticky news
         grid $w.f.e2 -row 3 -column 1 -sticky news
         
@@ -79,9 +79,9 @@ itcl_class SCIRun_ChangeFieldData_CalculateIsInsideField {
 
 
    method myselectionbutton { win x y arglist var} {
-        frame $win 
+        sci_frame $win 
         grid $win  -row $x -column $y -sticky news
-        iwidgets::optionmenu $win.c -foreground darkred -command " $this comboget $win.c $var "
+        sci_optionmenu $win.c -foreground darkred -command " $this comboget $win.c $var "
 
         set i 0
         set found 0

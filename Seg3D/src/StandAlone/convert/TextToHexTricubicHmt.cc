@@ -46,7 +46,7 @@
 #include <Core/Datatypes/HexVolMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 #include <iostream>
@@ -145,7 +145,7 @@ main(int argc, char **argv) {
   setDefaults();
 
   HVMesh *hvm = new HVMesh();
-  HVField *hvf = scinew HVField(hvm);
+  HVField *hvf = new HVField(hvm);
   
   char *ptsName = argv[1];
   char *hexesName = argv[2];

@@ -177,8 +177,8 @@ void ITKNeighbourhoodConnectedFilter::OnSetProgress( wxCommandEvent &event)
   // start_progress() sends -1
   if (progress < 0)
   {
-    wxBeginBusyCursor();
     disabler_ = new wxWindowDisabler();
+    wxBeginBusyCursor();
     progress = 0;
   }
   // finish_progress() sends 101

@@ -41,7 +41,9 @@
 #include <Core/Containers/StringUtil.h>
 #include <Core/Algorithms/Fields/ClipFieldByFunction.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
-#include <Core/Containers/HashTable.h>
+
+#include <sci_hash_map.h>
+
 #include <iostream>
 
 
@@ -112,7 +114,12 @@ get_compile_info( vector<FieldHandle>& field_input_handles,
 		  string function,
 		  int hashoffset)
 {
-  unsigned int hashval = Hash(function, 0x7fffffff) + hashoffset;
+#if defined(__ECC) || defined(_MSC_VER)
+  hash_compare<const char*> H;
+#else
+  hash<const char*> H;
+#endif
+  unsigned int hashval = H(function.c_str()) + hashoffset;
 
   // use cc_to_h if this is in the .cc file, otherwise just __FILE__
   static const string include_path(TypeDescription::cc_to_h(__FILE__));
@@ -141,7 +148,7 @@ get_compile_info( vector<FieldHandle>& field_input_handles,
   const TypeDescription *oftd = field_input_handles[0]->get_type_description();
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_name + "." +
+    new CompileInfo(template_name + "." +
 
 		       // The file name gets too long and because a hash
 		       // number is used there should not be a conflict
@@ -189,7 +196,7 @@ get_compile_info( vector<FieldHandle>& field_input_handles,
     "    typename IFIELD0::mesh_type *iMesh =\n" +
     "      dynamic_cast<typename IFIELD0::mesh_type *>(iField0->mesh().get_rep());\n" +
     "\n" +
-    "    typename OFIELD::mesh_type *oMesh = scinew typename OFIELD::mesh_type();\n" +
+    "    typename OFIELD::mesh_type *oMesh = new typename OFIELD::mesh_type();\n" +
     "    oMesh->copy_properties(iMesh);\n" +
     "\n" +
     "#ifdef HAVE_HASH_MAP\n" +
@@ -418,7 +425,7 @@ get_compile_info( vector<FieldHandle>& field_input_handles,
     "      ++ibi;\n" +
     "    }\n" +
     "\n" +
-    "    OFIELD *oField = scinew OFIELD(oMesh);\n" +
+    "    OFIELD *oField = new OFIELD(oMesh);\n" +
     "    oField->copy_properties(field_input_handles[0].get_rep());\n" +
     "\n" +
     "    if (node_data_valid)\n" +
@@ -430,9 +437,9 @@ get_compile_info( vector<FieldHandle>& field_input_handles,
     "\n" +
     "      const size_type nrows = nodemap.size();\n" +
     "      const size_type ncols = iField->fdata().size();\n" +
-    "      index_type *rr = scinew index_type[nrows+1];\n" +
-    "      index_type *cc = scinew index_type[nrows];\n" +
-    "      double *d = scinew double[nrows];\n" +
+    "      index_type *rr = new index_type[nrows+1];\n" +
+    "      index_type *cc = new index_type[nrows];\n" +
+    "      double *d = new double[nrows];\n" +
     "\n" +
     "      typedef typename IFIELD0::mesh_type mesh_type_val;\n" +
     "\n" +
@@ -456,16 +463,16 @@ get_compile_info( vector<FieldHandle>& field_input_handles,
     "      rr[nrows] = nrows;\n" +
     "\n" +
     "      matrix_output_handle =\n" +
-    "        scinew SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);\n" +
+    "        new SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);\n" +
     "    }\n" +
     "    else if (field_input_handles[0]->order_type_description()->get_name() ==\n" +
     "	   mesh_type_val::elem_type_description()->get_name())\n" +
     "    {\n" +
     "      const size_type nrows = elemmap.size();\n" +
     "      const size_type ncols = iField0->fdata().size();\n" +
-    "      index_type *rr = scinew index_type[nrows+1];\n" +
-    "      index_type *cc = scinew index_type[nrows];\n" +
-    "      double *d = scinew double[nrows];\n" +
+    "      index_type *rr = new index_type[nrows+1];\n" +
+    "      index_type *cc = new index_type[nrows];\n" +
+    "      double *d = new double[nrows];\n" +
     "\n" +
     "      for (unsigned int i=0; i<elemmap.size(); i++)\n" +
     "      {\n" +
@@ -485,7 +492,7 @@ get_compile_info( vector<FieldHandle>& field_input_handles,
     "      rr[nrows] = nrows;\n" +
     "\n" +
     "      matrix_output_handle =\n" +
-    "        scinew SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);\n" +
+    "        new SparseRowMatrix(nrows, ncols, rr, cc, nrows, d);\n" +
     "    }\n" +
     "    else\n" +
     "    {\n" +

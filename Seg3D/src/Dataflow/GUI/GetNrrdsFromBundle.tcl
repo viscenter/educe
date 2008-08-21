@@ -83,16 +83,16 @@ itcl_class SCIRun_Bundle_GetNrrdsFromBundle {
         global $this-transposenrrd5
         global $this-transposenrrd6
         
-        toplevel $w 
+        sci_toplevel $w 
 
         wm minsize $w 100 150
 
         
-        iwidgets::labeledframe $w.frame -labeltext "BUNDLE NRRD OUTPUTS"
+        sci_labeledframe $w.frame -labeltext "BUNDLE NRRD OUTPUTS"
         set childframe [$w.frame childsite]
         pack $w.frame -fill both -expand yes
 
-        iwidgets::tabnotebook $childframe.pw -height 160 -width 400 -tabpos n
+        sci_tabnotebook $childframe.pw -height 160 -width 400 -tabpos n
         $childframe.pw add -label "Nrrd1"
         $childframe.pw add -label "Nrrd2" 
         $childframe.pw add -label "Nrrd3" 
@@ -110,129 +110,127 @@ itcl_class SCIRun_Bundle_GetNrrdsFromBundle {
         set nrrd5 [$childframe.pw childsite 4]
         set nrrd6 [$childframe.pw childsite 5]
 
-        frame $nrrd1.name
-        frame $nrrd1.sel
-        frame $nrrd1.transpose
+        sci_frame $nrrd1.name
+        sci_frame $nrrd1.sel
+        sci_frame $nrrd1.transpose
         pack $nrrd1.name -side top -fill x -padx 5p
         pack $nrrd1.transpose -side top -fill x -padx 5p
         pack $nrrd1.sel -side top -fill both -expand yes -padx 5p
 
-        label $nrrd1.name.label -text "Name"
-        entry $nrrd1.name.entry -textvariable $this-nrrd1-name
+        sci_label $nrrd1.name.label -text "Name"
+        sci_entry $nrrd1.name.entry -textvariable $this-nrrd1-name
         set $this-nrrd1-entry $nrrd1.name.entry
         pack $nrrd1.name.label -side left 
         pack $nrrd1.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $nrrd1.sel.listbox  -selectioncommand [format "%s ChooseNrrd1" $this] 
+        sci_scrolledlistbox $nrrd1.sel.listbox  -selectioncommand [format "%s ChooseNrrd1" $this] 
         set $this-nrrd1-listbox $nrrd1.sel.listbox
         $nrrd1.sel.listbox component listbox configure -listvariable $this-nrrd-selection -selectmode browse
         pack $nrrd1.sel.listbox -fill both -expand yes
-        checkbutton $nrrd1.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
+        sci_checkbutton $nrrd1.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
         pack $nrrd1.transpose.cb -side left -fill x
 
-        frame $nrrd2.name
-        frame $nrrd2.sel
-        frame $nrrd2.transpose    
+        sci_frame $nrrd2.name
+        sci_frame $nrrd2.sel
+        sci_frame $nrrd2.transpose    
         pack $nrrd2.name -side top -fill x -padx 5p
         pack $nrrd2.transpose -side top -fill x -padx 5p
         pack $nrrd2.sel -side top -fill both -expand yes -padx 5p
 
-        label $nrrd2.name.label -text "Name"
-        entry $nrrd2.name.entry -textvariable $this-nrrd2-name
+        sci_label $nrrd2.name.label -text "Name"
+        sci_entry $nrrd2.name.entry -textvariable $this-nrrd2-name
         set $this-nrrd2-entry $nrrd2.name.entry
         pack $nrrd2.name.label -side left 
         pack $nrrd2.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $nrrd2.sel.listbox  -selectioncommand [format "%s ChooseNrrd2" $this] 
+        sci_scrolledlistbox $nrrd2.sel.listbox  -selectioncommand [format "%s ChooseNrrd2" $this] 
         set $this-nrrd2-listbox $nrrd2.sel.listbox
         $nrrd2.sel.listbox component listbox configure -listvariable $this-nrrd-selection -selectmode browse
         pack $nrrd2.sel.listbox -fill both -expand yes
-        checkbutton $nrrd2.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
+        sci_checkbutton $nrrd2.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
         pack $nrrd2.transpose.cb -side left -fill x
         
-        frame $nrrd3.name
-        frame $nrrd3.sel
-        frame $nrrd3.transpose
+        sci_frame $nrrd3.name
+        sci_frame $nrrd3.sel
+        sci_frame $nrrd3.transpose
         pack $nrrd3.name -side top -fill x -padx 5p
         pack $nrrd3.transpose -side top -fill x -padx 5p
         pack $nrrd3.sel -side top -fill both -expand yes -padx 5p
 
-        label $nrrd3.name.label -text "Name"
-        entry $nrrd3.name.entry -textvariable $this-nrrd3-name
+        sci_label $nrrd3.name.label -text "Name"
+        sci_entry $nrrd3.name.entry -textvariable $this-nrrd3-name
         set $this-nrrd3-entry $nrrd3.name.entry
         pack $nrrd3.name.label -side left 
         pack $nrrd3.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $nrrd3.sel.listbox  -selectioncommand [format "%s ChooseNrrd3" $this] 
+        sci_scrolledlistbox $nrrd3.sel.listbox  -selectioncommand [format "%s ChooseNrrd3" $this] 
         set $this-nrrd3-listbox $nrrd3.sel.listbox
         $nrrd3.sel.listbox component listbox configure -listvariable $this-nrrd-selection -selectmode browse
         pack $nrrd3.sel.listbox -fill both -expand yes
-        checkbutton $nrrd3.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
+        sci_checkbutton $nrrd3.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
         pack $nrrd3.transpose.cb -side left -fill x
 
-        frame $nrrd4.name
-        frame $nrrd4.sel
-        frame $nrrd4.transpose
+        sci_frame $nrrd4.name
+        sci_frame $nrrd4.sel
+        sci_frame $nrrd4.transpose
         pack $nrrd4.name -side top -fill x -padx 5p
         pack $nrrd4.transpose -side top -fill x -padx 5p
         pack $nrrd4.sel -side top -fill both -expand yes -padx 5p
 
-        label $nrrd4.name.label -text "Name"
-        entry $nrrd4.name.entry -textvariable $this-nrrd4-name
+        sci_label $nrrd4.name.label -text "Name"
+        sci_entry $nrrd4.name.entry -textvariable $this-nrrd4-name
         set $this-nrrd4-entry $nrrd4.name.entry
         pack $nrrd4.name.label -side left 
         pack $nrrd4.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $nrrd4.sel.listbox  -selectioncommand [format "%s ChooseNrrd4" $this] 
+        sci_scrolledlistbox $nrrd4.sel.listbox  -selectioncommand [format "%s ChooseNrrd4" $this] 
         set $this-nrrd4-listbox $nrrd4.sel.listbox
         $nrrd4.sel.listbox component listbox configure -listvariable $this-nrrd-selection -selectmode browse
         pack $nrrd4.sel.listbox -fill both -expand yes
-        checkbutton $nrrd4.transpose.cb -variable $this-transposenrrd4 -text "Assume matrix data is transposed"
+        sci_checkbutton $nrrd4.transpose.cb -variable $this-transposenrrd4 -text "Assume matrix data is transposed"
         pack $nrrd4.transpose.cb -side left -fill x
 
-        frame $nrrd5.name
-        frame $nrrd5.sel
-        frame $nrrd5.transpose    
+        sci_frame $nrrd5.name
+        sci_frame $nrrd5.sel
+        sci_frame $nrrd5.transpose    
         pack $nrrd5.name -side top -fill x -padx 5p
         pack $nrrd5.transpose -side top -fill x -padx 5p
         pack $nrrd5.sel -side top -fill both -expand yes -padx 5p
 
-        label $nrrd5.name.label -text "Name"
-        entry $nrrd5.name.entry -textvariable $this-nrrd5-name
+        sci_label $nrrd5.name.label -text "Name"
+        sci_entry $nrrd5.name.entry -textvariable $this-nrrd5-name
         set $this-nrrd5-entry $nrrd5.name.entry
         pack $nrrd5.name.label -side left 
         pack $nrrd5.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $nrrd5.sel.listbox  -selectioncommand [format "%s ChooseNrrd5" $this] 
+        sci_scrolledlistbox $nrrd5.sel.listbox  -selectioncommand [format "%s ChooseNrrd5" $this] 
         set $this-nrrd5-listbox $nrrd5.sel.listbox
         $nrrd5.sel.listbox component listbox configure -listvariable $this-nrrd-selection -selectmode browse
         pack $nrrd5.sel.listbox -fill both -expand yes
-        checkbutton $nrrd5.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
+        sci_checkbutton $nrrd5.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
         pack $nrrd5.transpose.cb -side left -fill x
         
-        frame $nrrd6.name
-        frame $nrrd6.sel
-        frame $nrrd6.transpose
+        sci_frame $nrrd6.name
+        sci_frame $nrrd6.sel
+        sci_frame $nrrd6.transpose
         pack $nrrd6.name -side top -fill x -padx 5p
         pack $nrrd6.transpose -side top -fill x -padx 5p
         pack $nrrd6.sel -side top -fill both -expand yes -padx 5p
 
-        label $nrrd6.name.label -text "Name"
-        entry $nrrd6.name.entry -textvariable $this-nrrd6-name
+        sci_label $nrrd6.name.label -text "Name"
+        sci_entry $nrrd6.name.entry -textvariable $this-nrrd6-name
         set $this-nrrd6-entry $nrrd6.name.entry
         pack $nrrd6.name.label -side left 
         pack $nrrd6.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $nrrd6.sel.listbox  -selectioncommand [format "%s ChooseNrrd6" $this] 
+        sci_scrolledlistbox $nrrd6.sel.listbox  -selectioncommand [format "%s ChooseNrrd6" $this] 
         set $this-nrrd6-listbox $nrrd6.sel.listbox
         $nrrd6.sel.listbox component listbox configure -listvariable $this-nrrd-selection -selectmode browse
         pack $nrrd6.sel.listbox -fill both -expand yes
-        checkbutton $nrrd6.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
+        sci_checkbutton $nrrd6.transpose.cb -variable $this-transposenrrd1 -text "Assume matrix data is transposed"
         pack $nrrd6.transpose.cb -side left -fill x
 
-
         makeSciButtonPanel $w $w $this
-
     }
     
     

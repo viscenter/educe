@@ -1,4 +1,33 @@
-
+//  
+//  For more information, please see: http://software.sci.utah.edu
+//  
+//  The MIT License
+//  
+//  Copyright (c) 2006 Scientific Computing and Imaging Institute,
+//  University of Utah.
+//  
+//  
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//  
+//  The above copyright notice and this permission notice shall be included
+//  in all copies or substantial portions of the Software.
+//  
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+//  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//  
+//    File   : ITKBinaryDilateErodeImageFilterTool.cc
+//    Author : David Brayford
+//    Date   : May 2008
 
 #include <StandAlone/Apps/Seg3D/ITKBinaryDilateErodeImageFilterTool.h>
 #include <itkBinaryBallStructuringElement.h>
@@ -68,32 +97,23 @@ ITKBinaryDilateErodeImageFilterTool::process_event(event_handle_t event)
 
 
 void
-ITKBinaryDilateErodeImageFilterTool::run_dilate_filter(bool force_no_copy)
+ITKBinaryDilateErodeImageFilterTool::run_dilate_filter()
 {
-  const bool copy_needed =
-    !force_no_copy && painter_->current_volume_->compute_label_mask() != 1;
+  // Make a temporary volume with only the one bit plane in it for ITK.
+  NrrdDataHandle nrrdh =
+    VolumeOps::create_clear_nrrd(painter_->current_volume_->nrrd_handle_,
+                                 LabelNrrdType);
 
-  NrrdVolumeHandle srcdst = painter_->current_volume_;
+  NrrdVolumeHandle srcdst = new NrrdVolume(painter_, "Unused", nrrdh, 1);
 
-  if (copy_needed)
-  {
-    // Make a temporary volume with only the one bit plane in it for ITK.
-    NrrdDataHandle nrrdh =
-      VolumeOps::create_clear_nrrd(painter_->current_volume_->nrrd_handle_,
-                                   LabelNrrdType);
+  VolumeOps::bit_copy(srcdst->nrrd_handle_, 1,
+                      painter_->current_volume_->nrrd_handle_,
+                      painter_->current_volume_->label_);
 
-    const string name = "Unused";
-    srcdst = new NrrdVolume(painter_, name, nrrdh, 1);
-
-    VolumeOps::bit_copy(srcdst->nrrd_handle_, 1,
-                        painter_->current_volume_->nrrd_handle_,
-                        painter_->current_volume_->label_);
-  }
-                      
-  const string name = "ITKBinaryDilateErodeImageFilterTool::";
-
+  // Run the dilate filter.
   dilate_filter.set_volume(srcdst);
   
+  const string name = "ITKBinaryDilateErodeImageFilterTool::";
   structuringElement.SetRadius(painter_->get_vars()->get_int(name+"DilateRadius"));
   structuringElement.CreateStructuringElement();
   
@@ -102,41 +122,88 @@ ITKBinaryDilateErodeImageFilterTool::run_dilate_filter(bool force_no_copy)
 
   dilate_filter();
 
-  if (copy_needed)
-  {
-    // Put the results back where they belong.
-    VolumeOps::bit_copy(painter_->current_volume_->nrrd_handle_,
-                        painter_->current_volume_->label_,
-                        srcdst->nrrd_handle_, 1);
-  }
+  // Push the undo object for this operation.
+  NrrdVolumeHandle vol = painter_->current_volume_;
+  NrrdDataHandle volnrrd = vol->nrrd_handle_->clone();
+  UndoHandle undo =
+    new UndoReplaceVolume(painter_, "Undo Dilate", vol, volnrrd);
+  painter_->push_undo(undo);
+
+  // Put the results back from the temporary copy.
+  VolumeOps::bit_copy(painter_->current_volume_->nrrd_handle_,
+                      painter_->current_volume_->label_,
+                      srcdst->nrrd_handle_, 1);
 }
 
 
 void
-ITKBinaryDilateErodeImageFilterTool::run_erode_filter(bool force_no_copy)
+ITKBinaryDilateErodeImageFilterTool::run_erode_filter()
 {
-  const bool copy_needed =
-    !force_no_copy && painter_->current_volume_->compute_label_mask() != 1;
+  // Make a temporary volume with only the one bit plane in it for ITK.
+  NrrdDataHandle nrrdh =
+    VolumeOps::create_clear_nrrd(painter_->current_volume_->nrrd_handle_,
+                                 LabelNrrdType);
 
-  NrrdVolumeHandle srcdst = painter_->current_volume_;
+  NrrdVolumeHandle srcdst = new NrrdVolume(painter_, "Unused", nrrdh, 1);
 
-  if (copy_needed)
-  {
-    // Make a temporary volume with only the one bit plane in it for ITK.
-    NrrdDataHandle nrrdh =
-      VolumeOps::create_clear_nrrd(painter_->current_volume_->nrrd_handle_,
-                                   LabelNrrdType);
+  VolumeOps::bit_copy(srcdst->nrrd_handle_, 1,
+                      painter_->current_volume_->nrrd_handle_,
+                      painter_->current_volume_->label_);
 
-    const string name = "Unused";
-    srcdst = new NrrdVolume(painter_, name, nrrdh, 1);
 
-    VolumeOps::bit_copy(srcdst->nrrd_handle_, 1,
-                        painter_->current_volume_->nrrd_handle_,
-                        painter_->current_volume_->label_);
-  }
+  // Run the erode filter.
+  erode_filter.set_volume(srcdst);
 
   const string name = "ITKBinaryDilateErodeImageFilterTool::";
+  structuringElement.SetRadius(painter_->get_vars()->get_int(name+"ErodeRadius"));
+  structuringElement.CreateStructuringElement();
+  
+  erode_filter->SetKernel(structuringElement);
+  erode_filter->SetErodeValue(1);
 
+  erode_filter();
+
+  // Push the undo object for this operation.
+  NrrdVolumeHandle vol = painter_->current_volume_;
+  NrrdDataHandle volnrrd = vol->nrrd_handle_->clone();
+  UndoHandle undo =
+    new UndoReplaceVolume(painter_, "Undo Erode", vol, volnrrd);
+  painter_->push_undo(undo);
+
+  // Put the results back from the temporary copy.
+  VolumeOps::bit_copy(painter_->current_volume_->nrrd_handle_,
+                      painter_->current_volume_->label_,
+                      srcdst->nrrd_handle_, 1);
+}
+
+
+void
+ITKBinaryDilateErodeImageFilterTool::run_dilate_erode_filter()
+{
+  // Make a temporary volume with only the one bit plane in it for ITK.
+  NrrdDataHandle nrrdh =
+    VolumeOps::create_clear_nrrd(painter_->current_volume_->nrrd_handle_,
+                                 LabelNrrdType);
+
+  NrrdVolumeHandle srcdst = new NrrdVolume(painter_, "Unused", nrrdh, 1);
+
+  VolumeOps::bit_copy(srcdst->nrrd_handle_, 1,
+                      painter_->current_volume_->nrrd_handle_,
+                      painter_->current_volume_->label_);
+
+  // Run the dilate filter.
+  dilate_filter.set_volume(srcdst);
+  
+  const string name = "ITKBinaryDilateErodeImageFilterTool::";
+  structuringElement.SetRadius(painter_->get_vars()->get_int(name+"DilateRadius"));
+  structuringElement.CreateStructuringElement();
+  
+  dilate_filter->SetKernel(structuringElement);
+  dilate_filter->SetDilateValue(1);
+
+  dilate_filter();
+
+  // Run the erode filter.
   erode_filter.set_volume(srcdst);
 
   structuringElement.SetRadius(painter_->get_vars()->get_int(name+"ErodeRadius"));
@@ -147,49 +214,17 @@ ITKBinaryDilateErodeImageFilterTool::run_erode_filter(bool force_no_copy)
 
   erode_filter();
 
-  if (copy_needed)
-  {
-    // Put the results back where they belong.
-    VolumeOps::bit_copy(painter_->current_volume_->nrrd_handle_,
-                        painter_->current_volume_->label_,
-                        srcdst->nrrd_handle_, 1);
-  }
-}
+  // Push the undo object for this operation.
+  NrrdVolumeHandle vol = painter_->current_volume_;
+  NrrdDataHandle volnrrd = vol->nrrd_handle_->clone();
+  UndoHandle undo =
+    new UndoReplaceVolume(painter_, "Undo Dilate->Erode", vol, volnrrd);
+  painter_->push_undo(undo);
 
-
-void
-ITKBinaryDilateErodeImageFilterTool::run_dilate_erode_filter()
-{
-  const bool copy_needed =
-    painter_->current_volume_->compute_label_mask() != 1;
-
-  NrrdVolumeHandle srcdst = painter_->current_volume_;
-
-  if (copy_needed)
-  {
-    // Make a temporary volume with only the one bit plane in it for ITK.
-    NrrdDataHandle nrrdh =
-      VolumeOps::create_clear_nrrd(painter_->current_volume_->nrrd_handle_,
-                                   LabelNrrdType);
-
-    const string name = "Unused";
-    srcdst = new NrrdVolume(painter_, name, nrrdh, 1);
-
-    VolumeOps::bit_copy(srcdst->nrrd_handle_, 1,
-                        painter_->current_volume_->nrrd_handle_,
-                        painter_->current_volume_->label_);
-  }
-
-  run_dilate_filter(true);
-  run_erode_filter(true);
-
-  if (copy_needed)
-  {
-    // Put the results back where they belong.
-    VolumeOps::bit_copy(painter_->current_volume_->nrrd_handle_,
-                        painter_->current_volume_->label_,
-                        srcdst->nrrd_handle_, 1);
-  }
+  // Put the results back from the temporary copy.
+  VolumeOps::bit_copy(painter_->current_volume_->nrrd_handle_,
+                      painter_->current_volume_->label_,
+                      srcdst->nrrd_handle_, 1);
 }
 
 

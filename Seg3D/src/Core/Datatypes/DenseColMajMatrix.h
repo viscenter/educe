@@ -91,6 +91,7 @@ public:
   
   virtual double min();
   virtual double max();
+  virtual int compute_checksum();
     
   virtual void    getRowNonzerosNoCopy(index_type r, size_type &size, 
                                        size_type &stride,
@@ -98,11 +99,11 @@ public:
 
   virtual DenseColMajMatrix* transpose() const;
   virtual void    mult(const ColumnMatrix& x, ColumnMatrix& b,
-		       int& flops, int& memrefs, index_type beg=-1, index_type end=-1, 
-		       int spVec=0) const;
+                       index_type beg=-1, index_type end=-1, 
+                       int spVec=0) const;
   virtual void    mult_transpose(const ColumnMatrix& x, ColumnMatrix& b,
-				 int& flops, int& memrefs,
-				 index_type beg=-1, index_type end=-1, int spVec=0) const;
+                                 index_type beg=-1, index_type end=-1, 
+                                 int spVec=0) const;
   virtual MatrixHandle submatrix(index_type r1, index_type c1, 
                                  index_type r2, index_type c2);
 

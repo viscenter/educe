@@ -49,7 +49,7 @@
 #include <Core/Thread/Thread.h>
 #include <Core/Thread/Thread_unix.h>
 #include <Core/Thread/ThreadGroup.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Thread/ThreadError.h>
 #include <Core/Thread/RecursiveMutex_default.cc>
 
@@ -135,22 +135,6 @@ namespace SCIRun {
     ~ConditionVariable_private();
   };
 
-  struct Barrier_private {
-    Mutex mutex;
-    ConditionVariable cond0;
-    ConditionVariable cond1;
-    int cc;
-    int nwait;
-    Barrier_private();
-    ~Barrier_private();
-  };
-
-  struct AtomicCounter_private {
-    Mutex lock;
-    int value;
-    AtomicCounter_private();
-    ~AtomicCounter_private();
-  };
 
 /*  Thread-local storage - not all compilers support it */
 #if defined(_MSC_VER) && !defined(NO_WINDOWS_TLS)
@@ -207,7 +191,7 @@ bool exiting=false;
 
 Mutex::Mutex(const char* name)
 {
-	priv_ = scinew Mutex_private;
+	priv_ = new Mutex_private;
 	priv_->lock = CreateMutex(NULL,0,0);
 	if (priv_->lock == 0)
 	{
@@ -263,7 +247,7 @@ __declspec(dllexport) HANDLE main_sema;
 
 Semaphore::Semaphore(const char* name,int count)
 {
-	priv_ = scinew Semaphore_private;
+	priv_ = new Semaphore_private;
 	priv_->hSema = CreateSemaphore(NULL,count,MAX(10,MIN(2*count,100)),0);
 	if (priv_->hSema == 0)
 	{
@@ -299,7 +283,6 @@ void Semaphore::down(int dec)
 				throw ThreadError(std::string("WaitForSingleObject failed")
 						  +threadError());
 			}
-			else;
 		}
 	}
 }
@@ -308,15 +291,14 @@ bool Semaphore::tryDown()
 {
 	int check = WaitForSingleObject(priv_->hSema,0);
 	if (check == WAIT_OBJECT_0)
-		return 0;
+		return (true);
 	else if (check == WAIT_TIMEOUT)
-		return 1;
+		return (false);
 	else 
 	{
 	  throw ThreadError(std::string("WaitForSingleObject failed")
 			    +threadError());
 	}
-	return 0; // never happens
 }
 
 void Semaphore::up(int inc)
@@ -325,103 +307,7 @@ void Semaphore::up(int inc)
 	ReleaseSemaphore(priv_->hSema,inc,&count);
 }
 
-
-AtomicCounter_private::AtomicCounter_private()
-    : lock("AtomicCounter lock")
-{
-}
-
-AtomicCounter_private::~AtomicCounter_private()
-{
-}
-
-AtomicCounter::AtomicCounter(const char* name)
-    : name_(name)
-{
-  if(!Thread::isInitialized()){
-    if(getenv("THREAD_SHOWINIT"))
-      fprintf(stderr, "AtomicCounter: %s\n", name);
-    Thread_private::initialize();
-  }
-  priv_=new AtomicCounter_private;
-}
-
-AtomicCounter::AtomicCounter(const char* name, int value)
-    : name_(name)
-{
-  priv_=new AtomicCounter_private;
-  priv_->value=value;
-  if(getenv("THREAD_SHOWINIT"))
-    fprintf(stderr, "AtomicCounter: %s\n", name);
-
-}
-
-AtomicCounter::~AtomicCounter()
-{
-  delete priv_;
-  priv_=0;
-}
-
-AtomicCounter::operator int() const
-{
-    return priv_->value;
-}
-
-int
-AtomicCounter::operator++()
-{
-  int oldstate = Thread::couldBlock(name_);
-  priv_->lock.lock();
-  int ret=++priv_->value;
-  priv_->lock.unlock();
-  Thread::couldBlockDone(oldstate);
-  return ret;
-}
-
-int
-AtomicCounter::operator++(int)
-{
-  int oldstate = Thread::couldBlock(name_);
-  priv_->lock.lock();
-  int ret=priv_->value++;
-  priv_->lock.unlock();
-  Thread::couldBlockDone(oldstate);
-  return ret;
-}
-
-int
-AtomicCounter::operator--()
-{
-  int oldstate = Thread::couldBlock(name_);
-  priv_->lock.lock();
-  int ret=--priv_->value;
-  priv_->lock.unlock();
-  Thread::couldBlockDone(oldstate);
-  return ret;
-}
-
-int
-AtomicCounter::operator--(int)
-{
-  int oldstate = Thread::couldBlock(name_);
-  priv_->lock.lock();
-  int ret=priv_->value--;
-  priv_->lock.unlock();
-  Thread::couldBlockDone(oldstate);
-  return ret;
-}
-
-void
-AtomicCounter::set(int v)
-{
-  int oldstate=Thread::couldBlock(name_);
-  priv_->lock.lock();
-  priv_->value=v;
-  priv_->lock.unlock();
-  Thread::couldBlockDone(oldstate);
-}
-
-
+\
 CrowdMonitor_private::CrowdMonitor_private()
   : write_waiters("CrowdMonitor write condition"),
     read_waiters("CrowdMonitor read condition"),
@@ -512,53 +398,6 @@ CrowdMonitor::writeUnlock()
   priv_->lock.unlock();
 }
 
-Barrier_private::Barrier_private()
-  : mutex("Barrier lock"),
-    cond0("Barrier condition 0"), cond1("Barrier condition 1"),
-    cc(0), nwait(0)
-{
-}
-
-Barrier_private::~Barrier_private()
-{
-}
-
-Barrier::Barrier(const char* name)
-  : name_(name)
-{
-  if(!Thread::isInitialized()){
-    if(getenv("THREAD_SHOWINIT"))
-      fprintf(stderr, "Barrier: %s\n", name);
-    Thread_private::initialize();
-  }
-  priv_=new Barrier_private;
-}
-
-Barrier::~Barrier()
-{
-  delete priv_;
-  priv_=0;
-}
-
-void
-Barrier::wait(int n)
-{
-  int oldstate=Thread::couldBlock(name_);
-  priv_->mutex.lock();
-  ConditionVariable& cond=priv_->cc?priv_->cond0:priv_->cond1;
-  priv_->nwait++;
-  if(priv_->nwait == n){
-    // Wake everybody up...
-    priv_->nwait=0;
-    priv_->cc=1-priv_->cc;
-    cond.conditionBroadcast();
-  } else {
-    cond.wait(priv_->mutex);
-  }
-  priv_->mutex.unlock();
-  Thread::couldBlockDone(oldstate);
-}
-
 ConditionVariable_private::ConditionVariable_private(const char* name)
   : waiters_count_lock_(name), waiters_count_(0), was_broadcast_(0)
 {
@@ -603,6 +442,13 @@ ConditionVariable::wait(Mutex& m)
   timedWait(m, 0);
 }
 
+void
+ConditionVariable::wait(RecursiveMutex& m)
+{
+  timedWait(m, 0);
+}
+
+
 bool
 ConditionVariable::timedWait(Mutex& m, const struct timespec* abstime)
 {
@@ -617,39 +463,81 @@ ConditionVariable::timedWait(Mutex& m, const struct timespec* abstime)
   Thread_private* p = Thread::self()->priv_;
   int oldstate = Thread::push_bstack(p, Thread::BLOCK_ANY, name_);
 
- priv_->waiters_count_lock_.lock();
+  priv_->waiters_count_lock_.lock();
   priv_->waiters_count_++;
- priv_->waiters_count_lock_.unlock();
 
   //release m and wait on sema until signal or broadcast called by other thread
-  int err = SignalObjectAndWait(m.priv_->lock, priv_->sema_, waittime, FALSE);
-  if (err != WAIT_OBJECT_0) {
+  m.unlock();
+  int err = SignalObjectAndWait(priv_->waiters_count_lock_.priv_->lock, priv_->sema_, waittime, FALSE);
+  if (err != WAIT_OBJECT_0) 
+  {
     if (err == WAIT_TIMEOUT)
+    {
       success = false;
+      priv_->waiters_count_--;
+    }
     else
       throw ThreadError(std::string("SignalObjectAndWait failed: ")
 			+threadError());
   }
 
- priv_->waiters_count_lock_.lock();
-  priv_->waiters_count_--;
+//  int last_waiter = priv_->was_broadcast_ && priv_->waiters_count_ == 0;
+
+  priv_->waiters_count_lock_.unlock();
 
   // check to see if we're the last waiter after broadcast
-  int last_waiter = priv_->was_broadcast_ && priv_->waiters_count_ == 0;
- priv_->waiters_count_lock_.unlock();
+
+  m.lock();
   
-  if (last_waiter) {
-    // signal waiters_done and wait for mutex (to ensure fairness)
-    err = SignalObjectAndWait(priv_->waiters_done_, m.priv_->lock, INFINITE, FALSE);
-    if (err != WAIT_OBJECT_0)
+  Thread::pop_bstack(p, oldstate);
+
+  return success;
+}
+
+
+
+bool
+ConditionVariable::timedWait(RecursiveMutex& m, const struct timespec* abstime)
+{
+  bool success = true;
+  DWORD waittime = 0;
+  if (abstime) {
+    // convert abstime to milliseconds
+  } else {
+    waittime = INFINITE;
+  }
+
+  Thread_private* p = Thread::self()->priv_;
+  int oldstate = Thread::push_bstack(p, Thread::BLOCK_ANY, name_);
+
+  priv_->waiters_count_lock_.lock();
+  priv_->waiters_count_++;
+
+  //release m and wait on sema until signal or broadcast called by other thread
+  m.unlock();
+  int err = SignalObjectAndWait(priv_->waiters_count_lock_.priv_->lock, priv_->sema_, waittime, FALSE);
+  if (err != WAIT_OBJECT_0) 
+  {
+    if (err == WAIT_TIMEOUT)
+    {
+      success = false;
+      priv_->waiters_count_--;
+    }
+    else
       throw ThreadError(std::string("SignalObjectAndWait failed: ")
 			+threadError());
   }
-  else
-    m.lock(); 
+
+//  int last_waiter = priv_->was_broadcast_ && priv_->waiters_count_ == 0;
+
+  priv_->waiters_count_lock_.unlock();
+
+  // check to see if we're the last waiter after broadcast
+
+  m.lock();
+  
   Thread::pop_bstack(p, oldstate);
 
-  
   return success;
 }
 
@@ -657,11 +545,15 @@ void
 ConditionVariable::conditionSignal()
 {
   priv_->waiters_count_lock_.lock();
-  int have_waiters = priv_->waiters_count_ > 0;
- priv_->waiters_count_lock_.unlock(); 
  
- if (have_waiters)
-   ReleaseSemaphore(priv_->sema_, 1, 0);
+  if (priv_->waiters_count_ > 0)
+  {
+    ReleaseSemaphore(priv_->sema_, 1, 0);
+    priv_->waiters_count_--;
+  }
+
+  priv_->waiters_count_lock_.unlock(); 
+
 }
 
 void
@@ -670,24 +562,14 @@ ConditionVariable::conditionBroadcast()
   priv_->waiters_count_lock_.lock();
   int have_waiters = 0;
   
-  if (priv_->waiters_count_ > 0) {
-    // broadcast
-    priv_->was_broadcast_ = 1;
-    have_waiters = 1;
-  }
-
-  if (have_waiters) {
+  if (priv_->waiters_count_ > 0) 
+  {
     // wake up waiting threads
     ReleaseSemaphore(priv_->sema_, priv_->waiters_count_, 0);
-    
-    priv_->waiters_count_lock_.unlock();
-    
-    // wait for threads to acquire semaphore
-    WaitForSingleObject(priv_->waiters_done_, INFINITE);
-    priv_->was_broadcast_ = 0;
+    priv_->waiters_count_ = 0;
   }
-  else 
-    priv_->waiters_count_lock_.unlock();
+  
+  priv_->waiters_count_lock_.unlock();
 }
 
 static void lock_scheduler()
@@ -859,16 +741,16 @@ void Thread_run(Thread* t)
   // in the try-except functionality, we have access to the entire stack trace in the except () clause
   // (it has access to the stack before executing the exception handler while it determines where to land
   // the exception
-#ifdef _MSC_VER 
-  __try {
-#endif
+//#ifdef _MSC_VER 
+//  __try {
+//#endif
     t->run_body();
-#ifdef _MSC_VER
-  } __except(Thread::niceAbort(((LPEXCEPTION_POINTERS)GetExceptionInformation())->ContextRecord), 
-      EXCEPTION_CONTINUE_SEARCH) {
-
-  }
-#endif
+//#ifdef _MSC_VER
+//  } __except(Thread::niceAbort(((LPEXCEPTION_POINTERS)GetExceptionInformation())->ContextRecord), 
+//      EXCEPTION_CONTINUE_SEARCH) {
+//
+//  }
+//#endif
 }
 
 void Thread::migrate(int proc)
@@ -890,12 +772,10 @@ void Thread_shutdown(Thread* thread, bool actually_exit)
 			    +threadError());
 	}
 
-	
-	delete thread;
-
     // Allow this thread to run anywhere...
-    if(thread->cpu_ != -1)
-	thread->migrate(-1);
+    if(thread->cpu_ != -1)	thread->migrate(-1);
+
+    delete thread;
 
     lock_scheduler();
 
@@ -1110,19 +990,6 @@ void Thread::pop_bstack(Thread_private* p, int oldstate)
 void ThreadGroup::gangSchedule()
 {
 }
-
-void
-Thread::allow_sgi_OpenGL_page0_sillyness()
-{
-  // Nothing necessary here
-}
-
-void
-Thread::disallow_sgi_OpenGL_page0_sillyness()
-{
-  // Nothing necessary here
-}
-
 
 } // end namespace SCIRun
 

@@ -36,7 +36,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/ColumnMatrix.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
 #include <Core/Datatypes/DenseMatrix.h>
@@ -101,7 +101,7 @@ SetEITGround::execute()
 
   // Allocate memory for the potentials we are going to compute and
   // send to the output.
-  ColumnMatrix* gndPot = scinew ColumnMatrix(numNodes);
+  ColumnMatrix* gndPot = new ColumnMatrix(numNodes);
   if (!gndPot)
   {
     error("can't allocate output column matrix!");
@@ -157,7 +157,7 @@ SetEITGround::execute()
     
   // Allocate memory for the electrode potentials we are going to
   // extract and send to the output.
-  ColumnMatrix* electrodePot = scinew ColumnMatrix(numElectrodes);
+  ColumnMatrix* electrodePot = new ColumnMatrix(numElectrodes);
   if (!electrodePot)
   {
     error("can't allocate output for electrode potentials column matrix!");

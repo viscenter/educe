@@ -33,7 +33,7 @@
  */
 
 #include <Dataflow/Network/Ports/BundlePort.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #undef SCISHARE
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
@@ -46,10 +46,10 @@ namespace SCIRun {
 
 extern "C" {
   SCISHARE IPort* make_BundleIPort(Module* module, const string& name) {
-  return scinew SimpleIPort<BundleHandle>(module,name);
+  return new SimpleIPort<BundleHandle>(module,name);
 }
   SCISHARE OPort* make_BundleOPort(Module* module, const string& name) {
-  return scinew SimpleOPort<BundleHandle>(module,name);
+  return new SimpleOPort<BundleHandle>(module,name);
 }
 }
 

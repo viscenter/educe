@@ -57,7 +57,7 @@ bool TissueModel_RegularBundle::create_mesh(FieldHandle& output)
   if (numconnectionx_ >numelems_y_ics_) numconnectionx_ = numelems_y_ics_;
   if (numconnectiony_ >numelems_x_ics_) numconnectiony_ = numelems_x_ics_;
 
-  StructHexVolMesh<HexTrilinearLgn<Point> >* omesh = scinew StructHexVolMesh<HexTrilinearLgn<Point> >(numnodes_x,numnodes_y,numnodes_z);
+  StructHexVolMesh<HexTrilinearLgn<Point> >* omesh = new StructHexVolMesh<HexTrilinearLgn<Point> >(numnodes_x,numnodes_y,numnodes_z);
   MeshHandle mesh = dynamic_cast<Mesh *>(omesh);
 
   if (mesh.get_rep() == 0)
@@ -67,7 +67,7 @@ bool TissueModel_RegularBundle::create_mesh(FieldHandle& output)
   }
 
   GenericField<StructHexVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<int>,FData3d<int,StructHexVolMesh<HexTrilinearLgn<Point> > > >* ofield =
-     scinew GenericField<StructHexVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<int>,FData3d<int,StructHexVolMesh<HexTrilinearLgn<Point> > > >(omesh);
+     new GenericField<StructHexVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<int>,FData3d<int,StructHexVolMesh<HexTrilinearLgn<Point> > > >(omesh);
 
   output = dynamic_cast<Field*>(ofield);
   if (output.get_rep() == 0)

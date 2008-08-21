@@ -63,26 +63,26 @@ proc set_scale_max_value {parent value} {
 }
 
 proc min_max_widget {f nm min max maxval} {
-    iwidgets::labeledframe $f -labelpos nw -labeltext $nm
+    sci_labeledframe $f -labelpos nw -labeltext $nm
     set lf [$f childsite]
 
-    label $lf.minlab -text "Min:"
-    scale $lf.min -orient horizontal -variable $min \
-	-from 0 -to [set $maxval] -width 14 -showvalue 0
+    sci_label $lf.minlab -text "Min:"
+    sci_scale $lf.min -orient horizontal -variable $min \
+      -from 0 -to [set $maxval] -width 14 -showvalue 0
 
-    entry $lf.mine -textvariable $min -width 6 
+    sci_entry $lf.mine -textvariable $min -width 6 
     bind $lf.mine <Return> "min_changed $lf.max $min $max"
 
-    label $lf.maxlab -text "Max:"
-    scale $lf.max -orient horizontal -variable $max \
-	-from 0  -to [set $maxval] -width 14 -showvalue 0
-    entry $lf.maxe -textvariable $max -width 6 
+    sci_label $lf.maxlab -text "Max:"
+    sci_scale $lf.max -orient horizontal -variable $max \
+      -from 0  -to [set $maxval] -width 14 -showvalue 0
+    sci_entry $lf.maxe -textvariable $max -width 6 
     bind $lf.maxe <Return> "max_changed $lf.min $min $max"
 
     bind $lf.min <ButtonRelease-1> \
-	"min_changed $lf.max $min $max"
+      "min_changed $lf.max $min $max"
     bind $lf.max <ButtonRelease-1> \
-	"max_changed $lf.min $min $max"
+      "max_changed $lf.min $min $max"
 
     pack $lf.minlab $lf.mine $lf.min -side left
     pack $lf.maxlab $lf.maxe $lf.max -side left

@@ -51,11 +51,11 @@
 #include <winsock2.h>
 #endif
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <map>
 #include <list>
-#include <sgi_stl_warnings_on.h>
+
 
 
 namespace SCIRun {

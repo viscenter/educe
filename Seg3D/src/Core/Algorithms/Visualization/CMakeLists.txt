@@ -30,22 +30,10 @@
 
 SET(Core_Algorithms_Visualization_SRCS
   DataConversions.cc
-  EdgeMC.cc
   FastLatBoundaries.cc
   FastLatMC.cc
-  HexMC.cc
-  ExtractIsosurface.cc
-  MarchingCubes.cc
-  mcube2.cc
-  Noise.cc
-  PrismMC.cc
-  QuadMC.cc
   RenderField.cc
   RenderFieldGlyphs.cc
-  Sage.cc
-  TetMC.cc
-  TriMC.cc
-  UHexMC.cc
 )
 
 INCLUDE_DIRECTORIES(${SLIVR_INCLUDE_DIR})
@@ -53,6 +41,9 @@ INCLUDE_DIRECTORIES(${SLIVR_INCLUDE_DIR})
 SCIRUN_ADD_LIBRARY(Core_Algorithms_Visualization ${Core_Algorithms_Visualization_SRCS})
 
 TARGET_LINK_LIBRARIES(Core_Algorithms_Visualization
+  Core_Algorithms_Util
+  Core_Algorithms_Fields
+  Core_Algorithms_Math
   Core_Basis
   Core_Containers
   Core_Datatypes

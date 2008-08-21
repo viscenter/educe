@@ -42,9 +42,6 @@ SET(Core_ImportExport_SRCS
   Nrrd/NrrdIEPlugin.cc
 )
 
-## Not implemented yet...
-#
-#  Nrrd/NrrdExecConverter.cc 
 
 SCIRUN_ADD_LIBRARY(Core_ImportExport ${Core_ImportExport_SRCS})
 
@@ -54,13 +51,10 @@ TARGET_LINK_LIBRARIES(Core_ImportExport
   Core_Containers 
   Core_Thread 
   Core_Geometry 
-  Core_Geom 
   Core_Math 
-  Core_Util 
+  Core_Util
+  Core_Matlab 
   Core_Datatypes
-  ${THREAD_LIBRARY} 
-  ${Z_LIBRARY} 
-  ${M_LIBRARY}
 )
 
 IF(BUILD_SHARED_LIBS)

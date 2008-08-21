@@ -27,11 +27,10 @@
 */
 
 #include <Core/Util/Environment.h>
+#include <Core/Datatypes/Bundle.h>
 
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
-
-#include <Core/Malloc/Allocator.h>
 
 namespace SCIRun {
 
@@ -55,18 +54,20 @@ InsertEnvironmentIntoBundle::InsertEnvironmentIntoBundle(GuiContext* ctx) :
 void
 InsertEnvironmentIntoBundle::execute()
 {
+  update_state(Executing);
+
   std::map<std::string,std::string>& environment = get_sci_environment();
 
   std::map<std::string,std::string>::iterator it, it_end;
   it = environment.begin();
   it_end = environment.end();
   
-  BundleHandle bundle = scinew Bundle();
+  BundleHandle bundle = new Bundle();
   
   while (it != it_end)
   {
     std::string key = (*it).first;
-    StringHandle data = scinew String((*it).second);
+    StringHandle data = new String((*it).second);
     bundle->setString(key,data);
     ++it;
   }

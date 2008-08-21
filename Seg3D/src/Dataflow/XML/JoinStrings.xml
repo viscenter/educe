@@ -41,7 +41,7 @@
   <io>
     <inputs lastportdynamic="yes">
       <port>
-        <name>input</name>
+        <name>Input</name>
         <datatype>SCIRun::String</datatype>
       </port>
     </inputs>

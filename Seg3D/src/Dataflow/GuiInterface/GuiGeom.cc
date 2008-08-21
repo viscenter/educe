@@ -44,7 +44,7 @@
 #include <Dataflow/GuiInterface/GuiContext.h>
 #include <Dataflow/GuiInterface/GuiInterface.h>
 #include <Core/Datatypes/Color.h>
-#include <Core/Geom/Material.h>
+#include <Core/Datatypes/Material.h>
 using namespace SCIRun;
 
 GuiColor::GuiColor(GuiContext* ctx)

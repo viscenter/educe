@@ -39,9 +39,9 @@
 #include <Dataflow/Widgets/PointWidget.h>
 
 #include <Core/Containers/StringUtil.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 #include <Core/Geom/View.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Thread/CrowdMonitor.h>
 
 #include <iostream>
@@ -207,7 +207,7 @@ ShowTextureSlices::execute()
   }
 
   if(!control_widget_){
-    control_widget_= scinew PointWidget(this, &control_lock_, 0.2);
+    control_widget_= new PointWidget(this, &control_lock_, 0.2);
     control_widget_->Connect(ogeom_);
     
     double minx,miny,minz;
@@ -419,23 +419,43 @@ ShowTextureSlices::tcl_command(GuiArgs& args, void* userdata)
   if (args[1] == "MoveWidget") {
     if (!control_widget_) return;
     Point w(control_widget_->ReferencePoint());
-    if (args[2] == "xplus") {
-      w+=ddx_*atof(args[3].c_str());
-    } else if (args[2] == "xat") {
-      w=dmin_+ddx_*atof(args[3].c_str());
-    } else if (args[2] == "yplus") {
-      w+=ddy_*atof(args[3].c_str());
-    } else if (args[2] == "yat") {
-      w=dmin_+ddy_*atof(args[3].c_str());
-    } else if (args[2] == "zplus") {
-      w+=ddz_*atof(args[3].c_str());
-    } else if (args[2] == "zat") {
-      w=dmin_+ddz_*atof(args[3].c_str());
-    } else if (args[2] == "vplus"){
+    if (args[2] == "xplus") 
+    {
+      double val; from_string(args[3],val);
+      w+=ddx_*val;
+    } 
+    else if (args[2] == "xat") 
+    {
+      double val; from_string(args[3],val);
+      w=dmin_+ddx_*val;
+    } 
+    else if (args[2] == "yplus") 
+    {
+      double val; from_string(args[3],val);
+      w+=ddy_*val;
+    } 
+    else if (args[2] == "yat") 
+    {
+      double val; from_string(args[3],val);
+      w=dmin_+ddy_*val;
+    } 
+    else if (args[2] == "zplus") 
+    {
+      double val; from_string(args[3],val);
+      w+=ddz_*val;
+    } 
+    else if (args[2] == "zat") 
+    {
+      double val; from_string(args[3],val);
+      w=dmin_+ddz_*val;
+    } 
+    else if (args[2] == "vplus")
+    {
       GeometryData* data = ogeom_->getData(0, 0, 1);
       Vector view = data->view->lookat() - data->view->eyep();
       view.normalize();
-      w += view*ddview_*atof(args[3].c_str());
+      double val; from_string(args[3],val);
+      w += view*ddview_*val;
     }
     control_widget_->SetPosition(w);
     widget_moved(true, 0);

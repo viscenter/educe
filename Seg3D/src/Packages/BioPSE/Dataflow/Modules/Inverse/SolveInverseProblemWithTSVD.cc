@@ -33,7 +33,7 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <stdio.h>
 #include <math.h>
@@ -153,7 +153,7 @@ SolveInverseProblemWithTSVD::find_solution(ColumnMatrix& X_reg, DenseMatrix& Inv
     }
 
     //Finding Regularized Inverse Matrix
-    Mat_temp = scinew  DenseMatrix(V.nrows(),V.ncols());
+    Mat_temp = new  DenseMatrix(V.nrows(),V.ncols());
     for(i=0; i < lam; i++)
     {
       for(j=0;j<V.nrows();j++)
@@ -188,7 +188,7 @@ SolveInverseProblemWithTSVD::find_solution(ColumnMatrix& X_reg, DenseMatrix& Inv
 
     //Finding Regularized Inverse Matrix
  
-    Mat_temp = scinew  DenseMatrix(X.nrows(),X.ncols());
+    Mat_temp = new  DenseMatrix(X.nrows(),X.ncols());
     (*Mat_temp)=X; 
 
     for(i=rank-1; i > rank-lam-1; i--)
@@ -211,9 +211,9 @@ SolveInverseProblemWithTSVD::prep_lcurve_data(Array1<double> &rho, Array1<double
                        ColumnMatrix& y)
 {
   int i,j;
-  ColumnMatrix *AX_reg = scinew ColumnMatrix(U.nrows());
-  ColumnMatrix *Residual = scinew ColumnMatrix(U.nrows());
-  ColumnMatrix *RX_reg = scinew ColumnMatrix(V.nrows());
+  ColumnMatrix *AX_reg = new ColumnMatrix(U.nrows());
+  ColumnMatrix *Residual = new ColumnMatrix(U.nrows());
+  ColumnMatrix *RX_reg = new ColumnMatrix(V.nrows());
   ColumnMatrix *X_reg; 
   int rank=S.nrows();
   double temp, temp1;
@@ -226,7 +226,7 @@ SolveInverseProblemWithTSVD::prep_lcurve_data(Array1<double> &rho, Array1<double
     if(i<S.nrows())
       rank=i;
 
-    X_reg = scinew ColumnMatrix(V.nrows());		
+    X_reg = new ColumnMatrix(V.nrows());		
     temp =  Uy[0]/S[0][0];
     for(j=0;j<V.nrows();j++)
     {
@@ -258,7 +258,7 @@ SolveInverseProblemWithTSVD::prep_lcurve_data(Array1<double> &rho, Array1<double
   }
   else
   {
-    X_reg = scinew ColumnMatrix(X.nrows());
+    X_reg = new ColumnMatrix(X.nrows());
     AX_reg->zero();
     RX_reg->zero();
     for(i=S.nrows()-1;i>=0;i--)
@@ -344,9 +344,9 @@ SolveInverseProblemWithTSVD::FindCorner(Array1<double> &rho, Array1<double> &eta
   // Finding the coefficient of Bsplines that reconstruct the curve
   // The number of knots are the same as the number of curve points
 
-  DenseMatrix  *Bspline_Bases = scinew DenseMatrix(nLambda,nLambda);
-  ColumnMatrix  *rho_coef = scinew ColumnMatrix(nLambda);
-  ColumnMatrix  *eta_coef = scinew ColumnMatrix(nLambda);
+  DenseMatrix  *Bspline_Bases = new DenseMatrix(nLambda,nLambda);
+  ColumnMatrix  *rho_coef = new ColumnMatrix(nLambda);
+  ColumnMatrix  *eta_coef = new ColumnMatrix(nLambda);
 		
   Bspline_Bases->zero();
   (*Bspline_Bases)[0][0]=2/3;
@@ -520,9 +520,9 @@ SolveInverseProblemWithTSVD::execute()
     N=matrixX->nrows();
 #endif
 
-  ColumnMatrix *Uy=scinew ColumnMatrix(matrixU->ncols());
-  ColumnMatrix *solution = scinew ColumnMatrix(N);
-  DenseMatrix  *InverseMat = scinew DenseMatrix(N, M);
+  ColumnMatrix *Uy=new ColumnMatrix(matrixU->ncols());
+  ColumnMatrix *solution = new ColumnMatrix(N);
+  DenseMatrix  *InverseMat = new DenseMatrix(N, M);
 	
   for(i=0;i<matrixU->ncols();i++)
     (*Uy)[i]=Inner_Product(*matrixU, i, *matrixMeasDatD);
@@ -555,7 +555,7 @@ SolveInverseProblemWithTSVD::execute()
     double lower_y;
     nLambda=rank;
 
-    ColumnMatrix *kapa = scinew ColumnMatrix(4*nLambda); 
+    ColumnMatrix *kapa = new ColumnMatrix(4*nLambda); 
     rho.setsize(rank);
     eta.setsize(rank);
     lambdaArray.setsize(rank);   
@@ -580,7 +580,7 @@ SolveInverseProblemWithTSVD::execute()
     }
   } 
 	
-  ColumnMatrix  *RegParameter =scinew ColumnMatrix(1);
+  ColumnMatrix  *RegParameter =new ColumnMatrix(1);
   (*RegParameter)[0]=lambda;
 
   find_solution(*solution,*InverseMat, *matrixU, *Uy, *matrixS, *matrixV, *matrixX, lambda);

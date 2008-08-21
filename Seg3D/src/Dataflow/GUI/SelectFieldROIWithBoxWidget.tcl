@@ -35,40 +35,40 @@ itcl_class SCIRun_MiscField_SelectFieldROIWithBoxWidget {
     }
 
     method replace {} {
-	set $this-runmode 2
-	$this-c needexecute
+      set $this-runmode 2
+      $this-c needexecute
     }
 
     method accumulate {} {
-	set $this-runmode 1
-	$this-c needexecute
+      set $this-runmode 1
+      $this-c needexecute
     }
 
     method ui {} {
-        set w .ui[modname]
-        if {[winfo exists $w]} {
-            return
-        }
-        toplevel $w
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          return
+      }
+      sci_toplevel $w
 
-	frame $w.row1
-	frame $w.row3
-	frame $w.row4
+      sci_frame $w.row1
+      sci_frame $w.row3
+      sci_frame $w.row4
 
-	pack $w.row1 $w.row3 $w.row4 -side top -e y -f both -padx 5 -pady 5
-	
-	label $w.row1.value_label -text "Selection Value"
-	entry $w.row1.value -textvariable $this-stampvalue
-	pack $w.row1.value_label $w.row1.value -side left
+      pack $w.row1 $w.row3 $w.row4 -side top -e y -f both -padx 5 -pady 5
+      
+      sci_label $w.row1.value_label -text "Selection Value"
+      sci_entry $w.row1.value -textvariable $this-stampvalue
+      pack $w.row1.value_label $w.row1.value -side left
 
-	button $w.row3.execute -text "Replace" -command "$this replace"
-	pack $w.row3.execute -side top -e n -f both
+      sci_button $w.row3.execute -text "Replace" -command "$this replace"
+      pack $w.row3.execute -side top -e n -f both
 
-	button $w.row4.execute -text "Accumulate" -command "$this accumulate"
-	pack $w.row4.execute -side top -e n -f both
+      sci_button $w.row4.execute -text "Accumulate" -command "$this accumulate"
+      pack $w.row4.execute -side top -e n -f both
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
     }
 }
 

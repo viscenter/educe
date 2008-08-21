@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE network PUBLIC "-//SCIRun/Network DTD" "network.dtd">
-<network version="v3.1.0" name="{Main}" bbox="{66 11 683 702}" creationDate="{Sat Dec 29 2007}" creationTime="{12:52:42}" geometry="{800x800+0+0}">
+<network version="v3.1.0" netversion="0" name="{Main}" bbox="{66 11 683 702}" creationDate="{Tue Feb 26 2008}" creationTime="{19:51:45}" geometry="{800x800+0+0}">
   <note>{}</note>
   <modules>
     <module id="m1" package="SCIRun" category="ChangeFieldData" name="CalculateDistanceToField" version="1.0">
@@ -27,9 +27,9 @@
     </module>
     <module id="m4" package="SCIRun" category="ChangeMesh" name="EditMeshBoundingBox" version="1.0">
       <position x="329" y="246"/>
-      <var name="outputcenterx" val="{-0.088461922347}" substitute="no"/>
-      <var name="outputcentery" val="{-0.722481165352}" substitute="no"/>
-      <var name="outputcenterz" val="{0.280113941548}" substitute="no"/>
+      <var name="outputcenterx" val="{-0.00983461362625}" substitute="no"/>
+      <var name="outputcentery" val="{-0.531723798561}" substitute="no"/>
+      <var name="outputcenterz" val="{-0.333414564854}" substitute="no"/>
       <var name="outputsizex" val="{1.97858683249}" substitute="no"/>
       <var name="outputsizey" val="{1.99295167959}" substitute="no"/>
       <var name="outputsizez" val="{1.05567634118}" substitute="no"/>
@@ -38,28 +38,28 @@
       <var name="box-scale" val="{1.0}" substitute="no"/>
       <var name="box-mode" val="{0}" substitute="no"/>
       <var name="box-real_scale" val="{0.0519615242271}" substitute="no"/>
-      <var name="box-center-x" val="{-0.088461922347}" substitute="no"/>
-      <var name="box-center-y" val="{-0.722481165352}" substitute="no"/>
-      <var name="box-center-z" val="{0.280113941548}" substitute="no"/>
-      <var name="box-right-x" val="{0.900831493898}" substitute="no"/>
-      <var name="box-right-y" val="{-0.811962630691}" substitute="no"/>
-      <var name="box-right-z" val="{0.164824722938}" substitute="no"/>
-      <var name="box-down-x" val="{0.00367572384462}" substitute="no"/>
-      <var name="box-down-y" val="{0.273994674443}" substitute="no"/>
-      <var name="box-down-z" val="{0.297331930067}" substitute="no"/>
-      <var name="box-in-x" val="{-0.0282775663034}" substitute="no"/>
-      <var name="box-in-y" val="{-0.737166475201}" substitute="no"/>
-      <var name="box-in-z" val="{0.807952112136}" substitute="no"/>
+      <var name="box-center-x" val="{-0.00983461362625}" substitute="no"/>
+      <var name="box-center-y" val="{-0.531723798561}" substitute="no"/>
+      <var name="box-center-z" val="{-0.333414564854}" substitute="no"/>
+      <var name="box-right-x" val="{0.979458802619}" substitute="no"/>
+      <var name="box-right-y" val="{-0.6212052639}" substitute="no"/>
+      <var name="box-right-z" val="{-0.448703783464}" substitute="no"/>
+      <var name="box-down-x" val="{0.0823030325654}" substitute="no"/>
+      <var name="box-down-y" val="{0.464752041234}" substitute="no"/>
+      <var name="box-down-z" val="{-0.316196576335}" substitute="no"/>
+      <var name="box-in-x" val="{0.0503497424174}" substitute="no"/>
+      <var name="box-in-y" val="{-0.54640910841}" substitute="no"/>
+      <var name="box-in-z" val="{0.194423605734}" substitute="no"/>
     </module>
     <module id="m5" package="SCIRun" category="Visualization" name="ShowField" version="2.0">
       <position x="395" y="518"/>
       <var name="nodes_on" val="{1}" substitute="no"/>
       <var name="nodes_transparency" val="{0}" substitute="no"/>
-      <var name="nodes_color_type" val="{1}" substitute="no"/>
+      <var name="nodes_color_type" val="{0}" substitute="no"/>
       <var name="nodes_display_type" val="{Spheres}" substitute="no"/>
       <var name="edges_on" val="{0}" substitute="no"/>
       <var name="edges_transparency" val="{0}" substitute="no"/>
-      <var name="edges_color_type" val="{1}" substitute="no"/>
+      <var name="edges_color_type" val="{0}" substitute="no"/>
       <var name="edges_display_type" val="{Lines}" substitute="no"/>
       <var name="faces_on" val="{0}" substitute="no"/>
       <var name="faces_transparency" val="{1}" substitute="no"/>
@@ -154,13 +154,16 @@
       <gui_callback>
         <callback>addViewer</callback>
       </gui_callback>
-      <var name="ViewWindow_0-geometry" val="654x613+20+42" substitute="no"/>
-      <var name="ViewWindow_0-view-eyep-x" val="{2.1}" substitute="no"/>
-      <var name="ViewWindow_0-view-eyep-y" val="{1.6}" substitute="no"/>
-      <var name="ViewWindow_0-view-eyep-z" val="{11.5}" substitute="no"/>
-      <var name="ViewWindow_0-view-up-x" val="{0.0}" substitute="no"/>
-      <var name="ViewWindow_0-view-up-y" val="{1.0}" substitute="no"/>
-      <var name="ViewWindow_0-view-up-z" val="{0.0}" substitute="no"/>
+      <var name="ViewWindow_0-geometry" val="654x612+20+64" substitute="no"/>
+      <var name="ViewWindow_0-view-eyep-x" val="{5.53571468189}" substitute="no"/>
+      <var name="ViewWindow_0-view-eyep-y" val="{-8.94611813972}" substitute="no"/>
+      <var name="ViewWindow_0-view-eyep-z" val="{-5.35909370385}" substitute="no"/>
+      <var name="ViewWindow_0-view-lookat-x" val="{0.0}" substitute="no"/>
+      <var name="ViewWindow_0-view-lookat-y" val="{0.0}" substitute="no"/>
+      <var name="ViewWindow_0-view-lookat-z" val="{0.0}" substitute="no"/>
+      <var name="ViewWindow_0-view-up-x" val="{0.883641546403}" substitute="no"/>
+      <var name="ViewWindow_0-view-up-y" val="{0.401478252913}" substitute="no"/>
+      <var name="ViewWindow_0-view-up-z" val="{0.241792774582}" substitute="no"/>
       <var name="ViewWindow_0-view-fov" val="{20.0}" substitute="no"/>
       <var name="ViewWindow_0-sr" val="{1}" substitute="no"/>
       <var name="ViewWindow_0-do_stereo" val="{0}" substitute="no"/>
@@ -207,6 +210,9 @@
       <var name="ViewWindow_0-global-cull" val="{0}" substitute="no"/>
       <var name="ViewWindow_0-global-dl" val="{0}" substitute="no"/>
       <var name="ViewWindow_0-global-type" val="{Gouraud}" substitute="no"/>
+      <var name="&quot;ViewWindow_0-EditMeshBoundingBox Transform widget (3)&quot;" val="{1}" substitute="no"/>
+      <var name="&quot;ViewWindow_0-Nodes (2)&quot;" val="{1}" substitute="no"/>
+      <var name="&quot;ViewWindow_0-Faces (1)&quot;" val="{1}" substitute="no"/>
     </module>
     <module id="m8" package="SCIRun" category="Visualization" name="CreateStandardColorMaps" version="1.0">
       <position x="473" y="340"/>
@@ -224,8 +230,8 @@
       <position x="473" y="417"/>
       <var name="main_frame" val="{}" substitute="no"/>
       <var name="isFixed" val="{0}" substitute="no"/>
-      <var name="min" val="{0.0654650081035}" substitute="no"/>
-      <var name="max" val="{1.55186131424}" substitute="no"/>
+      <var name="min" val="{0.0454377116476}" substitute="no"/>
+      <var name="max" val="{1.58257566839}" substitute="no"/>
       <var name="makeSymmetric" val="{0}" substitute="no"/>
     </module>
     <module id="m10" package="SCIRun" category="ChangeMesh" name="ConvertMeshToPointCloud" version="1.0">

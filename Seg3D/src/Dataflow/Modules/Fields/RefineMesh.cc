@@ -38,20 +38,18 @@ namespace SCIRun {
 
 class RefineMesh : public Module
 {
+  public:
+    RefineMesh(GuiContext* ctx);
+    virtual ~RefineMesh() {}
+    virtual void execute();
 
-private:
-  GuiString gui_select_;
-  GuiString gui_method_;
-  GuiDouble gui_isoval_;
+    //! Fix backwards compatibility
+    virtual void post_read();
 
-public:
-  RefineMesh(GuiContext* ctx);
-
-  virtual void execute();
-
-  //! Fix backwards compatibility
-  virtual void post_read();
-
+  private:
+    GuiString gui_select_;
+    GuiString gui_method_;
+    GuiDouble gui_isoval_;
 };
 
 

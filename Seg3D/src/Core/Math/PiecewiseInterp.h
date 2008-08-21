@@ -45,9 +45,9 @@
 
 #include <Core/Math/MiscMath.h>
 #include <Core/Containers/Array1.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <iostream>
-#include <sgi_stl_warnings_on.h>
+
 
 #define msg(m) std::cout << m << std::endl;
 

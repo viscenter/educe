@@ -60,7 +60,7 @@ RenderFieldBase::get_compile_info(const TypeDescription *ftd,
     template_class_name0 += "Image";
   }
 
-  CompileInfo *rval = scinew CompileInfo(template_class_name0 + "." +
+  CompileInfo *rval = new CompileInfo(template_class_name0 + "." +
 					 ftd->get_filename() + "." +
 					 ltd->get_filename() + ".",
 					 base_class_name, 
@@ -165,22 +165,22 @@ RenderFieldV::render_nodes(FieldHandle field_handle,
   if (points_p) // Points
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
-      points = scinew GeomTranspPoints();
+      points = new GeomTranspPoints();
     else
-      points = scinew GeomPoints();
+      points = new GeomPoints();
 
-    data_switch = scinew GeomDL(points);
+    data_switch = new GeomDL(points);
 
     points->setPointSize(resolution/5.0);
   }
   else if (spheres_p) // Spheres
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
-      glyphs = scinew GeomTranspGlyph();
+      glyphs = new GeomTranspGlyph();
     else
-      glyphs = scinew GeomGlyph();
+      glyphs = new GeomGlyph();
 
-    data_switch = scinew GeomDL(glyphs->getObj());
+    data_switch = new GeomDL(glyphs->getObj());
   }
 
   double sval;
@@ -206,7 +206,7 @@ RenderFieldV::render_nodes(FieldHandle field_handle,
   else // if (fld->basis_order() >= 1)
   {
     color_scheme = 2; // Value become RGB
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
     if (get_flag(render_state, USE_TRANSPARENCY))
       vcol->transparency = 0.75;
     else
@@ -215,8 +215,10 @@ RenderFieldV::render_nodes(FieldHandle field_handle,
 
   mesh->synchronize(Mesh::NODES_E);
   
-  VMesh::Node::iterator iter;      mesh->begin(iter);  
-  VMesh::Node::iterator iter_end;  mesh->end(iter_end);  
+  VMesh::Node::iterator iter, iter_end;
+  mesh->begin(iter);
+  mesh->end(iter_end);
+
   while (iter != iter_end) 
   {
     Point p;
@@ -329,22 +331,22 @@ RenderFieldV::render_edges(FieldHandle field_handle,
   if (lines_p) // Lines
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
-      lines = scinew GeomTranspLines;
+      lines = new GeomTranspLines;
     else
-      lines = scinew GeomLines;
+      lines = new GeomLines;
 
-    data_switch = scinew GeomDL(lines);
+    data_switch = new GeomDL(lines);
 
     lines->setLineWidth(resolution/5.0);
   }
   else if (cylinders_p) // Cylinders
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
-      glyphs = scinew GeomTranspGlyph();
+      glyphs = new GeomTranspGlyph();
     else
-      glyphs = scinew GeomGlyph();
+      glyphs = new GeomGlyph();
 
-    data_switch = scinew GeomDL(glyphs->getObj());
+    data_switch = new GeomDL(glyphs->getObj());
   }
 
   double sval0, sval1;
@@ -371,8 +373,8 @@ RenderFieldV::render_edges(FieldHandle field_handle,
   else // if (fld->basis_order() >= 1)
   {
     color_scheme = 2; // Values become RGB
-    vcol0 = scinew Material(Color(1.0, 1.0, 1.0));
-    vcol1 = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol0 = new Material(Color(1.0, 1.0, 1.0));
+    vcol1 = new Material(Color(1.0, 1.0, 1.0));
     if (get_flag(render_state, USE_TRANSPARENCY))
       vcol0->transparency = vcol1->transparency = 0.75;
     else
@@ -387,10 +389,12 @@ RenderFieldV::render_edges(FieldHandle field_handle,
   edge_ht_t rendered_edges; 
 
   mesh->synchronize(Mesh::EDGES_E | Mesh::FACES_E | Mesh::CELLS_E);
-  VMesh::Elem::iterator eiter; mesh->begin(eiter);  
-  VMesh::Elem::iterator eiter_end; mesh->end(eiter_end);  
+  VMesh::Elem::iterator eiter, eiter_end;
   VMesh::Edge::array_type edges;
   
+  mesh->begin(eiter);
+  mesh->end(eiter_end);
+
   while (eiter != eiter_end) 
   {  
     mesh->get_edges(edges, *eiter);
@@ -505,13 +509,13 @@ RenderFieldV::render_edges_linear(FieldHandle field_handle,
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
     {
-      lines = scinew GeomTranspLines;
+      lines = new GeomTranspLines;
       data_switch = lines;
     }
     else
     {
-      lines = scinew GeomLines;
-      data_switch = scinew GeomDL(lines);
+      lines = new GeomLines;
+      data_switch = new GeomDL(lines);
     }
 
     lines->setLineWidth(resolution/5.0);
@@ -520,13 +524,13 @@ RenderFieldV::render_edges_linear(FieldHandle field_handle,
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
     {
-      glyphs = scinew GeomTranspGlyph();
+      glyphs = new GeomTranspGlyph();
       data_switch = glyphs->getObj();
     }
     else
     {
-      glyphs = scinew GeomGlyph();
-      data_switch = scinew GeomDL(glyphs->getObj());
+      glyphs = new GeomGlyph();
+      data_switch = new GeomDL(glyphs->getObj());
     }
   }
 
@@ -555,8 +559,8 @@ RenderFieldV::render_edges_linear(FieldHandle field_handle,
   {
     color_scheme = 2; // Vector values become RGB
 
-    vcol0 = scinew Material(Color(1.0, 1.0, 1.0));
-    vcol1 = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol0 = new Material(Color(1.0, 1.0, 1.0));
+    vcol1 = new Material(Color(1.0, 1.0, 1.0));
 
     if (get_flag(render_state, USE_TRANSPARENCY))
       vcol0->transparency = vcol1->transparency = 0.75;
@@ -565,8 +569,10 @@ RenderFieldV::render_edges_linear(FieldHandle field_handle,
   }
 
   mesh->synchronize(Mesh::EDGES_E);
-  VMesh::Edge::iterator eiter; mesh->begin(eiter);  
-  VMesh::Edge::iterator eiter_end; mesh->end(eiter_end);  
+  VMesh::Edge::iterator eiter, eiter_end;
+
+  mesh->begin(eiter);
+  mesh->end(eiter_end);
  
   while (eiter != eiter_end) 
   {  
@@ -778,18 +784,18 @@ RenderFieldV::render_faces(FieldHandle field_handle,
 
   GeomFastTriangles* tfaces;
   GeomFastQuads* qfaces;
-  GeomGroup *grp = scinew GeomGroup();
-  GeomHandle face_switch = scinew GeomDL(grp);
+  GeomGroup *grp = new GeomGroup();
+  GeomHandle face_switch = new GeomDL(grp);
 
   if (get_flag(render_state, USE_TRANSPARENCY))
   {
-    tfaces = scinew GeomTranspTriangles;
-    qfaces = scinew GeomTranspQuads;
+    tfaces = new GeomTranspTriangles;
+    qfaces = new GeomTranspQuads;
   }
   else
   {
-    tfaces = scinew GeomFastTriangles;
-    qfaces = scinew GeomFastQuads;
+    tfaces = new GeomFastTriangles;
+    qfaces = new GeomFastQuads;
   }
 
   grp->add(tfaces);
@@ -817,7 +823,7 @@ RenderFieldV::render_faces(FieldHandle field_handle,
 
     for (unsigned int i=0; i<10; i++)
     {
-      vcols[i] = scinew Material(Color(1.0, 1.0, 1.0));
+      vcols[i] = new Material(Color(1.0, 1.0, 1.0));
 
       if (get_flag(render_state, USE_TRANSPARENCY))
         vcols[i]->transparency = 0.75;
@@ -834,15 +840,16 @@ RenderFieldV::render_faces(FieldHandle field_handle,
   face_ht_t rendered_faces; 
   
   mesh->synchronize(Mesh::FACES_E | Mesh::EDGES_E | Mesh::CELLS_E);
-  VMesh::Elem::iterator eiter; mesh->begin(eiter);  
-  VMesh::Elem::iterator eiter_end; mesh->end(eiter_end);  
+  VMesh::Elem::iterator eiter, eiter_end;
+  mesh->begin(eiter);
+  mesh->end(eiter_end);
+
   while (eiter != eiter_end) 
   {  
     VMesh::Face::array_type face_indecies;
     mesh->get_faces(face_indecies, *eiter);
 
-    VMesh::Face::array_type::iterator face_iter;
-    face_iter = face_indecies.begin();
+    VMesh::Face::array_type::iterator face_iter = face_indecies.begin();
     int fcount = 0;
     while (face_iter != face_indecies.end()) 
     {
@@ -892,10 +899,10 @@ RenderFieldV::render_faces(FieldHandle field_handle,
 
           for (size_t i=0; i<sl.size()-2; i++) 
           {
-            VMesh::coords_array_type::iterator it0,it1;
+            VMesh::coords_array_type::iterator it0, it1;
             
-            VMesh::coords_type &c0 = !i%2 ? sl[i] : sl[i+1];
-            VMesh::coords_type &c1 = !i%2 ? sl[i+1] : sl[i];
+            VMesh::coords_type &c0 = !(i%2) ? sl[i] : sl[i+1];
+            VMesh::coords_type &c1 = !(i%2) ? sl[i+1] : sl[i];
             VMesh::coords_type &c2 = sl[i+2];
                   
             // get the geometry at the approx.
@@ -1054,10 +1061,8 @@ RenderFieldV::render_faces_linear(FieldHandle field_handle,
   GeomFastTrianglesTwoSided* ttfaces = 0;
   GeomFastQuadsTwoSided* tqfaces = 0;
 
-  GeomGroup *grp = scinew GeomGroup();
-  GeomHandle face_switch = scinew GeomDL(grp);
-
-
+  GeomGroup *grp = new GeomGroup();
+  GeomHandle face_switch = new GeomDL(grp);
 
   unsigned int color_scheme = 0;
   vector<double> svals(10);
@@ -1084,7 +1089,7 @@ RenderFieldV::render_faces_linear(FieldHandle field_handle,
 
     for (unsigned int i=0; i<10; i++)
     {
-      vcols[i] = scinew Material(Color(1.0, 1.0, 1.0));
+      vcols[i] = new Material(Color(1.0, 1.0, 1.0));
 
       if (get_flag(render_state, USE_TRANSPARENCY))
         vcols[i]->transparency = 0.75;
@@ -1094,19 +1099,20 @@ RenderFieldV::render_faces_linear(FieldHandle field_handle,
   }
 
   // Special case for cell centered data
-  if ((fld->basis_order() == 0) && (mesh->dimensionality() == 3) && (color_scheme > 0))
+  if ((fld->basis_order() == 0) && (mesh->dimensionality() == 3) &&
+      (color_scheme > 0))
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
     {
-      ttfaces = scinew GeomTranspTrianglesTwoSided;
-      tqfaces = scinew GeomTranspQuadsTwoSided;
+      ttfaces = new GeomTranspTrianglesTwoSided;
+      tqfaces = new GeomTranspQuadsTwoSided;
       grp->add(ttfaces);
       grp->add(tqfaces);
     }
     else
     {
-      ttfaces = scinew GeomFastTrianglesTwoSided;
-      tqfaces = scinew GeomFastQuadsTwoSided;
+      ttfaces = new GeomFastTrianglesTwoSided;
+      tqfaces = new GeomFastQuadsTwoSided;
       grp->add(ttfaces);
       grp->add(tqfaces);
     }
@@ -1115,16 +1121,16 @@ RenderFieldV::render_faces_linear(FieldHandle field_handle,
   {
     if (get_flag(render_state, USE_TRANSPARENCY))
     {
-      tfaces = scinew GeomTranspTriangles;
-      qfaces = scinew GeomTranspQuads;
+      tfaces = new GeomTranspTriangles;
+      qfaces = new GeomTranspQuads;
       
       grp->add(tfaces);
       grp->add(qfaces);
     }
     else
     {
-      tfaces = scinew GeomFastTriangles;
-      qfaces = scinew GeomFastQuads;
+      tfaces = new GeomFastTriangles;
+      qfaces = new GeomFastQuads;
     
       grp->add(tfaces);
       grp->add(qfaces);
@@ -1134,13 +1140,21 @@ RenderFieldV::render_faces_linear(FieldHandle field_handle,
   if (with_normals) mesh->synchronize(Mesh::NORMALS_E);
 
   mesh->synchronize(Mesh::FACES_E);
-  VMesh::Face::iterator fiter; mesh->begin(fiter);  
-  VMesh::Face::iterator fiter_end; mesh->end(fiter_end);  
+  VMesh::Face::iterator fiter, fiter_end;
   VMesh::Node::array_type nodes;
+
+  mesh->begin(fiter);
+  mesh->end(fiter_end);
+
+  VMesh::Face::size_type f;
+  VMesh::Cell::size_type c;
+
+  mesh->size(f);
+  mesh->size(c);
 
   while (fiter != fiter_end) 
   {
-    mesh->get_nodes(nodes, *fiter); 
+    mesh->get_nodes(nodes, *fiter);
  
     vector<Point> points(nodes.size());
     vector<Vector> normals(nodes.size());
@@ -1209,14 +1223,14 @@ RenderFieldV::render_faces_linear(FieldHandle field_handle,
         {
           if (with_normals)
             tqfaces->add(points[0], normals[0], scols[0], scols[1],
-             points[1], normals[1], scols[0], scols[1],
-             points[2], normals[2], scols[0], scols[1],
-             points[3], normals[3], scols[0], scols[1]);
+                         points[1], normals[1], scols[0], scols[1],
+                         points[2], normals[2], scols[0], scols[1],
+                         points[3], normals[3], scols[0], scols[1]);
           else
             tqfaces->add(points[0], scols[0], scols[1],
-             points[1], scols[0], scols[1],
-             points[2], scols[0], scols[1],
-             points[3], scols[0], scols[1]);
+                         points[1], scols[0], scols[1],
+                         points[2], scols[0], scols[1],
+                         points[3], scols[0], scols[1]);
         }
         else
         {
@@ -1224,12 +1238,12 @@ RenderFieldV::render_faces_linear(FieldHandle field_handle,
           {
             if (with_normals)
               ttfaces->add(points[0],   normals[0],   scols[0], scols[1],
-               points[i-1], normals[i-1], scols[0], scols[1],
-               points[i],   normals[i],   scols[0], scols[1]);
+                           points[i-1], normals[i-1], scols[0], scols[1],
+                           points[i],   normals[i],   scols[0], scols[1]);
             else
               ttfaces->add(points[0],   scols[0], scols[1],
-               points[i-1], scols[0], scols[1],
-               points[i],   scols[0], scols[1]);
+                           points[i-1], scols[0], scols[1],
+                           points[i],   scols[0], scols[1]);
           }
         }
       }
@@ -1239,14 +1253,14 @@ RenderFieldV::render_faces_linear(FieldHandle field_handle,
         {
           if (with_normals)
             tqfaces->add(points[0], normals[0], vcols[0], vcols[1],
-             points[1], normals[1], vcols[0], vcols[1],
-             points[2], normals[2], vcols[0], vcols[1],
-             points[3], normals[3], vcols[0], vcols[1]);
+                         points[1], normals[1], vcols[0], vcols[1],
+                         points[2], normals[2], vcols[0], vcols[1],
+                         points[3], normals[3], vcols[0], vcols[1]);
           else
             tqfaces->add(points[0], vcols[0], vcols[1],
-             points[1], vcols[0], vcols[1],
-             points[2], vcols[0], vcols[1],
-             points[3], vcols[0], vcols[1]);
+                         points[1], vcols[0], vcols[1],
+                         points[2], vcols[0], vcols[1],
+                         points[3], vcols[0], vcols[1]);
         }
         else
         {
@@ -1254,12 +1268,12 @@ RenderFieldV::render_faces_linear(FieldHandle field_handle,
           {
             if (with_normals)
               ttfaces->add(points[0],   normals[0],   vcols[0], vcols[1],
-               points[i-1], normals[i-1], vcols[0], vcols[1],
-               points[i],   normals[i],   vcols[0], vcols[1]);
+                           points[i-1], normals[i-1], vcols[0], vcols[1],
+                           points[i],   normals[i],   vcols[0], vcols[1]);
             else
               ttfaces->add(points[0],   vcols[0], vcols[1],
-               points[i-1], vcols[0], vcols[1],
-               points[i],   vcols[0], vcols[1]);
+                           points[i-1], vcols[0], vcols[1],
+                           points[i],   vcols[0], vcols[1]);
           }
         }
       }
@@ -1347,7 +1361,7 @@ RenderFieldImageV::render_faces_texture(FieldHandle field_handle,
   float pos_coords[12];
   const int colorbytes = 4;
 
-  GeomTexRectangle *tr = scinew GeomTexRectangle();
+  GeomTexRectangle *tr = new GeomTexRectangle();
   texture_face = tr;
 
   VMesh::size_type ni = mesh->get_ni();
@@ -1408,9 +1422,11 @@ RenderFieldImageV::render_faces_texture(FieldHandle field_handle,
     tex_coords[4] = tmax_x; tex_coords[5] = tmax_y;
     tex_coords[6] = tmin_x; tex_coords[7] = tmax_y;
 
-    VMesh::Node::iterator niter; mesh->begin(niter);  
-    VMesh::Node::iterator niter_end; mesh->end(niter_end);  
+    VMesh::Node::iterator niter, niter_end;
+    mesh->begin(niter);  
+    mesh->end(niter_end);  
     VMesh::Node::array_type nodes;
+
     while(niter != niter_end )
     {
       // Convert data values to double.
@@ -1462,8 +1478,9 @@ RenderFieldImageV::render_faces_texture(FieldHandle field_handle,
     tex_coords[4] = tmax_x; tex_coords[5] = tmax_y;
     tex_coords[6] = tmin_x; tex_coords[7] = tmax_y;
 
-    VMesh::Face::iterator fiter; mesh->begin(fiter);  
-    VMesh::Face::iterator fiter_end; mesh->end(fiter_end);  
+    VMesh::Face::iterator fiter, fiter_end;
+    mesh->begin(fiter);  
+    mesh->end(fiter_end);  
 
     while (fiter != fiter_end)
     {
@@ -1537,8 +1554,8 @@ RenderFieldV::render_text(FieldHandle field_handle,
 			  bool render_cells,
 			  bool always_visible)
 {
-  GeomGroup *texts = scinew GeomGroup;
-  GeomHandle text_switch = scinew GeomSwitch(texts);
+  GeomGroup *texts = new GeomGroup;
+  GeomHandle text_switch = new GeomSwitch(texts);
 
   if (render_data)
   {
@@ -1606,9 +1623,9 @@ RenderFieldV::render_text_data(FieldHandle field_handle,
   VField* fld = field_handle->vfield();
   VMesh* mesh = field_handle->vmesh();
 
-  GeomTexts *texts = scinew GeomTexts();
+  GeomTexts *texts = new GeomTexts();
   if (always_visible) texts->set_always_visible();
-  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  GeomHandle text_switch = new GeomSwitch(new GeomDL(texts));
   texts->set_font_index(fontsize);
 
   std::ostringstream buffer;
@@ -1629,7 +1646,7 @@ RenderFieldV::render_text_data(FieldHandle field_handle,
   else
   {
     color_scheme = 2;
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
   }
 
   if (fld->basis_order() == 0)
@@ -1774,15 +1791,15 @@ RenderFieldV::render_text_data_nodes(FieldHandle field_handle,
   if (culling_p)
   {
     mesh->synchronize(Mesh::NORMALS_E);
-    ctexts = scinew GeomTextsCulled();
-    text_switch = scinew GeomSwitch(ctexts);
+    ctexts = new GeomTextsCulled();
+    text_switch = new GeomSwitch(ctexts);
     ctexts->set_font_index(fontsize);
   }
   else
   {
-    texts = scinew GeomTexts();
+    texts = new GeomTexts();
     if (always_visible) texts->set_always_visible();
-    text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+    text_switch = new GeomSwitch(new GeomDL(texts));
     texts->set_font_index(fontsize);
   }
 
@@ -1806,7 +1823,7 @@ RenderFieldV::render_text_data_nodes(FieldHandle field_handle,
   else
   {
     color_scheme = 2;
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
   }
 
   VMesh::Node::iterator iter, end;
@@ -1913,15 +1930,15 @@ RenderFieldV::render_text_nodes(FieldHandle field_handle,
   if (culling_p)
   {
     mesh->synchronize(Mesh::NORMALS_E);
-    ctexts = scinew GeomTextsCulled();
-    text_switch = scinew GeomSwitch(ctexts);
+    ctexts = new GeomTextsCulled();
+    text_switch = new GeomSwitch(ctexts);
     ctexts->set_font_index(fontsize);
   }
   else
   {
-    texts = scinew GeomTexts();
+    texts = new GeomTexts();
     if (always_visible) texts->set_always_visible();
-    text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+    text_switch = new GeomSwitch(new GeomDL(texts));
     texts->set_font_index(fontsize);
   }
 
@@ -1945,7 +1962,7 @@ RenderFieldV::render_text_nodes(FieldHandle field_handle,
   else
   {
     color_scheme = 2;
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
   }
 
   VMesh::Node::iterator iter, end;
@@ -2053,9 +2070,9 @@ RenderFieldV::render_text_edges(FieldHandle field_handle,
 
   mesh->synchronize(Mesh::EDGES_E);
 
-  GeomTexts *texts = scinew GeomTexts();
+  GeomTexts *texts = new GeomTexts();
   if (always_visible) texts->set_always_visible();
-  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  GeomHandle text_switch = new GeomSwitch(new GeomDL(texts));
   texts->set_font_index(fontsize);
 
   ostringstream buffer;
@@ -2077,7 +2094,7 @@ RenderFieldV::render_text_edges(FieldHandle field_handle,
   else
   {
     color_scheme = 2;
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
   }
  
   VMesh::Edge::iterator iter, end;
@@ -2159,9 +2176,9 @@ RenderFieldV::render_text_faces(FieldHandle field_handle,
 
   mesh->synchronize(Mesh::FACES_E);
 
-  GeomTexts *texts = scinew GeomTexts;
+  GeomTexts *texts = new GeomTexts;
   if (always_visible) texts->set_always_visible();
-  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  GeomHandle text_switch = new GeomSwitch(new GeomDL(texts));
   texts->set_font_index(fontsize);
 
   ostringstream buffer;
@@ -2183,13 +2200,14 @@ RenderFieldV::render_text_faces(FieldHandle field_handle,
   else
   {
     color_scheme = 2;
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
   }
 
   VMesh::Face::iterator iter, end;
   mesh->begin(iter);
   mesh->end(end);
   Point p;
+
   while (iter != end)
   {
     mesh->get_center(p, *iter);
@@ -2265,9 +2283,9 @@ RenderFieldV::render_text_cells(FieldHandle field_handle,
 
   mesh->synchronize(Mesh::CELLS_E);
 
-  GeomTexts *texts = scinew GeomTexts;
+  GeomTexts *texts = new GeomTexts;
   if (always_visible) texts->set_always_visible();
-  GeomHandle text_switch = scinew GeomSwitch(scinew GeomDL(texts));
+  GeomHandle text_switch = new GeomSwitch(new GeomDL(texts));
   texts->set_font_index(fontsize);
 
   ostringstream buffer;
@@ -2288,13 +2306,14 @@ RenderFieldV::render_text_cells(FieldHandle field_handle,
   else
   {
     color_scheme = 2;
-    vcol = scinew Material(Color(1.0, 1.0, 1.0));
+    vcol = new Material(Color(1.0, 1.0, 1.0));
   }
 
   VMesh::Cell::iterator iter, end;
   mesh->begin(iter);
   mesh->end(end);
   Point p;
+
   while (iter != end)
   {
     mesh->get_center(p, *iter);

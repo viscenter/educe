@@ -12,7 +12,23 @@
                 <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL</flag>
                 <border>5</border>
                 <object class="wxStaticText" name="wxID_STATIC">
+                    <font>
+                        <size>-1</size>
+                        <weight>bold</weight>
+                        <face>*</face>
+                    </font>
                     <label>Cursor Information</label>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                <border>5</border>
+                <object class="wxChoice" name="ID_CHOICE3">
+                    <content>
+                        <item>World Space</item>
+                        <item>Index Space</item>
+                    </content>
+                    <selection>0</selection>
                 </object>
             </object>
             <object class="sizeritem">

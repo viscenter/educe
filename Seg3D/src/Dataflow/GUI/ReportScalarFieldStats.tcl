@@ -40,9 +40,9 @@ itcl_class SCIRun_MiscField_ReportScalarFieldStats {
         global $this-sigma
         global $this-is_fixed
         global $this-nbuckets
-	global $this-setdata
-	global $this-nmin
-	global $this-nmax
+        global $this-setdata
+        global $this-nmin
+        global $this-nmax
         global $this-args
 
         set_defaults
@@ -51,10 +51,10 @@ itcl_class SCIRun_MiscField_ReportScalarFieldStats {
     method set_defaults {} {
         set $this-is_fixed 0
         set $this-nbuckets 256
-	set $this-setdata 0
-	set $this-nmin 0
-	set $this-nmax 256
-	set $this-args "?"
+        set $this-setdata 0
+        set $this-nmin 0
+        set $this-nmax 256
+        set $this-args "?"
    }
 
     method ui {} {
@@ -62,61 +62,62 @@ itcl_class SCIRun_MiscField_ReportScalarFieldStats {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
         set n "$this-c needexecute "
 
-        frame $w.f1 -relief flat
+        sci_frame $w.f1 -relief flat
         pack $w.f1 -side top -expand yes -fill x
-        radiobutton $w.f1.b -text "Auto Range"  -variable $this-is_fixed \
+        sci_radiobutton $w.f1.b -text "Auto Range"  -variable $this-is_fixed \
                 -value 0 -command "$this autoRange"
         pack $w.f1.b -side left
 
-        frame $w.f2 -relief flat
+        sci_frame $w.f2 -relief flat
         pack $w.f2 -side top -expand yes -fill x
-        radiobutton $w.f2.b -text "Fixed Range"  -variable $this-is_fixed \
+        sci_radiobutton $w.f2.b -text "Fixed Range"  -variable $this-is_fixed \
                 -value 1 -command "$this fixedRange"
         pack $w.f2.b -side left
 
-        frame $w.row1
-        frame $w.row2
-        frame $w.row3
-        frame $w.row4
+        sci_frame $w.row1
+        sci_frame $w.row2
+        sci_frame $w.row3
+        sci_frame $w.row4
 
         pack $w.row1 $w.row2 $w.row3 $w.row4 \
             -side top -e y -f both -padx 5 
         
-        label $w.row1.min_label -text "Min Value:  "
-        entry $w.row1.min_value -textvariable $this-min
-        label $w.row1.max_label -text ",  Max Value:  "
-        entry $w.row1.max_value -textvariable $this-max
+        sci_label $w.row1.min_label -text "Min Value:  "
+        sci_entry $w.row1.min_value -textvariable $this-min
+        sci_label $w.row1.max_label -text ",  Max Value:  "
+        sci_entry $w.row1.max_value -textvariable $this-max
         pack $w.row1.min_label $w.row1.min_value \
             $w.row1.max_label $w.row1.max_value -side left
 
         bind $w.row1.min_value <Return> $n
         bind $w.row1.max_value <Return> $n
 
-        label $w.row2.mean_label -text "Mean:  "
-        label $w.row2.mean_value -textvariable $this-mean
+        sci_label $w.row2.mean_label -text "Mean:  "
+        sci_label $w.row2.mean_value -textvariable $this-mean
         pack $w.row2.mean_label $w.row2.mean_value -side left
 
-        label $w.row3.median_label -text "Median:  "
-        label $w.row3.median_value -textvariable $this-median
+        sci_label $w.row3.median_label -text "Median:  "
+        sci_label $w.row3.median_value -textvariable $this-median
         pack $w.row3.median_label $w.row3.median_value -side left
 
-        label $w.row4.sigma_label -text "Standard Deviation:  "
-        label $w.row4.sigma_value -textvariable $this-sigma
+        sci_label $w.row4.sigma_label -text "Standard Deviation:  "
+        sci_label $w.row4.sigma_value -textvariable $this-sigma
         pack $w.row4.sigma_label $w.row4.sigma_value -side left
 
+        global Color
         blt::barchart $w.graph -title "Histogram" \
             -height [expr [set $this-nbuckets]*3/4.0] \
-            -width [set $this-nbuckets] -plotbackground gray80 \
-	    -barmode aligned
+            -width [set $this-nbuckets] -plotbackground $Color(EditBackGround) \
+            -barmode aligned -background $Color(UIBackGround)
         pack $w.graph
 
-        frame $w.size -relief flat
+        sci_frame $w.size -relief flat
         pack $w.size -side top -expand yes -fill x
-        label $w.size.l -text "Histogram Bins:  "
-        entry $w.size.e -textvariable $this-nbuckets
+        sci_label $w.size.l -text "Histogram Bins:  "
+        sci_entry $w.size.e -textvariable $this-nbuckets
         pack $w.size.l $w.size.e -side left -expand yes -pady 3
 
         bind $w.size.e <Return> "$this resize_graph; $n"
@@ -187,9 +188,10 @@ itcl_class SCIRun_MiscField_ReportScalarFieldStats {
     }
 
     method tick_format { w val } {
-	set s [format "%2.2e" $val]
-	return $s
+        set s [format "%2.2e" $val]
+        return $s
     }
+    
     method graph_data { nmin nmax args } {
         global $this-min
         global $this-min
@@ -198,11 +200,11 @@ itcl_class SCIRun_MiscField_ReportScalarFieldStats {
         set w .ui[modname]
         if {[winfo exists $w.graph] != 1} {
             set draw_graph_needed 1
-	    if {[set $this-setdata] == 1} {
-		set $this-nmin $nmin
-		set $this-nmax $nmax
-		set $this-args $args
-	    }
+          if {[set $this-setdata] == 1} {
+            set $this-nmin $nmin
+            set $this-nmax $nmax
+            set $this-args $args
+          }
             return
         } else {
             set draw_graph_needed 0
@@ -221,13 +223,13 @@ itcl_class SCIRun_MiscField_ReportScalarFieldStats {
         set yvector {}
         set yvector [concat $yvector $args]
         set frac [expr 1.0/double([llength $yvector]-1)]
-	set bw [expr ($max - $min)/double([llength $yvector] -1)]
-	$w.graph configure -barwidth $bw
+        set bw [expr ($max - $min)/double([llength $yvector] -1)]
+        $w.graph configure -barwidth $bw
 
-	set interval [expr ($max - $min)/3.0]
-	$w.graph axis configure x -min $min \
-	    -max $max -command "$this tick_format" \
-	    -subdivisions 2 -loose 1 -stepsize $interval
+        set interval [expr ($max - $min)/3.0]
+        $w.graph axis configure x -min $min \
+            -max $max -command "$this tick_format" \
+            -subdivisions 2 -loose 1 -stepsize $interval
 
         for {set i 0} { $i < [llength $yvector] } {incr i} {
   	    set val  [expr $min + $i*$frac*($max-$min)]
@@ -239,16 +241,17 @@ itcl_class SCIRun_MiscField_ReportScalarFieldStats {
              $w.graph element delete data
          }
 
-	$w.graph element create data -label {} -xdata $xvector -ydata $yvector
-	$w.graph element configure data -fg blue -relief flat -stipple ""
+        $w.graph element create data -label {} -xdata $xvector -ydata $yvector
+        $w.graph element configure data -fg blue -relief flat -stipple ""
     }
+    
     method clear_data { } {
-	set w .ui[modname]
-        if {[winfo exists $w.graph]} {
-	    if { [$w.graph element exists data] == 1 } {
-		$w.graph element delete data
-	    }
-	}
+      set w .ui[modname]
+      if {[winfo exists $w.graph]} {
+        if { [$w.graph element exists data] == 1 } {
+          $w.graph element delete data
+        }
+      }
     }
 }
 

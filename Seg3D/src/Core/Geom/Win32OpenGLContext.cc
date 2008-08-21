@@ -36,7 +36,7 @@
 #include <Core/Containers/StringUtil.h>
 #include <Core/Datatypes/Color.h>
 #include <Core/Exceptions/InternalError.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h> // for SWAP
 #include <Core/Thread/Mailbox.h>
 #include <Core/Thread/Mutex.h>
@@ -45,6 +45,8 @@
 #include <sci_glx.h>
 #include <iostream>
 #include <set>
+
+#include <Core/Geom/share.h>
 
 using namespace SCIRun;
 using namespace std;
@@ -102,8 +104,6 @@ Win32OpenGLContext::Win32OpenGLContext(int visual,
   OpenGLContext(),
   mutex_("GL lock")
 {
-  CHECK_OPENGL_ERROR("Win32OpenGLContext::Win32OpenGLContext() - start");
-
   width_ = width;
   height_ = height;
 
@@ -113,13 +113,13 @@ Win32OpenGLContext::Win32OpenGLContext(int visual,
   // callback to WindowEventProc will override width and height
   create_window(visual, x, y, width, height, border, show);
 
-  if (needToInitShaders) {
+  if (needToInitShaders) 
+  {
     make_current();
-    SLIVR::ShaderProgramARB::init_shaders_supported();
+    std::string error;
+    SLIVR::ShaderProgramARB::init_shaders_supported(error);
     release();
   }
-
-  CHECK_OPENGL_ERROR("Win32OpenGLContext::Win32OpenGLContext() - end");
 }
 
 
@@ -156,15 +156,13 @@ Win32OpenGLContext::create_window(int visual, int x, int y,
   // create window (without parent for now)
   window_ = CreateWindow(GlClassName, GlClassName,
 	                 style, x, y, width, height,
-			 NULL, NULL, dllHINSTANCE, 
-			 NULL);
+                   NULL, NULL, dllHINSTANCE, 
+                   NULL);
 
-  if (!window_)
-    PrintErr("CreateWindow");
+  if (!window_) PrintErr("CreateWindow");
 
   SetWindowLong(window_, 0, (LONG) this);
 
-  
   if ((hDC_ = GetDC(window_)) == 0)
   {
     fprintf(stderr,"Bad DC returned by GetDC\n");
@@ -174,8 +172,7 @@ Win32OpenGLContext::create_window(int visual, int x, int y,
 
   context_ = create_context(hDC_);
 
-  if (show)
-    ShowWindow(window_, SW_SHOW);
+  if (show) ShowWindow(window_, SW_SHOW);
   UpdateWindow(window_);
 
 
@@ -183,11 +180,6 @@ Win32OpenGLContext::create_window(int visual, int x, int y,
 //static
 HGLRC Win32OpenGLContext::create_context(HDC hdc)
 {
-  CHECK_OPENGL_ERROR("Win32OpenGLContext::create_context - start");
-  CHECK_OPENGL_ERROR("Win32OpenGLContext::create_context - dummy");
-  CHECK_OPENGL_ERROR("Win32OpenGLContext::create_context - dummy");
-  CHECK_OPENGL_ERROR("Win32OpenGLContext::create_context - dummy");
-
   // describe and set the pixel format
   DWORD dwFlags = PFD_DRAW_TO_WINDOW | PFD_STEREO | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER | PFD_GENERIC_ACCELERATED;
 
@@ -236,7 +228,6 @@ HGLRC Win32OpenGLContext::create_context(HDC hdc)
     PrintErr("wglShareLists");
   }
 
-  CHECK_OPENGL_ERROR("Win32OpenGLContext::create_context - end");
   return context;
 }
 
@@ -310,6 +301,12 @@ Win32OpenGLContext::swap()
   X11Lock::lock();
   SwapBuffers(hDC_);
   X11Lock::unlock();
+}
+
+bool
+Win32OpenGLContext::has_shaders()
+{
+  return(SLIVR::ShaderProgramARB::shaders_supported());
 }
 
 

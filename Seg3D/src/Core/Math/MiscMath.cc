@@ -41,18 +41,13 @@
  */
 
 #include <Core/Math/MiscMath.h>
-#include <Core/Math/Expon.h>
 #include <math.h>
-#ifdef __sgi
-#include <ieeefp.h>
-#endif
-#ifdef __digital__
-#include <fp_class.h>
-#endif
+
 #ifdef _WIN32
 #include <float.h>
 #define finite _finite
 #endif
+
 namespace SCIRun {
 
 double MakeReal(double value)
@@ -60,16 +55,7 @@ double MakeReal(double value)
   if (!finite(value))
   {
     int is_inf = 0;
-#ifdef __digital__
-    // on dec, we have fp_class which can tell us if a number is +/- infinity
-    int fpclass = fp_class(value);
-    if (fpclass == FP_POS_INF) is_inf = 1;
-    if (fpclass == FP_NEG_INF) is_inf = -1;
-#elif defined(__sgi)
-    fpclass_t c = fpclass(value);
-    if (c == FP_PINF) is_inf = 1;
-    if (c == FP_NINF) is_inf = -1;
-#elif defined(_WIN32)
+#if defined(_WIN32)
     int c = _fpclass(value);
     if (c == _FPCLASS_PINF) is_inf = 1;
     if (c == _FPCLASS_NINF) is_inf = -1;
@@ -83,7 +69,8 @@ double MakeReal(double value)
   return value;
 }
 
-void findFactorsNearRoot(const int value, int &factor1, int &factor2) {
+void findFactorsNearRoot(const int value, int &factor1, int &factor2) 
+{
   int f1,f2;
   f1 = f2 = (int) Sqrt((double)value);
   // now we are basically looking for a pair of multiples that are closest to

@@ -44,7 +44,7 @@
 #include <Core/Geom/GeomSave.h>
 #include <Core/Geom/GeomTri.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Persistent/PersistentSTL.h>
 #include <iostream>
 #include <functional>
@@ -66,14 +66,14 @@ pair_less(const pair<double, unsigned int> &a,
 
 Persistent* make_GeomTriangles()
 {
-    return scinew GeomTriangles;
+    return new GeomTriangles;
 }
 
 PersistentTypeID GeomTriangles::type_id("GeomTriangles", "GeomObj", make_GeomTriangles);
 
 Persistent* make_GeomTranspTriangles()
 {
-    return scinew GeomTranspTriangles;
+    return new GeomTranspTriangles;
 }
 
 PersistentTypeID GeomTranspTriangles::type_id("GeomTranspTriangles", "GeomFastTriangles", make_GeomTranspTriangles);
@@ -81,7 +81,7 @@ PersistentTypeID GeomTranspTriangles::type_id("GeomTranspTriangles", "GeomFastTr
 
 Persistent* make_GeomFastTriangles()
 {
-    return scinew GeomFastTriangles;
+    return new GeomFastTriangles;
 }
 
 PersistentTypeID GeomFastTriangles::type_id("GeomFastTriangles", "GeomObj", make_GeomFastTriangles);
@@ -89,7 +89,7 @@ PersistentTypeID GeomFastTriangles::type_id("GeomFastTriangles", "GeomObj", make
 
 Persistent* make_GeomFastTrianglesTwoSided()
 {
-    return scinew GeomFastTrianglesTwoSided;
+    return new GeomFastTrianglesTwoSided;
 }
 
 PersistentTypeID GeomFastTrianglesTwoSided::type_id("GeomFastTrianglesTwoSided", "GeomObj", make_GeomFastTrianglesTwoSided);
@@ -97,49 +97,49 @@ PersistentTypeID GeomFastTrianglesTwoSided::type_id("GeomFastTrianglesTwoSided",
 
 Persistent* make_GeomTranspTrianglesTwoSided()
 {
-    return scinew GeomTranspTrianglesTwoSided;
+    return new GeomTranspTrianglesTwoSided;
 }
 
 PersistentTypeID GeomTranspTrianglesTwoSided::type_id("GeomTranspTrianglesTwoSided", "GeomFastTrianglesTwoSided", make_GeomTranspTrianglesTwoSided);
 
 Persistent* make_GeomTrianglesP()
 {
-    return scinew GeomTrianglesP;
+    return new GeomTrianglesP;
 }
 
 PersistentTypeID GeomTrianglesP::type_id("GeomTrianglesP", "GeomObj", make_GeomTrianglesP);
 
 Persistent* make_GeomTrianglesPC()
 {
-    return scinew GeomTrianglesPC;
+    return new GeomTrianglesPC;
 }
 
 PersistentTypeID GeomTrianglesPC::type_id("GeomTrianglesPC", "GeomTrianglesP", make_GeomTrianglesPC);
 
 Persistent* make_GeomTrianglesVP()
 {
-    return scinew GeomTrianglesVP;
+    return new GeomTrianglesVP;
 }
 
 PersistentTypeID GeomTrianglesVP::type_id("GeomTrianglesVP", "GeomObj", make_GeomTrianglesVP);
 
 Persistent* make_GeomTrianglesVPC()
 {
-    return scinew GeomTrianglesVPC;
+    return new GeomTrianglesVPC;
 }
 
 PersistentTypeID GeomTrianglesVPC::type_id("GeomTrianglesVPC", "GeomTrianglesVP", make_GeomTrianglesVPC);
 
 Persistent* make_GeomTrianglesPT1d()
 {
-    return scinew GeomTrianglesPT1d;
+    return new GeomTrianglesPT1d;
 }
 
 PersistentTypeID GeomTrianglesPT1d::type_id("GeomTrianglesPT1d", "GeomObj", make_GeomTrianglesPT1d);
 
 Persistent* make_GeomTranspTrianglesP()
 {
-    return scinew GeomTranspTrianglesP;
+    return new GeomTranspTrianglesP;
 }
 
 PersistentTypeID GeomTranspTrianglesP::type_id("GeomTranspTrianglesP", "GeomObj", make_GeomTranspTrianglesP);
@@ -235,7 +235,7 @@ GeomTriangles::add(GeomVertex* v1, GeomVertex* v2, GeomVertex* v3)
 GeomObj*
 GeomTriangles::clone()
 {
-  return scinew GeomTriangles(*this);
+  return new GeomTriangles(*this);
 }
 
 #define GEOMTRIANGLES_VERSION 1
@@ -270,7 +270,7 @@ GeomFastTriangles::~GeomFastTriangles()
 GeomObj*
 GeomFastTriangles::clone()
 {
-  return scinew GeomFastTriangles(*this);
+  return new GeomFastTriangles(*this);
 }
 
 int
@@ -596,7 +596,7 @@ GeomFastTrianglesTwoSided::~GeomFastTrianglesTwoSided()
 GeomObj*
 GeomFastTrianglesTwoSided::clone()
 {
-  return scinew GeomFastTrianglesTwoSided(*this);
+  return new GeomFastTrianglesTwoSided(*this);
 }
 
 
@@ -814,7 +814,7 @@ GeomTranspTriangles::~GeomTranspTriangles()
 
 GeomObj* GeomTranspTriangles::clone()
 {
-    return scinew GeomTranspTriangles(*this);
+    return new GeomTranspTriangles(*this);
 }
 
 void
@@ -903,7 +903,7 @@ GeomTranspTrianglesTwoSided::~GeomTranspTrianglesTwoSided()
 
 GeomObj* GeomTranspTrianglesTwoSided::clone()
 {
-    return scinew GeomTranspTrianglesTwoSided(*this);
+    return new GeomTranspTrianglesTwoSided(*this);
 }
 
 void

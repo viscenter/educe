@@ -99,7 +99,7 @@ void SimpleServiceOutputThread::run()
 	
       if (handle_->exit_)
       {
-          IComPacketHandle packet = scinew IComPacket;
+          IComPacketHandle packet = new IComPacket;
           packet->settag(TAG_END_);
           handle_->socket_.send(packet);
       }
@@ -154,7 +154,7 @@ void SimpleServiceOutputHandler::start(std::list<std::string> &buffer)
   std::list<std::string>::iterator it;
   for (it = buffer.begin(); it != buffer.end(); it++)
   {
-      IComPacketHandle handle = scinew IComPacket();
+      IComPacketHandle handle = new IComPacket();
       handle->settag(tag_);
       handle->setparam1(count_++);
       handle->setstring((*it));
@@ -165,7 +165,7 @@ void SimpleServiceOutputHandler::start(std::list<std::string> &buffer)
 bool SimpleServiceOutputHandler::execute(std::string line)
 {
 
-  IComPacketHandle handle = scinew IComPacket();
+  IComPacketHandle handle = new IComPacket();
   handle->settag(tag_);
   handle->setparam1(count_++);
   handle->setstring(line);
@@ -175,7 +175,7 @@ bool SimpleServiceOutputHandler::execute(std::string line)
 
 void SimpleServiceOutputHandler::end()
 {
-  IComPacketHandle handle = scinew IComPacket();
+  IComPacketHandle handle = new IComPacket();
   handle->settag(tag_);
   handle->setparam1(-1);
   handle_->add_packet(handle);
@@ -186,7 +186,7 @@ void SimpleServiceOutputHandler::end()
 void SimpleService::forward_stdout(SystemCallHandle syscall)
 {
   stdout_syscall_ = syscall;
-  stdout_handler_ = scinew SimpleServiceOutputHandler(info_handle_,TAG_STDO);
+  stdout_handler_ = new SimpleServiceOutputHandler(info_handle_,TAG_STDO);
   SystemCallHandlerHandle handle = dynamic_cast<SystemCallHandler*>(stdout_handler_.get_rep());
   if(handle.get_rep()) syscall->add_stdout_handler(handle);
 }
@@ -194,7 +194,7 @@ void SimpleService::forward_stdout(SystemCallHandle syscall)
 void SimpleService::forward_stderr(SystemCallHandle syscall)
 {
   stderr_syscall_ = syscall;
-  stderr_handler_ = scinew SimpleServiceOutputHandler(info_handle_,TAG_STDE);
+  stderr_handler_ = new SimpleServiceOutputHandler(info_handle_,TAG_STDE);
   SystemCallHandlerHandle handle = dynamic_cast<SystemCallHandler*>(stderr_handler_.get_rep());
   if(handle.get_rep()) syscall->add_stderr_handler(handle);
 }
@@ -202,7 +202,7 @@ void SimpleService::forward_stderr(SystemCallHandle syscall)
 void SimpleService::forward_exit(SystemCallHandle syscall)
 {
   exit_syscall_ = syscall;
-  exit_handler_ = scinew SimpleServiceOutputHandler(info_handle_,TAG_EXIT);
+  exit_handler_ = new SimpleServiceOutputHandler(info_handle_,TAG_EXIT);
   SystemCallHandlerHandle handle = dynamic_cast<SystemCallHandler*>(exit_handler_.get_rep());
   if(handle.get_rep()) syscall->add_exit_handler(handle);
 }
@@ -278,7 +278,7 @@ void SimpleService::create_service_info()
 
     try
     {
-        info_handle_ = scinew SimpleServiceOutputInfo(getsocket(),getlog());
+        info_handle_ = new SimpleServiceOutputInfo(getsocket(),getlog());
     }
     catch (...)
     {
@@ -301,9 +301,9 @@ void SimpleService::create_output_thread()
     
     try
     {
-        SimpleServiceOutputThread* ssot = scinew SimpleServiceOutputThread(info_handle_);
+        SimpleServiceOutputThread* ssot = new SimpleServiceOutputThread(info_handle_);
         
-        output_thread_ = scinew Thread(ssot,"SimpleServiceOutputThread");
+        output_thread_ = new Thread(ssot,"SimpleServiceOutputThread");
         output_thread_->detach();
         output_thread_ = 0;
 
@@ -329,7 +329,7 @@ void SimpleService::execute()
     putmsg("SimpleService: Create service info object");
     create_service_info();
     
-    IComPacketHandle packet = scinew IComPacket;
+    IComPacketHandle packet = new IComPacket;
     
     putmsg("SimpleService: Initiate service");
     bool success = init_service(packet);

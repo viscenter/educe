@@ -41,6 +41,7 @@ namespace SCIRun {
 class MapFieldDataFromElemToNode : public Module {
   public:
     MapFieldDataFromElemToNode(GuiContext*);
+    virtual ~MapFieldDataFromElemToNode() {}
     virtual void execute();
 
   private:

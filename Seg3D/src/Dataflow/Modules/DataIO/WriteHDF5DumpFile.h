@@ -68,6 +68,7 @@ public:
   herr_t file(const std::string fname);
   herr_t group    (hid_t group_id,   const char *name);
   herr_t all      (hid_t obj_id,     const char *name);
+  herr_t link     (hid_t link_id,    const char *name);
   herr_t attr     (hid_t group_id,   const char *name);
   herr_t dataset  (hid_t dataset_id, const char *name);
   herr_t datatype (hid_t obj_id,     hid_t type);
@@ -82,6 +83,8 @@ private:
   unsigned int indent_;
   unsigned int max_indent_;
 
+  vector<string> path_;
+
   ostream *iostr_;
   std::string error_msg_;
 
@@ -91,7 +94,7 @@ private:
     typename C::iterator p = c.begin();
 
     while( p != c.end() )
-      if( *p = v ) return p;
+      if( *p == v ) return p;
       else p++;
     return p;
   }

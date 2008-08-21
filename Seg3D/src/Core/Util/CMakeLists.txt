@@ -29,21 +29,22 @@
 # Sources of Core/Util classes
 
 SET(Core_Util_SRCS
+  Dir.cc
   DebugStream.cc        
   DynamicLoader.cc      
   DynamicCompilation.cc 
   Endian.cc             
   Environment.cc        
   FileUtils.cc 
-  LogFile.cc         
+  FullFileName.cc
+  LogFile.cc
+  ProcessInfo.cc         
   ProgressReporter.cc   
   RegressionReporter.cc
-  SimpleProfiler.cc     
-  SizeTypeConvert.cc    
+  SimpleProfiler.cc    
   RWS.cc                
   sci_system.cc         
-  soloader.cc           
-  Signals.cc
+  soloader.cc
   Socket.cc            
   Timer.cc             
   ThrottledRunnable.cc 

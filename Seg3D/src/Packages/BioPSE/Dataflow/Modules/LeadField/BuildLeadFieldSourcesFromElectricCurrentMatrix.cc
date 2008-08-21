@@ -123,8 +123,8 @@ BuildLeadFieldSourcesFromElectricCurrentMatrix::execute()
 
   // data looks good
   // make a new vector field and copy the matrix data into it
-  TVFieldV *ofield = scinew TVFieldV(tvmH);
-  TVFieldD *ofield2 = scinew TVFieldD(tvmH);
+  TVFieldV *ofield = new TVFieldV(tvmH);
+  TVFieldD *ofield2 = new TVFieldD(tvmH);
 
   TVMesh::Node::size_type nsize;  tvm->size(nsize);
 
@@ -156,8 +156,8 @@ BuildLeadFieldSourcesFromElectricCurrentMatrix::execute()
 
   vector<Vector> vecs;
   vector<Vector> vecs2;
-  PCMesh *pcm = scinew PCMesh;
-  PCMesh *pcm2 = scinew PCMesh;
+  PCMesh *pcm = new PCMesh;
+  PCMesh *pcm2 = new PCMesh;
   msg_stream_ << "\n\n\nFocusing ``spikes'':\n";
   double halfMax = maxL/2.;
   for (i=0; i<lengths.size(); i++) {
@@ -175,11 +175,11 @@ BuildLeadFieldSourcesFromElectricCurrentMatrix::execute()
   }
   msg_stream_ << "End of focusing spikes.\n";
   PCMesh::handle_type pcmH(pcm);
-  PCField *pc = scinew PCField(pcmH);
+  PCField *pc = new PCField(pcmH);
   pc->fdata()=vecs;
 
   PCMesh::handle_type pcm2H(pcm2);
-  PCField *pc2 = scinew PCField(pcm2H);
+  PCField *pc2 = new PCField(pcm2H);
   pc2->fdata()=vecs2;
 
   for (Field::index_type ui=0; ui<nsize; ui++) 

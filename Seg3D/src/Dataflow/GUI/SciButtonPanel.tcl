@@ -52,6 +52,8 @@
 
 proc makeSciButtonPanel { parent close_window this args } {
   # Parse options
+  global Color
+
   set make_help_btn 1
   set make_exec_btn 1
   set make_close_btn 1
@@ -83,30 +85,29 @@ proc makeSciButtonPanel { parent close_window this args } {
   set outside_pad 4
   frame $parent.buttonPanel -bd 0
   if { $force_bottom == 1 } {
-      pack $parent.buttonPanel -fill x -side bottom
+      pack $parent.buttonPanel -anchor se -fill x -side bottom
   } else {
-      pack $parent.buttonPanel -fill x
+      pack $parent.buttonPanel -anchor se -fill x -side bottom
   }
   set parent $parent.buttonPanel
 
-  frame $parent.separator -height 2 -relief sunken -borderwidth 2
-  pack  $parent.separator -fill x -pady 5
-
-  frame $parent.btnBox
-  pack  $parent.btnBox -anchor e
+  frame $parent.btnBox -background $Color(MainBackGround) -borderwidth 1 -relief raised
+  pack  $parent.btnBox -anchor se -fill x -side bottom -padx 0 -pady 0
 
   if { $make_help_btn } {
       button $parent.btnBox.help -text " ? " \
-	  -command "moduleHelp [$this modname]"
+        -command "moduleHelp [$this modname]"\
+        -bd $Color(BorderWidth) \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -background $Color(ButtonBackGround) \
+        -foreground $Color(ButtonForeGround)     
+      
       set fnt [eval font create [font actual [$parent.btnBox.help cget -font]]]
       set size [expr [font configure $fnt -size]+4]
       font configure $fnt -size $size -weight bold
       $parent.btnBox.help configure -font $fnt
       pack $parent.btnBox.help -padx $outside_pad -pady $outside_pad -side left
-
-      # Vertical separator
-      frame $parent.btnBox.separator2 -width 2 -relief sunken -borderwidth 2
-      pack  $parent.btnBox.separator2 -fill y -padx $outside_pad -pady $outside_pad -side left
 
       # Fast Tooltip
       global tooltipDelayMS
@@ -128,46 +129,60 @@ proc makeSciButtonPanel { parent close_window this args } {
       if { $size < 10 } { set size 10 }
       
       button $parent.btnBox.btn$btnId -width $size \
-	  -text $name -command $command
+        -text $name -command $command\
+        -bd $Color(BorderWidth) \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -background $Color(ButtonBackGround) \
+        -foreground $Color(ButtonForeGround)     
+        
       pack $parent.btnBox.btn$btnId \
-	  -padx $outside_pad -pady $outside_pad -side left
+        -padx $outside_pad -pady $outside_pad -side left
 
-      if { "$tip" != "" } {
-	  Tooltip $parent.btnBox.btn$btnId $tip
-      }
       incr btnId
   }
   
 
   if { $make_exec_btn } {
-      button $parent.btnBox.execute -width 10 -text "Execute" \
-	  -command "$this-c needexecute"
+      button $parent.btnBox.execute -width 10 -text "Execute"\
+        -command "$this-c needexecute" \
+        -bd $Color(BorderWidth) \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -background $Color(ButtonBackGround) \
+        -foreground $Color(ButtonForeGround)  
+              
       pack $parent.btnBox.execute \
-	  -padx $outside_pad -pady $outside_pad -side left
-      Tooltip $parent.btnBox.execute \
-	  "Instructs SCIRun to run this (and any connected) module(s)"
+        -padx $outside_pad -pady $outside_pad -side left
   }
 
   if { $make_close_btn } {
       button $parent.btnBox.close -width 10 -text "Close" \
-	  -command "wm withdraw $close_window"
-      pack   $parent.btnBox.close -padx $outside_pad -pady $outside_pad -side left
-      Tooltip $parent.btnBox.close "Hides this GUI"
+        -command "wm withdraw $close_window" \
+        -bd $Color(BorderWidth) \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -background $Color(ButtonBackGround) \
+        -foreground $Color(ButtonForeGround)  
+                
+      pack   $parent.btnBox.close -padx $outside_pad -pady $outside_pad \
+        -side left
       bind $close_window <Escape> "wm withdraw $close_window"
   }
 
   # Vertical separator
   if { $make_find_btn } {
-      frame $parent.btnBox.separator -width 2 -relief sunken -borderwidth 2
-      pack  $parent.btnBox.separator \
-	  -fill y -padx $outside_pad -pady $outside_pad -side left
 
       button $parent.btnBox.highlight \
-	  -width 10 -text "Find" -command "fadeinIcon [$this modname] 1 1"
-      pack $parent.btnBox.highlight \
-	  -padx $outside_pad -pady $outside_pad -side left
-      Tooltip $parent.btnBox.highlight \
-	  "Highlights (on the Network Editor) the\nmodule that corresponds to this GUI"
+        -width 10 -text "Find" -command "fadeinIcon [$this modname] 1 1"\
+        -bd $Color(BorderWidth) \
+        -activebackground $Color(MenuSelectBackGround)  \
+        -activeforeground $Color(MenuSelectForeGround) \
+        -background $Color(ButtonBackGround) \
+        -foreground $Color(ButtonForeGround)  
+    
+    pack $parent.btnBox.highlight \
+      -padx $outside_pad -pady $outside_pad -side left
   }
 
   # Override the destroy window decoration and make it only close the window

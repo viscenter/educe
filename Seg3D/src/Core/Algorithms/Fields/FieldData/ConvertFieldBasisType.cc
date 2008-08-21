@@ -129,10 +129,11 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
       mesh->get_weights(center,weights,1);
       VMesh::Node::array_type nodes;
       
-      Matrix::index_type k=0;  
+      Matrix::index_type k=0, m=0;  
       for(VMesh::Elem::index_type idx=0; idx<num_elems; idx++)
       {
         mesh->get_nodes(nodes,idx);
+        m = k;
         for(size_t j=0; j<num_nodes_per_elem; j++)
         {
           columns[k] = nodes[j];
@@ -140,6 +141,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
           k++;
         }
         rows[idx] = idx*num_nodes_per_elem;
+        ofield->copy_weighted_value(ifield,&(columns[m]),&(values[m]),k-m,idx);
       }
       
       rows[num_elems] = num_elems*num_nodes_per_elem;
@@ -151,7 +153,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
 
     if (basis_order == 2)
     {
-      mesh->synchronize_edges();
+      mesh->synchronize(Mesh::EDGES_E);
       VMesh::size_type num_edges = mesh->num_edges();
       VMesh::size_type num_edges_per_elem = mesh->num_edges_per_elem();
 
@@ -173,11 +175,12 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
       VMesh::Node::array_type nodes;
       VMesh::Edge::array_type edges;
                 
-      Matrix::index_type k=0;  
+      Matrix::index_type k=0, m=0, n=0;  
       for(VMesh::Elem::index_type idx=0; idx<num_elems; idx++)
       {
         mesh->get_nodes(nodes,idx);
         mesh->get_edges(edges,idx);
+        m = k;
         for(size_t j=0; j<num_nodes_per_elem; j++)
         {
           columns[k] = nodes[j];
@@ -185,12 +188,16 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
           k++;
         }
 
+        n = k;
         for(size_t j=0; j<num_edges_per_elem; j++)
         {
           columns[k] = edges[j]+num_nodes;
           values[k]  = weights[j+num_nodes_per_elem]; 
           k++;
         }
+
+        ofield->copy_weighted_value(ifield,&(columns[m]),&(values[m]),n-m,idx);
+        ofield->copy_weighted_evalue(ifield,&(columns[n]),&(values[n]),k-n,idx);
 
         rows[idx] = idx*(num_nodes_per_elem+num_edges_per_elem);
       }
@@ -247,7 +254,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
     
       VMesh::Elem::array_type elems;
       
-      mesh->synchronize_node_neighbors();
+      mesh->synchronize(Mesh::NODE_NEIGHBORS_E);
       
       Matrix::index_type k=0; 
       rows[0] = 0; 
@@ -269,6 +276,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
           columns[r] = cols[r];
           values[r] = weight;
         }
+        ofield->copy_weighted_value(ifield,&(columns[rows[j]]),&(values[rows[j]]),rows[j+1]-rows[j],j);
       }
       
       mapping = new SparseRowMatrix(num_nodes,num_elems,rows,columns,
@@ -278,7 +286,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
 
     if (basis_order == 2)
     {
-      mesh->synchronize_edges();
+      mesh->synchronize(Mesh::EDGES_E);
       VMesh::size_type num_edges = mesh->num_edges();
 
       Matrix::index_type* rows = new Matrix::index_type[num_nodes+1];
@@ -296,6 +304,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
         columns[idx] = idx;
         values[idx]  = 1.0; 
         rows[idx] = idx;
+        ofield->copy_value(ifield,idx,idx);
       }
       rows[num_nodes] = num_nodes;
 
@@ -317,7 +326,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
     VField* ifield = input->vfield();
     VMesh::size_type num_values = ifield->num_values();
 
-    if (basis_order == 0)
+    if (basis_order == 2)
     {
       // Field is already no data
       output = input;
@@ -333,7 +342,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
     VMesh::coords_type center;
     mesh->get_element_center(center);
     
-    mesh->synchronize_edges();
+    mesh->synchronize(Mesh::EDGES_E);
 
     VMesh::size_type num_elems = mesh->num_elems();
     VMesh::size_type num_nodes = mesh->num_nodes();
@@ -352,7 +361,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
     
       VMesh::Elem::array_type elems;
       
-      mesh->synchronize_node_neighbors();
+      mesh->synchronize(Mesh::NODE_NEIGHBORS_E);
       
       Matrix::index_type k=0;
       rows[0] = 0; 
@@ -381,6 +390,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
           columns[r] = cols[r];
           values[r] = weight;
         }
+        ofield->copy_weighted_value(ifield,&(columns[rows[j]]),&(values[rows[j]]),rows[j+1]-rows[j],j);
       }
       
       mapping = new SparseRowMatrix(num_nodes+num_edges,num_elems,rows,
@@ -405,6 +415,7 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
         columns[idx] = idx;
         values[idx]  = 1.0; 
         rows[idx] = idx;
+        ofield->copy_value(ifield,idx,idx);
       }
       rows[num_nodes] = num_nodes;
         
@@ -415,9 +426,11 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
         mesh->get_nodes(nodes,idx);
         columns[2*idx+num_nodes] = nodes[0];
         columns[2*idx+num_nodes+1] = nodes[1];
-        values[2*idx+num_nodes]  = 0.5; 
+        columns[2*idx+num_nodes]  = 0.5; 
         values[2*idx+num_nodes+1]  = 0.5; 
         rows[idx+num_nodes] = 2*idx+num_nodes;
+        // TODO: Need to make this work
+        ofield->copy_weighted_value(ifield,&(columns[2*idx+num_nodes]),&(values[2*idx+num_nodes] ),2,idx);
       }
       rows[num_nodes+num_edges] = num_nodes+2*num_edges;
 
@@ -426,7 +439,19 @@ run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping)
       algo_end(); return (true);
     }  
   }
-
+  // keep the compiler happy:
+  // it seems reasonable to return false if none of the cases apply (AK)
+  return false;
 }
+
+
+bool
+ConvertFieldBasisTypeAlgo::
+run(FieldHandle input, FieldHandle& output)
+{
+  MatrixHandle dummy;
+  return(run(input,output,dummy));
+}
+
 
 } // end namespace SCIRunAlgo

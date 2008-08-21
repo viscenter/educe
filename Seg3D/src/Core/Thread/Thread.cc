@@ -53,12 +53,6 @@
 #include <iostream>
 #include <string>
 
-#if defined(_AIX)
-// Needed for strcasecmp on aix 4.3 (on 5.1 we don't need this.)
-// currently blue is 4.3.
-#  include <strings.h>
-#endif
-
 #include <string.h>
 #include <sys/types.h>
 #ifdef _WIN32
@@ -312,66 +306,81 @@ Thread::niceAbort(void* context /* = 0 */)
   else
     fprintf(stderr, "With NULL thread pointer.\n");
 
-  for (;;) {
-    if (strcasecmp(smode, "ask") == 0) {
+  for (;;) 
+  {
+    if (strcasecmp(smode, "ask") == 0) 
+    {
       char buf[100];
       fprintf(stderr, "resume(r)/dbx(d)/cvd(c)/kill thread(k)/exit(e)? ");
       fflush(stderr);
-      while(read(fileno(stdin), buf, 100) <= 0){
-	if(errno != EINTR){
-	  fprintf(stderr, "\nCould not read response, sleeping for 20 seconds.\n");
-          Time::waitFor(20.0);
-	  buf[0]='e';
-	  exitAll(1);
-	}
+      while(read(fileno(stdin), buf, 100) <= 0)
+      {
+        if(errno != EINTR)
+        {
+          fprintf(stderr, "\nCould not read response, sleeping for 20 seconds.\n");
+                Time::waitFor(20.0);
+          buf[0]='e';
+          exitAll(1);
+        }
       }
-      switch (buf[0]) {
-      case 'r': case 'R':
-	smode = "resume";
-	break;
-      case 'd': case 'D':
-	smode = "dbx";
-	break;
-      case 'c': case 'C':
-	smode = "cvd";
-	break;
-      case 'k': case 'K':
-	smode = "kill";
-	break;
-      case 'e': case 'E':
-	smode = "exit";
-	break;
-      default:
-	break;
+      switch (buf[0]) 
+      {
+        case 'r': case 'R':
+        smode = "resume";
+        break;
+            case 'd': case 'D':
+        smode = "dbx";
+        break;
+            case 'c': case 'C':
+        smode = "cvd";
+        break;
+            case 'k': case 'K':
+        smode = "kill";
+        break;
+            case 'e': case 'E':
+        smode = "exit";
+        break;
+            default:
+        break;
       }
     }
 
-    if (strcasecmp(smode, "resume") == 0) {
+    if (strcasecmp(smode, "resume") == 0) 
+    {
       return;
-    } else if (strcasecmp(smode, "dbx") == 0) {
+    } 
+    else if (strcasecmp(smode, "dbx") == 0) 
+    {
       char command[500];
-      if(getenv("SCI_DBXCOMMAND")){
-	sprintf(command, getenv("SCI_DBXCOMMAND"), getpid());
-      } else {
-#ifdef __sgi
-	sprintf(command, "winterm -c dbx -p %d &", getpid());
-#else
-	sprintf(command, "xterm -e gdb %d &", getpid());
-#endif
+      if(getenv("SCI_DBXCOMMAND"))
+      {
+        sprintf(command, getenv("SCI_DBXCOMMAND"), getpid());
+      } 
+      else 
+      {
+        sprintf(command, "xterm -e gdb %d &", getpid());
       }
       system(command);
       smode = "ask";
-    } else if (strcasecmp(smode, "cvd") == 0) {
+    } 
+    else if (strcasecmp(smode, "cvd") == 0) 
+    {
       char command[500];
       sprintf(command, "cvd -pid %d &", getpid());
       system(command);
       smode = "ask";
-    } else if (strcasecmp(smode, "kill") == 0) {
+    } 
+    else if (strcasecmp(smode, "kill") == 0) 
+    {
       exit();
-    } else if (strcasecmp(smode, "exit") == 0) {
+    } 
+    else if (strcasecmp(smode, "exit") == 0) 
+    {
       fprintf(stderr, "Exiting\n");
       exitAll(1);
-    } else {
+    } 
+    else 
+    {
       fprintf(stderr, "Unrecognized option, exiting\n");
       smode = "exit";
     }

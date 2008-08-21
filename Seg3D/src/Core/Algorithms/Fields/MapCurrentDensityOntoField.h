@@ -206,7 +206,7 @@ bool MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::MapCurrent
     return (false);  
   }
 
-  output = dynamic_cast<Field *>(scinew FOUT(dmesh));
+  output = dynamic_cast<Field *>(new FOUT(dmesh));
   if (output.get_rep() == 0)
   {
     pr->error("MapCurrentDensityOntoField: Could no allocate output field");
@@ -232,10 +232,10 @@ bool MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::MapCurrent
   IData.integrationfilter = integrationfilter;
   
   // Determine the number of processors to use:
-  int np = Thread::numProcessors(); if (np > 5) np = 5;  
+  int np = Thread::numProcessors();  
   if (numproc > 0) { np = numproc; }
   IData.numproc = np;
-   
+
   Thread::parallel(this,&MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel,np,&IData);
     
   return (IData.retval);
@@ -294,7 +294,7 @@ bool MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::MapCur
     return (false);  
   }
 
-  output = dynamic_cast<Field *>(scinew FOUT(dmesh));
+  output = dynamic_cast<Field *>(new FOUT(dmesh));
   if (output.get_rep() == 0)
   {
     pr->error("MapCurrentDensityOntoField: Could no allocate output field");
@@ -320,7 +320,7 @@ bool MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::MapCur
   IData.integrationfilter = integrationfilter;
   
   // Determine the number of processors to use:
-  int np = Thread::numProcessors(); if (np > 5) np = 5;  
+  int np = Thread::numProcessors(); 
   if (numproc > 0) { np = numproc; }
   IData.numproc = np;
    
@@ -357,7 +357,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
   std::vector<Point> points;
   std::vector<double> weights;
   std::string filter = idata->integrationfilter;
-  double con;
+  typename FCON::value_type con;
   typename FOUT::value_type grad;
   Vector g;
   
@@ -374,12 +374,12 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
         {
-          g[0] = grad[0]; g[1] = grad[1]; g[2] = grad[2];
+          g[0] = grad[0]; g[1] = grad[1]; g[2] = grad[2];          
           valarray[p] = -(con*g);
         }
         else
         {
-          valarray[p] = 0;
+          valarray[p] = typename FOUT::value_type(0);
         }
       }
       sort(valarray.begin(),valarray.end());
@@ -396,8 +396,8 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
     while (it != eit)
     {
       integrator.get_nodes_and_weights(*it,points,weights);
-      typename FOUT::value_type val; val = 0;
-      typename FOUT::value_type tval; tval = 0;
+      typename FOUT::value_type val(0);
+      typename FOUT::value_type tval(0);
 
       if (points.size() > 0)
       {
@@ -408,7 +408,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
         }
         else
         {
-          val = 0;
+          val = typename FOUT::value_type(0);
         }
         for (size_t p = 1; p < points.size(); p++)
         {
@@ -419,7 +419,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
           }
           else
           {
-            tval = 0;
+            tval = typename FOUT::value_type(0);
           }
           if (tval < val) val = tval;
         }
@@ -436,8 +436,8 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
     while (it != eit)
     {
       integrator.get_nodes_and_weights(*it,points,weights);
-      typename FOUT::value_type val; val = 0;
-      typename FOUT::value_type tval; tval = 0;
+      typename FOUT::value_type val(0);
+      typename FOUT::value_type tval(0);
 
       if (points.size() > 0)
       {
@@ -448,7 +448,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
         }
         else
         {
-          val = 0;
+          val = typename FOUT::value_type(0);
         }
         for (size_t p = 1; p < points.size(); p++)
         {
@@ -459,7 +459,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
           }
           else
           {
-            tval = 0;
+            tval = typename FOUT::value_type(0);
           }
           if (tval > val) val = tval;
         }
@@ -488,13 +488,13 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
         }
         else
         {
-          valarray[p] = 0;
+          valarray[p] = typename FOUT::value_type(0);
         }
       }
       sort(valarray.begin(),valarray.end());
        
-      typename FOUT::value_type rval; rval = 0;
-      typename FOUT::value_type val;  val = 0;
+      typename FOUT::value_type rval(0);
+      typename FOUT::value_type val(0);
       int rnum = 0;
       
       int p = 0;
@@ -524,7 +524,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
     {
       integrator.get_nodes_and_iweights(*it,points,weights);
 
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -534,13 +534,11 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2*weights[p];
       }
-      
       ofield->set_value(val,*it);
-
       for (int p =0; p < numproc; p++) if (it != eit) ++it;  
       if (procnum == 0) { cnt++; if (cnt == 100) { pr->update_progress(static_cast<int>(*it),static_cast<int>(s)); cnt = 1; } }      
     }
@@ -552,7 +550,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
     {
       integrator.get_nodes_and_weights(*it,points,weights);
 
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -562,13 +560,12 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2*weights[p];
       }
       
       ofield->set_value(val,*it);
-
       for (int p =0; p < numproc; p++) if (it != eit) ++it;  
       if (procnum == 0) { cnt++; if (cnt == 100) { pr->update_progress(static_cast<int>(*it),static_cast<int>(s)); cnt = 1; } }      
     }
@@ -580,7 +577,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
     {
       integrator.get_nodes_and_weights(*it,points,weights);
       
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -590,7 +587,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2 * (1.0/points.size());
       }
@@ -607,7 +604,7 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
     {
       integrator.get_nodes_and_weights(*it,points,weights);
       
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -617,8 +614,9 @@ void MapCurrentDensityOntoFieldAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel_u
         }
         else
         {
-          val2 = 0;
-        }        val += val2;
+          val2 = typename FOUT::value_type(0);
+        }        
+        val += val2;
       }
 
       ofield->set_value(val,*it);
@@ -698,7 +696,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
   std::vector<Point> points;
   std::vector<double> weights;
   std::string filter = idata->integrationfilter;
-  double con;
+  typename FCON::value_type con;
   Vector grad;
   Vector g;
   
@@ -723,7 +721,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
         }
         else
         {
-          valarray[p] = 0;
+          valarray[p] = typename FOUT::value_type(0);
         }
       }
       sort(valarray.begin(),valarray.end());
@@ -740,8 +738,8 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
     while (it != eit)
     {
       integrator.get_nodes_and_weights(*it,points,weights);
-      typename FOUT::value_type val; val = 0;
-      typename FOUT::value_type tval; tval = 0;
+      typename FOUT::value_type val(0);
+      typename FOUT::value_type tval(0);
 
       if (points.size() > 0)
       {
@@ -753,7 +751,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
         }
         else
         {
-          val = 0;
+          val = typename FOUT::value_type(0);
         }
         for (size_t p = 1; p < points.size(); p++)
         {
@@ -765,7 +763,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
           }
           else
           {
-            tval = 0;
+            tval = typename FOUT::value_type(0);
           }
           if (tval < val) val = tval;
         }
@@ -782,8 +780,8 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
     while (it != eit)
     {
       integrator.get_nodes_and_weights(*it,points,weights);
-      typename FOUT::value_type val; val = 0;
-      typename FOUT::value_type tval; tval = 0;
+      typename FOUT::value_type val(0);
+      typename FOUT::value_type tval(0);
 
       if (points.size() > 0)
       {
@@ -795,7 +793,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
         }
         else
         {
-          val = 0;
+          val = typename FOUT::value_type(0);
         }
         for (size_t p = 1; p < points.size(); p++)
         {
@@ -807,7 +805,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
           }
           else
           {
-            tval = 0;
+            tval = typename FOUT::value_type(0);
           }
           if (tval > val) val = tval;
         }
@@ -837,13 +835,13 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
         }
         else
         {
-          valarray[p] = 0;
+          valarray[p] = typename FOUT::value_type(0);
         }
       }
       sort(valarray.begin(),valarray.end());
        
-      typename FOUT::value_type rval; rval = 0;
-      typename FOUT::value_type val;  val = 0;
+      typename FOUT::value_type rval(0);
+      typename FOUT::value_type val(0);
       int rnum = 0;
       
       int p = 0;
@@ -873,7 +871,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
     {
       integrator.get_nodes_and_iweights(*it,points,weights);
 
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -884,7 +882,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2*weights[p];
       }
@@ -902,7 +900,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
     {
       integrator.get_nodes_and_weights(*it,points,weights);
 
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -913,7 +911,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2*weights[p];
       }
@@ -931,7 +929,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
     {
       integrator.get_nodes_and_weights(*it,points,weights);
       
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -942,7 +940,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2 * (1.0/points.size());
       }
@@ -959,7 +957,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
     {
       integrator.get_nodes_and_weights(*it,points,weights);
       
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -970,7 +968,7 @@ void MapCurrentDensityOntoFieldNormAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parall
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }        
         val += val2;
       }
@@ -1075,7 +1073,7 @@ bool MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::MapC
     return (false);  
   }
 
-  output = dynamic_cast<Field *>(scinew FOUT(dmesh));
+  output = dynamic_cast<Field *>(new FOUT(dmesh));
   if (output.get_rep() == 0)
   {
     pr->error("MapCurrentDensityOntoField: Could no allocate output field");
@@ -1101,10 +1099,9 @@ bool MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::MapC
   IData.integrationfilter = integrationfilter;
   
   // Determine the number of processors to use:
-  int np = Thread::numProcessors(); if (np > 5) np = 5;  
+  int np = Thread::numProcessors();  
   if (numproc > 0) { np = numproc; }
   IData.numproc = np;
-   
   Thread::parallel(this,&MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::parallel,np,&IData);
     
   return (IData.retval);
@@ -1140,7 +1137,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
   std::vector<double> weights;
   std::vector<Vector> normals;
   std::string filter = idata->integrationfilter;
-  double con;
+  typename FCON::value_type con;
   Vector grad;
   Vector g;
   
@@ -1163,7 +1160,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
         }
         else
         {
-          valarray[p] = 0; 
+          valarray[p] = typename FOUT::value_type(0); 
         }
       }
       sort(valarray.begin(),valarray.end());
@@ -1180,8 +1177,8 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
     while (it != eit)
     {
       integrator.get_nodes_normals_and_weights(*it,points,normals,weights);
-      typename FOUT::value_type val = 0;
-      typename FOUT::value_type tval = 0;
+      typename FOUT::value_type val(0);
+      typename FOUT::value_type tval(0);
 
       if (points.size() > 0)
       {
@@ -1192,7 +1189,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
         }
         else
         {
-          val = 0;
+          val = typename FOUT::value_type(0);
         }
         for (size_t p = 1; p < points.size(); p++)
         {
@@ -1203,7 +1200,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
           }
           else
           {
-            tval = 0;
+            tval = typename FOUT::value_type(0);
           }
           if (tval < val) val = tval;
         }
@@ -1220,8 +1217,8 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
     while (it != eit)
     {
       integrator.get_nodes_normals_and_weights(*it,points,normals,weights);
-      typename FOUT::value_type val = 0;
-      typename FOUT::value_type tval = 0;
+      typename FOUT::value_type val(0);
+      typename FOUT::value_type tval(0);
 
       if (points.size() > 0)
       {
@@ -1232,7 +1229,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
         }
         else
         {
-          val = 0;
+          val = typename FOUT::value_type(0);
         }
 
         for (size_t p = 1; p < points.size(); p++)
@@ -1273,13 +1270,13 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
         }
         else
         {
-          valarray[p] = 0;
+          valarray[p] = typename FOUT::value_type(0);
         }
       }
       sort(valarray.begin(),valarray.end());
        
-      typename FOUT::value_type rval = 0;
-      typename FOUT::value_type val = 0;
+      typename FOUT::value_type rval(0);
+      typename FOUT::value_type val(0);
       int rnum = 0;
       
       int p = 0;
@@ -1309,7 +1306,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
     {
       integrator.get_nodes_normals_and_iweights(*it,points,normals,weights);
 
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -1319,7 +1316,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2*weights[p];
       }
@@ -1337,7 +1334,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
     {
       integrator.get_nodes_normals_and_weights(*it,points,normals,weights);
 
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -1347,7 +1344,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2*weights[p];
       }
@@ -1365,7 +1362,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
     {
       integrator.get_nodes_normals_and_weights(*it,points,normals,weights);
       
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -1375,7 +1372,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2 * (1.0/points.size());
       }
@@ -1392,7 +1389,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
     {
       integrator.get_nodes_normals_and_weights(*it,points,normals,weights);
       
-      val = 0;
+      val = typename FOUT::value_type(0);
       for (int p=0; p<points.size(); p++)
       {
         if (pmapping.get_gradient(points[p],grad)&&cmapping.get_data(points[p],con))
@@ -1402,7 +1399,7 @@ void MapCurrentDensityOntoFieldNormalAlgoT<INTEGRATOR,FPOT,FCON,FDST,FOUT>::para
         }
         else
         {
-          val2 = 0;
+          val2 = typename FOUT::value_type(0);
         }
         val += val2;
       }

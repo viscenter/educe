@@ -199,7 +199,7 @@ public:
   typedef SCIRun::size_type  size_type;
 
   virtual ~Persistent();
-  virtual void io(Piostream&) = 0;
+  virtual void io(Piostream&);
 };
 
 //----------------------------------------------------------------------

@@ -44,7 +44,7 @@
 #include <Core/Util/NotFinished.h>
 #include <Core/Geom/GeomTri.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/Trig.h>
 #include <iostream>
@@ -55,7 +55,7 @@ namespace SCIRun {
 
 Persistent* make_GeomDisk()
 {
-    return scinew GeomDisk;
+    return new GeomDisk;
 }
 
 PersistentTypeID GeomDisk::type_id("GeomDisk", "GeomObj", make_GeomDisk);
@@ -98,7 +98,7 @@ GeomDisk::~GeomDisk()
 
 GeomObj* GeomDisk::clone()
 {
-    return scinew GeomDisk(*this);
+    return new GeomDisk(*this);
 }
 
 void GeomDisk::adjust()

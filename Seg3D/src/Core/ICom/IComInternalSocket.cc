@@ -404,7 +404,7 @@ bool	IComInternalSocket::send(IComPacketHandle &packet, IComSocketError &err)
 	// If some decides to reuse a packet, there is one
 	// that is not coupled to the one just send
 	// otherwise efforts may interfere
-	packet = scinew IComPacket();
+	packet = new IComPacket();
 
 	err.errnr = 0;
 	err.error = "";

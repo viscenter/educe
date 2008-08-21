@@ -41,7 +41,7 @@
 
 #include <stdio.h>
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Module.h>
 #include <Core/Datatypes/ColumnMatrix.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
@@ -53,45 +53,44 @@
 #include <Core/Geom/GeomLine.h>
 #include <Core/Geom/GeomText.h>
 #include <Core/Geom/GeomTransform.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomSticky.h>
 
 namespace SCIRun {
 
 class CreateViewerClockIcon : public Module {
-public:
-  CreateViewerClockIcon(GuiContext *context);
+  public:
+    CreateViewerClockIcon(GuiContext *context);
+    virtual ~CreateViewerClockIcon() {}
 
-  virtual ~CreateViewerClockIcon();
+    virtual void execute();
 
-  virtual void execute();
+  protected:
+    GeomHandle generateAnalog ();
+    GeomHandle generateDigital();
+    GeomHandle generateTime( int &nchars );
 
-protected:
-  GeomHandle generateAnalog ();
-  GeomHandle generateDigital();
-  GeomHandle generateTime( int &nchars );
+    virtual void tcl_command(GuiArgs& args, void* userdata);
 
-  virtual void tcl_command(GuiArgs& args, void* userdata);
+  private:
+    GeomHandle geometry_out_handle_;
 
-private:
-  GeomHandle geometry_out_handle_;
+    GuiInt    gui_type_;
+    GuiInt    gui_bbox_;
+    GuiString gui_format_;
+    GuiDouble gui_min_;
+    GuiDouble gui_max_;
+    GuiString gui_current_;
+    GuiInt    gui_size_;
+    GuiDouble gui_location_x_;
+    GuiDouble gui_location_y_;
+    GuiDouble gui_color_r_;
+    GuiDouble gui_color_g_;
+    GuiDouble gui_color_b_;
 
-  GuiInt    gui_type_;
-  GuiInt    gui_bbox_;
-  GuiString gui_format_;
-  GuiDouble gui_min_;
-  GuiDouble gui_max_;
-  GuiString gui_current_;
-  GuiInt    gui_size_;
-  GuiDouble gui_location_x_;
-  GuiDouble gui_location_y_;
-  GuiDouble gui_color_r_;
-  GuiDouble gui_color_g_;
-  GuiDouble gui_color_b_;
+    MaterialHandle material_handle_;
 
-  MaterialHandle material_handle_;
-
-  bool color_changed_;
+    bool color_changed_;
 };
 
 
@@ -113,12 +112,9 @@ CreateViewerClockIcon::CreateViewerClockIcon(GuiContext *context)
     gui_color_r_(context->subVar("color-r"), 1.0),
     gui_color_g_(context->subVar("color-g"), 1.0),
     gui_color_b_(context->subVar("color-b"), 1.0),
-    material_handle_(scinew Material(Color(1.0, 1.0, 1.0))),
+    material_handle_(new Material(Color(1.0, 1.0, 1.0))),
     color_changed_(false)
 {
-}
-
-CreateViewerClockIcon::~CreateViewerClockIcon(){
 }
 
 void CreateViewerClockIcon::execute(){
@@ -205,7 +201,7 @@ GeomHandle CreateViewerClockIcon::generateAnalog()
   Vector refVec = 31.0/32.0 *
     Vector( gui_location_x_.get(), gui_location_y_.get(), 0.0 );
 
-  GeomGroup *group = scinew GeomGroup();
+  GeomGroup *group = new GeomGroup();
 
   double gsizes[5] = { 0.25, 0.50, 1.0, 1.5, 2.0 };  
   double radius = 0.075 * gsizes[gui_size_.get()];
@@ -229,7 +225,7 @@ GeomHandle CreateViewerClockIcon::generateAnalog()
 
 
 
-  GeomGroup *circle = scinew GeomGroup();
+  GeomGroup *circle = new GeomGroup();
 
 
   refVec += Vector( radius, radius, 0 );
@@ -258,7 +254,7 @@ GeomHandle CreateViewerClockIcon::generateAnalog()
   circle->add( new GeomLine( refVec + Point(0,0,0),
 			     refVec + Point( cx, cy, 0 ) ) );
   
-  group->add( scinew GeomMaterial(circle, material_handle_) );
+  group->add( new GeomMaterial(circle, material_handle_) );
   
   double border = 0.0125;
 
@@ -271,7 +267,7 @@ GeomHandle CreateViewerClockIcon::generateAnalog()
     Vector refVec = 31.0/32.0 *
       Vector( gui_location_x_.get(), gui_location_y_.get(), 0.0 );
 
-    GeomGroup *box = scinew GeomGroup();
+    GeomGroup *box = new GeomGroup();
     
     box->add( new GeomLine( refVec+Point(-border,-border,0),
 			    refVec+Point(dx,-border,0) ) );
@@ -285,15 +281,15 @@ GeomHandle CreateViewerClockIcon::generateAnalog()
     box->add( new GeomLine( refVec+Point(-border,dy,0),
 			    refVec+Point(-border,-border,0) ) );
     
-    group->add( scinew GeomMaterial(box, material_handle_) );
+    group->add( new GeomMaterial(box, material_handle_) );
   }
 
-  return scinew GeomSticky( group );
+  return new GeomSticky( group );
 }
 
 GeomHandle CreateViewerClockIcon::generateDigital()
 {
-  GeomGroup *group = scinew GeomGroup();
+  GeomGroup *group = new GeomGroup();
 
   int nchars = 0;
 
@@ -311,7 +307,7 @@ GeomHandle CreateViewerClockIcon::generateDigital()
     Vector refVec = 31.0/32.0 *
       Vector( gui_location_x_.get(), gui_location_y_.get(), 0.0 );
 
-    GeomGroup *box = scinew GeomGroup();
+    GeomGroup *box = new GeomGroup();
     
     box->add( new GeomLine( refVec+Point(-border,-border,0),
 			    refVec+Point(dx,-border,0) ) );
@@ -325,10 +321,10 @@ GeomHandle CreateViewerClockIcon::generateDigital()
     box->add( new GeomLine( refVec+Point(-border,dy,0),
 			    refVec+Point(-border,-border,0) ) );
     
-    group->add( scinew GeomMaterial(box, material_handle_) );
+    group->add( new GeomMaterial(box, material_handle_) );
   }
 
-  return scinew GeomSticky( group );
+  return new GeomSticky( group );
 }
 
 
@@ -353,7 +349,7 @@ GeomHandle CreateViewerClockIcon::generateTime( int &nchars )
 
   nchars = istr.size();
     
-  GeomTexts* texts = scinew GeomTexts();
+  GeomTexts* texts = new GeomTexts();
   texts->set_font_index(gui_size_.get());
   texts->set_is_2d(true);
 

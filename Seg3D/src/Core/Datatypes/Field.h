@@ -36,7 +36,6 @@
 #include <Core/Datatypes/VMesh.h>
 #include <Core/Datatypes/VField.h>
 #include <Core/Containers/LockingHandle.h>
-#include <Core/Datatypes/FieldInterface.h>
 #include <Core/Util/ProgressReporter.h>
 #include <Core/Util/DynamicCompilation.h>
 
@@ -44,10 +43,6 @@
 
 namespace SCIRun {
  
-typedef LockingHandle<ScalarFieldInterface> ScalarFieldInterfaceHandle;
-typedef LockingHandle<VectorFieldInterface> VectorFieldInterfaceHandle;
-typedef LockingHandle<TensorFieldInterface> TensorFieldInterfaceHandle;
-
 class SCISHARE Field: public PropertyManager
 {
 public:
@@ -87,14 +82,6 @@ public:
   virtual const TypeDescription *order_type_description() const = 0; // <- SHOULD REMOVE THIS ONE
   virtual const TypeDescription* get_type_description(td_info_e td = FULL_TD_E) const = 0; 
   
-  //! Required interfaces (These will soon be obsolete)
-  virtual ScalarFieldInterfaceHandle query_scalar_interface(
-						      ProgressReporter* = 0); // <- SHOULD REMOVE THIS ONE
-  virtual VectorFieldInterfaceHandle query_vector_interface(
-						      ProgressReporter* = 0); // <- SHOULD REMOVE THIS ONE
-  virtual TensorFieldInterfaceHandle query_tensor_interface(
-						      ProgressReporter* = 0); // <- SHOULD REMOVE THIS ONE
-
   //! Persistent I/O.
   static  PersistentTypeID type_id;
   virtual void io(Piostream &stream);

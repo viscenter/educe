@@ -41,29 +41,29 @@ itcl_class Teem_UnuNtoZ_UnuShuffle {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.ordering -labeltext "New Slice Ordering:" -textvariable $this-ordering
+        sci_entryfield $w.f.options.ordering -labeltext "New Slice Ordering:" -textvariable $this-ordering
         pack $w.f.options.ordering -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.axis -labeltext "Axis:" -textvariable $this-axis
+        sci_entryfield $w.f.options.axis -labeltext "Axis:" -textvariable $this-axis
         pack $w.f.options.axis -side top -expand yes -fill x
 
-	checkbutton $w.f.options.inverse \
-		-text "Use Inverse of Given Permutation" \
-		-variable $this-inverse
-	pack $w.f.options.inverse -side top -expand yes -fill x
+        sci_checkbutton $w.f.options.inverse \
+          -text "Use Inverse of Given Permutation" \
+          -variable $this-inverse
+        pack $w.f.options.inverse -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
     }
 }
 

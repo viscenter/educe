@@ -44,14 +44,14 @@ itcl_class SCIRun_NewField_CollectFields {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        iwidgets::entryfield $w.bs \
+        sci_entryfield $w.bs \
           -labeltext "Buffer Size" \
           -textvariable $this-buffersize
         pack $w.bs -side top -expand yes -fill x
 
-        button $w.reset -text "Reset Buffer" -command "$this-c reset; $this-c needexecute"       
+        sci_button $w.reset -text "Reset Buffer" -command "$this-c reset; $this-c needexecute"       
         pack $w.reset -side top 
 
         makeSciButtonPanel $w $w $this

@@ -54,7 +54,7 @@
 #include <Core/Datatypes/TriSurfMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 
@@ -199,7 +199,7 @@ main(int argc, char **argv) {
   typedef NoDataBasis<double>  DatBasis;
   typedef GenericField<TSMesh, DatBasis, vector<double> > TSField;
 
-  TSField *ts = scinew TSField(tsm);
+  TSField *ts = new TSField(tsm);
   FieldHandle tsH(ts);
   
   if (binOutput) {

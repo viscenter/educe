@@ -46,7 +46,7 @@
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCITeem {
 

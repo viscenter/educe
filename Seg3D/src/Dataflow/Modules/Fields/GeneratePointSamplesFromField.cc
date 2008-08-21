@@ -39,64 +39,59 @@
  *
  */
 
-
-#include <Dataflow/Network/Module.h>
-#include <Core/Containers/StringUtil.h>
-#include <Core/Geometry/Tensor.h>
-#include <Core/Basis/Constant.h>
-#include <Core/Datatypes/PointCloudMesh.h>
-#include <Core/Datatypes/GenericField.h>
-#include <Core/Datatypes/FieldInterface.h>
-#include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Network/Ports/GeometryPort.h>
-#include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/ColumnMatrix.h>
+#include <Core/Containers/StringUtil.h>
+
 #include <Core/Thread/CrowdMonitor.h>
+
 #include <Dataflow/Widgets/PointWidget.h>
 #include <Dataflow/Widgets/ArrowWidget.h>
 #include <Dataflow/Widgets/RingWidget.h>
 
+#include <Dataflow/Network/Ports/FieldPort.h>
+#include <Dataflow/Network/Ports/GeometryPort.h>
+#include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Dataflow/Network/Module.h>
 
-#include <Core/Datatypes/Clipper.h>
 #include <iostream>
-#include <stack>
 
 namespace SCIRun {
 
-using std::stack;
-
 class GeneratePointSamplesFromField : public Module
 {
-private:
-  CrowdMonitor widget_lock_;
-  BBox last_bounds_;
+  public:
+    GeneratePointSamplesFromField(GuiContext* ctx);
+    virtual ~GeneratePointSamplesFromField() {}
 
-  vector<int>              widget_id_;
-  vector<GeomHandle>       widget_switch_;
-  vector<PointWidget*>     widget_;
-  vector<ArrowWidget*>     widget_vec_;
-  vector<RingWidget*>      widget_ring_;
+    virtual void execute();
+    virtual void widget_moved(bool, BaseWidget*);
 
-  bool bbox_similar_to(const BBox &a, const BBox &b);
-  double l2norm_;
+    vector<GuiDouble*> seeds_;
 
-public:
-  GeneratePointSamplesFromField(GuiContext* ctx);
-  virtual ~GeneratePointSamplesFromField();
+    GuiInt    gui_num_seeds_;
+    GuiDouble gui_probe_scale_;
+    GuiInt    gui_send_;
+    GuiInt    gui_widget_;
+    GuiDouble red_;
+    GuiDouble green_;
+    GuiDouble blue_;
+    GuiInt    gui_auto_execute_;
+  
+  private:
+    CrowdMonitor widget_lock_;
+    BBox last_bounds_;
 
-  virtual void execute();
-  virtual void widget_moved(bool, BaseWidget*);
+    vector<int>              widget_id_;
+    vector<GeomHandle>       widget_switch_;
+    vector<PointWidget*>     widget_;
+    vector<ArrowWidget*>     widget_vec_;
+    vector<RingWidget*>      widget_ring_;
 
-  vector<GuiDouble*> seeds_;
-
-  GuiInt    gui_num_seeds_;
-  GuiDouble gui_probe_scale_;
-  GuiInt    gui_send_;
-  GuiInt    gui_widget_;
-  GuiDouble red_;
-  GuiDouble green_;
-  GuiDouble blue_;
-  GuiInt    gui_auto_execute_;
+    bool bbox_similar_to(const BBox &a, const BBox &b);
+    double l2norm_;
 };
 
 
@@ -113,11 +108,6 @@ GeneratePointSamplesFromField::GeneratePointSamplesFromField(GuiContext* ctx)
     green_(get_ctx()->subVar("green"), 0.5),
     blue_(get_ctx()->subVar("blue"), 0.5),
     gui_auto_execute_(get_ctx()->subVar("auto_execute"), 1)
-{
-}
-
-
-GeneratePointSamplesFromField::~GeneratePointSamplesFromField()
 {
 }
 
@@ -164,7 +154,7 @@ GeneratePointSamplesFromField::execute()
 {
   // Get input field.
   FieldHandle ifieldhandle;
-  if (!get_input_handle("Input Field", ifieldhandle)) return;
+  get_input_handle("Input Field", ifieldhandle,true);
 
   bool input_field_p = true;
   // TODO: It looks like the input field is meant to be optional even
@@ -179,7 +169,7 @@ GeneratePointSamplesFromField::execute()
   BBox bbox;
   if (input_field_p)
   {
-    bbox = ifieldhandle->mesh()->get_bounding_box();
+    bbox = ifieldhandle->vmesh()->get_bounding_box();
   }
   else
   {
@@ -214,8 +204,8 @@ GeneratePointSamplesFromField::execute()
     center = bmin + Vector(bmax - bmin) * 0.5;
     l2norm_ = (bmax - bmin).length();
 
-    GeometryOPort *ogport = (GeometryOPort*)get_oport("GeneratePointSamplesFromField Widget");
-    if (!ogport)
+    GeometryOPortHandle ogport;
+    if (!(get_oport_handle("GeneratePointSamplesFromField Widget",ogport)))
     {
       error("Unable to initialize " + module_name_ + "'s oport.");
       return;
@@ -230,8 +220,8 @@ GeneratePointSamplesFromField::execute()
   if ((int)widget_id_.size() != numSeeds) 
   {
 
-    GeometryOPort *ogport = (GeometryOPort*)get_oport("GeneratePointSamplesFromField Widget");
-    if (!ogport)
+    GeometryOPortHandle ogport; 
+    if (!(get_oport_handle("GeneratePointSamplesFromField Widget",ogport)))
     {
       error("Unable to initialize " + module_name_ + "'s oport.");
       return;
@@ -239,136 +229,141 @@ GeneratePointSamplesFromField::execute()
 
     if(numSeeds < (int)widget_id_.size()) 
     {
-
       for (int i = numSeeds; i < (int)widget_id_.size(); i++)
-	{
-	  ((GeomSwitch *)(widget_switch_[i].get_rep()))->set_state(0);
-	  ogport->delObj(widget_id_[i]);
-	  ogport->flushViews();
+      {
+        ((GeomSwitch *)(widget_switch_[i].get_rep()))->set_state(0);
+        ogport->delObj(widget_id_[i]);
+        ogport->flushViews();
 
-	  //delete in tcl side
-	  ostringstream str;
-	  str << i;
-	  get_gui()->execute(get_id().c_str() + string(" clear_seed " + str.str()));
+        //delete in tcl side
+        ostringstream str;
+        str << i;
+        get_gui()->execute(get_id().c_str() + string(" clear_seed " + str.str()));
 
-	}
+      }
       widget_switch_.resize(numSeeds);
       widget_id_.resize(numSeeds);
       if (gui_widget_.get() == 0) 
       	widget_vec_.resize(numSeeds);
       else
       	widget_ring_.resize(numSeeds);
-
-
-    } else {
-
+    } 
+    else 
+    {
       for (int i=widget_id_.size(); i <numSeeds; i++) 
       {
-	if (gui_widget_.get() == 0) {
-	  PointWidget *seed = scinew PointWidget(this, &widget_lock_, 1.0);
-	  MaterialHandle redMatl = new Material(Color(red_.get(), green_.get(), blue_.get()));
-	  seed->SetMaterial(0,redMatl);
-	  seed->Connect(ogport);
-	  widget_.push_back(seed);
-	  
-	  widget_switch_.push_back(widget_[i]->GetWidget());
-	  ((GeomSwitch *)(widget_switch_[i].get_rep()))->set_state(1);
-	  
-	  widget_id_.push_back(ogport->addObj(widget_switch_[i], "SeedPoint" + to_string((int)i),
-					      &widget_lock_));	
+        if (gui_widget_.get() == 0) 
+        {
+          PointWidget *seed = new PointWidget(this, &widget_lock_, 1.0);
+          MaterialHandle redMatl = new Material(Color(red_.get(), green_.get(), blue_.get()));
+          seed->SetMaterial(0,redMatl);
+          seed->Connect(ogport.get_rep());
+          widget_.push_back(seed);
+          
+          widget_switch_.push_back(widget_[i]->GetWidget());
+          ((GeomSwitch *)(widget_switch_[i].get_rep()))->set_state(1);
+          
+          widget_id_.push_back(ogport->addObj(widget_switch_[i], "SeedPoint" + to_string((int)i),
+                      &widget_lock_));	
 
-	  // input saved out positions
-	  ostringstream strX, strY, strZ;
-	  
-	  strX << "seedX" << i;
-	  GuiDouble* gui_locx = new GuiDouble(get_ctx()->subVar(strX.str()));
-	  seeds_.push_back(gui_locx);
-	  
-	  strY << "seedY" << i;
-	  GuiDouble* gui_locy = new GuiDouble(get_ctx()->subVar(strY.str()));
-	  seeds_.push_back(gui_locy);
-	  
-	  strZ << "seedZ" << i;
-	  GuiDouble* gui_locz = new GuiDouble(get_ctx()->subVar(strZ.str()));
-	  seeds_.push_back(gui_locz);
-	  
-	  Point curloc(gui_locx->get(),gui_locy->get(),gui_locz->get());
-	  
-	  if (curloc.x() >= bmin.x() && curloc.x() <= bmax.x() && 
-	      curloc.y() >= bmin.y() && curloc.y() <= bmax.y() && 
-	      curloc.z() >= bmin.z() && curloc.z() <= bmax.z() ||
-	      !input_field_p)
-	    {
-	      center = curloc;
-	    } else {
-	      get_gui()->execute(get_id().c_str() + string(" make_seed " + to_string((int)i)));
-	    }
+          // input saved out positions
+          ostringstream strX, strY, strZ;
+          
+          strX << "seedX" << i;
+          GuiDouble* gui_locx = new GuiDouble(get_ctx()->subVar(strX.str()));
+          seeds_.push_back(gui_locx);
+          
+          strY << "seedY" << i;
+          GuiDouble* gui_locy = new GuiDouble(get_ctx()->subVar(strY.str()));
+          seeds_.push_back(gui_locy);
+          
+          strZ << "seedZ" << i;
+          GuiDouble* gui_locz = new GuiDouble(get_ctx()->subVar(strZ.str()));
+          seeds_.push_back(gui_locz);
+          
+          Point curloc(gui_locx->get(),gui_locy->get(),gui_locz->get());
+          
+          if (curloc.x() >= bmin.x() && curloc.x() <= bmax.x() && 
+              curloc.y() >= bmin.y() && curloc.y() <= bmax.y() && 
+              curloc.z() >= bmin.z() && curloc.z() <= bmax.z() ||
+              !input_field_p)
+          {
+            center = curloc;
+          } 
+          else 
+          {
+            get_gui()->execute(get_id().c_str() + string(" make_seed " + to_string((int)i)));
+          }
 
-	  get_gui()->execute(get_id().c_str() + string(" set_seed " + to_string((int)i) + " " + to_string((double)center.x()) + " " + to_string((double)center.y()) + " " + to_string((double)center.z())));
-	  
-	  seed->SetPosition(center);
-	  seed->SetScale(gui_probe_scale_.get() * l2norm_ * 0.003);
-	} else {
-	  RingWidget *seed = scinew RingWidget(this, &widget_lock_, gui_probe_scale_.get(), false);
+          get_gui()->execute(get_id().c_str() + string(" set_seed " + to_string((int)i) + " " + to_string((double)center.x()) + " " + to_string((double)center.y()) + " " + to_string((double)center.z())));
+          
+          seed->SetPosition(center);
+          seed->SetScale(gui_probe_scale_.get() * l2norm_ * 0.003);
+        } 
+        else 
+        {
+          RingWidget *seed = new RingWidget(this, &widget_lock_, gui_probe_scale_.get(), false);
+          
+          MaterialHandle redMatl = new Material(Color(red_.get(), green_.get(), blue_.get()));
+          redMatl->specular.r(0.2);
+          redMatl->specular.g(0.2);
+          redMatl->specular.b(0.2);
 
-	  
-	  MaterialHandle redMatl = new Material(Color(red_.get(), green_.get(), blue_.get()));
-	  redMatl->specular.r(0.2);
-	  redMatl->specular.g(0.2);
-	  redMatl->specular.b(0.2);
+          MaterialHandle greyMatl = new Material(Color(0.5, 0.5, 0.5));
+          seed->SetMaterial(1,redMatl);
+          seed->SetDefaultMaterial(5,greyMatl);
+          seed->Connect(ogport.get_rep());
+          widget_ring_.push_back(seed);
+          
+          widget_switch_.push_back(widget_ring_[i]->GetWidget());
+          ((GeomSwitch *)(widget_switch_[i].get_rep()))->set_state(1);
+          
+          widget_id_.push_back(ogport->addObj(widget_switch_[i], "SeedPoint" + to_string((int)i),
+                      &widget_lock_));	
 
-	  MaterialHandle greyMatl = new Material(Color(0.5, 0.5, 0.5));
-	  seed->SetMaterial(1,redMatl);
-	  seed->SetDefaultMaterial(5,greyMatl);
-	  seed->Connect(ogport);
-	  widget_ring_.push_back(seed);
+          // input saved out positions
+          ostringstream strX, strY, strZ;
+          
+          strX << "seedX" << i;
+          GuiDouble* gui_locx = new GuiDouble(get_ctx()->subVar(strX.str()));
+          seeds_.push_back(gui_locx);
+          
+          strY << "seedY" << i;
+          GuiDouble* gui_locy = new GuiDouble(get_ctx()->subVar(strY.str()));
+          seeds_.push_back(gui_locy);
+          
+          strZ << "seedZ" << i;
+          GuiDouble* gui_locz = new GuiDouble(get_ctx()->subVar(strZ.str()));
+          seeds_.push_back(gui_locz);
+          
+          Point curloc(gui_locx->get(),gui_locy->get(),gui_locz->get());
 	  
-	  widget_switch_.push_back(widget_ring_[i]->GetWidget());
-	  ((GeomSwitch *)(widget_switch_[i].get_rep()))->set_state(1);
-	  
-	  widget_id_.push_back(ogport->addObj(widget_switch_[i], "SeedPoint" + to_string((int)i),
-					      &widget_lock_));	
+          if (curloc.x() >= bmin.x() && curloc.x() <= bmax.x() && 
+              curloc.y() >= bmin.y() && curloc.y() <= bmax.y() && 
+              curloc.z() >= bmin.z() && curloc.z() <= bmax.z() ||
+              !input_field_p)
+          {
+            center = curloc;
+          } 
+          else 
+          {
+            get_gui()->execute(get_id().c_str() + string(" make_seed " + to_string((int)i)));
+          }
 
-	  // input saved out positions
-	  ostringstream strX, strY, strZ;
-	  
-	  strX << "seedX" << i;
-	  GuiDouble* gui_locx = new GuiDouble(get_ctx()->subVar(strX.str()));
-	  seeds_.push_back(gui_locx);
-	  
-	  strY << "seedY" << i;
-	  GuiDouble* gui_locy = new GuiDouble(get_ctx()->subVar(strY.str()));
-	  seeds_.push_back(gui_locy);
-	  
-	  strZ << "seedZ" << i;
-	  GuiDouble* gui_locz = new GuiDouble(get_ctx()->subVar(strZ.str()));
-	  seeds_.push_back(gui_locz);
-	  
-	  Point curloc(gui_locx->get(),gui_locy->get(),gui_locz->get());
-	  
-	  if (curloc.x() >= bmin.x() && curloc.x() <= bmax.x() && 
-	      curloc.y() >= bmin.y() && curloc.y() <= bmax.y() && 
-	      curloc.z() >= bmin.z() && curloc.z() <= bmax.z() ||
-	      !input_field_p)
-	    {
-	      center = curloc;
-	    } else {
-	      get_gui()->execute(get_id().c_str() + string(" make_seed " + to_string((int)i)));
-	    }
-
-	  //	  get_gui()->execute(get_id().c_str() + string(" set_seed " + to_string((int)i) + " " + to_string((double)center.x()) + " " + to_string((double)center.y()) + " " + to_string((double)center.z())));
-	  get_gui()->execute(get_id().c_str() + string(" set_seed " + to_string((int)i) + " " + to_string(135) + " " + to_string(293) + " " + to_string(0.1)));
-	  
-	  double r = gui_probe_scale_.get();
-	  Vector normal(0.0, 0.0, 1.0);
-	  center.x(0.5);
-	  center.y(0.5);
-	  center.z(0.1);
-	  seed->SetPosition(center, normal, r);
-	  seed->SetScale(gui_probe_scale_.get() * l2norm_ * 0.003);
-	  seed->SetRadius(r);
-	  seed->SetCurrentMode(3);
-	}
+          get_gui()->execute(get_id().c_str() + string(" set_seed " 
+                  + to_string((int)i) + " " + to_string(135) + " " 
+                  + to_string(293) + " " + to_string(0.1)));
+          
+          double r = gui_probe_scale_.get();
+          Vector normal(0.0, 0.0, 1.0);
+          center.x(0.5);
+          center.y(0.5);
+          center.z(0.1);
+          seed->SetPosition(center, normal, r);
+          seed->SetScale(gui_probe_scale_.get() * l2norm_ * 0.003);
+          seed->SetRadius(r);
+          seed->SetCurrentMode(3);
+        }
       }
     }
   }
@@ -381,17 +376,19 @@ GeneratePointSamplesFromField::execute()
   if (mag.y() > max) max = mag.y();
   if (mag.z() > max) max = mag.z();
   
-
-
   for (int i=0; i <numSeeds; i++) 
   {
-    if (gui_widget_.get() == 0) {
+    if (gui_widget_.get() == 0) 
+    {
       widget_[i]->SetScale(gui_probe_scale_.get() * l2norm_ * 0.003);
       const Point location = widget_[i]->GetPosition();
 
-      get_gui()->execute(get_id().c_str() + string(" set_seed " + to_string((int)i) + " " + to_string((double)location.x()) + " " + to_string((double)location.y()) + " " + to_string((double)location.z())));
-
-    } else {
+      get_gui()->execute(get_id().c_str() + string(" set_seed " + 
+        to_string((int)i) + " " + to_string((double)location.x()) + " " + 
+        to_string((double)location.y()) + " " + to_string((double)location.z())));
+    } 
+    else 
+    {
       //Point location;
       double r;
       Vector normal;
@@ -399,49 +396,77 @@ GeneratePointSamplesFromField::execute()
       widget_ring_[i]->SetScale(max*0.02);
 
       // place rings at slight distance as seeds are added
-      //      get_gui()->execute(get_id().c_str() + string(" set_seed " + to_string((int)i) + " " + to_string((double)center.x()) + " " + to_string((double)center.y()) + " " + to_string((double)center.z())));
-      get_gui()->execute(get_id().c_str() + string(" set_seed " + to_string((int)i) + " " + to_string(135) + " " + to_string(293) + " " + to_string(0.1)));
-      
+      get_gui()->execute(get_id().c_str() + string(" set_seed " + 
+        to_string((int)i) + " " + to_string(135) + " " + 
+        to_string(293) + " " + to_string(0.1)));
     }
   }
-
-  typedef PointCloudMesh<ConstantBasis<Point> > PCMesh;
-  typedef GenericField<PCMesh, ConstantBasis<double>, vector<double> > PCField;
 
   //when push send button
   if(gui_send_.get()) 
   {
     ostringstream strX, strY, strZ;
-    
-    //PointCloudMesh *mesh = scinew PointCloudMesh();  
-    PCMesh *mesh = scinew PCMesh();
-    //PointCloudField<double> *field = scinew PointCloudField<double>(mesh, 1);
-    PCField *field = scinew PCField(mesh);
-    
+
+    FieldInformation fi("PointCloudMesh",1,"double");
+    FieldHandle ofield = CreateField(fi);
+    VMesh* mesh = ofield->vmesh();
+    VField* field = ofield->vfield();
     
     for (int i=0; i <numSeeds; i++)
     {
-      if (gui_widget_.get() == 0) {
-	const Point location = widget_[i]->GetPosition();
-	
-	PCMesh::Node::index_type pcindex = mesh->add_point(location);
-	field->resize_fdata();
-	field->set_value(static_cast<PCField::value_type>(i), pcindex);
-      } else {
-	Point location;
-	double r;
-	Vector normal;
-	widget_ring_[i]->GetPosition(location, normal, r);
-	
-	PCMesh::Node::index_type pcindex = mesh->add_point(location);
-	field->resize_fdata();
-	field->set_value(r, pcindex); // FIX ME: get radius
+      if (gui_widget_.get() == 0) 
+      {
+        const Point location = widget_[i]->GetPosition();
+        
+        VMesh::Node::index_type pcindex = mesh->add_point(location);
+        field->resize_fdata();
+        field->set_value(static_cast<double>(i), pcindex);
+      } 
+      else 
+      {
+        Point location;
+        double r;
+        Vector normal;
+        widget_ring_[i]->GetPosition(location, normal, r);
+        
+        VMesh::Node::index_type pcindex = mesh->add_point(location);
+        field->resize_fdata();
+        field->set_value(r, pcindex); // FIX ME: get radius
       }
     }
 
-    FieldHandle ofield = field;
-    send_output_handle("GeneratePointSamplesFromField Point", ofield);
+    if (gui_widget_.get() == 0) 
+    {
+      std::vector<double> values(numSeeds);
+      for (VField::index_type i=0; i <numSeeds; i++)
+      {
+        const Point location = widget_[i]->GetPosition();
+        mesh->add_point(location);
+        values[i] = i;
+      } 
 
+      field->resize_values();
+      field->set_values(values);
+    }
+    else
+    {
+
+      std::vector<double> values(numSeeds);
+      for (VField::index_type i=0; i <numSeeds; i++)
+      {
+        Point location;
+        double r = 0.0;
+        Vector normal;
+        widget_ring_[i]->GetPosition(location, normal, r);
+        mesh->add_point(location);
+        values[i] = r;
+      }
+
+      field->resize_values();
+      field->set_values(values);
+    }
+
+    send_output_handle("GeneratePointSamplesFromField Point", ofield);
     gui_send_.set(0);
   }
 }
@@ -452,14 +477,12 @@ GeneratePointSamplesFromField::widget_moved(bool last, BaseWidget*)
 {
   if (last)
   {
-    if (gui_auto_execute_.get() == 1) {
+    if (gui_auto_execute_.get() == 1) 
+    {
       want_to_execute();
     }
   }
 }
-
-
-
 
 } // End namespace SCIRun
 

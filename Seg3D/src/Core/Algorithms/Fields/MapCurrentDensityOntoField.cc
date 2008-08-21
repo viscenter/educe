@@ -224,7 +224,7 @@ bool MapCurrentDensityOntoFieldAlgo::MapCurrentDensityOntoField(ProgressReporter
     algotype = "Norm";
   }
 
-  SCIRun::CompileInfoHandle ci = scinew CompileInfo(
+  SCIRun::CompileInfoHandle ci = new CompileInfo(
     "ALGOCurrentDensity"+algotype+"Mapping."+integrationmethod+"."+fi_pot.get_field_filename()+"."+fi_con.get_field_filename()+"."+fi_dst.get_field_filename()+".",
     "MapCurrentDensityOntoFieldAlgo","MapCurrentDensityOntoField"+algotype+"AlgoT",
     integrator + "," + fi_pot.get_field_name() +  "," + fi_con.get_field_name() + "," + fi_dst.get_field_name() + "," + fi_out.get_field_name());

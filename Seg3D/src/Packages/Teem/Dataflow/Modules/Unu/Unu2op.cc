@@ -31,7 +31,6 @@
 //    Date   : Mon Sep  8 09:46:49 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -46,9 +45,6 @@ public:
   virtual void execute();
 
 private:
-  NrrdIPort*      inrrd1_;
-  NrrdIPort*      inrrd2_;
-
   GuiString    operator_;
   GuiDouble    float_input_;
   GuiString    type_;
@@ -88,24 +84,9 @@ Unu2op::execute()
 
   update_state(NeedData);
 
-  inrrd1_ = (NrrdIPort *)get_iport("InputNrrd1");
-  inrrd2_ = (NrrdIPort *)get_iport("InputNrrd2");
-
-  if (!inrrd1_->get(nrrd_handle1)) 
-    first_nrrd_ = false;
-  if (!inrrd2_->get(nrrd_handle2)) 
-    second_nrrd_ = false;
+  first_nrrd_ = get_input_handle("InputNrrd1",nrrd_handle1,false);
+  second_nrrd_ = get_input_handle("InputNrrd2",nrrd_handle2,false);
   
-  if (first_nrrd_ && !nrrd_handle1.get_rep()) {
-    error("Empty InputNrrd1.");
-    return;
-  }
-
-  if (second_nrrd_ && !nrrd_handle2.get_rep()) {
-    error("Empty InputNrrd2.");
-    return;
-  }
-
   reset_vars();
 
   Nrrd *nin1 = 0;
@@ -184,7 +165,7 @@ Unu2op::execute()
 
   nrrdKeyValueCopy(nout, nin2);
 
-  NrrdDataHandle out(scinew NrrdData(nout));
+  NrrdDataHandle out(new NrrdData(nout));
   send_output_handle("OutputNrrd", out);
 }
 

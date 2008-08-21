@@ -26,24 +26,271 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-//    File   : SimulateForwardMagneticField.cc
-//    Author : Robert Van Uitert
-//    Date   : Mon Aug  4 14:46:51 2003
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/FieldInformation.h>
 
-#include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Malloc/Allocator.h>
-#include <Packages/BioPSE/Dataflow/Modules/Forward/SimulateForwardMagneticField.h>
+#include <Dataflow/Network/Module.h>
 
 namespace BioPSE {
 
 using namespace SCIRun;
 
+class CalcFMField
+{
+  public:
+
+    CalcFMField() :
+      np_(-1)
+    {}
+  
+    virtual bool calc_forward_magnetic_field(FieldHandle efield, 
+					   FieldHandle ctfield,
+					   FieldHandle dipoles, 
+					   FieldHandle detectors, 
+					   FieldHandle &magnetic_field, 
+					   FieldHandle &magnitudes,
+					   ProgressReporter *mod);
+
+  private:
+    void interpolate(int proc, Point p);
+    void set_up_cell_cache();
+    void calc_parallel(int proc, ProgressReporter *mod);
+
+    int np_;
+    vector<Vector> interp_value_;
+    vector<pair<string, Tensor> > tens_;
+    bool have_tensors_;
+
+    struct per_cell_cache {
+      Vector cur_density_;
+      Point  center_;
+      double volume_;
+    };
+
+    std::vector<per_cell_cache>  cell_cache_;
+
+    VField* efld_; // Electric Field
+    VField* ctfld_; // Conductivity Field
+    VField* dipfld_; // Dipole Field
+    VField* detfld_; // Detector Field
+
+    VMesh* emsh_; // Electric Field
+    VMesh* ctmsh_; // Conductivity Field
+    VMesh* dipmsh_; // Dipole Field
+    VMesh* detmsh_; // Detector Field
+
+    VField* magfld_; // Magnetic Field
+    VField* magmagfld_; // Magnetic Field Magnitudes
+};
+
+
+void
+CalcFMField::calc_parallel(int proc, ProgressReporter *mod)
+{
+  VMesh::size_type num_nodes = detmsh_->num_nodes();
+  VMesh::size_type nodes_per_thread = num_nodes/np_;
+  
+  VMesh::Node::index_type start = proc*nodes_per_thread;
+  VMesh::Node::index_type end = (proc+1)*nodes_per_thread;
+  if (proc == (np_-1)) end = num_nodes;
+
+  Vector mag_field;
+  Point  pt;
+  Point  pt2;
+  Vector P;
+  const double one_over_4_pi = 1.0 / (4 * M_PI);
+
+  VMesh::size_type num_dipoles = dipmsh_->num_nodes();
+
+  int cnt = 0;
+  for (VMesh::Node::index_type idx = start; idx < end; idx++ )
+  {
+    // finish loop iteration.
+    
+    detmsh_->get_center(pt, idx);
+
+    // init the interp val to 0 
+    interp_value_[proc] = Vector(0,0,0);
+    interpolate(proc, pt);
+
+    mag_field = interp_value_[proc];
+
+    Vector normal;
+    detfld_->get_value(normal,idx); 
+
+    // iterate over the dipoles.
+    for (VMesh::Node::index_type dip_idx = 0; dip_idx < num_dipoles; dip_idx++)
+    {
+      dipmsh_->get_center(pt2, dip_idx);
+      dipfld_->value(P,dip_idx);
+      
+      Vector radius = pt - pt2; // detector - source
+      Vector valuePXR = Cross(P, radius);
+      double length = radius.length();
+ 
+      mag_field += valuePXR / (length * length * length);
+    }
+    
+    mag_field *= one_over_4_pi;
+    magmagfld_->set_value(Dot(mag_field, normal),idx);
+    magfld_->set_value(mag_field,idx);
+
+    if (proc == 0)
+    {
+      cnt++; if (cnt == 100) { cnt = 0; mod->update_progress(idx,end); }
+    }
+  }
+}
+
+//! Assume that the value_type for the input fields are Vector.
+bool
+CalcFMField::calc_forward_magnetic_field(
+              FieldHandle efield, 
+					    FieldHandle ctfield, 
+					    FieldHandle dipoles, 
+					    FieldHandle detectors, 
+					    FieldHandle &magnetic_field,
+					    FieldHandle &magnetic_field_magnitudes,
+					    ProgressReporter *mod)
+{
+  efld_ = efield->vfield();
+  ctfld_ = ctfield->vfield();
+  dipfld_ = dipoles->vfield();
+  detfld_ = detectors->vfield();
+  emsh_ = efield->vmesh();
+  ctmsh_ = ctfield->vmesh();
+  dipmsh_ = dipoles->vmesh();
+  detmsh_ = detectors->vmesh();
+
+
+  // this code should be able to handle Field<Tensor> as well
+  have_tensors_ = ctfld_->get_property("conductivity_table", tens_); 
+
+  FieldInformation mfi(detectors);
+  mfi.make_lineardata();
+
+  mfi.make_double();
+  magnetic_field_magnitudes = CreateField(mfi,detectors->mesh());
+  if (magnetic_field_magnitudes.get_rep() == 0) 
+  {
+    mod->error("Could not allocate field for magnetic field magnitudes");
+    return (false);
+  }
+
+
+  magmagfld_ = magnetic_field_magnitudes->vfield();
+  magmagfld_->resize_values();
+
+  mfi.make_vector();  
+  magnetic_field = CreateField(mfi,detectors->mesh());
+  if (magnetic_field.get_rep() == 0) 
+  {
+    mod->error("Could not allocate field for magnetic field");
+    return (false);
+  }
+
+  magfld_ = magnetic_field->vfield();
+  magfld_->resize_values();
+
+  // Make sure we have more than zero threads
+  np_ = Thread::numProcessors();
+  interp_value_.resize(np_,Vector(0.0,0.0,0.0));
+
+  // cache per cell calculations that are used over and over again.
+  set_up_cell_cache();
+  
+  // do the parallel work.
+  Thread::parallel(this, &CalcFMField::calc_parallel, np_, mod);
+  
+  return (true);
+}
+
+void
+CalcFMField::set_up_cell_cache()
+{
+  VMesh::size_type num_elems = emsh_->num_elems();
+  Vector elemField;
+  cell_cache_.resize(num_elems);
+  
+  if (have_tensors_)
+  {
+    int material = -1;
+    for (VMesh::Elem::index_type idx=0; idx<num_elems; idx++)
+    {
+      per_cell_cache c;
+      emsh_->get_center(c.center_,idx);
+      efld_->get_value(elemField,idx);
+      ctfld_->get_value(material,idx);
+   
+      c.cur_density_ = tens_[material].second * -1 * elemField; 
+      c.volume_ = emsh_->get_volume(idx);
+      cell_cache_[idx] = c;       
+    }
+  }
+  else if (ctfld_->is_tensor())
+  {
+    Tensor ten;
+    for (VMesh::Elem::index_type idx=0; idx<num_elems; idx++)
+    {
+      per_cell_cache c;
+      emsh_->get_center(c.center_,idx);
+      efld_->get_value(elemField,idx);
+      ctfld_->get_value(ten,idx);
+   
+      c.cur_density_ = ten * -1 * elemField; 
+      c.volume_ = emsh_->get_volume(idx);
+      cell_cache_[idx] = c;       
+    }  
+  }
+  else
+  {
+    double val;
+    for (VMesh::Elem::index_type idx=0; idx<num_elems; idx++)
+    {
+      per_cell_cache c;
+      emsh_->get_center(c.center_,idx);
+      efld_->get_value(elemField,idx);
+      ctfld_->get_value(val,idx);
+   
+      c.cur_density_ = val * -1 * elemField; 
+      c.volume_ = emsh_->get_volume(idx);
+      cell_cache_[idx] = c;       
+    }    
+  }
+}
+
+void
+CalcFMField::interpolate(int proc, Point p)  
+{
+  emsh_->synchronize(Mesh::ELEM_LOCATE_E);
+
+  VMesh::Elem::index_type inside_cell = 0;
+  bool outside = !(emsh_->locate(inside_cell, p));
+
+  VMesh::size_type num_elems = emsh_->num_elems();
+
+  for (VMesh::Elem::index_type idx; idx<num_elems; idx++)
+  {    
+    if (outside || idx != inside_cell) 
+    {
+      per_cell_cache &c = cell_cache_[idx];
+      Vector radius = p - c.center_;
+      
+      Vector valueJXR = Cross(c.cur_density_, radius);
+      double length = radius.length();
+
+      interp_value_[proc] += ((valueJXR / (length * length * length)) * c.volume_); 
+    }
+  }
+}
+
+
 class SimulateForwardMagneticField : public Module {
 public:
   SimulateForwardMagneticField(GuiContext *context);
-
-  virtual ~SimulateForwardMagneticField();
+  virtual ~SimulateForwardMagneticField() {}
 
   virtual void execute();
 };
@@ -56,126 +303,54 @@ SimulateForwardMagneticField::SimulateForwardMagneticField(GuiContext* ctx)
 {
 }
 
-SimulateForwardMagneticField::~SimulateForwardMagneticField()
-{
-}
-
-
 void
 SimulateForwardMagneticField::execute()
 {
 // J = (sigma)*E + J(source)
   FieldHandle efld;
-  if (!get_input_handle("Electric Field", efld)) return;
+  get_input_handle("Electric Field", efld);
 
-  if (efld->query_vector_interface().get_rep() == 0) {
+  if (efld->vfield()->is_vector() == false) 
+  {
     error("Must have Vector field as Electric Field input");
     return;
   }
 
   FieldHandle ctfld;
-  if (!get_input_handle("Conductivity Tensors", ctfld)) return;
+  get_input_handle("Conductivity Tensors", ctfld);
 
   FieldHandle dipoles;
-  if (!get_input_handle("Dipole Sources", dipoles)) return;
+  get_input_handle("Dipole Sources", dipoles);
 
-  if (dipoles->query_vector_interface().get_rep() == 0) {
+  if (dipoles->vfield()->is_vector() == false) 
+  {
     error("Must have Vector field as Dipole Sources input");
     return;
   }
   
   FieldHandle detectors;
-  if (!get_input_handle("Detector Locations", detectors)) return;
+  get_input_handle("Detector Locations", detectors);
   
-  if (detectors->query_vector_interface().get_rep() == 0) {
+  if (detectors->vfield()->is_vector() == false) 
+  {
     error("Must have Vector field as Detector Locations input");
     return;
   }
 
   FieldHandle magnetic_field;
   FieldHandle magnitudes;
-  // create algo.
-  const string new_field_type =
-    detectors->get_type_description(Field::FIELD_NAME_ONLY_E)->get_name() + "<double> ";  
-  const TypeDescription *efld_td = efld->get_type_description();
-  const TypeDescription *ctfld_td = ctfld->get_type_description();
-  const TypeDescription *detfld_td = detectors->get_type_description();
-  CompileInfoHandle ci = CalcFMFieldBase::get_compile_info(efld_td, ctfld_td, 
-							   detfld_td, 
-							   new_field_type);
-  Handle<CalcFMFieldBase> algo;
-  if (!DynamicCompilation::compile(ci, algo, this))
+
+  CalcFMField algo;
+  
+  if (! algo.calc_forward_magnetic_field(efld, ctfld, dipoles, detectors, 
+					  magnetic_field, magnitudes, this)) 
   {
-    error("Unable to compile creation algorithm.");
-    return;
-  }
-  update_progress(0);
-  int np = 5;
-  //cerr << "Number of Processors Used: " << np <<endl;
-  if (! algo->calc_forward_magnetic_field(efld, ctfld, dipoles, detectors, 
-					  magnetic_field, magnitudes, np, 
-					  this)) {
-
     return;
   }
   
-  if (magnetic_field.get_rep() == 0) {
-    error("No field to output (Magnetic Field)");
-    cerr << "null field magnetic" << endl;
-    return;
-  }
-    
-  if (magnitudes.get_rep() == 0) {
-    error("No field to output (Magnitudes)");
-     cerr << "null field magnitudes" << endl;
-    return;
-  }
-
-  send_output_handle("Magnetic Field", magnetic_field);
-  
+  send_output_handle("Magnetic Field", magnetic_field);  
   send_output_handle("Magnitudes", magnitudes);
 }
 
-
-CalcFMFieldBase::~CalcFMFieldBase()
-{
-}
-
-CompileInfoHandle
-CalcFMFieldBase::get_compile_info(const TypeDescription *efldtd, 
-				  const TypeDescription *ctfldtd,
-				  const TypeDescription *detfldtd,
-				  const string &mags)
-{
-  static const string ns("BioPSE");
-  static const string template_class("CalcFMField");
-  CompileInfo *rval = scinew CompileInfo(template_class + "." +
-					 efldtd->get_filename() + "." +
-					 ctfldtd->get_filename() + "." +
-					 detfldtd->get_filename() + "." +
-					 to_filename(mags) + ".",
-					 base_class_name(), 
-					 template_class, 
-					 efldtd->get_name() + "," + 
-					 ctfldtd->get_name() + "," + 
-					 detfldtd->get_name() + "," + 
-					 mags + " ");
-  rval->add_include(get_h_file_path());
-  rval->add_namespace(ns);
-  efldtd->fill_compile_info(rval);
-  ctfldtd->fill_compile_info(rval);
-  detfldtd->fill_compile_info(rval);
-  return rval;
-}
-
-const string& 
-CalcFMFieldBase::get_h_file_path()
-{
-  static const string path(TypeDescription::cc_to_h(__FILE__));
-  return path;
-}
-
-
 } // End namespace BioPSE
-
 

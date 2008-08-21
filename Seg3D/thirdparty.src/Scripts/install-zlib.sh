@@ -29,20 +29,6 @@ else
     exit
 fi
 
-if test "$BITS" = "64"; then 
-    if test "$OSNAME" = "IRIX64"; then
-        BITS_FLAG="-64"
-    elif test "$OSNAME" = "AIX"; then
-        BITS_FLAG="-q64"
-    fi
-else
-    if test "$OSNAME" = "IRIX64"; then
-        BITS_FLAG="-n32"
-    elif test "$OSNAME" = "AIX"; then
-        BITS_FLAG="-q32"
-    fi
-fi
-
 
 echo
 echo "Installing zlib: $DIR $OSNAME $SH_LIB_EXT $BITS $TAR $SHARED_LIBS $MAKE_FLAGS"
@@ -82,8 +68,12 @@ echo
 ./configure --prefix=$DIR
 
 if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then
-    sed 's:CFLAGS=:CFLAGS=-m64 :g' Makefile >Makefile.old
-    sed 's:gcc -dynamiclib: gcc -dynamiclib -m64 :g' Makefile.old >Makefile
+    sed 's:CFLAGS=:CFLAGS=-m64 -arch ppc64 -arch x86_64 :g' Makefile >Makefile.old
+    sed 's:gcc -dynamiclib: gcc -dynamiclib -m64 -arch ppc64 -arch x86_64 :g' Makefile.old >Makefile
+fi
+if test "$BITS" = "32" && test "$OSNAME" = "Darwin"; then
+    sed 's:CFLAGS=:CFLAGS=-arch ppc -arch i386 :g' Makefile >Makefile.old
+    sed 's:gcc -dynamiclib: gcc -dynamiclib -arch ppc -arch i386 :g' Makefile.old >Makefile
 fi
 
 
@@ -98,8 +88,12 @@ if test "$SHARED_LIBS" = "ENABLE" -o "$SHARED_LIBS" = "DEFAULT"; then
   ./configure --shared --prefix=$DIR
 
 if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then
-    sed 's:CFLAGS=:CFLAGS=-m64 :g' Makefile >Makefile.old
-    sed 's:gcc -dynamiclib: gcc -dynamiclib -m64 :g' Makefile.old >Makefile
+    sed 's:CFLAGS=:CFLAGS=-m64 -arch ppc64 -arch x86_64  :g' Makefile >Makefile.old
+    sed 's:gcc -dynamiclib: gcc -dynamiclib -m64 -arch ppc64 -arch x86_64  :g' Makefile.old >Makefile
+fi
+if test "$BITS" = "32" && test "$OSNAME" = "Darwin"; then
+    sed 's:CFLAGS=:CFLAGS=-arch ppc -arch i386  :g' Makefile >Makefile.old
+    sed 's:gcc -dynamiclib: gcc -dynamiclib -arch ppc -arch i386  :g' Makefile.old >Makefile
 fi
 
   $MAKE clean

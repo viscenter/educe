@@ -55,7 +55,7 @@ GetNetworkFileName::execute()
 {
   string srn = "new.srn";
   if (sci_getenv_p("SCIRUN_NETFILE")) srn = sci_getenv("SCIRUN_NETFILE");
-  StringHandle srnfn = scinew String(srn);
+  StringHandle srnfn = new String(srn);
   send_output_handle("String",srnfn,true);
 }
 

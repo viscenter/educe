@@ -90,7 +90,7 @@ AnalyzeImage::AnalyzeImage( itk::AnalyzeImageIO::Pointer io,
   // Initialize all member variables
   id_ = id;
   num_pixels_ = region.GetNumberOfPixels();
-  pixel_buffer_ = scinew PixelType[num_pixels_];
+  pixel_buffer_ = new PixelType[num_pixels_];
   PixelType * data = image->GetPixelContainer()->GetBufferPointer();
   for(unsigned int i=0; i < num_pixels_; i++ )
   {
@@ -141,10 +141,10 @@ AnalyzeImage::AnalyzeImage( itk::AnalyzeImageIO::Pointer io,
     }
   }
 
-  size_ = scinew int[dim_];
-  origin_ = scinew double[dim_];
-  spacing_ = scinew double[dim_];
-  index_ = scinew int[dim_];
+  size_ = new int[dim_];
+  origin_ = new double[dim_];
+  spacing_ = new double[dim_];
+  index_ = new int[dim_];
 
   for( int j = 0; j < dim_; j++ )
   {
@@ -169,7 +169,7 @@ AnalyzeImage::AnalyzeImage( itk::AnalyzeImageIO::Pointer io,
 AnalyzeImage::AnalyzeImage(const AnalyzeImage& d)
 {
   num_pixels_ = d.num_pixels_;
-  pixel_buffer_ = scinew PixelType[num_pixels_];
+  pixel_buffer_ = new PixelType[num_pixels_];
   PixelType * dpb = d.pixel_buffer_;
   for( unsigned long i = 0; i < num_pixels_; i++ )
   {
@@ -180,10 +180,10 @@ AnalyzeImage::AnalyzeImage(const AnalyzeImage& d)
 
   dim_ = d.dim_;
 
-  size_ = scinew int[dim_];
-  origin_ = scinew double[dim_];
-  spacing_ = scinew double[dim_];
-  index_ = scinew int[dim_];
+  size_ = new int[dim_];
+  origin_ = new double[dim_];
+  spacing_ = new double[dim_];
+  index_ = new int[dim_];
 
   for( int j = 0; j < dim_; j++ )
   {

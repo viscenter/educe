@@ -38,99 +38,99 @@ itcl_class BioPSE_NeuroFEM_InterfaceWithNeuroFEMInverse {
     }
 
     method set_defaults {} {
-	global $this-ipm_pathTCL
-	global $this-numchanTCL
-	global $this-numsamplesTCL
-	global $this-startsampleTCL
-	global $this-stopsampleTCL
-	global $this-associativityTCL
-	global $this-posxTCL
-	global $this-posyTCL
-	global $this-poszTCL
-	global $this-dirxTCL
-	global $this-diryTCL
-	global $this-dirzTCL
-	global $this-eps_matTCL
-	set $this-ipm_pathTCL "ipm_linux_dbx"
-	set $this-numchanTCL  71
-	set $this-numsamplesTCL 1
-	set $this-startsampleTCL 0
-	set $this-stopsampleTCL 1
-	set $this-associativityTCL 1
-	set $this-posxTCL 0.097
-	set $this-posyTCL 0.154
-	set $this-poszTCL 0.128
-	set $this-dirxTCL 1.0
-	set $this-diryTCL 0.0
-	set $this-dirzTCL 0.0
-	set $this-eps_matTCL 1e-2
+        global $this-ipm_pathTCL
+        global $this-numchanTCL
+        global $this-numsamplesTCL
+        global $this-startsampleTCL
+        global $this-stopsampleTCL
+        global $this-associativityTCL
+        global $this-posxTCL
+        global $this-posyTCL
+        global $this-poszTCL
+        global $this-dirxTCL
+        global $this-diryTCL
+        global $this-dirzTCL
+        global $this-eps_matTCL
+        set $this-ipm_pathTCL "ipm_linux_dbx"
+        set $this-numchanTCL  71
+        set $this-numsamplesTCL 1
+        set $this-startsampleTCL 0
+        set $this-stopsampleTCL 1
+        set $this-associativityTCL 1
+        set $this-posxTCL 0.097
+        set $this-posyTCL 0.154
+        set $this-poszTCL 0.128
+        set $this-dirxTCL 1.0
+        set $this-diryTCL 0.0
+        set $this-dirzTCL 0.0
+        set $this-eps_matTCL 1e-2
     }
 
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
 
     method ui {} {
-	global $this-ipm_pathTCL
-	global $this-numchanTCL
-	global $this-numsamplesTCL
-	global $this-startsampleTCL
-	global $this-stopsampleTCL
-	global $this-associativityTCL
-	global $this-posxTCL
-	global $this-posyTCL
-	global $this-poszTCL
-	global $this-dirxTCL
-	global $this-diryTCL
-	global $this-dirzTCL
-	global $this-eps_matTCL
+        global $this-ipm_pathTCL
+        global $this-numchanTCL
+        global $this-numsamplesTCL
+        global $this-startsampleTCL
+        global $this-stopsampleTCL
+        global $this-associativityTCL
+        global $this-posxTCL
+        global $this-posyTCL
+        global $this-poszTCL
+        global $this-dirxTCL
+        global $this-diryTCL
+        global $this-dirzTCL
+        global $this-eps_matTCL
 
         set w .ui[modname]
         if {[winfo exists $w]} {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	make_entry $w.ipm_path "Path to NeuroFEM execution file: " $this-ipm_pathTCL "$this-c needexecute"
-	make_entry $w.numchan "Number of Channel: " $this-numchanTCL "$this-c needexecute"
-	make_entry $w.numsamples "Number of Samples: " $this-numsamplesTCL "$this-c needexecute"
-	make_entry $w.startsample "Start Sample: " $this-startsampleTCL "$this-c needexecute"
-	make_entry $w.stopsample "Stop Sample: " $this-stopsampleTCL "$this-c needexecute"
-	make_entry $w.associativity "Lead Field Basis(yes=1, no=0): " $this-associativityTCL "$this-c needexecute"
-	make_entry $w.posx "Initial Guess Position X: " $this-posxTCL "$this-c needexecute"
-	make_entry $w.posy "Initial Guess Position Y: " $this-posyTCL "$this-c needexecute"
-	make_entry $w.posz "Initial Guess Position Z: " $this-poszTCL "$this-c needexecute"
-	make_entry $w.dirx "Initial Guess Moment X: " $this-dirxTCL "$this-c needexecute"
-	make_entry $w.diry "Initial Guess Moment Y: " $this-diryTCL "$this-c needexecute"
-	make_entry $w.dirz "Initial Guess Moment Z: " $this-dirzTCL "$this-c needexecute"
-	make_entry $w.eps_mat "Pebbles Solver EPS_MAT: " $this-eps_matTCL "$this-c needexecute"
+        make_entry $w.ipm_path "Path to NeuroFEM execution file: " $this-ipm_pathTCL "$this-c needexecute"
+        make_entry $w.numchan "Number of Channel: " $this-numchanTCL "$this-c needexecute"
+        make_entry $w.numsamples "Number of Samples: " $this-numsamplesTCL "$this-c needexecute"
+        make_entry $w.startsample "Start Sample: " $this-startsampleTCL "$this-c needexecute"
+        make_entry $w.stopsample "Stop Sample: " $this-stopsampleTCL "$this-c needexecute"
+        make_entry $w.associativity "Lead Field Basis(yes=1, no=0): " $this-associativityTCL "$this-c needexecute"
+        make_entry $w.posx "Initial Guess Position X: " $this-posxTCL "$this-c needexecute"
+        make_entry $w.posy "Initial Guess Position Y: " $this-posyTCL "$this-c needexecute"
+        make_entry $w.posz "Initial Guess Position Z: " $this-poszTCL "$this-c needexecute"
+        make_entry $w.dirx "Initial Guess Moment X: " $this-dirxTCL "$this-c needexecute"
+        make_entry $w.diry "Initial Guess Moment Y: " $this-diryTCL "$this-c needexecute"
+        make_entry $w.dirz "Initial Guess Moment Z: " $this-dirzTCL "$this-c needexecute"
+        make_entry $w.eps_mat "Pebbles Solver EPS_MAT: " $this-eps_matTCL "$this-c needexecute"
 
-	bind $w.numchan <Return> "$this-c needexecute"
-	bind $w.numsamples <Return> "$this-c needexecute"
-	bind $w.startsample <Return> "$this-c needexecute"
-	bind $w.stopsample <Return> "$this-c needexecute"
-	bind $w.associativity <Return> "$this-c needexecute"
-	bind $w.posx <Return> "$this-c needexecute"
-	bind $w.posy <Return> "$this-c needexecute"
-	bind $w.posz <Return> "$this-c needexecute"
-	bind $w.dirx <Return> "$this-c needexecute"
-	bind $w.diry <Return> "$this-c needexecute"
-	bind $w.dirz <Return> "$this-c needexecute"
-	bind $w.eps_mat <Return> "$this-c needexecute"
+        bind $w.numchan <Return> "$this-c needexecute"
+        bind $w.numsamples <Return> "$this-c needexecute"
+        bind $w.startsample <Return> "$this-c needexecute"
+        bind $w.stopsample <Return> "$this-c needexecute"
+        bind $w.associativity <Return> "$this-c needexecute"
+        bind $w.posx <Return> "$this-c needexecute"
+        bind $w.posy <Return> "$this-c needexecute"
+        bind $w.posz <Return> "$this-c needexecute"
+        bind $w.dirx <Return> "$this-c needexecute"
+        bind $w.diry <Return> "$this-c needexecute"
+        bind $w.dirz <Return> "$this-c needexecute"
+        bind $w.eps_mat <Return> "$this-c needexecute"
 
-	pack $w.ipm_path -side top -fill x
-	pack $w.numchan $w.numsamples $w.startsample $w.stopsample $w.associativity -side top -fill x
-	pack $w.posx $w.posy $w.posz $w.dirx $w.diry $w.dirz -side top -fill x
-	pack $w.eps_mat -side top -fill x
+        pack $w.ipm_path -side top -fill x
+        pack $w.numchan $w.numsamples $w.startsample $w.stopsample $w.associativity -side top -fill x
+        pack $w.posx $w.posy $w.posz $w.dirx $w.diry $w.dirz -side top -fill x
+        pack $w.eps_mat -side top -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

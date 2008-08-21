@@ -25,7 +25,7 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 //  
-//    File   : PainterTools.cc
+//    File   : PointerToolSelectorTool.cc
 //    Author : McKay Davis
 //    Date   : Sat Oct 14 16:17:09 2006
 
@@ -80,7 +80,7 @@ PointerToolSelectorTool::pointer_down(int button, int x, int y,
     break;
 
   case 3:
-    painter_->tm_.set_tool(new ZoomTool(painter_), 52);
+    tm_.set_tool(new ZoomTool(painter_), 52);
     break;
 
   case 4:

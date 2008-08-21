@@ -29,7 +29,7 @@
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
 
 #include <Core/Datatypes/Field.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
@@ -39,6 +39,8 @@ namespace SCIRun {
 class SplitNodesByDomain : public Module {
 public:
   SplitNodesByDomain(GuiContext*);
+  virtual ~SplitNodesByDomain() {}
+  
   virtual void execute();
 
 };

@@ -34,36 +34,46 @@ itcl_class SCIRun_ChangeFieldData_CalculateInsideWhichField {
         set_defaults
     }
     
-    method set_defaults {} {
-      global $this-outputtype
-      set $this-outputtype "double"
-    }
-    
     method ui {} {
         set w .ui[modname]
         if {[winfo exists $w]} {
             return
         }
         
-        toplevel $w
+        sci_toplevel $w
         
         frame $w.f
         pack $w.f
-        label $w.f.lab1 -text "Data location"
+        sci_label $w.f.lab1 -text "How many sample points need to be inside the field"
         grid $w.f.lab1 -row 0 -column 0 -sticky e
-        label $w.f.lab2 -text "Data type"
+        sci_label $w.f.lab2 -text "Sampling scheme per element (accuracy of inside detection)"
         grid $w.f.lab2 -row 1 -column 0 -sticky e
-        
-        myselectionbutton $w.f.sel2 1 1 { "same as input" "char" "short" "unsigned short" "unsigned int" "int" "float" "double" } $this-outputtype
+        sci_label $w.f.lab3 -text "Assign elements outside field a default value"
+        grid $w.f.lab3 -row 2 -column 0 -sticky e
+        sci_label $w.f.lab4 -text "Default outside value"
+        grid $w.f.lab4 -row 3 -column 0 -sticky e
+        sci_label $w.f.lab5 -text "Value assigned to first field"
+        grid $w.f.lab5 -row 4 -column 0 -sticky e
+        sci_label $w.f.lab6 -text "Datatype of  destination field"
+        grid $w.f.lab6 -row 5 -column 0 -sticky e
+
+        myselectionbutton $w.f.sel1 0 1 { "one" "most" "all"} $this-method
+        myselectionbutton $w.f.sel2 1 1 { "regular1" "regular2" "regular3" "regular4" "regular5" } $this-sampling-scheme
+        myselectionbutton $w.f.sel4 2 1 { "true" "false"} $this-change-output-values
+        sci_entry             $w.f.e1 -textvariable $this-outside-value
+        sci_entry             $w.f.e2 -textvariable $this-start-value
+        grid              $w.f.e1 -row 3 -column 1 -sticky news
+        grid              $w.f.e2 -row 4 -column 1 -sticky news
+        myselectionbutton $w.f.sel3 5 1 { "same as input" "char" "short" "unsigned short" "unsigned int" "int" "float" "double" } $this-outputtype
         
         makeSciButtonPanel $w $w $this
         moveToCursor $w
     }
 
    method myselectionbutton { win x y arglist var} {
-        frame $win 
+        sci_frame $win 
         grid $win  -row $x -column $y -sticky news
-        iwidgets::optionmenu $win.c -foreground darkred -command " $this comboget $win.c $var "
+        sci_optionmenu $win.c -foreground darkred -command " $this comboget $win.c $var "
 
         set i 0
         set found 0

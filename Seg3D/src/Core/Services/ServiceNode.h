@@ -39,12 +39,12 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <map>
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <sgi_stl_warnings_on.h>
+
 
 
 namespace SCIRun {

@@ -42,6 +42,8 @@ private:
   GuiString gui_typename_;
   GuiString gui_rows_;
   GuiString gui_cols_;
+  GuiString gui_min_;
+  GuiString gui_max_;
   GuiString gui_elements_;
 
   void clear_vals();
@@ -62,6 +64,8 @@ ReportMatrixInfo::ReportMatrixInfo(GuiContext* ctx)
     gui_typename_(get_ctx()->subVar("typename", false),"---"),
     gui_rows_(get_ctx()->subVar("rows", false),"---"),
     gui_cols_(get_ctx()->subVar("cols", false),"---"),
+    gui_min_(get_ctx()->subVar("min", false),"---"),
+    gui_max_(get_ctx()->subVar("max", false),"---"),
     gui_elements_(get_ctx()->subVar("elements", false),"---")
 {
 }
@@ -122,6 +126,9 @@ ReportMatrixInfo::update_input_attributes(MatrixHandle m)
 
   gui_rows_.set(to_string(m->nrows()));
   gui_cols_.set(to_string(m->ncols()));
+  
+  gui_min_.set(to_string(m->min()));
+  gui_max_.set(to_string(m->max()));
 }
 
 

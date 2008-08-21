@@ -47,7 +47,7 @@ itcl_class Teem_UnuAtoM_UnuConvert {
     }
     method set_defaults {} {
         global $this-type
-	set $this-type 5
+        set $this-type 5
     }
     method ui {} {
         set w .ui[modname]
@@ -55,26 +55,27 @@ itcl_class Teem_UnuAtoM_UnuConvert {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 100 230
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
-	global $this-type
-	make_labeled_radio $w.f.t "New Type:" "" \
-		top 1 $this-type \
-		{{char 1} \
-		{uchar 2} \
-		{short 3} \
-		{ushort 4} \
-		{int 5} \
-		{uint 6} \
-		{float 9} \
-		{double 10}}
+        global $this-type
+        make_labeled_radio $w.f.t "New Type:" "" \
+          top 1 $this-type \
+          {{char 1} \
+          {uchar 2} \
+          {short 3} \
+          {ushort 4} \
+          {int 5} \
+          {uint 6} \
+          {float 9} \
+          {double 10}}
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
 
-	pack $w.f.t -side top -expand 1 -fill x
-	pack $w.f -expand 1 -fill x
+        pack $w.f.t -side top -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+
     }
 }

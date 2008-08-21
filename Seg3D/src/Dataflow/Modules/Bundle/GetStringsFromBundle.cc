@@ -27,11 +27,12 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/String.h>
+#include <Core/Datatypes/Bundle.h>
+
+#include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 #include <Dataflow/Network/Ports/StringPort.h>
-#include <Core/Datatypes/String.h>
-#include <Dataflow/Network/Module.h>
 
 using namespace SCIRun;
 
@@ -61,7 +62,7 @@ GetStringsFromBundle::GetStringsFromBundle(GuiContext* ctx)
     guistring4name_(get_ctx()->subVar("string4-name"), "string4"),
     guistring5name_(get_ctx()->subVar("string5-name"), "string5"),
     guistring6name_(get_ctx()->subVar("string6-name"), "string6"),
-    guistrings_(get_ctx()->subVar("string-selection"), "")
+    guistrings_(get_ctx()->subVar("string-selection",false), "")
 {
 }
 
@@ -72,7 +73,7 @@ GetStringsFromBundle::execute()
   BundleHandle handle;
   
   // Get data from input port:
-  if (!(get_input_handle("bundle",handle,true))) return;
+  get_input_handle("bundle",handle,true);
   
   if (inputs_changed_ || guistring1name_.changed() || 
       guistring2name_.changed() || guistring3name_.changed() || 
@@ -82,6 +83,8 @@ GetStringsFromBundle::execute()
       !oport_cached("string3") || !oport_cached("string4") ||
       !oport_cached("string5") || !oport_cached("string6"))
   {
+    update_state(Executing);
+
     StringHandle fhandle;
     std::string string1name = guistring1name_.get();
     std::string string2name = guistring2name_.get();
@@ -127,7 +130,7 @@ GetStringsFromBundle::execute()
     // Send string4 if we found one that matches the name:
     if (handle->isString(string4name))
     {
-      fhandle = handle->getString(string1name);
+      fhandle = handle->getString(string4name);
       send_output_handle("string4",fhandle);
     }
 

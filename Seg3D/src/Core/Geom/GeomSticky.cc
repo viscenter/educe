@@ -42,13 +42,13 @@
 
 #include <Core/Geom/GeomSticky.h>
 #include <Core/Util/NotFinished.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Geometry/BBox.h>
 
 namespace SCIRun {
 
 Persistent *make_GeomSticky() {
-  return scinew GeomSticky( 0 );
+  return new GeomSticky( 0 );
 }
 
 PersistentTypeID GeomSticky::type_id("GeomSticky", "GeomObj", make_GeomSticky);
@@ -68,7 +68,7 @@ GeomSticky::~GeomSticky()
 }
 
 GeomObj* GeomSticky::clone() {
-  return scinew GeomSticky( *this );
+  return new GeomSticky( *this );
 }
 
 void

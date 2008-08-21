@@ -43,7 +43,7 @@
 #include <Core/Geom/GeomTri.h>
 #include <Core/Util/NotFinished.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MinMax.h>
 #include <iostream>
 using std::cerr;
@@ -54,7 +54,7 @@ namespace SCIRun {
 
 Persistent* make_GeomTri()
 {
-    return scinew GeomTri(Point(0,0,0), Point(1,0,0), Point(0,1,0));
+    return new GeomTri(Point(0,0,0), Point(1,0,0), Point(0,1,0));
 }
 
 PersistentTypeID GeomTri::type_id("GeomTri", "GeomObj", make_GeomTri);
@@ -98,7 +98,7 @@ GeomTri::~GeomTri()
 
 GeomObj* GeomTri::clone()
 {
-    return scinew GeomTri(*this);
+    return new GeomTri(*this);
 }
 
 #ifdef BSPHERE

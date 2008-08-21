@@ -194,7 +194,7 @@ TransferFunction2D::process_event(event_handle_t &event)
 
         for (int i = 0; i < (int)colormap2_->widgets().size(); i++)
         {
-          int pick = pick1_ ? pick1_ : pick2_;
+          //int pick = pick1_ ? pick1_ : pick2_;
           colormap2_->widgets()[i]->select(i == widget_);
           if (i == widget_) {
             Skinner::Color newcolor;
@@ -225,8 +225,7 @@ TransferFunction2D::process_event(event_handle_t &event)
       widget->set_color(SLIVR::Color(color_().r, color_().g, color_().b));
       widget->set_alpha(color_().a);
 
-      vector<ColorMap2Handle> cv(1,colormap2_);
-      ColorMap2Event *cm2e = new ColorMap2Event(cv);
+      ColorMap2Event *cm2e = new ColorMap2Event(colormap2_);
       EventManager::add_event(cm2e);
     }
   }
@@ -241,8 +240,7 @@ TransferFunction2D::create_rectangle(event_handle_t &event)
   RectangleCM2Widget *widget = new RectangleCM2Widget();
   widget->set_faux(false);
   colormap2_->widgets().push_back(widget);
-  vector<ColorMap2Handle> cv(1, colormap2_);
-  ColorMap2Event *cm2e = new ColorMap2Event(cv);
+  ColorMap2Event *cm2e = new ColorMap2Event(colormap2_);
   EventManager::add_event(cm2e);
   return CONTINUE_E;
 }
@@ -255,8 +253,7 @@ TransferFunction2D::create_triangle(event_handle_t &event)
   TriangleCM2Widget *widget = new TriangleCM2Widget();
   widget->set_faux(false);
   colormap2_->widgets().push_back(widget);
-  vector<ColorMap2Handle> cv(1, colormap2_);
-  ColorMap2Event *cm2e = new ColorMap2Event(cv);
+  ColorMap2Event *cm2e = new ColorMap2Event(colormap2_);
   EventManager::add_event(cm2e);
   return CONTINUE_E;
 }
@@ -273,8 +270,7 @@ TransferFunction2D::delete_selected_widget(event_handle_t &event)
 
   widget_ = -1;
 
-  vector<ColorMap2Handle> cv(1,colormap2_);
-  ColorMap2Event *cm2e = new ColorMap2Event(cv);
+  ColorMap2Event *cm2e = new ColorMap2Event(colormap2_);
   EventManager::add_event(cm2e);
 
   return CONTINUE_E;
@@ -289,8 +285,7 @@ TransferFunction2D::enable_disable_selected_widget(event_handle_t &event)
   widget->set_onState(!widget->get_onState());
   enabled_ = !enabled_;
 
-  vector<ColorMap2Handle> cv(1,colormap2_);
-  ColorMap2Event *cm2e = new ColorMap2Event(cv);
+  ColorMap2Event *cm2e = new ColorMap2Event(colormap2_);
   EventManager::add_event(cm2e);
 
   return CONTINUE_E;
@@ -363,10 +358,8 @@ TransferFunction2D::do_PointerEvent(event_handle_t &event)
   if (button1 && (pick1_ || pick2_)) {
     widgets[widget_]->move(xx,yy,wid,hei);
     EventManager::add_event(new WindowEvent(WindowEvent::REDRAW_E));
-    vector<ColorMap2Handle> cv(1,colormap2_);
-    ColorMap2Event *cm2e = new ColorMap2Event(cv);
+    ColorMap2Event *cm2e = new ColorMap2Event(colormap2_);
     EventManager::add_event(cm2e);
-
   }
 
   if (button1 && released) {

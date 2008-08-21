@@ -34,8 +34,7 @@
 namespace SCIRunAlgo {
 
 bool
-GetCentroidsAlgo::
-run(FieldHandle input, FieldHandle& output)
+GetCentroidsAlgo::run(FieldHandle input, FieldHandle& output)
 {
   algo_start("GetCentroids",false);
   
@@ -161,6 +160,7 @@ run(FieldHandle input, FieldHandle& output)
     algo_end(); return (true);
   }
 
+  return false; // nothing done
 }
 
 } // end namespace SCIRunAlgo

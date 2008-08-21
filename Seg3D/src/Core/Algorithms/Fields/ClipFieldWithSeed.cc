@@ -42,7 +42,8 @@
 #include <Core/Containers/StringUtil.h>
 #include <Core/Algorithms/Fields/ClipFieldWithSeed.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
-#include <Core/Containers/HashTable.h>
+
+#include <sci_hash_map.h>
 #include <iostream>
 
 
@@ -110,7 +111,12 @@ get_compile_info( FieldHandle& field_input_handle,
 		  string function,
 		  int hashoffset)
 {
-  unsigned int hashval = Hash(function, 0x7fffffff) + hashoffset;
+#if defined(__ECC) || defined(_MSC_VER)
+  hash_compare<const char*> H;
+#else
+  hash<const char*> H;
+#endif
+  unsigned int hashval = H(function.c_str()) + hashoffset;
 
   // use cc_to_h if this is in the .cc file, otherwise just __FILE__
   static const string include_path(TypeDescription::cc_to_h(__FILE__));
@@ -130,7 +136,7 @@ get_compile_info( FieldHandle& field_input_handle,
 
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_name + "." +
+    new CompileInfo(template_name + "." +
 
 		       ftd->get_filename() + "." +
 		       std->get_filename() + "." +

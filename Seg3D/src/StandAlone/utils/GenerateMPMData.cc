@@ -94,10 +94,6 @@ write_MPM_fibdir(FieldHandle& field_h, const string &outdir)
   files->push_back(new ofstream(nm1.c_str(), ios_base::out));
   aux_files->push_back(new ofstream(aux_nm.c_str(), ios_base::out));
 
-#if defined(__sgi)
-#  define round(var) ((var)>=0?(int)((var)+0.5):(int)((var)-0.5))
-#endif
-
   mesh->synchronize(Mesh::NODES_E | Mesh::EDGES_E | 
 		    Mesh::FACES_E | Mesh::CELLS_E);
   typename Fld::mesh_type::Cell::iterator iter, end;
@@ -250,10 +246,6 @@ write_MPM(FieldHandle& field_h, const string &outdir)
   Point minb, maxb;
   minb = bbox.min();
   maxb = bbox.max();
-
-#if defined(__sgi)
-#  define round(var) ((var)>=0?(int)((var)+0.5):(int)((var)-0.5))
-#endif
 
   int sizex = (int)(round(maxb.x() - minb.x()) / max_vol_s);
   int sizey = (int)(round(maxb.y() - minb.y()) / max_vol_s);

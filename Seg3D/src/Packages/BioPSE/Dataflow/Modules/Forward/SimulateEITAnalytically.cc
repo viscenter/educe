@@ -36,10 +36,10 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/ColumnMatrix.h>
 #include <Core/Datatypes/SparseRowMatrix.h>
 #include <Core/Datatypes/DenseMatrix.h>
@@ -241,7 +241,7 @@ SimulateEITAnalytically::execute()
   MatrixHandle  hElectrodeParams;
   if (!get_input_handle("Electrode Parameters", hElectrodeParams)) return;
 
-  ColumnMatrix* electrodeParams = scinew ColumnMatrix(numParams);
+  ColumnMatrix* electrodeParams = new ColumnMatrix(numParams);
   electrodeParams=dynamic_cast<ColumnMatrix*>(hElectrodeParams.get_rep());
 
   //unsigned int electrodeModel = (unsigned int)((*electrodeParams)[0]);
@@ -263,10 +263,10 @@ SimulateEITAnalytically::execute()
   
   if (tet) {
     hTetMesh->size(nsizeTet);
-    potential = scinew ColumnMatrix(nsizeTet);
+    potential = new ColumnMatrix(nsizeTet);
   } else {
     hTriMesh->size(nsizeTri);
-    potential = scinew ColumnMatrix(nsizeTri);
+    potential = new ColumnMatrix(nsizeTri);
   }
 
   // Find the conductivities from the mesh data. Then for each

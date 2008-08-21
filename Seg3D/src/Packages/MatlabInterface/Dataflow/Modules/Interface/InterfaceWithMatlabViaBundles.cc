@@ -26,21 +26,17 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-/*
- *  InterfaceWithMatlabViaBundles.cc:
- *
- *  Written by:
- *   Jeroen Stinstra
- *
- */
-
-
 #include <Dataflow/Network/Module.h>
+
+#include <Core/Datatypes/Bundle.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
+
 #include <Core/SystemCall/TempFileManager.h>
+
 #include <Core/Matlab/matlabconverter.h>
 #include <Core/Matlab/matlabfile.h>
 #include <Core/Matlab/matlabarray.h>
+
 #include <Packages/MatlabInterface/Services/MatlabEngine.h>
 #include <Core/Thread/Runnable.h>
 #include <Core/Thread/Thread.h>
@@ -53,15 +49,8 @@
 #include <Core/ICom/IComSocket.h>
 #include <Core/Thread/CleanupManager.h>
 
-#include <sgi_stl_warnings_off.h>
 #include <iostream>
 #include <fstream>
-#include <sgi_stl_warnings_on.h>
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209
-#endif
 
 namespace MatlabIO {
 
@@ -182,10 +171,6 @@ private:
   std::vector<int> input_bundle_generation_old_;
 
   std::string	matlab_code_list_;
-
-  // Ports for input and output
-  BundleIPort*  bundle_iport_[NUM_BUNDLE_PORTS];
-  BundleOPort*  bundle_oport_[NUM_BUNDLE_PORTS];
 
   std::string input_bundle_matfile_[NUM_BUNDLE_PORTS];
   std::string output_bundle_matfile_[NUM_BUNDLE_PORTS];
@@ -395,12 +380,6 @@ InterfaceWithMatlabViaBundles::InterfaceWithMatlabViaBundles(GuiContext *context
   need_file_transfer_(false)
 {
   // Find the input and output ports.
-  int portnum = 0;
-  for (int p = 0; p<NUM_BUNDLE_PORTS; p++)  bundle_iport_[p] = static_cast<BundleIPort *>(get_iport(portnum++));
-
-  portnum = 0;
-  for (int p = 0; p<NUM_BUNDLE_PORTS; p++)  bundle_oport_[p] = static_cast<BundleOPort *>(get_oport(portnum++));
-
   input_bundle_name_list_.resize(NUM_BUNDLE_PORTS);
   input_bundle_name_list_old_.resize(NUM_BUNDLE_PORTS);
 
@@ -551,7 +530,7 @@ InterfaceWithMatlabViaBundles::execute()
 bool
 InterfaceWithMatlabViaBundles::send_matlab_job()
 {
-  IComPacketHandle packet = scinew IComPacket;
+  IComPacketHandle packet = new IComPacket;
 
   if (packet.get_rep() == 0)
   {
@@ -614,7 +593,7 @@ InterfaceWithMatlabViaBundles::presave()
 bool
 InterfaceWithMatlabViaBundles::send_input(std::string str)
 {
-  IComPacketHandle packet = scinew IComPacket;
+  IComPacketHandle packet = new IComPacket;
 	
   if (matlab_engine_.get_rep() == 0) return(true);
 
@@ -672,7 +651,7 @@ InterfaceWithMatlabViaBundles::open_matlab_engine()
     // Inform the impatient user we are still working for him
     update_status("Please wait while launching matlab, this may take a few minutes ....\n");
 
-    matlab_engine_ = scinew ServiceClient();
+    matlab_engine_ = new ServiceClient();
     if(!(matlab_engine_->open(address,"matlabengine",sessionnum,passwd)))
     {
       error(std::string("InterfaceWithMatlabViaBundles: Could not open matlab engine (error=") + matlab_engine_->geterror() + std::string(")"));
@@ -685,7 +664,7 @@ InterfaceWithMatlabViaBundles::open_matlab_engine()
       return(false);
     }
 
-    file_transfer_ = scinew FileTransferClient();
+    file_transfer_ = new FileTransferClient();
     if(!(file_transfer_->open(address,"matlabenginefiletransfer",sessionnum,passwd)))
     {
       matlab_engine_->close();
@@ -733,7 +712,7 @@ InterfaceWithMatlabViaBundles::open_matlab_engine()
       return(false);					
     }
 
-    thread_info_ = scinew InterfaceWithMatlabViaBundlesEngineThreadInfo();
+    thread_info_ = new InterfaceWithMatlabViaBundlesEngineThreadInfo();
     if (thread_info_.get_rep() == 0)
     {
       matlab_engine_->close();
@@ -787,7 +766,7 @@ InterfaceWithMatlabViaBundles::open_matlab_engine()
     // it is better to have a separate copy. Besides, the socket obejct will point to the
     // same underlying socket. Hence only the error handling part will be duplicated
     ServiceClientHandle matlab_engine_copy = matlab_engine_->clone();
-    InterfaceWithMatlabViaBundlesEngineThread* enginethread = scinew InterfaceWithMatlabViaBundlesEngineThread(matlab_engine_copy,thread_info_);
+    InterfaceWithMatlabViaBundlesEngineThread* enginethread = new InterfaceWithMatlabViaBundlesEngineThread(matlab_engine_copy,thread_info_);
     if (enginethread == 0)
     {
       matlab_engine_->close();
@@ -800,7 +779,7 @@ InterfaceWithMatlabViaBundles::open_matlab_engine()
       return(false);
     }
 
-    Thread* thread = scinew Thread(enginethread,"InterfaceWithMatlabViaBundles module thread");
+    Thread* thread = new Thread(enginethread,"InterfaceWithMatlabViaBundles module thread");
     if (thread == 0)
     {
       delete enginethread;
@@ -872,8 +851,7 @@ InterfaceWithMatlabViaBundles::load_output_matrices()
     for (int p = 0; p < NUM_BUNDLE_PORTS; p++)
     {
       // Test whether the bundle port exists
-      if (bundle_oport_[p] == 0) continue;
-      if (bundle_oport_[p]->nconnections() == 0) continue;
+      if (!oport_connected(p)) continue;
       if (output_bundle_name_list_[p] == "") continue;
       if (output_bundle_matfile_[p] == "") continue;
 
@@ -908,7 +886,7 @@ InterfaceWithMatlabViaBundles::load_output_matrices()
       if (output_bundle_pnrrds_list_[p] == "prefer nrrds") translate.prefernrrds();
       if (output_bundle_pbundles_list_[p] == "prefer bundles") translate.preferbundles();
       if (translate.sciBundleCompatible(ma,info)) translate.mlArrayTOsciBundle(ma,handle);
-      bundle_oport_[p]->send(handle);
+      send_output_handle(p,handle,true);
     }
   }
   catch(...)
@@ -935,8 +913,7 @@ InterfaceWithMatlabViaBundles::generate_matlab_code()
     for (int p = 0; p < NUM_BUNDLE_PORTS; p++)
     {
       // Test whether the matrix port exists
-      if (bundle_oport_[p] == 0) continue;
-      if (bundle_oport_[p]->nconnections() == 0) continue;
+      if (!oport_connected(p)) continue;
       if (output_bundle_name_list_[p] == "") continue;
  			
       ostringstream oss;
@@ -974,12 +951,10 @@ InterfaceWithMatlabViaBundles::save_input_matrices()
 
     for (int p = 0; p < NUM_BUNDLE_PORTS; p++)
     {
+      BundleHandle handle;
       // Test whether the matrix port exists
-      if (bundle_iport_[p] == 0) continue;
-      if (bundle_iport_[p]->nconnections() == 0) continue;
+      if (!get_input_handle(p,handle,false)) continue;
 
-      BundleHandle	handle = 0;
-      bundle_iport_[p]->get(handle);
       // if there is no data
       if (handle.get_rep() == 0)
       {
@@ -1218,7 +1193,7 @@ InterfaceWithMatlabViaBundles::tcl_command(GuiArgs& args, void* userdata)
     }
     if (args[1] == "configfile")
     {
-      ServiceDBHandle servicedb = scinew ServiceDB;
+      ServiceDBHandle servicedb = new ServiceDB;
       // load all services and find all makers
       servicedb->loadpackages();
 
@@ -1234,7 +1209,3 @@ InterfaceWithMatlabViaBundles::tcl_command(GuiArgs& args, void* userdata)
 
 } // End namespace InterfaceWithMatlabViaBundlesInterface
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209
-#endif

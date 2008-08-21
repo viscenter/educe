@@ -37,35 +37,35 @@ itcl_class SCIRun_Visualization_FlowVis2D {
     }
 
     method ui {} {
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    return
-	}
-	toplevel $w
-	frame $w.f 
-	pack $w.f -padx 2 -pady 2 -fill x
-	
-	set n "$this-c needexecute"
-	set s "$this state"
+        set w .ui[modname]
+        if {[winfo exists $w]} {
+            return
+        }
+        sci_toplevel $w
+        vframe $w.f 
+        pack $w.f -padx 2 -pady 2 -fill x
+        
+        set n "$this-c needexecute"
+        set s "$this state"
 
-        radiobutton $w.f.lic -text LIC -value 0 \
+        sci_radiobutton $w.f.lic -text LIC -value 0 \
             -variable $this-vis_type
-        radiobutton $w.f.ibfv -text IBFV -value 1 \
+        sci_radiobutton $w.f.ibfv -text IBFV -value 1 \
             -variable $this-vis_type
-        radiobutton $w.f.lea -text LEA -value 2 \
+        sci_radiobutton $w.f.lea -text LEA -value 2 \
             -variable $this-vis_type
-        label $w.f.advl -text "advections per frame"
-        scale $w.f.adv -variable $this-adv_accums -from 0 -to 20
-        label $w.f.convl -text "convolutions per frame"
-        scale $w.f.conv -variable $this-conv_accums -from 0 -to 20
-        button $w.f.clear -text "Clear buffers" \
+        sci_label $w.f.advl -text "advections per frame"
+        sci_scale $w.f.adv -variable $this-adv_accums -from 0 -to 20
+        sci_label $w.f.convl -text "convolutions per frame"
+        sci_scale $w.f.conv -variable $this-conv_accums -from 0 -to 20
+        sci_button $w.f.clear -text "Clear buffers" \
             -command "$this clear"
     
         pack  $w.f.lic $w.f.ibfv $w.f.lea $w.f.clear \
             $w.f.advl $w.f.adv $w.f.convl $w.f.conv -side top
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
         bind $w.f.adv <ButtonRelease> $n       
         bind $w.f.conv <ButtonRelease> $n

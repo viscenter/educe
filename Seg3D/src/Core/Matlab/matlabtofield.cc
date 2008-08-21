@@ -41,32 +41,11 @@ namespace MatlabIO {
 using namespace std;
 using namespace SCIRun;
 
-SCIRun::CompileInfoHandle MatlabToFieldAlgo::get_compile_info(std::string fielddesc)
+
+MatlabToFieldAlgo::~MatlabToFieldAlgo()
 {
-  SCIRun::CompileInfoHandle cinfo;
-  
-  static const std::string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const std::string algo_name("MatlabToFieldAlgoT");
-  static const std::string base_name("MatlabToFieldAlgo");
-  static const std::string name_space("MatlabIO");
-  static const std::string name_space2("SCIRun");
-
-  std::string fieldname = DynamicAlgoBase::to_filename(fielddesc);
-  std::string filename = algo_name + "." + fieldname + ".";
-  
-  // Supply the dynamic compiler with enough information to build a file in the
-  // on-the-fly libs which will have the templated function in there
-  
-  cinfo = scinew SCIRun::CompileInfo(filename,base_name, algo_name, fielddesc);
-  cinfo->add_namespace(name_space);
-  cinfo->add_namespace(name_space2);
-  cinfo->add_include(include_path);
-  
-  // We do not have a field so we rely on the actual name to figure out
-  // what files to include
-
-  return(cinfo);
 }
+
 
 bool MatlabToFieldAlgo::execute(SCIRun::FieldHandle& field, matlabarray& mlarray)
 {

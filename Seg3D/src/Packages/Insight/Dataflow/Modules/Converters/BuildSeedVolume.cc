@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
@@ -137,7 +137,7 @@ BuildSeedVolume::execute()
   size_t size[NRRD_DIM_MAX];
   size[0] = samples_x;
   size[1] = samples_y;
-  NrrdData *n = scinew NrrdData();
+  NrrdData *n = new NrrdData();
   nrrdAlloc_nva(n->nrrd_, nrrdTypeFloat, 2, size);
   n->nrrd_->axis[0].spacing = spacing_x;
   n->nrrd_->axis[1].spacing = spacing_y;

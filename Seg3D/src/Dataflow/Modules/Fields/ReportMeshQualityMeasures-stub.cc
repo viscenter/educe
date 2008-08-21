@@ -45,35 +45,30 @@
 
 namespace SCIRun {
 
-  class ReportMeshQualityMeasures : public Module
-  {
+class ReportMeshQualityMeasures : public Module
+{
   public:
     ReportMeshQualityMeasures(GuiContext* ctx);
-    virtual ~ReportMeshQualityMeasures();
+    virtual ~ReportMeshQualityMeasures() {}
 
     virtual void execute();
-  };
+};
 
 
-  DECLARE_MAKER(ReportMeshQualityMeasures)
+DECLARE_MAKER(ReportMeshQualityMeasures)
 
 
-  ReportMeshQualityMeasures::ReportMeshQualityMeasures(GuiContext* ctx)
-  : Module("ReportMeshQualityMeasures", ctx, Filter, "ChangeFieldData", "SCIRun")
-  {
-  }
+ReportMeshQualityMeasures::ReportMeshQualityMeasures(GuiContext* ctx)
+: Module("ReportMeshQualityMeasures", ctx, Filter, "ChangeFieldData", "SCIRun")
+{
+}
 
 
-  ReportMeshQualityMeasures::~ReportMeshQualityMeasures()
-  {
-  }
-
-
-  void
-  ReportMeshQualityMeasures::execute()
-  {
-    error("This module is disabled, because the necessary supporting libraries were not found at build time.");
-  }
+void
+ReportMeshQualityMeasures::execute()
+{
+  error("This module is disabled, because the necessary supporting libraries were not found at build time.");
+}
 
 } // End namespace SCIRun
 

@@ -42,39 +42,39 @@ itcl_class SCIRun_NewField_RefineMesh {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         #wm minsize $w 80 130
 
-        frame $w.style -relief groove -borderwidth 2
-        label $w.style.t1 -text "Refinement Method"
+        sci_frame $w.style -relief groove -borderwidth 2
+        sci_label $w.style.t1 -text "Refinement Method"
         pack $w.style.t1
 
-        radiobutton $w.style.default -text "Default" \
+        sci_radiobutton $w.style.default -text "Default" \
             -variable $this-method -value "default"
-        radiobutton $w.style.convex -text "Expand refinement volume to improve element quality" \
+        sci_radiobutton $w.style.convex -text "Expand refinement volume to improve element quality" \
             -variable $this-method -value "convex"
         pack $w.style.default $w.style.convex \
             -side top -anchor w
 
-        frame $w.isovalue -relief groove -borderwidth 2
-        label $w.isovalue.t1 -text "Addional Constraints"
+        sci_frame $w.isovalue -relief groove -borderwidth 2
+        sci_label $w.isovalue.t1 -text "Addional Constraints"
         pack $w.isovalue.t1 
 
-        radiobutton $w.isovalue.all -text "Do not add constraint" \
+        sci_radiobutton $w.isovalue.all -text "Do not add constraint" \
             -variable $this-select -value "all"
-        radiobutton $w.isovalue.lessthan -text "Do not refine nodes/elements with values less than isovalue" \
+        sci_radiobutton $w.isovalue.lessthan -text "Do not refine nodes/elements with values less than isovalue" \
             -variable $this-select -value "greaterthan"
-        radiobutton $w.isovalue.equalto -text "Do not refine nodes/elements with values unequal to isovalue" \
+        sci_radiobutton $w.isovalue.equalto -text "Do not refine nodes/elements with values unequal to isovalue" \
             -variable $this-select -value "equal"
-        radiobutton $w.isovalue.greaterthan -text "Do not refine nodes/elements with values greater than isovalue" \
+        sci_radiobutton $w.isovalue.greaterthan -text "Do not refine nodes/elements with values greater than isovalue" \
             -variable $this-select -value "lessthan"
-        radiobutton $w.isovalue.none -text "Do not refine any elements" \
+        sci_radiobutton $w.isovalue.none -text "Do not refine any elements" \
             -variable $this-select -value "none"
 
-        frame $w.isovalue.f 
+        sci_frame $w.isovalue.f 
         
-        label $w.isovalue.f.label -text "IsoValue :"
-        entry $w.isovalue.f.value  -textvariable $this-isoval
+        sci_label $w.isovalue.f.label -text "IsoValue :"
+        sci_entry $w.isovalue.f.value  -textvariable $this-isoval
         pack $w.isovalue.f.label $w.isovalue.f.value -side left -anchor n
                 
         pack $w.isovalue.all $w.isovalue.lessthan $w.isovalue.equalto $w.isovalue.greaterthan $w.isovalue.none $w.isovalue.f\

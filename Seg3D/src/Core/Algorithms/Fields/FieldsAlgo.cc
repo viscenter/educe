@@ -28,67 +28,59 @@
 
 
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
+#include <Core/Containers/StringUtil.h>
 
 #include <Core/Algorithms/Fields/Mapping/MapFieldDataFromElemToNode.h>
 #include <Core/Algorithms/Fields/Mapping/MapFieldDataFromNodeToElem.h>
-
-
-#include <Core/Algorithms/Fields/ApplyMappingMatrix.h>
-#include <Core/Algorithms/Fields/ApplyDilateFilterToFieldData.h>
-#include <Core/Algorithms/Fields/ApplyErodeFilterToFieldData.h>
-#include <Core/Algorithms/Fields/GetBoundingBox.h>
+#include <Core/Algorithms/Fields/Mapping/ApplyMappingMatrix.h>
+#include <Core/Algorithms/Fields/FilterFieldData/DilateFieldData.h>
+#include <Core/Algorithms/Fields/FilterFieldData/ErodeFieldData.h>
 #include <Core/Algorithms/Fields/ClearAndChangeFieldBasis.h>
 #include <Core/Algorithms/Fields/ClipBySelectionMask.h>
-#include <Core/Algorithms/Fields/ConvertMeshToTetVol.h>
-#include <Core/Algorithms/Fields/ConvertMeshToTriSurf.h>
+#include <Core/Algorithms/Fields/ConvertMeshType/ConvertMeshToTetVolMesh.h>
+#include <Core/Algorithms/Fields/ConvertMeshType/ConvertMeshToTriSurfMesh.h>
+#include <Core/Algorithms/Fields/ConvertMeshType/ConvertMeshToPointCloudMesh.h>
+#include <Core/Algorithms/Fields/ConvertMeshType/ConvertMeshToUnstructuredMesh.h>
+#include <Core/Algorithms/Fields/ConvertMeshType/ConvertMeshToIrregularMesh.h>
 #include <Core/Algorithms/Fields/MapCurrentDensityOntoField.h>
-#include <Core/Algorithms/Fields/GetDomainBoundary.h>
-#include <Core/Algorithms/Fields/DistanceField.h>
+#include <Core/Algorithms/Fields/DistanceField/CalculateDistanceField.h>
+#include <Core/Algorithms/Fields/DistanceField/CalculateSignedDistanceField.h>
+#include <Core/Algorithms/Fields/DomainFields/GetDomainBoundary.h>
+#include <Core/Algorithms/Fields/MeshDerivatives/GetBoundingBox.h>
 #include <Core/Algorithms/Fields/MeshDerivatives/GetFieldBoundary.h>
+#include <Core/Algorithms/Fields/MeshDerivatives/SplitByConnectedRegion.h>
 #include <Core/Algorithms/Fields/FindClosestNodeByValue.h>
 #include <Core/Algorithms/Fields/FindClosestNode.h>
-#include <Core/Algorithms/Fields/GatherFields.h>
 #include <Core/Algorithms/Fields/FieldData/GetFieldData.h>
-#include <Core/Algorithms/Fields/GetFieldNodes.h>
-#include <Core/Algorithms/Fields/GetFieldDataMinMax.h>
+#include <Core/Algorithms/Fields/MeshData/GetMeshNodes.h>
 #include <Core/Algorithms/Fields/GetFieldMeasure.h>
-#include <Core/Algorithms/Fields/GetFieldInfo.h>
-#include <Core/Algorithms/Fields/CalculateIsInsideField.h>
+#include <Core/Algorithms/Fields/DistanceField/CalculateIsInsideField.h>
+#include <Core/Algorithms/Fields/DistanceField/CalculateInsideWhichField.h>
 #include <Core/Algorithms/Fields/FieldData/ConvertIndicesToFieldData.h>
-#include <Core/Algorithms/Fields/CalculateLinkBetweenOppositeFieldBoundaries.h>
 #include <Core/Algorithms/Fields/CalculateFieldDataCompiled.h>
 #include <Core/Algorithms/Fields/ClipFieldByFunction.h>
 #include <Core/Algorithms/Fields/ClipFieldWithSeed.h>
-#include <Core/Algorithms/Fields/CreateLinkBetweenMeshAndCompGrid.h>
-#include <Core/Algorithms/Fields/CreateLinkBetweenMeshAndCompGridByDomain.h>
-#include <Core/Algorithms/Fields/ConvertMappingMatrixToFieldData.h>
+#include <Core/Algorithms/Fields/FieldData/ConvertMappingMatrixToFieldData.h>
 #include <Core/Algorithms/Fields/Mapping.h>
-#include <Core/Algorithms/Fields/MergeFields.h>
-#include <Core/Algorithms/Fields/MergeMeshes.h>
-#include <Core/Algorithms/Fields/RemoveUnusedNodes.h>
-#include <Core/Algorithms/Fields/ProjectPointsOntoMesh.h>
-#include <Core/Algorithms/Fields/ScaleFieldMeshAndData.h>
+#include <Core/Algorithms/Fields/MergeFields/JoinFields.h>
+#include <Core/Algorithms/Fields/Cleanup/RemoveUnusedNodes.h>
+#include <Core/Algorithms/Fields/TransformMesh/ProjectPointsOntoMesh.h>
+#include <Core/Algorithms/Fields/TransformMesh/ScaleFieldMeshAndData.h>
 #include <Core/Algorithms/Fields/FieldData/SetFieldData.h>
-#include <Core/Algorithms/Fields/SetFieldNodes.h>
-#include <Core/Algorithms/Fields/SplitNodesByDomain.h>
-#include <Core/Algorithms/Fields/SplitByConnectedRegion.h>
+#include <Core/Algorithms/Fields/MeshData/SetMeshNodes.h>
+#include <Core/Algorithms/Fields/DomainFields/SplitNodesByDomain.h>
 #include <Core/Algorithms/Fields/TransformMeshWithFunction.h>
-#include <Core/Algorithms/Fields/TransformMeshWithTransform.h>
-#include <Core/Algorithms/Fields/ConvertMeshToPointCloud.h>
-#include <Core/Algorithms/Fields/ConvertMeshToUnstructuredMesh.h>
-#include <Core/Algorithms/Fields/ConvertMeshToIrregularMesh.h>
-#include <Core/Algorithms/Fields/CreateFieldFromMesh.h>
-#include <Core/Algorithms/Fields/CreateMeshFromNrrd.h>
+#include <Core/Algorithms/Fields/CreateMesh/CreateMeshFromNrrd.h>
 #include <Core/Algorithms/Fields/CollectPointClouds.h>
 #include <Core/Algorithms/Fields/RefineMesh/RefineMesh.h>
-#include <Core/Algorithms/Fields/GetMeshQualityField.h>
-#include <Core/Algorithms/Fields/ApplyTriSurfPhaseFilter.h>
-#include <Core/Algorithms/Fields/TracePoints.h>
+#include <Core/Algorithms/Fields/MeshData/GetMeshQualityField.h>
+#include <Core/Algorithms/Fields/FilterFieldData/TriSurfPhaseFilter.h>
+#include <Core/Algorithms/Fields/TracePoints/TracePoints.h>
 
 
-#include <sgi_stl_warnings_off.h>
+
 #include <sstream>
-#include <sgi_stl_warnings_on.h>
+
 
 namespace SCIRunAlgo {
 
@@ -112,8 +104,10 @@ FieldsAlgo::ApplyDilateFilterToFieldData(FieldHandle input,
 					 FieldHandle& output,
 					 FilterSettings& settings)
 {
-  ApplyDilateFilterToFieldDataAlgo algo;
-  return (algo.ApplyDilateFilterToFieldData(pr_,input,output,settings));
+  DilateFieldDataAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_int("num_iterations",settings.num_iterations_);
+  return (algo.run(input,output));
 }
 
 
@@ -123,8 +117,10 @@ FieldsAlgo::ApplyErodeFilterToFieldData(FieldHandle input,
 					FieldHandle& output,
 					FilterSettings& settings)
 {
-  ApplyErodeFilterToFieldDataAlgo algo;
-  return (algo.ApplyErodeFilterToFieldData(pr_,input,output,settings));
+  ErodeFieldDataAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_int("num_iterations",settings.num_iterations_);
+  return (algo.run(input,output));
 }
 
 
@@ -248,8 +244,9 @@ bool
 FieldsAlgo::GetBoundingBox(FieldHandle input,
 			   FieldHandle& output)
 {
-  GetBoundingBoxAlgo algo;
-  return(algo.GetBoundingBox(pr_,input,output));
+  SCIRunAlgo::GetBoundingBoxAlgo algo;
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,output));
 }
 
 
@@ -295,8 +292,9 @@ FieldsAlgo::GetFieldInfo(FieldHandle input,
 			 Field::size_type& numnodes, 
 			 Field::size_type& numelems)
 {
-  GetFieldInfoAlgo algo;
-  return(algo.GetFieldInfo(pr_,input,numnodes,numelems));
+  numnodes = input->vmesh()->num_nodes();
+  numelems = input->vmesh()->num_elems();
+  return (true);
 }
 
 
@@ -341,8 +339,9 @@ bool
 FieldsAlgo::GetFieldNodes(FieldHandle& input
 			  , MatrixHandle& data)
 {
-  GetFieldNodesAlgo algo;
-  return(algo.GetFieldNodes(pr_,input,data));
+  SCIRunAlgo::GetMeshNodesAlgo algo;
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,data));
 }
 
 bool
@@ -350,8 +349,9 @@ FieldsAlgo::SetFieldNodes(FieldHandle& input,
 			  FieldHandle& output,
 			  MatrixHandle& data)
 {
-  SetFieldNodesAlgo algo;
-  return(algo.SetFieldNodes(pr_,input,output,data));
+  SCIRunAlgo::SetMeshNodesAlgo algo;
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,data,output));
 }
 
 bool
@@ -364,23 +364,12 @@ FieldsAlgo::GetFieldMeasure(FieldHandle input,
 }
 
 
-
-bool
-FieldsAlgo::GetFieldDataMinMax(FieldHandle input,
-			       double& min,
-			       double& max)
-{
-  GetFieldDataMinMaxAlgo algo;
-  return(algo.GetFieldDataMinMax(pr_,input,min,max));
-}
-
-
 bool 
 FieldsAlgo::MapFieldDataFromNodeToElem(FieldHandle input,
 				       FieldHandle& output, 
 				       std::string method)
 {
-  MapFieldDataFromNodeToElemAlgo algo;
+  SCIRunAlgo::MapFieldDataFromNodeToElemAlgo algo;
   algo.set_progress_reporter(pr_);
   algo.set_option("method",method);
   return(algo.run(input,output));
@@ -392,7 +381,7 @@ FieldsAlgo::MapFieldDataFromElemToNode(FieldHandle input,
 				       FieldHandle& output,
 				       std::string method)
 {
-  MapFieldDataFromElemToNodeAlgo algo;
+  SCIRunAlgo::MapFieldDataFromElemToNodeAlgo algo;
   algo.set_progress_reporter(pr_);
   algo.set_option("method",method);
   return(algo.run(input,output));
@@ -422,41 +411,41 @@ FieldsAlgo::FindClosestNode(FieldHandle input,
 
 bool 
 FieldsAlgo::GetDomainBoundary(FieldHandle input,FieldHandle& output, 
-			      MatrixHandle DomainLink, double minrange, 
+			      MatrixHandle domainlink, double minrange, 
 			      double maxrange, bool userange, 
 			      bool addouterboundary, bool innerboundaryonly, 
 			      bool noinnerboundary, bool disconnect)
 {
-  if (disconnect)
-    {
-      GetDomainBoundary2Algo algo;
-      return(algo.GetDomainBoundary(pr_, input, output, DomainLink, minrange,
-				    maxrange, userange, addouterboundary, 
-				    innerboundaryonly, noinnerboundary));  
-    }
-  else
-    {
-      GetDomainBoundaryAlgo algo;
-      return(algo.GetDomainBoundary(pr_, input, output, DomainLink, minrange,
-				    maxrange, userange, addouterboundary,
-				    innerboundaryonly, noinnerboundary));
-    }
+  SCIRunAlgo::GetDomainBoundaryAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_int("min_range",static_cast<int>(minrange));
+  algo.set_int("max_range",static_cast<int>(maxrange));
+  algo.set_int("domain",static_cast<int>(minrange));
+  algo.set_bool("use_range",userange);
+  algo.set_bool("add_outer_boundary",addouterboundary);
+  algo.set_bool("inner_boundary_only",innerboundaryonly);
+  algo.set_bool("no_inner_boundary",noinnerboundary);
+  algo.set_bool("disconnect_boundaries",disconnect);
+
+  return(algo.run(input,domainlink,output));
 }
 
 
 bool 
 FieldsAlgo::ConvertMeshToTetVol(FieldHandle input, FieldHandle& output)
 {
-  ConvertMeshToTetVolAlgo algo;
-  return(algo.ConvertMeshToTetVol(pr_, input, output));
+  SCIRunAlgo::ConvertMeshToTetVolMeshAlgo algo;
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input, output));
 }
 
 
 bool 
 FieldsAlgo::ConvertMeshToTriSurf(FieldHandle input, FieldHandle& output)
 {
-  ConvertMeshToTriSurfAlgo algo;
-  return(algo.ConvertMeshToTriSurf(pr_, input, output));
+  SCIRunAlgo::ConvertMeshToTriSurfMeshAlgo algo;
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input, output));
 }
 
 bool 
@@ -466,9 +455,11 @@ FieldsAlgo::CalculateIsInsideField(FieldHandle input, FieldHandle& output,
 				   double outval, double inval)
 {
   CalculateIsInsideFieldAlgo algo;
-  output = 0;
-  return(algo.CalculateIsInsideField(pr_, input, output, objectfield,
-				     inval, outval, output_type));
+  algo.set_progress_reporter(pr_);
+  algo.set_scalar("outside_value",outval);
+  algo.set_scalar("inside_value",inval);
+  algo.set_option("output_type",output_type);
+  return(algo.run(input, objectfield, output));
 }
 
 bool 
@@ -478,19 +469,11 @@ FieldsAlgo::CalculateInsideWhichField(FieldHandle input,
 				      std::string output_type,
 				      double outval)
 {
-  CalculateIsInsideFieldAlgo algo;
-  output = 0;
-  for (unsigned int p = 1; p <= objectfields.size(); p++)
-  {
-    if (!(algo.CalculateIsInsideField(pr_, input, output, objectfields[p-1],
-				      static_cast<double>(p),
-				      outval, output_type)))
-    {
-      output = 0;
-      return (false);
-    }
-  }
-  return (true);
+  CalculateInsideWhichFieldAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_scalar("outside_value",outval);
+  algo.set_option("output_type",output_type);
+  return(algo.run(input, objectfields, output));
 }
 
 
@@ -503,45 +486,6 @@ FieldsAlgo::ConvertIndicesToFieldData(FieldHandle input, FieldHandle& output,
   algo.set_option("datatype",datatype);
   return(algo.run(input, data, output));
 }
-
-
-bool 
-FieldsAlgo::CalculateLinkBetweenOppositeFieldBoundaries(FieldHandle input, 
-							MatrixHandle& NodeLink,
-							MatrixHandle& ElemLink,
-							double tol, 
-							bool linkx, 
-							bool linky, 
-							bool linkz)
-{
-  CalculateLinkBetweenOppositeFieldBoundariesAlgo algo;
-  return(algo.CalculateLinkBetweenOppositeFieldBoundaries(pr_, input, NodeLink,
-							  ElemLink, tol, linkx,
-							  linky, linkz));
-}
-
-bool 
-FieldsAlgo::CreateLinkBetweenMeshAndCompGrid(MatrixHandle NodeLink, 
-					     MatrixHandle& GeomToComp, 
-					     MatrixHandle& CompToGeom)
-{
-  CreateLinkBetweenMeshAndCompGridAlgo algo;
-  return (!(algo.CreateLinkBetweenMeshAndCompGrid(pr_, NodeLink, GeomToComp, 
-						  CompToGeom)));
-}
-
-bool 
-FieldsAlgo::CreateLinkBetweenMeshAndCompGridByDomain(FieldHandle Geometry, 
-						     MatrixHandle NodeLink, 
-						     MatrixHandle& GeomToComp, 
-						     MatrixHandle& CompToGeom)
-{
-  CreateLinkBetweenMeshAndCompGridByDomainAlgo algo;
-  return (algo.CreateLinkBetweenMeshAndCompGridByDomain(pr_, Geometry, 
-							NodeLink, GeomToComp,
-							CompToGeom));
-}
-
 
 bool 
 FieldsAlgo::MapCurrentDensityOntoField(int numproc, FieldHandle pot, 
@@ -661,8 +605,8 @@ FieldsAlgo::ConvertMappingMatrixToFieldData(FieldHandle input,
 					    MatrixHandle mappingmatrix)
 {
   ConvertMappingMatrixToFieldDataAlgo algo;
-  return(algo.ConvertMappingMatrixToFieldData(pr_, input, output, 
-					      mappingmatrix));
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input, mappingmatrix, output));
 }
 
 bool
@@ -671,7 +615,9 @@ FieldsAlgo::MakeEditable(FieldHandle input,FieldHandle& output)
   output = input;
   if (!input->mesh()->is_editable()) 
   {
-    if(!ConvertMeshToUnstructuredMesh(input,output))
+    ConvertMeshToUnstructuredMeshAlgo algo;
+    algo.set_progress_reporter(pr_); 
+    if(!algo.run(input,output))
     {
       error("MakeEditable: Could not unstructure the mesh");
       return(false);
@@ -689,13 +635,14 @@ FieldsAlgo::MergeFields(std::vector<FieldHandle> inputs,
 			bool mergeelements,
 			bool matchvalue)
 {
-  for (size_t p = 0; p < inputs.size(); p++)
-    if (!MakeEditable(inputs[p],inputs[p]))
-      return (false);
-
-  MergeFieldsAlgo algo;
-  return(algo.MergeFields(pr_,inputs,output,
-			  tolerance,mergefields,mergeelements,matchvalue));
+  JoinFieldsAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_bool("merge_nodes",mergefields);
+  algo.set_bool("match_node_values",matchvalue);
+  algo.set_scalar("tolerance",tolerance);
+  algo.set_bool("make_no_data",false);
+  
+  return(algo.run(inputs,output));
 }
 
 bool
@@ -705,28 +652,14 @@ FieldsAlgo::MergeMeshes(std::vector<FieldHandle> inputs,
 			bool mergefields,
 			bool mergeelements)
 {
-  for (size_t p = 0; p < inputs.size(); p++)
-    if (!MakeEditable(inputs[p],inputs[p])) return (false);
-  MergeMeshesAlgo algo;
-  return(algo.MergeMeshes(pr_,inputs,output,
-			  tolerance,mergefields,mergeelements));
+  JoinFieldsAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_bool("merge_nodes",mergefields);
+  algo.set_scalar("tolerance",tolerance);
+  algo.set_bool("make_no_data",true);
+  
+  return(algo.run(inputs,output));
 }
-
-bool
-FieldsAlgo::GatherFields(std::list<FieldHandle> inputs, FieldHandle& output)
-{
-  std::list<FieldHandle>::iterator it, it_end;
-  it = inputs.begin();
-  it_end = inputs.end();
-  while (it != it_end)
-    {
-      if (!MakeEditable(*it,*it)) return (false);
-      ++it;
-    }
-  GatherFieldsAlgo algo;
-  return(algo.GatherFields(pr_,inputs,output));
-}
-
 
 bool
 FieldsAlgo::MergeNodes(FieldHandle input,
@@ -735,19 +668,15 @@ FieldsAlgo::MergeNodes(FieldHandle input,
 		       bool mergeelements,
 		       bool matchvalue)
 {
-  if (MakeEditable(input,input)) return (false);
-  
   std::vector<FieldHandle> inputs(1);
   inputs[0] = input;
   
-  MergeFieldsAlgo algo;
-  return(algo.MergeFields(pr_,
-			  inputs,
-			  output,
-			  tolerance,
-			  true,
-			  mergeelements,
-			  matchvalue));
+  JoinFieldsAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_scalar("tolerance",tolerance);
+  algo.set_bool("merge_nodes",true);
+  algo.set_bool("match_node_values",matchvalue);
+  return(algo.run(inputs,output));
 }
 
 
@@ -755,9 +684,9 @@ bool
 FieldsAlgo::SplitNodesByDomain(FieldHandle input,
 			       FieldHandle& output)
 {
-  SplitNodesByDomainAlgo algo;
+  SCIRunAlgo::SplitNodesByDomainAlgo algo;
   algo.set_progress_reporter(pr_);
-  return(algo.split_nodes_by_domain(input,output));
+  return(algo.run(input,output));
 }
 
 
@@ -765,10 +694,9 @@ bool
 FieldsAlgo::SplitFieldByConnectedRegion(FieldHandle input,
 					std::vector<FieldHandle>& output)
 {
-  FieldHandle input_editable;
-  if (!MakeEditable(input,input_editable)) return (false);
-  SplitByConnectedRegionAlgo algo;
-  return(algo.SplitByConnectedRegion(pr_,input_editable,output));
+  SCIRunAlgo::SplitByConnectedRegionAlgo algo;
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,output));
 }
 
 
@@ -777,29 +705,20 @@ FieldsAlgo::ConvertMeshToPointCloud(FieldHandle input,
 				    FieldHandle& output,
 				    bool datalocation)
 {
-  ConvertMeshToPointCloudAlgo algo;
-  return(algo.ConvertMeshToPointCloud(pr_,input,output,datalocation));
+  ConvertMeshToPointCloudMeshAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_option("location","node");
+  if (datalocation) algo.set_option("location","data");
+  return(algo.run(input,output));
 }
-
-
-bool
-FieldsAlgo::TransformField(FieldHandle input,
-			   FieldHandle& output,
-			   Transform& transform,
-			   bool rotatedata)
-{
-  TransformMeshWithTransformAlgo algo;
-  return(algo.TransformMeshWithTransform(pr_,
-					 input,output,transform,rotatedata));
-}
-
 
 bool
 FieldsAlgo::ConvertMeshToUnstructuredMesh(FieldHandle input,
 					  FieldHandle& output)
 {
   ConvertMeshToUnstructuredMeshAlgo algo;
-  return(algo.ConvertMeshToUnstructuredMesh(pr_,input,output));
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,output));
 }
 
 
@@ -808,7 +727,8 @@ FieldsAlgo::ConvertMeshToIrregularMesh(FieldHandle input,
 				       FieldHandle& output)
 {
   ConvertMeshToIrregularMeshAlgo algo;
-  return(algo.ConvertMeshToIrregularMesh(pr_,input,output));
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,output));
 }
 
 
@@ -829,8 +749,11 @@ FieldsAlgo::ScaleFieldMeshAndData(FieldHandle input,
 				  bool scale_from_center)
 {
   ScaleFieldMeshAndDataAlgo algo;
-  return(algo.ScaleFieldMeshAndData(pr_, input, output, scaledata, scalemesh,
-				    scale_from_center));
+  algo.set_progress_reporter(pr_);
+  algo.set_scalar("data_scale",scaledata);
+  algo.set_scalar("mesh_scale",scalemesh);
+  algo.set_bool("scale_from_center",scale_from_center);
+  return(algo.run(input, output));
 }
 
 bool
@@ -848,7 +771,7 @@ bool
 FieldsAlgo::FieldArrayToBundle(std::vector<FieldHandle> input,
 			       BundleHandle& output)
 {
-  output = scinew Bundle();
+  output = new Bundle();
   if (output.get_rep() == 0)
   {
     error("FieldArrayToBundle: Could not allocate new bundle");
@@ -870,39 +793,9 @@ FieldsAlgo::DistanceField(FieldHandle input,
 			  FieldHandle& output,
 			  FieldHandle object)
 {
-  if (object->mesh()->dimensionality() == 3)
-  {
-    FieldHandle dobject;
-    MatrixHandle dummy;
-    GetFieldBoundary(object,dobject,dummy);
-    if (dobject.get_rep() == 0)
-    {
-      error("DistanceField: Could not compute field boundary");
-      return (false);
-    }
-    DistanceFieldCellAlgo algo;
-    return(algo.DistanceField(pr_,input,output,object,dobject));
-  }
-  else if (object->mesh()->dimensionality() == 2)
-  {
-    // Some how find_closest_face has not been implemented for other fields
-    // The following will call ConvertMeshToUnstructuredMesh internally
-    if(!(MakeEditable(object,object))) return (false);
-      DistanceFieldFaceAlgo algo;
-      return(algo.DistanceField(pr_,input,output,object));
-  }
-  else if (object->mesh()->dimensionality() == 1)
-  {
-    DistanceFieldEdgeAlgo algo;
-    return(algo.DistanceField(pr_,input,output,object));  
-  }
-  else if (object->mesh()->dimensionality() == 0)
-  {
-    DistanceFieldNodeAlgo algo;
-    return(algo.DistanceField(pr_,input,output,object));  
-  }
-  
-  return (false);
+  SCIRunAlgo::CalculateDistanceFieldAlgo algo;
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,object,output));
 }
 
 bool 
@@ -910,17 +803,9 @@ FieldsAlgo::SignedDistanceField(FieldHandle input,
 				FieldHandle& output,
 				FieldHandle object)
 {
-  if (object->mesh()->dimensionality() == 2)
-  {
-    if(!(MakeEditable(object,object))) return (false);
-    SignedDistanceFieldFaceAlgo algo;
-    return(algo.DistanceField(pr_,input,output,object));  
-  }
-  else
-  {
-    error("This function is only available for surface meshes");
-    return (false);
-  }
+  SCIRunAlgo::CalculateSignedDistanceFieldAlgo algo;
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,object,output));
 }
 
 
@@ -928,7 +813,8 @@ bool
 FieldsAlgo::RemoveUnusedNodes(FieldHandle input, FieldHandle& output)
 {
   RemoveUnusedNodesAlgo algo;
-  return(algo.RemoveUnusedNodes(pr_,input,output));
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,output));
 }
 
 bool
@@ -1016,24 +902,14 @@ FieldsAlgo::CreateMeshFromNrrd( NrrdDataHandle nrrd_point_handle,
 				string QuadOrTet,
 				string StructOrUnstruct)
 {
-  CreateMeshFromNrrdAlgo algo;
-  return(algo.CreateMeshFromNrrd(pr_,
-				 nrrd_point_handle,
+  SCIRunAlgo::CreateMeshFromNrrdAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_option("quad_or_tet",QuadOrTet);
+  algo.set_option("struct_or_unstruct",StructOrUnstruct);
+  
+  return(algo.run(nrrd_point_handle,
 				 nrrd_connection_handle,
-				 field_output_handle,
-				 QuadOrTet,
-				 StructOrUnstruct));
-}
-
-
-bool
-FieldsAlgo::CreateFieldFromMesh(MeshHandle mHandle,
-				const TypeDescription *btd,
-				const TypeDescription *dtd,
-				FieldHandle& fhandle)
-{
-  CreateFieldFromMeshAlgo algo;
-  return(algo.CreateFieldFromMesh(pr_, mHandle, btd, dtd, fhandle));
+				 field_output_handle));
 }
 
 
@@ -1076,7 +952,10 @@ FieldsAlgo::GetMeshQualityField(FieldHandle input,
 				FieldHandle& output, 
 				std::string metric)
 {
-  return(GetMeshQualityFieldAlgo::GetMeshQualityField(pr_,input,output,metric));
+  GetMeshQualityFieldAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_option("metric",metric);
+  return(algo.run(input,output));
 }
 
 
@@ -1086,8 +965,10 @@ FieldsAlgo::ProjectPointsOntoMesh(FieldHandle input,
 				  FieldHandle& output, 
 				  string method)
 {
-  ProjectPointsOntoMeshAlgo algo;
-  return(algo.ProjectPointsOntoMesh(pr_,input,object,output,method));
+  SCIRunAlgo::ProjectPointsOntoMeshAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_option("method",method);
+  return(algo.run(input,object,output));
 }
 
 bool
@@ -1096,8 +977,9 @@ FieldsAlgo::ApplyTriSurfPhaseFilter(FieldHandle input,
 				    FieldHandle& phaseline,
 				    FieldHandle& phasepoint)
 {
-  ApplyTriSurfPhaseFilterAlgo algo;
-  return(algo.ApplyTriSurfPhaseFilter(pr_,input,output,phaseline,phasepoint));
+  TriSurfPhaseFilterAlgo algo;
+  algo.set_progress_reporter(pr_);
+  return(algo.run(input,output,phaseline,phasepoint));
 }
 
 bool
@@ -1106,8 +988,11 @@ FieldsAlgo::TracePoints(FieldHandle pointcloud,
 			FieldHandle& curvefield,
 			double val, double tol)
 {
-  TracePointsAlgo algo;
-  return(algo.TracePoints(pr_, pointcloud, old_curvefield, curvefield, val, tol));
+  SCIRunAlgo::TracePointsAlgo algo;
+  algo.set_progress_reporter(pr_);
+  algo.set_scalar("tolerance",tol);
+  algo.set_scalar("value",val);
+  return(algo.run(pointcloud, old_curvefield, curvefield));
 }
 
 } // end namespace SCIRunAlgo

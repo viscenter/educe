@@ -42,17 +42,18 @@
 namespace SCIRun {
 
 class JoinFields : public Module {
-public:
-  JoinFields(GuiContext*);
-  virtual void execute();
+  public:
+    JoinFields(GuiContext*);
+    virtual ~JoinFields() {}
+    virtual void execute();
 
-private:
-  GuiInt    guiclear_;
-  GuiDouble guitolerance_;
-  GuiInt    guimergenodes_;
-  GuiInt    guiforcepointcloud_;
-  GuiInt    guimatchval_;
-  GuiInt    guimeshonly_;
+  private:
+    GuiInt    guiclear_;
+    GuiDouble guitolerance_;
+    GuiInt    guimergenodes_;
+    GuiInt    guiforcepointcloud_;
+    GuiInt    guimatchval_;
+    GuiInt    guimeshonly_;
 };
 
 
@@ -84,7 +85,7 @@ void JoinFields::execute()
     typedef PointCloudMesh<ConstantBasis<double> > PCMesh; 
     typedef NoDataBasis<double> NDBasis;
     typedef GenericField<PCMesh, NDBasis, vector<double> > PCField;
-    FieldHandle handle = scinew PCField(scinew PCMesh());
+    FieldHandle handle = new PCField(new PCMesh());
 
     send_output_handle("Output Field", handle);
     return;

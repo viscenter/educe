@@ -47,7 +47,6 @@ SCIRUN_ADD_LIBRARY(Dataflow_Modules_Render ${Dataflow_Modules_Render_SRCS})
 TARGET_LINK_LIBRARIES(Dataflow_Modules_Render
   Core_Algorithms_Fields
   Core_Basis
-  Core_Bundle
   Core_Datatypes
   Core_Events
   Core_Exceptions

@@ -47,9 +47,9 @@
 #include <Core/Util/ProgressReporter.h>
 #include <Core/Datatypes/NrrdData.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/ImportExport/share.h>
 

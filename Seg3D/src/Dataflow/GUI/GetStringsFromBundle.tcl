@@ -77,15 +77,15 @@ itcl_class SCIRun_Bundle_GetStringsFromBundle {
         global $this-string5-entry
         global $this-string6-entry
 
-        toplevel $w 
+        sci_toplevel $w 
 
         wm minsize $w 100 150
         
-        iwidgets::labeledframe $w.frame -labeltext "STRING OUTPUTS"
+        sci_labeledframe $w.frame -labeltext "STRING OUTPUTS"
         set childframe [$w.frame childsite]
         pack $w.frame -fill both -expand yes
 
-        iwidgets::tabnotebook $childframe.pw -width 400 -tabpos n
+        sci_tabnotebook $childframe.pw -width 400 -tabpos n
         $childframe.pw add -label "String1"
         $childframe.pw add -label "String2" 
         $childframe.pw add -label "String3" 
@@ -103,98 +103,98 @@ itcl_class SCIRun_Bundle_GetStringsFromBundle {
         set string5 [$childframe.pw childsite 4]
         set string6 [$childframe.pw childsite 5]
 
-        frame $string1.name
-        frame $string1.sel
+        sci_frame $string1.name
+        sci_frame $string1.sel
         pack $string1.name -side top -fill x -expand no -padx 5p
         pack $string1.sel -side top -fill both -expand yes -padx 5p
 
-        label $string1.name.label -text "Name"
-        entry $string1.name.entry -textvariable $this-string1-name
+        sci_label $string1.name.label -text "Name"
+        sci_entry $string1.name.entry -textvariable $this-string1-name
         set $this-string1-entry $string1.name.entry
         pack $string1.name.label -side left 
         pack $string1.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $string1.sel.listbox  -selectioncommand [format "%s ChooseString1" $this]
+        sci_scrolledlistbox $string1.sel.listbox  -selectioncommand [format "%s ChooseString1" $this]
         set $this-string1-listbox $string1.sel.listbox
         $string1.sel.listbox component listbox configure -listvariable $this-string-selection -selectmode browse
         pack $string1.sel.listbox -fill both -expand yes
 
-        frame $string2.name
-        frame $string2.sel
+        sci_frame $string2.name
+        sci_frame $string2.sel
         pack $string2.name -side top -fill x -expand no -padx 5p
         pack $string2.sel -side top -fill both -expand yes -padx 5p
 
-        label $string2.name.label -text "Name"
-        entry $string2.name.entry -textvariable $this-string2-name
+        sci_label $string2.name.label -text "Name"
+        sci_entry $string2.name.entry -textvariable $this-string2-name
         set $this-string2-entry $string2.name.entry
         pack $string2.name.label -side left 
         pack $string2.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $string2.sel.listbox  -selectioncommand [format "%s ChooseString2" $this]
+        sci_scrolledlistbox $string2.sel.listbox  -selectioncommand [format "%s ChooseString2" $this]
         set $this-string2-listbox $string2.sel.listbox
         $string2.sel.listbox component listbox configure -listvariable $this-string-selection -selectmode browse
         pack $string2.sel.listbox -fill both -expand yes
         
-        frame $string3.name
-        frame $string3.sel
+        sci_frame $string3.name
+        sci_frame $string3.sel
         pack $string3.name -side top -fill x -expand no -padx 5p
         pack $string3.sel -side top -fill both -expand yes -padx 5p
 
-        label $string3.name.label -text "Name"
-        entry $string3.name.entry -textvariable $this-string3-name
+        sci_label $string3.name.label -text "Name"
+        sci_entry $string3.name.entry -textvariable $this-string3-name
         set $this-string3-entry $string3.name.entry
         pack $string3.name.label -side left 
         pack $string3.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $string3.sel.listbox  -selectioncommand [format "%s ChooseString3" $this]
+        sci_scrolledlistbox $string3.sel.listbox  -selectioncommand [format "%s ChooseString3" $this]
         set $this-string3-listbox $string3.sel.listbox
         $string3.sel.listbox component listbox configure -listvariable $this-string-selection -selectmode browse
         pack $string3.sel.listbox -fill both -expand yes
 
-        frame $string4.name
-        frame $string4.sel
+        sci_frame $string4.name
+        sci_frame $string4.sel
         pack $string4.name -side top -fill x -expand no -padx 5p
         pack $string4.sel -side top -fill both -expand yes -padx 5p
 
-        label $string4.name.label -text "Name"
-        entry $string4.name.entry -textvariable $this-string4-name
+        sci_label $string4.name.label -text "Name"
+        sci_entry $string4.name.entry -textvariable $this-string4-name
         set $this-string4-entry $string4.name.entry
         pack $string4.name.label -side left 
         pack $string4.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $string4.sel.listbox  -selectioncommand [format "%s ChooseString4" $this]
+        sci_scrolledlistbox $string4.sel.listbox  -selectioncommand [format "%s ChooseString4" $this]
         set $this-string4-listbox $string4.sel.listbox
         $string4.sel.listbox component listbox configure -listvariable $this-string-selection -selectmode browse
         pack $string4.sel.listbox -fill both -expand yes
 
-        frame $string5.name
-        frame $string5.sel
+        sci_frame $string5.name
+        sci_frame $string5.sel
         pack $string5.name -side top -fill x -expand no -padx 5p
         pack $string5.sel -side top -fill both -expand yes -padx 5p
 
-        label $string5.name.label -text "Name"
-        entry $string5.name.entry -textvariable $this-string5-name
+        sci_label $string5.name.label -text "Name"
+        sci_entry $string5.name.entry -textvariable $this-string5-name
         set $this-string5-entry $string5.name.entry
         pack $string5.name.label -side left 
         pack $string5.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $string5.sel.listbox  -selectioncommand [format "%s ChooseString5" $this]
+        sci_scrolledlistbox $string5.sel.listbox  -selectioncommand [format "%s ChooseString5" $this]
         set $this-string5-listbox $string5.sel.listbox
         $string5.sel.listbox component listbox configure -listvariable $this-string-selection -selectmode browse
         pack $string5.sel.listbox -fill both -expand yes
         
-        frame $string6.name
-        frame $string6.sel
+        sci_frame $string6.name
+        sci_frame $string6.sel
         pack $string6.name -side top -fill x -expand no -padx 5p
         pack $string6.sel -side top -fill both -expand yes -padx 5p
 
-        label $string6.name.label -text "Name"
-        entry $string6.name.entry -textvariable $this-string6-name
+        sci_label $string6.name.label -text "Name"
+        sci_entry $string6.name.entry -textvariable $this-string6-name
         set $this-string6-entry $string6.name.entry
         pack $string6.name.label -side left 
         pack $string6.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $string6.sel.listbox  -selectioncommand [format "%s ChooseString6" $this]
+        sci_scrolledlistbox $string6.sel.listbox  -selectioncommand [format "%s ChooseString6" $this]
         set $this-string6-listbox $string6.sel.listbox
         $string6.sel.listbox component listbox configure -listvariable $this-string-selection -selectmode browse
         pack $string6.sel.listbox -fill both -expand yes

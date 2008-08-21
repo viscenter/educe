@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=Seg3D
-AppVerName=Seg3D 1.9
+AppVerName=Seg3D 1.9.4
 AppPublisher=SCI Institute
 AppPublisherURL=http://software.sci.utah.edu
 AppSupportURL=http://software.sci.utah.edu
@@ -11,8 +11,8 @@ AppUpdatesURL=http://software.sci.utah.edu
 DefaultDirName={pf}\Seg3D
 DefaultGroupName=Seg3D
 AllowNoIcons=yes
-LicenseFile=C:\Seg3DTrunk\src\LICENSE
-OutputBaseFilename=Seg3D1.9
+LicenseFile=C:\Seg3D_1.9.4\src\LICENSE
+OutputBaseFilename=Seg3D-1.9.4-win32-installer
 Compression=lzma
 SolidCompression=yes
 
@@ -23,19 +23,18 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Seg3DTrunk\bin\Release\Seg3D.exe"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\Seg3DTrunk\src\StandAlone\Apps\Seg3D\data\*"; DestDir: "{app}\data"; Flags: ignoreversion replacesameversion
-Source: "C:\WINDOWS\system32\msvcp71.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\WINDOWS\system32\msvcr71.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\thirdparty_release_2003\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\wxWidgets-2.8.4\lib\vc_dll\wxmsw28_xrc_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\wxWidgets-2.8.4\lib\vc_dll\wxmsw28_html_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\wxWidgets-2.8.4\lib\vc_dll\wxmsw28_core_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\wxWidgets-2.8.4\lib\vc_dll\wxbase28_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\wxWidgets-2.8.4\lib\vc_dll\wxmsw28_adv_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\wxWidgets-2.8.4\lib\vc_dll\wxbase28_xml_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\wxWidgets-2.8.4\lib\vc_dll\wxmsw28_gl_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
-Source: "C:\Seg3DTrunk\bin\lib\release\*.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\Seg3D_1.9.4\bin\Release\vcredist_x86.exe"; DestDir: "{tmp}";
+Source: "C:\Seg3D_1.9.4\bin\Release\Seg3D.exe"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\Seg3D_1.9.4\src\StandAlone\Apps\Seg3D\data\*"; DestDir: "{app}\data"; Flags: ignoreversion replacesameversion
+Source: "C:\win_thirdparty_310_src_2008\3P-compile\Release08\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\wxWidgets-2.8.8\lib\vc_dll\wxmsw28_xrc_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\wxWidgets-2.8.8\lib\vc_dll\wxmsw28_html_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\wxWidgets-2.8.8\lib\vc_dll\wxmsw28_core_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\wxWidgets-2.8.8\lib\vc_dll\wxbase28_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\wxWidgets-2.8.8\lib\vc_dll\wxmsw28_adv_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\wxWidgets-2.8.8\lib\vc_dll\wxbase28_xml_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\wxWidgets-2.8.8\lib\vc_dll\wxmsw28_gl_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
+Source: "C:\Seg3D_1.9.4\bin\lib\release\*.dll"; DestDir: "{app}"; Flags: ignoreversion replacesameversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -45,4 +44,5 @@ Name: "{group}\{cm:ProgramOnTheWeb,Seg3D}"; Filename: "http://software.sci.utah.
 Name: "{group}\{cm:UninstallProgram,Seg3D}"; Filename: "{uninstallexe}"
 
 [Run]
+Filename: "{tmp}\vcredist_x86.exe"; Flags: nowait
 Filename: "{app}\Seg3D.exe"; Description: "{cm:LaunchProgram,Seg3D}"; Flags: nowait postinstall skipifsilent

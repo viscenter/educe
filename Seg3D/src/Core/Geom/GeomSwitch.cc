@@ -41,7 +41,7 @@
  */
 #include <Core/Geom/GeomSwitch.h>
 #include <Core/Util/NotFinished.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::cerr;
 using std::ostream;
@@ -50,14 +50,14 @@ namespace SCIRun {
 
 Persistent* make_GeomSwitch()
 {
-    return scinew GeomSwitch(0,0);
+    return new GeomSwitch(0,0);
 }
 
 PersistentTypeID GeomSwitch::type_id("GeomSwitch", "GeomObj", make_GeomSwitch);
 
 Persistent* make_GeomTimeSwitch()
 {
-    return scinew GeomTimeSwitch(0,0,0);
+    return new GeomTimeSwitch(0,0,0);
 }
 
 PersistentTypeID GeomTimeSwitch::type_id("GeomTimeSwitch", "GeomObj", make_GeomTimeSwitch);
@@ -74,7 +74,7 @@ GeomSwitch::GeomSwitch(const GeomSwitch& copy)
 
 GeomObj* GeomSwitch::clone()
 {
-    return scinew GeomSwitch(*this);
+    return new GeomSwitch(*this);
 }
 
 void GeomSwitch::set_state(int st)
@@ -117,7 +117,7 @@ GeomTimeSwitch::GeomTimeSwitch(const GeomTimeSwitch& copy)
 
 GeomObj* GeomTimeSwitch::clone()
 {
-    return scinew GeomTimeSwitch(*this);
+    return new GeomTimeSwitch(*this);
 }
 
 #define GEOMTIMESWITCH_VERSION 1

@@ -46,20 +46,20 @@ void VFDataT<FDATA,EFDATA,HFDATA>::set_evalue(const type &val, VMesh::index_type
 { efdata_[idx] =  CastFData<typename FDATA::value_type>(val); } \
 \
 template<class FDATA, class EFDATA, class HFDATA> \
-void VFDataT<FDATA,EFDATA,HFDATA>::get_values(type *ptr, VMesh::size_type sz) const \
-{ if (static_cast<size_type>(fdata_.size()) < sz) sz = static_cast<size_type>(fdata_.size()); for (size_type i=0; i< sz; i++) ptr[i] = CastFData<type>(fdata_[i]); } \
+void VFDataT<FDATA,EFDATA,HFDATA>::get_values(type *ptr, VMesh::size_type sz, VMesh::size_type offset) const \
+{ if (static_cast<size_type>(fdata_.size()) < sz+offset) sz = static_cast<size_type>(fdata_.size())-offset; for (size_type i=0; i< sz; i++) ptr[i] = CastFData<type>(fdata_[i+offset]); } \
 \
 template<class FDATA, class EFDATA, class HFDATA> \
-void VFDataT<FDATA,EFDATA,HFDATA>::set_values(const type *ptr, VMesh::size_type sz) \
-{ if (static_cast<size_type>(fdata_.size()) < sz) sz = static_cast<size_type>(fdata_.size()); for (size_type i=0; i< sz; i++) fdata_[i] =  CastFData<typename FDATA::value_type>(ptr[i]); } \
+void VFDataT<FDATA,EFDATA,HFDATA>::set_values(const type *ptr, VMesh::size_type sz, VMesh::size_type offset) \
+{ if (static_cast<size_type>(fdata_.size()) < sz+offset) sz = static_cast<size_type>(fdata_.size())-offset; for (size_type i=0; i< sz; i++) fdata_[i+offset] =  CastFData<typename FDATA::value_type>(ptr[i]); } \
 \
 template<class FDATA, class EFDATA, class HFDATA> \
-void VFDataT<FDATA,EFDATA,HFDATA>::get_evalues(type *ptr, VMesh::size_type sz) const \
-{ if (static_cast<size_type>(efdata_.size()) < sz) sz = static_cast<size_type>(efdata_.size()); for (size_type i=0; i< sz; i++) ptr[i] = CastFData<type>(efdata_[i]); } \
+void VFDataT<FDATA,EFDATA,HFDATA>::get_evalues(type *ptr, VMesh::size_type sz, VMesh::size_type offset) const \
+{ if (static_cast<size_type>(efdata_.size()) < sz+offset) sz = static_cast<size_type>(efdata_.size())-offset; for (size_type i=0; i< sz; i++) ptr[i] = CastFData<type>(efdata_[i+offset]); } \
 \
 template<class FDATA, class EFDATA, class HFDATA> \
-void VFDataT<FDATA,EFDATA,HFDATA>::set_evalues(const type *ptr, VMesh::size_type sz) \
-{ if (static_cast<size_type>(efdata_.size()) < sz) sz = static_cast<size_type>(efdata_.size()); for (size_type i=0; i< sz; i++) efdata_[i] =  CastFData<typename FDATA::value_type>(ptr[i]); } \
+void VFDataT<FDATA,EFDATA,HFDATA>::set_evalues(const type *ptr, VMesh::size_type sz, VMesh::size_type offset) \
+{ if (static_cast<size_type>(efdata_.size()) < sz+offset) sz = static_cast<size_type>(efdata_.size())-offset; for (size_type i=0; i< sz; i++) efdata_[i+offset] =  CastFData<typename FDATA::value_type>(ptr[i]); } \
 \
 template<class FDATA, class EFDATA, class HFDATA> \
 void VFDataT<FDATA,EFDATA,HFDATA>::set_all_values(const type &val) \
@@ -76,6 +76,22 @@ void VFDataT<FDATA,EFDATA,HFDATA>::get_weighted_value(type &val, VMesh::index_ty
 template<class FDATA, class EFDATA, class HFDATA> \
 void VFDataT<FDATA,EFDATA,HFDATA>::get_weighted_evalue(type &val, VMesh::index_type* idx, VMesh::weight_type* w, VMesh::size_type sz ) const \
 { typename EFDATA::value_type tval = typename EFDATA::value_type(0); for(size_type i=0; i<sz; i++) tval = tval + static_cast<typename FDATA::value_type>(w[i]*efdata_[idx[i]]); val = CastFData<type>(tval); } \
+\
+template<class FDATA, class EFDATA, class HFDATA> \
+void VFDataT<FDATA,EFDATA,HFDATA>::get_values(type *ptr, VMesh::Node::array_type& nodes) const \
+{ for(size_t j=0; j<nodes.size(); j++) { ptr[j] = CastFData<type>(fdata_[nodes[j]]); } } \
+\
+template<class FDATA, class EFDATA, class HFDATA> \
+void VFDataT<FDATA,EFDATA,HFDATA>::get_values(type *ptr, VMesh::Elem::array_type& elems) const\
+{ for(size_t j=0; j<elems.size(); j++) { ptr[j] = CastFData<type>(fdata_[elems[j]]); } } \
+\
+template<class FDATA, class EFDATA, class HFDATA> \
+void VFDataT<FDATA,EFDATA,HFDATA>::set_values(const type *ptr, VMesh::Node::array_type& nodes) \
+{ for(size_t j=0; j<nodes.size(); j++) { fdata_[nodes[j]] = CastFData<typename FDATA::value_type>(ptr[j]); } } \
+\
+template<class FDATA, class EFDATA, class HFDATA> \
+void VFDataT<FDATA,EFDATA,HFDATA>::set_values(const type *ptr, VMesh::Elem::array_type& elems) \
+{ for(size_t j=0; j<elems.size(); j++) { fdata_[elems[j]] = CastFData<typename FDATA::value_type>(ptr[j]);} } \
 
 
 #define VFDATAT_ACCESS_DEFINITION2(type) \
@@ -97,33 +113,33 @@ void VFDataT<FDATA,EFDATA,HFDATA>::mgradient(vector<StackVector<type,3> > &vals,
 
 #define VFDATA_FUNCTION_SCALAR_DEFINITION(type) \
 VFData* CreateVFData(std::vector<type>& fdata,std::vector<type>& efdata,std::vector<std::vector<type> >& hfdata) \
-{ return scinew VFDataScalarT<std::vector<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
+{ return new VFDataScalarT<std::vector<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
 \
 VFData* CreateVFData(Array2<type>& fdata,std::vector<type>& efdata,std::vector<std::vector<type> >& hfdata) \
-{ return scinew VFDataScalarT<Array2<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
+{ return new VFDataScalarT<Array2<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
 \
 VFData* CreateVFData(Array3<type>& fdata,std::vector<type>& efdata, std::vector<std::vector<type> >& hfdata) \
-{ return scinew VFDataScalarT<Array3<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); }
+{ return new VFDataScalarT<Array3<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); }
 
 #define VFDATA_FUNCTION_VECTOR_DEFINITION(type) \
 VFData* CreateVFData(std::vector<type>& fdata,std::vector<type>& efdata,std::vector<std::vector<type> >& hfdata) \
-{ return scinew VFDataVectorT<std::vector<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
+{ return new VFDataVectorT<std::vector<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
 \
 VFData* CreateVFData(Array2<type>& fdata,std::vector<type>& efdata,std::vector<std::vector<type> >& hfdata) \
-{ return scinew VFDataVectorT<Array2<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
+{ return new VFDataVectorT<Array2<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
 \
 VFData* CreateVFData(Array3<type>& fdata,std::vector<type>& efdata, std::vector<std::vector<type> >& hfdata) \
-{ return scinew VFDataVectorT<Array3<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); }
+{ return new VFDataVectorT<Array3<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); }
 
 #define VFDATA_FUNCTION_TENSOR_DEFINITION(type) \
 VFData* CreateVFData(std::vector<type>& fdata,std::vector<type>& efdata,std::vector<std::vector<type> >& hfdata) \
-{ return scinew VFDataTensorT<std::vector<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
+{ return new VFDataTensorT<std::vector<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
 \
 VFData* CreateVFData(Array2<type>& fdata,std::vector<type>& efdata,std::vector<std::vector<type> >& hfdata) \
-{ return scinew VFDataTensorT<Array2<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
+{ return new VFDataTensorT<Array2<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); } \
 \
 VFData* CreateVFData(Array3<type>& fdata,std::vector<type>& efdata, std::vector<std::vector<type> >& hfdata) \
-{ return scinew VFDataTensorT<Array3<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); }
+{ return new VFDataTensorT<Array3<type>,std::vector<type>,std::vector<std::vector<type> > >(fdata,efdata,hfdata); }
 
 
 namespace SCIRun {
@@ -193,9 +209,15 @@ public:
     { return (efdata_.size()); }
 
   virtual void* fdata_pointer() const
-    { return (&(fdata_[0])); }
+    { 
+      if (fdata_.size() == 0) return (0);
+      return (&(fdata_[0])); 
+    }
   virtual void* efdata_pointer() const
-    { return (&(efdata_[0])); }
+    { 
+      if (efdata_.size() == 0) return (0);
+      return (&(efdata_[0])); 
+    }
 
   VFDATA_ACCESS_DECLARATION(char)
   VFDATA_ACCESS_DECLARATION(unsigned char)
@@ -203,11 +225,16 @@ public:
   VFDATA_ACCESS_DECLARATION(unsigned short)
   VFDATA_ACCESS_DECLARATION(int)
   VFDATA_ACCESS_DECLARATION(unsigned int)
+  VFDATA_ACCESS_DECLARATION(long long)
+  VFDATA_ACCESS_DECLARATION(unsigned long long)
   VFDATA_ACCESS_DECLARATION(float)
   VFDATA_ACCESS_DECLARATION(double)
   VFDATA_ACCESS_DECLARATION(Vector)
   VFDATA_ACCESS_DECLARATION(Tensor)
 
+
+  VFDATA_ACCESS_DECLARATION2(int)
+  VFDATA_ACCESS_DECLARATION2(float)
   VFDATA_ACCESS_DECLARATION2(double)
   VFDATA_ACCESS_DECLARATION2(Vector)
   VFDATA_ACCESS_DECLARATION2(Tensor)
@@ -216,10 +243,17 @@ public:
                           VMesh::index_type vidx,
                           VMesh::index_type idx)
   {
-    typename FDATA::value_type val;
-    fdata->get_value(val,vidx);
-    fdata_[idx] = val;
+    fdata->get_value(fdata_[idx],vidx);
   }
+
+  virtual void copy_values(VFData* fdata, 
+                           VMesh::index_type vidx,
+                           VMesh::index_type idx,
+                           VMesh::size_type num)
+  {
+    fdata->get_values(&(fdata_[idx]),num,vidx);
+  }
+  
 
   virtual void copy_weighted_value(VFData* fdata, 
                                    VMesh::index_type* vidx, 
@@ -227,45 +261,52 @@ public:
                                    VMesh::size_type sz, 
                                    VMesh::index_type idx)
   {
-    typename FDATA::value_type val;
-    fdata->get_weighted_value(val,vidx,vw,sz);
-    fdata_[idx] = val;
+    fdata->get_weighted_value(fdata_[idx],vidx,vw,sz);
   }
 
-  void copy_evalue(VFData* fdata, 
-                   VMesh::index_type vidx, 
-                   VMesh::index_type idx)
+  virtual void copy_evalue(VFData* fdata, 
+                           VMesh::index_type vidx, 
+                           VMesh::index_type idx)
   {
     typename EFDATA::value_type val;
     fdata->get_value(val,vidx);
     efdata_[idx] = val;
   }
   
+  virtual void copy_evalues(VFData* fdata, 
+                            VMesh::index_type vidx,
+                            VMesh::index_type idx,
+                            VMesh::size_type num)
+  {
+    fdata->get_evalues(&(fdata_[idx]),num,vidx);
+  }
+  
+  
   virtual void copy_weighted_evalue(VFData* fdata, 
-                                   VMesh::index_type* vidx, 
-                                   VMesh::weight_type* vw,
-                                   VMesh::size_type sz, 
-                                   VMesh::index_type idx)
+                                    VMesh::index_type* vidx, 
+                                    VMesh::weight_type* vw,
+                                    VMesh::size_type sz, 
+                                    VMesh::index_type idx)
   {
     typename FDATA::value_type val;
     fdata->get_weighted_evalue(val,vidx,vw,sz);
     efdata_[idx] = val;
   }
       
-  void copy_values(VFData* fdata)
+  virtual void copy_values(VFData* fdata)
   {
     VMesh::size_type sz1 = fdata_.size();
     VMesh::size_type sz2 = fdata->fdata_size();
     if (sz2 < sz1) sz1 = sz2;
-    fdata->get_values(&(fdata_[0]),sz1);
+    fdata->get_values(&(fdata_[0]),sz1,0);
   }
   
-  void copy_evalues(VFData* fdata)
+  virtual void copy_evalues(VFData* fdata)
   {
     VMesh::size_type sz1 = efdata_.size();
     VMesh::size_type sz2 = fdata->efdata_size();
     if (sz2 < sz1) sz1 = sz2;
-    fdata->get_evalues(&(efdata_[0]),sz1);
+    fdata->get_evalues(&(efdata_[0]),sz1,0);
   }
 
   template<class T>
@@ -743,7 +784,11 @@ VFDATAT_ACCESS_DEFINITION(unsigned short)
 VFDATAT_ACCESS_DEFINITION(int)
 VFDATAT_ACCESS_DEFINITION(unsigned int)
 VFDATAT_ACCESS_DEFINITION(float)
+VFDATAT_ACCESS_DEFINITION(long long)
+VFDATAT_ACCESS_DEFINITION(unsigned long long)
 
+VFDATAT_ACCESS_DEFINITION2(int)
+VFDATAT_ACCESS_DEFINITION2(float)
 VFDATAT_ACCESS_DEFINITION2(double)
 VFDATAT_ACCESS_DEFINITION2(Vector)
 VFDATAT_ACCESS_DEFINITION2(Tensor)

@@ -37,56 +37,47 @@ itcl_class Teem_DataIO_ImportImage {
     inherit Module
 
     constructor {config} {
-	set name ImportImage
+      set name ImportImage
     }
 
     method ui {} {
-	set w .ui[modname]
+      set w .ui[modname]
 
-	if {[winfo exists $w]} {
-	    return
-	}
+      if {[winfo exists $w]} {
+          return
+      }
 
-	toplevel $w -class TkFDialog
-	set initdir ""
-	
-	# place to put preferred data directory
-	# it's used if $this-filename is empty
-	
-	#global SCIRUN_DATA SCI_DATA PSE_DATA
-	#if { $SCIRUN_DATA != "" } {
-	#set initdir $SCIRUN_DATA
-	#} elseif { $SCI_DATA != "" } {
-	#set initdir $SCI_DATA
-	#} elseif { $PSE_DATA != "" } {
-	#    set initdir PSE_DATA
-	#}
-	
-	#######################################################
-	# to be modified for particular reader
+      sci_toplevel $w -class TkFDialog
+      set initdir ""
+      
+      # place to put preferred data directory
+      # it's used if $this-filename is empty
+      
+      #######################################################
+      # to be modified for particular reader
 
-	# extansion to append if no extension supplied by user
-	set defext ".*"
-	set title "Open field file"
-	
-	# file types to appers in filter box
-	set types {
-	    {{All Files} {.*}   }
-	}
-	
-	######################################################
-	
-	makeOpenFilebox \
-		-parent $w \
-		-filevar $this-filename \
-	        -setcmd "wm withdraw $w" \
-		-command "$this-c needexecute; wm withdraw $w" \
-		-cancel "wm withdraw $w" \
-		-title $title \
-		-filetypes $types \
-		-initialdir $initdir \
-		-defaultextension $defext
+      # extansion to append if no extension supplied by user
+      set defext ".*"
+      set title "Open field file"
+      
+      # file types to appers in filter box
+      set types {
+          {{All Files} {.*}   }
+      }
+      
+      ######################################################
+      
+      makeOpenFilebox \
+        -parent $w \
+        -filevar $this-filename \
+              -setcmd "wm withdraw $w" \
+        -command "$this-c needexecute; wm withdraw $w" \
+        -cancel "wm withdraw $w" \
+        -title $title \
+        -filetypes $types \
+        -initialdir $initdir \
+        -defaultextension $defext
 
-	moveToCursor $w	
+      moveToCursor $w	
     }
 }

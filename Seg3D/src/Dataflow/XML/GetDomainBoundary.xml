@@ -57,6 +57,10 @@
         <name>MaxValue</name>
         <datatype>SCIRun::Matrix</datatype>
       </port>
+      <port>
+        <name>ElemLink</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
     </inputs>
     <outputs>
       <port>

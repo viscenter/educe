@@ -276,7 +276,7 @@ Histogram::BuildJHistoDirectly(NrrdDataHandle in)
   }
 
   // Create SCIRun data structure wrapped around gmout
-  gmout_handle = scinew NrrdData(gmout);
+  gmout_handle = new NrrdData(gmout);
 
   // Copy the properties
   gmout_handle->copy_properties(in.get_rep());
@@ -315,7 +315,7 @@ Histogram::UnuJhisto(NrrdDataHandle in0, NrrdDataHandle in1)
     return NULL;
   }
 
-  NrrdDataHandle nout_handle = scinew NrrdData(nout);
+  NrrdDataHandle nout_handle = new NrrdData(nout);
 
   if (airIsNaN(range[0]->min) || airIsNaN(range[0]->max))
   {
@@ -361,7 +361,7 @@ Histogram::Unu2op(NrrdDataHandle in)
 
   nrrdKeyValueCopy(nout, nin);
 
-  nout_handle = scinew NrrdData(nout);
+  nout_handle = new NrrdData(nout);
   return nout_handle;
 
 }
@@ -386,7 +386,7 @@ Histogram::Unu1op(NrrdDataHandle in)
 
   nrrdKeyValueCopy(nout, nin);
 
-  nout_handle = scinew NrrdData(nout);
+  nout_handle = new NrrdData(nout);
   return nout_handle;
 }
 
@@ -410,7 +410,7 @@ Histogram::UnuHeq(NrrdDataHandle in)
 
   nrrdKeyValueCopy(nout, nin);
 
-  nout_handle = scinew NrrdData(nout);
+  nout_handle = new NrrdData(nout);
   return nout_handle;
 }
 
@@ -440,7 +440,7 @@ Histogram::UnuGamma(NrrdDataHandle in, double gamma)
 
   nrrdKeyValueCopy(nout, nin);
 
-  nout_handle = scinew NrrdData(nout);
+  nout_handle = new NrrdData(nout);
   return nout_handle;
 }
 
@@ -464,7 +464,7 @@ Histogram::UnuQuantize(NrrdDataHandle in)
   //      cerr <<("Quantizing -- min=" + to_string(minf) +
   // " max=" + to_string(maxf) + " nbits=" + to_string(nbits) +"\n");
   NrrdRange *range1 = nrrdRangeNew(minf, maxf);
-  NrrdData *nrrd = scinew NrrdData;
+  NrrdData *nrrd = new NrrdData;
   if (nrrdQuantize(nrrd->nrrd_, nin, range1, nbits))
   {
     char *err = biffGetDone(NRRD);
@@ -498,7 +498,7 @@ Histogram::UnuQuantize16(NrrdDataHandle in)
   //      cerr <<("Quantizing -- min=" + to_string(minf) +
   // " max=" + to_string(maxf) + " nbits=" + to_string(nbits) +"\n");
   NrrdRange *range1 = nrrdRangeNew(minf, maxf);
-  NrrdData *nrrd = scinew NrrdData;
+  NrrdData *nrrd = new NrrdData;
   if (nrrdQuantize(nrrd->nrrd_, nin, range1, nbits))
   {
     char *err = biffGetDone(NRRD);

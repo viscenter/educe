@@ -42,7 +42,6 @@ TARGET_LINK_LIBRARIES(Core_SystemCall
   Core_Exceptions 
   Core_Containers 
   Core_ICom 
-  Core_OS
   Core_Math
  ${SOCKET_LIBRARY}
 )

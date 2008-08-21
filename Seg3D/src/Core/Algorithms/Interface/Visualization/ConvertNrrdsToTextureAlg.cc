@@ -93,7 +93,7 @@ ConvertNrrdsToTextureAlg::execute(size_t values, size_t gradients)
     nrrdRangeNix(range);
   }
 
-  if (texh.get_rep() == 0) { texh = scinew Texture(); }
+  if (texh.get_rep() == 0) { texh = new Texture(); }
 
   
   // The gradient nrrd input is optional.
@@ -140,7 +140,7 @@ ConvertNrrdsToTextureAlg::execute(size_t values, size_t gradients)
 
   Nrrd *v = 0;
   Nrrd *g = 0;
-  texh = scinew Texture;
+  texh = new Texture;
   if (vHandle.get_rep()) v = vHandle->nrrd_;
   if (gHandle.get_rep()) g = gHandle->nrrd_;
   texh->build(v, g, get_p_vmax(), get_p_vmin(), 
@@ -152,7 +152,7 @@ ConvertNrrdsToTextureAlg::execute(size_t values, size_t gradients)
   // Generate a reasonable histogram
   if (gHandle.get_rep() && get_p_histogram())
   {
-    NrrdDataHandle HistoGramNrrd = scinew NrrdData;
+    NrrdDataHandle HistoGramNrrd = new NrrdData;
 
     // build joint histogram
     size_t sx = 256;

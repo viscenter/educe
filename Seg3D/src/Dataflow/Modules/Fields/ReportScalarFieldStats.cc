@@ -40,22 +40,47 @@
  *  Copyright (C) 2001 SCI Institute
  */
 
-#include <Dataflow/Network/Module.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Mesh.h>
+
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Modules/Fields/ReportScalarFieldStats.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Containers/StringUtil.h>
-#include <Core/Containers/Handle.h>
-#include <iostream>
-#include <sstream>
+#include <Dataflow/Network/Module.h>
+
 #include <string>
-#include <stdio.h>
+#include <vector>
+
+#include <Dataflow/Modules/Fields/share.h>
 
 namespace SCIRun {
 
 
+class SCISHARE ReportScalarFieldStats : public Module
+{
+  public:
+    ReportScalarFieldStats(GuiContext* ctx);
+    virtual ~ReportScalarFieldStats() {}
+    virtual void execute();
+    
+    void fill_histogram( vector<int>& hits);
+    void clear_histogram();
+    void local_reset_vars(){ reset_vars(); }
+
+  private:
+    GuiDouble min_;
+    GuiDouble max_;
+    GuiDouble mean_;
+    GuiDouble median_;
+    GuiDouble sigma_;   //standard deviation
+    
+    GuiInt is_fixed_;
+    GuiInt nbuckets_;
+
+};
+
+
 DECLARE_MAKER(ReportScalarFieldStats)
+
 ReportScalarFieldStats::ReportScalarFieldStats(GuiContext* ctx)
   : Module("ReportScalarFieldStats", ctx, Filter, "MiscField", "SCIRun"),
     min_(get_ctx()->subVar("min"), 0.0), 
@@ -65,12 +90,6 @@ ReportScalarFieldStats::ReportScalarFieldStats(GuiContext* ctx)
     sigma_(get_ctx()->subVar("sigma"),0.0),
     is_fixed_(get_ctx()->subVar("is_fixed"), 0),
     nbuckets_(get_ctx()->subVar("nbuckets"), 256)
-{
-}
-
-
-
-ReportScalarFieldStats::~ReportScalarFieldStats()
 {
 }
 
@@ -90,7 +109,9 @@ ReportScalarFieldStats::fill_histogram( vector<int>& hits)
   vector<int>::iterator it = hits.begin();
   nmin = 0;  nmax = *it;
   ostr << *it;  ++it;
-  for(; it != hits.end(); ++it){
+  
+  for(; it != hits.end(); ++it)
+  {
     ostr <<" "<<*it;
     nmin = ((nmin < *it) ? nmin : *it );
     nmax = ((nmax > *it) ? nmax : *it );
@@ -109,47 +130,111 @@ void
 ReportScalarFieldStats::execute()
 {
   // Get input field.
-  FieldHandle ifieldhandle;
-  if (!get_input_handle("Input Field", ifieldhandle)) return;
+  FieldHandle ifield_handle;
+  get_input_handle("Input Field", ifield_handle, true);
 
-  if (!ifieldhandle->query_scalar_interface(this).get_rep())
+  if (!(ifield_handle->vfield()->is_scalar()))
   {
     error("This module only works on scalar fields.");
     return;
   }
 
-  const TypeDescription *ftd = ifieldhandle->get_type_description();
-  const TypeDescription *ltd = ifieldhandle->order_type_description();
-  CompileInfoHandle ci = ReportScalarFieldStatsAlgo::get_compile_info(ftd, ltd);
-  Handle<ReportScalarFieldStatsAlgo> algo;
-  if (!module_dynamic_compile(ci, algo)) return;
+  VField* ifield = ifield_handle->vfield();
+  VMesh*  mesh   = ifield_handle->vmesh();
 
-  algo->execute(ifieldhandle, this);
+  bool init = false;
+  double value = 0;
+  double min = 0;
+  double max = 0;
+  int counter = 0;
+  vector<double> values;
+
+  update_progress(0.3);
+  double mean = 0;
+  double mmin = min_.get();
+  double mmax = max_.get();
+  
+  if ( is_fixed_.get() == 1 )
+  {
+    VField::size_type num_values = ifield->num_values();
+    for (VField::index_type idx=0; idx < num_values ;idx++)
+    {
+      double val;
+      ifield->get_value(val, idx);
+      if ( val >= mmin && val <= mmax )
+      {
+        values.push_back( val );
+        value += val;
+        ++counter;
+      }
+    }
+    
+    mean = value/double(counter);
+    mean_.set( mean );
+  }
+  else
+  {
+    VField::size_type num_values = ifield->num_values();
+    for (VField::index_type idx=0; idx < num_values ;idx++)
+    {
+      double val;
+      ifield->get_value(val, idx);
+      values.push_back( val );
+      value += val;
+      if ( !init )
+      {
+        min = max = val;
+        init = true;
+      }
+      else
+      {
+        min = (val < min) ? val:min;
+        max = (val > max) ? val:max;
+      }
+      ++counter;
+    }
+    mean = value/double(counter);
+    mean_.set( mean );
+
+    min_.set( double( min ) );
+    max_.set( double( max ) );
+  }
+
+  update_progress(0.6);
+
+  local_reset_vars();
+  if ((max_.get() - min_.get()) > 1e-16 && values.size() > 0)
+  {
+    int nbuckets = nbuckets_.get();
+    vector<int> hits(nbuckets, 0);
+    
+    double frac = 1.0;
+    frac = (nbuckets-1)/(max_.get() - min_.get());
+
+    double sigma = 0.0;
+    std::vector<double>::iterator vit = values.begin();
+    std::vector<double>::iterator vit_end = values.end();
+    for(; vit != vit_end; ++vit)
+    {
+      if( *vit >= min_.get() && *vit <= max_.get())
+      {
+        double value = (*vit - min_.get())*frac;
+        hits[int(value)]++;
+      }
+      sigma += (*vit - mean)*(*vit - mean);
+    }
+    sigma_.set( sqrt( sigma / double(values.size()) ));
+    
+    vit = values.begin();
+    nth_element(vit, vit+values.size()/2, vit_end);
+    median_.set( double ( values[ values.size()/2] ) );
+    fill_histogram( hits );
+  }
+  else
+  {
+    warning("min - max < precision or no values in range; clearing histogram");
+    clear_histogram();
+  }
 }
-
-
-CompileInfoHandle
-ReportScalarFieldStatsAlgo::get_compile_info(const TypeDescription *field_td,
-				     const TypeDescription *loc_td)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("ReportScalarFieldStatsAlgoT");
-  static const string base_class_name("ReportScalarFieldStatsAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       field_td->get_filename() + "." +
-		       loc_td->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       field_td->get_name() + ", " + loc_td->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  field_td->fill_compile_info(rval);
-  return rval;
-}
-
 
 } // End namespace SCIRun

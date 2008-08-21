@@ -1,43 +1,33 @@
-/*
-   For more information, please see: http://software.sci.utah.edu
-
-   The MIT License
-
-   Copyright (c) 2004 Scientific Computing and Imaging Institute,
-   University of Utah.
-
-   
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the "Software"),
-   to deal in the Software without restriction, including without limitation
-   the rights to use, copy, modify, merge, publish, distribute, sublicense,
-   and/or sell copies of the Software, and to permit persons to whom the
-   Software is furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-*/
-
-
-/*
- *  Painter.cc
- *
- *  Written by:
- *   McKay Davis
- *   School of Computing
- *   University of Utah
- *   Feburary, 2005
- *
- *  Copyright (C) 2005 SCI Group
- */
+//  
+//  For more information, please see: http://software.sci.utah.edu
+//  
+//  The MIT License
+//  
+//  Copyright (c) 2006 Scientific Computing and Imaging Institute,
+//  University of Utah.
+//  
+//  
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//  
+//  The above copyright notice and this permission notice shall be included
+//  in all copies or substantial portions of the Software.
+//  
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+//  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//  
+//    File   : BrushTool.cc
+//    Author : McKay Davis
+//    Date   : Oct 2006
 
 #include <StandAlone/Apps/Seg3D/Painter.h>
 #include <StandAlone/Apps/Seg3D/Seg3DFrame.h>
@@ -163,10 +153,6 @@ BrushTool::process_event(event_handle_t event)
     draw_gl(redraw->get_window());
   }
 
-  if (dynamic_cast<QuitEvent *>(event.get_rep())) {
-    return QUIT_AND_CONTINUE_E;
-  }
-
   return CONTINUE_E;
 }
 
@@ -174,9 +160,7 @@ BrushTool::process_event(event_handle_t event)
 BaseTool::propagation_state_e
 BrushTool::pointer_down(int b, int x, int y, unsigned int m, int t)
 {
-  if (m & EventModifiers::SHIFT_E) {
-    return CONTINUE_E;
-  }
+  if (m & EventModifiers::SHIFT_E) { return CONTINUE_E; }
 
   if ((b == 1 || b == 3) &&
       !painter_->check_for_active_label_volume("Brush tool"))
@@ -185,7 +169,7 @@ BrushTool::pointer_down(int b, int x, int y, unsigned int m, int t)
   }
 
   NrrdVolumeHandle &vol = painter_->current_volume_;
-  if (vol->button_ && !vol->button_->layer_visible_());
+  if (vol->button_ && !vol->button_->layer_visible_())
   {
     painter_->set_status("Painting on non-visible label.  Making visible.");
     vol->button_->layer_visible_ = true;
@@ -201,7 +185,7 @@ BrushTool::pointer_down(int b, int x, int y, unsigned int m, int t)
 
     mask_slice_ = 0;
     mask_value_ = 0;
-    if (painter_->mask_volume_.get_rep())
+    if (painter_->check_for_valid_mask("Brush tool"))
     {
       mask_slice_ = painter_->mask_volume_->get_volume_slice(plane);
       mask_value_ = painter_->mask_volume_->label_;
@@ -241,19 +225,25 @@ BrushTool::pointer_down(int b, int x, int y, unsigned int m, int t)
     return STOP_E;
   } else if (b == 4) {
     set_radius(Min(radius_table_index_ + 1, 40));
-    wxCommandEvent wxevent(wxEVT_BRUSH_RADIUS_CHANGE, wxID_ANY);
-    wxevent.SetInt(radius_table_index_);
     wxPanel *panel = Painter::global_seg3dframe_pointer_->CurrentToolPanel();
-    if (panel) { wxPostEvent(panel, wxevent); }
+    if (panel)
+    {
+      wxCommandEvent wxevent(wxEVT_BRUSH_RADIUS_CHANGE, wxID_ANY);
+      wxevent.SetInt(radius_table_index_);
+      wxPostEvent(panel, wxevent);
+    }
     draw_cursor_ = true;
     painter_->redraw_all();    
     return STOP_E;
   } else if (b == 5) {
     set_radius(Max(radius_table_index_ - 1, 1));
-    wxCommandEvent wxevent(wxEVT_BRUSH_RADIUS_CHANGE, wxID_ANY);
-    wxevent.SetInt(radius_table_index_);
     wxPanel *panel = Painter::global_seg3dframe_pointer_->CurrentToolPanel();
-    if (panel) { wxPostEvent(panel, wxevent); }
+    if (panel)
+    {
+      wxCommandEvent wxevent(wxEVT_BRUSH_RADIUS_CHANGE, wxID_ANY);
+      wxevent.SetInt(radius_table_index_);
+      wxPostEvent(panel, wxevent);
+    }
     draw_cursor_ = true;
     painter_->redraw_all();
     return STOP_E;
@@ -281,6 +271,10 @@ BrushTool::pointer_up(int b, int x, int y, unsigned int m, int t)
       vol->nrrd_handle_->nrrd_->content[0] = 0;
     }
 
+    NrrdDataHandle undoslice = new NrrdData();
+    nrrdSlice(undoslice->nrrd_, vol->nrrd_handle_->nrrd_,
+              axis_, window_center[axis_]);
+
     if (nrrdSplice(vol->nrrd_handle_->nrrd_,
                    vol->nrrd_handle_->nrrd_,
                    slice_->nrrd_handle_->nrrd_,
@@ -299,6 +293,14 @@ BrushTool::pointer_up(int b, int x, int y, unsigned int m, int t)
       free(err);
       return QUIT_AND_STOP_E;
     }
+
+    UndoHandle undo =
+      new UndoReplaceSlice(painter_,
+                           erasing_?"Undo Erase Stroke":"Undo Brush Stroke",
+                           vol, undoslice,
+                           (int)axis_, window_center[axis_]);
+    painter_->push_undo(undo);
+
     slice_ = 0;
     mask_slice_ = 0;
     vol->set_dirty();

@@ -44,29 +44,30 @@ itcl_class Teem_UnuAtoM_UnuAxsplit {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.axis -labeltext "Axis:" \
-	    -textvariable $this-axis
+        sci_entryfield $w.f.options.axis -labeltext "Axis:" \
+          -textvariable $this-axis
         pack $w.f.options.axis -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.fast -labeltext "Fast Axis Size:" \
-	    -textvariable $this-fastsize
+        sci_entryfield $w.f.options.fast -labeltext "Fast Axis Size:" \
+          -textvariable $this-fastsize
         pack $w.f.options.fast -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.slow -labeltext "Slow Axis Size:" \
-	    -textvariable $this-slowsize
+        sci_entryfield $w.f.options.slow -labeltext "Slow Axis Size:" \
+          -textvariable $this-slowsize
         pack $w.f.options.slow -side top -expand yes -fill x
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+
     }
 }

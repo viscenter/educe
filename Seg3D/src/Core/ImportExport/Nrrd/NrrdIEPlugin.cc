@@ -42,9 +42,9 @@
 #include <Core/ImportExport/Nrrd/NrrdIEPlugin.h>
 #include <Core/Containers/StringUtil.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 using namespace std;
 
@@ -83,7 +83,7 @@ NrrdIEPlugin::NrrdIEPlugin(const string& pname,
 
   if (!matrix_plugin_table)
   {
-    matrix_plugin_table = scinew map<string, NrrdIEPlugin *>();
+    matrix_plugin_table = new map<string, NrrdIEPlugin *>();
   }
 
   string tmppname = pluginname_;

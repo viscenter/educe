@@ -44,11 +44,10 @@
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Core/Geometry/BBox.h>
-#include <slivr/Plane.h>
+#include <Core/Geometry/Plane.h>
 #include <Core/Geometry/Transform.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Math/Expon.h>
-#include <Core/Math/Trig.h> // for M_PI
+
+#include <Core/Math/MiscMath.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Thread/CrowdMonitor.h>
 #include <Dataflow/Widgets/BoxWidget.h>
@@ -60,8 +59,6 @@ namespace SCIRun {
 using SLIVR::Plane;
 
 class CreateGeometricTransform : public Module {
-  GeometryOPort* ogeom_;
-
   GuiDouble rotate_x_gui_;
   GuiDouble rotate_y_gui_;
   GuiDouble rotate_z_gui_;
@@ -113,7 +110,6 @@ static string widget_name("TransformWidget");
 
 CreateGeometricTransform::CreateGeometricTransform(GuiContext* ctx) : 
   Module("CreateGeometricTransform", ctx, Filter, "Math", "SCIRun"),
-  ogeom_(0),
   rotate_x_gui_(get_ctx()->subVar("rotate_x")),
   rotate_y_gui_(get_ctx()->subVar("rotate_y")),
   rotate_z_gui_(get_ctx()->subVar("rotate_z")), 
@@ -141,9 +137,10 @@ CreateGeometricTransform::CreateGeometricTransform(GuiContext* ctx) :
   have_been_initialized_(0),
   widgetid_(0)
 {
-  
-  box_widget_ = scinew BoxWidget(this, &widget_lock_, 0.2, false, false);
-  box_widget_->Connect((GeometryOPort*)get_oport("Geometry"));
+  box_widget_ = new BoxWidget(this, &widget_lock_, 0.2, false, false);
+  GeometryOPortHandle ogeom;
+  get_oport_handle("Geometry",ogeom);
+  box_widget_->Connect(ogeom.get_rep());
   widget_switch_ = box_widget_->GetWidget();
 }
 
@@ -157,7 +154,8 @@ CreateGeometricTransform::~CreateGeometricTransform()
 void
 CreateGeometricTransform::execute()
 {
-  ogeom_ = (GeometryOPort *)get_oport("Geometry");
+  GeometryOPortHandle ogeom;
+  get_oport_handle("Geometry",ogeom);
   const string which_transform = which_transform_gui_.get();
 
   // Create the widget.
@@ -173,8 +171,8 @@ CreateGeometricTransform::execute()
     {
       ((GeomSwitch *)(widget_switch_.get_rep()))->set_state(0);
     }
-    widgetid_ = ogeom_->addObj(widget_switch_, widget_name, &widget_lock_);
-    ogeom_->flushViews();
+    widgetid_ = ogeom->addObj(widget_switch_, widget_name, &widget_lock_);
+    ogeom->flushViews();
     have_been_initialized_=1;
   }
 
@@ -249,7 +247,7 @@ CreateGeometricTransform::execute()
     widget_pose_inv_trans_.load_basis(C,R-C,D-C,I-C);
     widget_pose_inv_trans_.invert();
   }
-  DenseMatrix *matrix_transform=scinew DenseMatrix(4,4);
+  DenseMatrix *matrix_transform=new DenseMatrix(4,4);
   omatrixH_ = matrix_transform;
   
   // now either pre- or post-multiply the transforms and store in matrix
@@ -263,7 +261,7 @@ CreateGeometricTransform::execute()
     local_transform.pre_trans(input_transform);
   }
 
-  MatrixHandle mtmp = scinew DenseMatrix(local_transform);
+  MatrixHandle mtmp = new DenseMatrix(local_transform);
   send_output_handle("Matrix", mtmp);
 }
 
@@ -281,14 +279,22 @@ CreateGeometricTransform::widget_moved(bool last, BaseWidget*)
 void
 CreateGeometricTransform::tcl_command(GuiArgs& args, void* userdata)
 {
-  if (args[1] == "hide_widget") {
+  if (args[1] == "hide_widget") 
+  {
     ((GeomSwitch *)(widget_switch_.get_rep()))->set_state(0);
-    if (ogeom_) ogeom_->flushViews();
-  } else if (args[1] == "show_widget") {
+    GeometryOPortHandle ogeom;
+    get_oport_handle("Geometry",ogeom);
+    if (ogeom.get_rep()) ogeom->flushViews();
+  } 
+  else if (args[1] == "show_widget") 
+  {
     ((GeomSwitch *)(widget_switch_.get_rep()))->set_state(1);
-    if (ogeom_) ogeom_->flushViews();
-  } else if (args[1] == "reset_widget" || args[1] == "reset" || 
-	     args[1] == "composite") {
+    GeometryOPortHandle ogeom;
+    get_oport_handle("Geometry",ogeom);
+    if (ogeom.get_rep()) ogeom->flushViews();
+  } 
+  else if (args[1] == "reset_widget" || args[1] == "reset" || args[1] == "composite") 
+  {
     if (args[1] == "reset")
       composite_trans_.load_identity();
     else if (args[1] == "composite")
@@ -300,15 +306,26 @@ CreateGeometricTransform::tcl_command(GuiArgs& args, void* userdata)
     widget_pose_center_=Point(0,0,0);
     widget_pose_inv_trans_.load_identity();
     want_to_execute();
-  } else if (args[1] == "change_handles") {
-    if (args[2] == "1") {	// start showing resize handles
+  } 
+  else if (args[1] == "change_handles") 
+  {
+    if (args[2] == "1") 
+    {	// start showing resize handles
       box_widget_->SetCurrentMode(1);
-      if (ogeom_) ogeom_->flushViews();
-    } else {		        // stop showing resize handles
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Geometry",ogeom);
+      if (ogeom.get_rep()) ogeom->flushViews();
+    } 
+    else 
+    {		        // stop showing resize handles
       box_widget_->SetCurrentMode(2);
-      if (ogeom_) ogeom_->flushViews();
+      GeometryOPortHandle ogeom;
+      get_oport_handle("Geometry",ogeom);
+      if (ogeom.get_rep()) ogeom->flushViews();
     }
-  } else {
+  } 
+  else 
+  {
     Module::tcl_command(args, userdata);
   }
 }

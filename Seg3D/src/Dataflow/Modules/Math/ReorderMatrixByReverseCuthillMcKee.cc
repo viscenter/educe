@@ -26,20 +26,20 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Algorithms/Math/MathAlgo.h>
-#include <Core/Datatypes/Matrix.h>
-#include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Core/Algorithms/Math/ReorderMatrix/ReorderMatrix.h>
 
+#include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 
 namespace SCIRun {
 
 class ReorderMatrixByReverseCuthillMcKee : public Module {
-public:
-  ReorderMatrixByReverseCuthillMcKee(GuiContext*);
-  virtual void execute();
+  public:
+    ReorderMatrixByReverseCuthillMcKee(GuiContext*);
+    virtual void execute();
 
+  private:
+    SCIRunAlgo::ReorderMatrixAlgo algo_;
 };
 
 
@@ -47,6 +47,8 @@ DECLARE_MAKER(ReorderMatrixByReverseCuthillMcKee)
 ReorderMatrixByReverseCuthillMcKee::ReorderMatrixByReverseCuthillMcKee(GuiContext* ctx)
   : Module("ReorderMatrixByReverseCuthillMcKee", ctx, Source, "Math", "SCIRun")
 {
+  algo_.set_progress_reporter(this);
+  algo_.set_option("method","reversecuthillmckee");
 }
 
 void ReorderMatrixByReverseCuthillMcKee::execute()
@@ -57,11 +59,9 @@ void ReorderMatrixByReverseCuthillMcKee::execute()
   if (inputs_changed_ || !oport_cached("Matrix") || !oport_cached("Mapping") || 
         !oport_cached("InverseMapping"))
   {
-    SCIRunAlgo::MathAlgo algo(this);
-    if(!(algo.ReverseCuthillmcKee(Mat,Mat,InverseMapping,true))) return;
-    
+    if(!(algo_.run(Mat,Mat,InverseMapping))) return;
     Mapping = InverseMapping->transpose();
-    
+        
     send_output_handle("Matrix",Mat,true);
     send_output_handle("Mapping",Mapping,true);
     send_output_handle("InverseMapping",InverseMapping,true);

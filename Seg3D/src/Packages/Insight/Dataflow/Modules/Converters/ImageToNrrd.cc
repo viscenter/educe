@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
 #include "itkImageRegionIterator.h"
@@ -103,7 +103,7 @@ ImageToNrrd::create_nrrd(ITKDatatypeHandle &img)
   int dim = im->GetImageDimension();
 
   // create a NrrdData
-  NrrdData* nout = scinew NrrdData();
+  NrrdData* nout = new NrrdData();
   nout->nrrd_ = nrrdNew();
   Nrrd* nr = nout->nrrd_;
 
@@ -191,7 +191,7 @@ ImageToNrrd::create_nrrd2(ITKDatatypeHandle &img)
   int dim = im->GetImageDimension();
 
   // create a NrrdData
-  NrrdData* nout = scinew NrrdData();
+  NrrdData* nout = new NrrdData();
   nout->nrrd_ = nrrdNew();
   Nrrd* nr = nout->nrrd_;
 

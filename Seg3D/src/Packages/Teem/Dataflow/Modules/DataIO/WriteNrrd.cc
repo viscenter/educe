@@ -42,7 +42,7 @@
 #include <Core/Persistent/Pstreams.h>
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <sstream>
 #include <fstream>
@@ -143,11 +143,11 @@ WriteNrrd::execute()
 
     if (ft == "Binary")
       {
-	stream = scinew BinaryPiostream(nrrd_data_fn, Piostream::Write);
+	stream = new BinaryPiostream(nrrd_data_fn, Piostream::Write);
       }
     else
       {
-	stream = scinew TextPiostream(nrrd_data_fn, Piostream::Write);
+	stream = new TextPiostream(nrrd_data_fn, Piostream::Write);
       }
     
     if (stream->error()) {

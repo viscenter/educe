@@ -150,7 +150,7 @@ VolumeFilter<FilterType>::update()
     SCIRun::ITKDatatypeHandle output_img = new SCIRun::ITKDatatype();
     output_img->data_ = filter_->GetOutput();
     volume_->nrrd_handle_ = 
-      itk_image_to_nrrd<typename ImageOutT::PixelType>(output_img);
+      itk_image_to_nrrd<typename ImageOutT::PixelType, 3>(output_img);
   }
 }
 
@@ -231,7 +231,7 @@ VolumeFilter<FilterType>::filter_callback(itk::Object *object,
         if (!dynamic_cast<ImageOutT *>(imgh->data_.GetPointer())) return;
         
         typedef typename FilterType::OutputImageType::PixelType OutT;
-        volume_->nrrd_handle_ = itk_image_to_nrrd<OutT>(imgh);
+        volume_->nrrd_handle_ = itk_image_to_nrrd<OutT, 3>(imgh);
         volume_->set_dirty();
         volume_->painter_->extract_all_window_slices();
         volume_->painter_->redraw_all();

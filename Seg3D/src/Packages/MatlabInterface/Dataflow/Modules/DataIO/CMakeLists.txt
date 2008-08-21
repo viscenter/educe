@@ -51,7 +51,6 @@ TARGET_LINK_LIBRARIES(Packages_MatlabInterface_Dataflow_Modules_DataIO
   Core_Exceptions
   Core_Thread
   Dataflow_GuiInterface
-  Core_Geom
   Core_Datatypes
   Core_Geometry
   Core_GeomInterface

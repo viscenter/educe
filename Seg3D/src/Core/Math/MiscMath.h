@@ -28,35 +28,127 @@
 
 
 
-/*
- *  MiscMath.h: Assorted mathematical functions
- *
- *  Written by:
- *   Steven G. Parker
- *   Department of Computer Science
- *   University of Utah
- *   March 1994
- *
- *  Copyright (C) 1994 SCI Group
- */
+#ifndef CORE_MATH_MISCMATH_H
+#define CORE_MATH_MISCMATH_H 1
 
-
-#ifndef SCI_Math_MiscMath_h
-#define SCI_Math_MiscMath_h 1
-
+#include <math.h>
 #include <Core/Math/share.h>
 
 namespace SCIRun {
 
-// Absolute value
+// Faster versions of several math functions
+
+//------------------------------------------
+// Power function
+
+inline double Pow(double d, double p)
+{
+  return pow(d,p);
+}
+
+
+inline double Pow(double x, unsigned int p)
+{
+  double result=1;
+  while(p)
+  {
+    if(p&1) result*=x;
+    x*=x;
+    p>>=1;
+  }
+  return result;
+}
+
+inline double Pow(double x, int p)
+{
+  if(p < 0)
+  {
+    p=-p;
+    double result=1;
+    while(p)
+    {
+      if(p&1)
+        result*=x;
+      x*=x;
+      p>>=1;
+    }
+    return 1./result;
+  } 
+  else
+  { 
+    double result=1;
+    while(p){
+      if(p&1)
+        result*=x;
+      x*=x;
+      p>>=1;
+    }
+    return result;
+  }
+}
+
+//------------------------------------------
+// Sqrt and Cbrt function
+
+inline int Sqrt(int i)
+{
+  return (int)sqrt((double)i);
+}
+
+inline double Sqrt(double d)
+{
+  return sqrt(d);
+}
+
+inline float Sqrt(float d)
+{
+  return sqrtf(d);
+}
+
+inline double Cbrt(double d)
+{
+  return pow(d, 1.0/3.0);
+}
+
+inline float Cbrt(float d)
+{
+  return pow((double)d, 1.0/3.0);
+}
+
+inline double Sqr(double x)
+{
+  return x*x;
+}
+
+inline float Sqr(float x)
+{
+  return x*x;
+}
+  
+//------------------------------------------
+// Exponential function
+
+inline double Exp(double x)
+{
+  return exp(x);
+}
+
+inline float Exp(float x)
+{
+  return expf(x);
+}
+
+
+//------------------------------------------
+// Absolute function
 inline double Abs(double d)
 {
   return d<0?-d:d;
 }
 
-inline float Abs(float d)
+inline float Abs(float f)
 {
-  return d<0?-d:d;
+  return f<0?-f:f;
 }
 
 inline int Abs(int i)
@@ -64,10 +156,16 @@ inline int Abs(int i)
     return i<0?-i:i;
 }
 
-// Signs
+//-----------------------------------------
+// Sign function
 inline int Sign(double d)
 {
-  return d<0?-1:1;
+  return d<0.0?-1:1;
+}
+
+inline int Sign(float f)
+{
+  return f<0.0?-1:1;
 }
 
 inline int Sign(int i)
@@ -75,15 +173,17 @@ inline int Sign(int i)
   return i<0?-1:1;
 }
 
-// Clamp a number to a specific range
+
+//-----------------------------------------
+// Clamp function
 inline double Clamp(double d, double min, double max)
 {
   return d<=min?min:d>=max?max:d;
 }
 
-inline float Clamp(float d, float min, float max)
+inline float Clamp(float f, float min, float max)
 {
-  return d<=min?min:d>=max?max:d;
+  return f<=min?min:f>=max?max:f;
 }
 
 inline int Clamp(int i, int min, int max)
@@ -91,6 +191,8 @@ inline int Clamp(int i, int min, int max)
   return i<min?min:i>max?max:i;
 }
 
+
+//-----------------------------------------
 // Generate a step between min and max.
 // return:   min - if d<=min
 //           max - if d>=max
@@ -100,11 +202,16 @@ inline int Clamp(int i, int min, int max)
 inline double SmoothStep(double d, double min, double max)
 {
   double ret;
-  if(d <= min){
+  if(d <= min)
+  {
     ret=0.0;
-  } else if(d >= max){
+  } 
+  else if(d >= max)
+  {
     ret=1.0;
-  } else {
+  } 
+  else 
+  {
     double dm=max-min;
     double t=(d-min)/dm;
     ret=t*t*(3.0-2.0*t);
@@ -116,24 +223,32 @@ inline double SmoothStep(double d, double min, double max)
 inline float SmoothStep(float d, float min, float max)
 {
   float ret;
-  if(d <= min){
+  if(d <= min)
+  {
     ret=0;
-  } else if(d >= max){
+  } 
+  else if(d >= max)
+  {
     ret=1;
-  } else {
+  } 
+  else 
+  {
     float dm=max-min;
     float t=(d-min)/dm;
     ret=t*t*(3-2*t);
   }
-  return ret;
+  return (ret);
 }
 
-// Interpolation:
+
+//-----------------------------------------
+// Interpolation function
 template <class T>
 inline T Interpolate(T d1, T d2, double weight)
 {
   return T(d2*weight+d1*(1.0-weight));
 }
+
 template <class T>
 inline T Interpolate(T d1, T d2, float weight)
 {
@@ -141,41 +256,109 @@ inline T Interpolate(T d1, T d2, float weight)
 }
 
 
-
-
+//-----------------------------------------
 // Integer/double conversions
 inline double Fraction(double d)
 {
-  if(d>0){
-    return d-(int)d;
-  } else {
-    return d-(int)d+1;
+  if(d>0)
+  {
+    return d-static_cast<int>(d);
+  } 
+  else 
+  {
+    return d-static_cast<int>(d+1);
   }
 }
 
+inline float Fraction(float f)
+{
+  if(f>0)
+  {
+    return f-static_cast<int>(f);
+  } 
+  else 
+  {
+    return f-static_cast<int>(f+1);
+  }
+}
+
+//-----------------------------------------
+// RoundDown and RoundUp funcions
+
 inline int RoundDown(double d)
 {
-  if(d>=0){
-    return (int)d;
-  } else {
-    if(d==(int)d){
-      return -(int)(-d);
-    } else {
-      return -(int)(-d)-1;
+  if(d>=0.0)
+  {
+    return static_cast<int>(d);
+  } 
+  else 
+  {
+    if(d==static_cast<int>(d))
+    {
+      return -(static_cast<int>(-d));
+    } 
+    else 
+    {
+      return -(static_cast<int>((-d)-1));
+    }
+  }
+}
+
+inline int RoundDown(float f)
+{
+  if(f>=0.0)
+  {
+    return static_cast<int>(f);
+  } 
+  else 
+  {
+    if(f==static_cast<int>(f))
+    {
+      return -(static_cast<int>(-f));
+    } 
+    else 
+    {
+      return -(static_cast<int>((-f)-1));
     }
   }
 }
 
 inline int RoundUp(double d)
 {
-    if(d>=0){
-        if((d-(int)d) == 0)
-            return (int)d;
-        else
-            return (int)(d+1);
-    } else {
-        return (int)d;
+  if(d>=0.0)
+  {
+    if((d-static_cast<int>(d)) == 0) 
+    {
+      return static_cast<int>(d);
     }
+    else
+    {
+      return static_cast<int>(d+1);
+    }
+  } 
+  else 
+  {
+    return static_cast<int>(d);
+  }
+}
+
+inline int RoundUp(float f)
+{
+  if(f>=0.0)
+  {
+    if((f-static_cast<int>(f)) == 0.0) 
+    {
+      return static_cast<int>(f);
+    }
+    else
+    {
+      return static_cast<int>(f+1);
+    }
+  } 
+  else 
+  {
+    return static_cast<int>(f);
+  }
 }
 
 inline int Round(double d)
@@ -183,29 +366,42 @@ inline int Round(double d)
   return (int)(d+0.5);
 }
 
+inline int Round(float f)
+{
+  return (int)(f+0.5);
+}
+
+
+
 inline int Floor(double d)
 {
-  if(d<0){
+  if(d<0)
+  {
     int i=-(int)-d;
     if((double)i == d)
       return i;
     else
       return i-1;
-  } else {
+  } 
+  else 
+  {
     return (int)d;
   }
 }
 
-inline int Floor(float d)
+inline int Floor(float f)
 {
-  if(d<0){
-    int i=-(int)-d;
-    if((float)i == d)
+  if(f<0)
+  {
+    int i=-(int)-f;
+    if((float)i == f)
       return i;
     else
       return i-1;
-  } else {
-    return (int)d;
+  } 
+  else 
+  {
+    return (int)f;
   }
 }
 
@@ -216,20 +412,23 @@ inline int Floor(float d)
 //work for fabs(d) <= offset, use with caution
 inline int Floor(double d, int offset)
 {
-   return (int)(d + offset) - offset;
+  return (int)(d + offset) - offset;
 }
 
-inline int Floor(float d, int offset)
+inline int Floor(float f, int offset)
 {
-   return (int)(d + offset) - offset;
+   return (int)(f + offset) - offset;
 }
 
 inline int Ceil(double d)
 {
-  if(d<0){
+  if(d<0)
+  {
     int i=-(int)-d;
     return i;
-  } else {
+  } 
+  else 
+  {
     int i=(int)d;
     if((double)i == d)
       return i;
@@ -238,14 +437,17 @@ inline int Ceil(double d)
   }
 }
 
-inline int Ceil(float d)
+inline int Ceil(float f)
 {
-  if(d<0){
-    int i=-(int)-d;
+  if(f<0)
+  {
+    int i=-(int)-f;
     return i;
-  } else {
-    int i=(int)d;
-    if((float)i == d)
+  } 
+  else 
+  {
+    int i=(int)f;
+    if((float)i == f)
       return i;
     else
       return i+1;
@@ -258,12 +460,12 @@ inline int Ceil(float d)
 // on (Pentium4, Powerbook G4)
 inline int Ceil(double d, int offset)
 {
-   return (int)(d - offset) + offset;
+  return (int)(d - offset) + offset;
 }
 
-inline int Ceil(float d, int offset)
+inline int Ceil(float f, int offset)
 {
-   return (int)(d - offset) + offset;
+   return (int)(f - offset) + offset;
 }
 
 inline int Tile(int tile, int tf)
@@ -283,17 +485,19 @@ inline int Tile(int tile, int tf)
 
 double SCISHARE MakeReal(double value);
 
-inline double getNan(){
+inline double getNan()
+{
   double nanvalue;
   unsigned int* ntmp = reinterpret_cast<unsigned int*>(&nanvalue);
   ntmp[0] = 0xffff5a5a;
   ntmp[1] = 0xffff5a5a;
-  return nanvalue;
+  return (nanvalue);
 }
 
 
 template <class T>
-inline void SWAP(T& a, T& b) {
+inline void SWAP(T& a, T& b) 
+{
   T temp;
   temp = a;
   a = b;
@@ -313,7 +517,8 @@ inline bool IsPowerOf2(unsigned int n)
 // Used for determining what size of texture to
 // allocate to store an image
 inline unsigned int
-Pow2(const unsigned int dim) {
+Pow2(const unsigned int dim) 
+{
   if (IsPowerOf2(dim)) return dim;
   unsigned int val = 4;
   while (val < dim) val = val << 1;;
@@ -323,7 +528,8 @@ Pow2(const unsigned int dim) {
 // Returns a number Less Than or Equal to dim
 // that is an exact power of 2
 inline unsigned int
-LargestPowerOf2(const unsigned int dim) {
+LargestPowerOf2(const unsigned int dim) 
+{
   if (IsPowerOf2(dim)) return dim;
   return Pow2(dim) >> 1;
 }
@@ -332,7 +538,8 @@ LargestPowerOf2(const unsigned int dim) {
 // Returns the power of 2 of the next higher number thas is a power of 2
 // Log2 of Pow2 funciton above
 inline unsigned int
-Log2(const unsigned int dim) {
+Log2(const unsigned int dim) 
+{
   unsigned int log = 0;
   unsigned int val = 1;
   while (val < dim) { val = val << 1; log++; };
@@ -343,8 +550,7 @@ Log2(const unsigned int dim) {
 // are closest to that square root.
 void findFactorsNearRoot(const int value, int& factor1, int& factor2);
 
-
 } // End namespace SCIRun
 
 
-#endif /* SCI_Math_MiscMath_h */
+#endif

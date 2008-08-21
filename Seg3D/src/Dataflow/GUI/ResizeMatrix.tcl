@@ -48,16 +48,16 @@ itcl_class SCIRun_Math_ResizeMatrix {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
         
-        iwidgets::labeledframe $w.frame -labeltext "NEW MATRIX DIMENSIONS"
+        sci_labeledframe $w.frame -labeltext "NEW MATRIX DIMENSIONS"
         set d [$w.frame childsite]
         pack $w.frame -fill both -expand yes
         
-        label $d.lab1 -text "Number of Rows"
-        entry $d.e1 -textvariable $this-dim-m        
-        label $d.lab2 -text "Number of Columns"
-        entry $d.e2 -textvariable $this-dim-n        
+        sci_label $d.lab1 -text "Number of Rows"
+        sci_entry $d.e1 -textvariable $this-dim-m        
+        sci_label $d.lab2 -text "Number of Columns"
+        sci_entry $d.e2 -textvariable $this-dim-n        
         
         grid $d.lab1 -row 0 -column 0  -sticky news
         grid $d.e1 -row 0 -column 1  -sticky news

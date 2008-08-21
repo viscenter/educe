@@ -58,21 +58,21 @@ itcl_class SCIRun_ChangeMesh_CalculateMeshNodes {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        iwidgets::labeledframe $w.inf -labeltext "Create New Field Nodes"
+        sci_labeledframe $w.inf -labeltext "Create New Field Nodes"
         set infoframe [$w.inf childsite]
-        frame $infoframe.info
+        sci_frame $infoframe.info
         pack $infoframe.info -side left
         set info $infoframe.info
-        label $info.info1 -text "Function: NEWPOS = function(POS,DATA,A,B,C,...)"
-        label $info.info2 -text "Input array: DATA (scalar/vector/tensor: data from field port) "
-        label $info.info3 -text "Input array: X, Y, Z (scalar: Cartensian coordinates of node/element)"
-        label $info.info4 -text "Input array: POS (vector: vector with node/element position)"
-        label $info.info5 -text "Input array: A, B, C, ... (scalar/vector/tensor: data from matrix ports)"
-        label $info.info6 -text "Input array: INDEX (scalar: number of the element)"
-        label $info.info7 -text "Input array: SIZE (scalar: number of elements)"
-        label $info.info8 -text "Output array: NEWPOS (vector)"
+        sci_label $info.info1 -text "Function: NEWPOS = function(POS,DATA,A,B,C,...)"
+        sci_label $info.info2 -text "Input array: DATA (scalar/vector/tensor: data from field port) "
+        sci_label $info.info3 -text "Input array: X, Y, Z (scalar: Cartensian coordinates of node/element)"
+        sci_label $info.info4 -text "Input array: POS (vector: vector with node/element position)"
+        sci_label $info.info5 -text "Input array: A, B, C, ... (scalar/vector/tensor: data from matrix ports)"
+        sci_label $info.info6 -text "Input array: INDEX (scalar: number of the element)"
+        sci_label $info.info7 -text "Input array: SIZE (scalar: number of elements)"
+        sci_label $info.info8 -text "Output array: NEWPOS (vector)"
 
         grid $info.info1 -row 0 -column 0 -columnspan 2 -sticky w
         grid $info.info2 -row 1 -column 0 -sticky w
@@ -85,21 +85,21 @@ itcl_class SCIRun_ChangeMesh_CalculateMeshNodes {
 
         pack $w.inf -side top -anchor w -fill x
 
-        iwidgets::labeledframe $w.of -labeltext "output type"
+        sci_labeledframe $w.of -labeltext "output type"
         set otype [$w.of childsite]
         pack $w.of -side top -anchor w -fill x
         
-        iwidgets::labeledframe $w.ff -labeltext "function"
+        sci_labeledframe $w.ff -labeltext "function"
         set function [$w.ff childsite]
         option add *textBackground white	
-        iwidgets::scrolledtext $function.function -height 60 -hscrollmode dynamic
+        sci_scrolledtext $function.function -height 60 -hscrollmode dynamic
         $function.function insert end [set $this-function]
         bind $function.function <Leave> "$this update_text"
         
         pack $w.ff -side top -anchor w -fill both 
         pack $function.function -side top -fill both 
 
-        button $w.help -text "Available Functions" -command "$this showhelp"
+        sci_button $w.help -text "Parser Help" -command "$this showhelp"
         pack $w.help -side top -anchor e    
 
         makeSciButtonPanel $w $w $this
@@ -119,16 +119,18 @@ itcl_class SCIRun_ChangeMesh_CalculateMeshNodes {
 	    	return
       }
 	
-      toplevel $w -class TkFDialog
+      sci_toplevel $w -class TkFDialog
 
       global $this-help
       $this-c gethelp   
             
-      iwidgets::labeledframe $w.hf -labeltext "available functions"
+      sci_labeledframe $w.hf -labeltext "Parser Help"
       set help [$w.hf childsite]
       option add *textBackground white	
-      iwidgets::scrolledhtml $help.help -height 60 -hscrollmode dynamic -width 500p -height 300p        
-      $help.help render [set $this-help]
+      sci_scrolledhtml $help.help -height 60 -hscrollmode dynamic -width 500p -height 300p        
+      
+      set helpfile [file join [netedit getenv SCIRUN_SRCDIR] Dataflow GUI ArrayMathFunctionHelp.html]
+      $help.help import $helpfile
       pack $help.help -side top -anchor w -fill both -expand yes
       pack $w.hf -side top -anchor w -fill both -expand yes
     } 

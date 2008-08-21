@@ -43,13 +43,13 @@
   <io>
     <inputs lastportdynamic="no">
       <port>
-	<name>Input Field</name>
+	<name>Field</name>
 	<datatype>SCIRun::Field</datatype>
       </port>
     </inputs>
     <outputs>
       <port>
-	<name>Output CalculateVectorMagnitudes</name>
+	<name>Field</name>
 	<datatype>SCIRun::Field</datatype>
       </port>
     </outputs>

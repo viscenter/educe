@@ -36,7 +36,8 @@
 #include <Dataflow/GuiInterface/GuiInterface.h>
 #include <Core/Util/Environment.h>
 #include <Core/Util/Assert.h>
-#include <Core/OS/Dir.h>
+#include <Core/Containers/StringUtil.h>
+#include <Core/Util/Dir.h>
 #include <libxml/catalog.h>
 #include <iostream>
 #include <sstream>
@@ -178,25 +179,47 @@ NetworkIO::gui_add_connection(const string &con_id,
       return;
     }
   
-    int owhich = atoi(from_port.c_str());
-    int iwhich = atoi(to_port.c_str());
-  
-    // TODO: This is a quick hack for backwards compatability with
-    // Allen's new ports.  He added string ports to several modules as
-    // the first entry.  On older networks these fail because the
-    // types to not match.  However in that case we can just increment
-    // the port number to the next one.  In the future it would be
-    // better if we kept track of the module version number and then
-    // asked those modules to do the port swizzling for us.  That
-    // would handle more cases (in addition to any of these with more
-    // than one port that needs to be bumped which currently fails.)
+    int owhich;
+    from_string(from_port,owhich);
+    int iwhich;
+    from_string(to_port,iwhich);
+    
+    if( omod->get_oport(owhich) == 0 )
+    {
+      cerr << "Can not get " << omod->get_modulename()
+	   << " output port " << owhich
+	   << " that connects to  " << imod->get_modulename()
+	   << " input port " << iwhich
+	   << endl;
+
+      return;
+    }
+
+    if( imod->get_iport(iwhich) == 0 )
+    {
+      cerr << "Can not get " << imod->get_modulename()
+	   << " input port " << iwhich
+	   << " that connects to  " << omod->get_modulename()
+	   << " output port " << owhich
+	   << endl;
+
+      return;
+    }
+
     const string d0 = omod->get_oport(owhich)->get_typename();
     const string d1 = imod->get_iport(iwhich)->get_typename();
+
     if (d0 != d1)
     {
-      cout << "TYPE MISMATCH '" << d0 << "', '" << d1 << "'\n";
-      iwhich++;
-      to_port = to_string(iwhich);
+      cerr << "Port type mismatch between output module "
+	   << omod->get_modulename()
+	   << " output port " << owhich << " with type " << d0
+	   << " that connects to input module " << iwhich
+	   << imod->get_modulename()
+	   << " input port " << iwhich << " with type " << d1
+	   << endl;
+
+      return;
     }
 
     net_->connect(omod, owhich, imod, iwhich);
@@ -817,7 +840,7 @@ NetworkIO::load_network()
   xmlDocPtr doc; /* the resulting document tree */
 
   string src_dir = string(sci_getenv("SCIRUN_SRCDIR")) + 
-    string("/nets/network.dtd");
+    string("/Dataflow/XML/network.dtd");
   xmlInitializeCatalog();
   xmlCatalogAdd(BAD_CAST "public", BAD_CAST "-//SCIRun/Network DTD", 
 		BAD_CAST src_dir.c_str());
@@ -831,7 +854,7 @@ NetworkIO::load_network()
   }
   /* parse the file, activating the DTD validation option */
   doc = xmlCtxtReadFile(ctxt, net_file_.c_str(), 0, (XML_PARSE_DTDATTR | 
-						     XML_PARSE_DTDVALID | 
+//						     XML_PARSE_DTDVALID | 
 						     XML_PARSE_PEDANTIC));
   /* check if parsing suceeded */
   if (doc == 0) {

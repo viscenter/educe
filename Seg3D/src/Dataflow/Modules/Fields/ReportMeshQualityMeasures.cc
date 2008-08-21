@@ -43,7 +43,6 @@
 #include <Dataflow/Network/Module.h>
 #include <Core/Datatypes/Field.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Datatypes/FieldInterface.h>
 #include <Dataflow/Modules/Fields/ReportMeshQualityMeasures.h>
 #include <Core/Containers/StringUtil.h>
 #include <iostream>
@@ -57,7 +56,7 @@ private:
 
 public:
   ReportMeshQualityMeasures(GuiContext* ctx);
-  virtual ~ReportMeshQualityMeasures();
+  virtual ~ReportMeshQualityMeasures() {}
 
   virtual void execute();
 };
@@ -66,14 +65,9 @@ public:
 DECLARE_MAKER(ReportMeshQualityMeasures)
 
 
-ReportMeshQualityMeasures::ReportMeshQualityMeasures(GuiContext* ctx)
-        : Module("ReportMeshQualityMeasures", ctx, Filter, "ChangeFieldData", "SCIRun"),
-          last_field_generation_(0)
-{
-}
-
-
-ReportMeshQualityMeasures::~ReportMeshQualityMeasures()
+ReportMeshQualityMeasures::ReportMeshQualityMeasures(GuiContext* ctx) : 
+Module("ReportMeshQualityMeasures", ctx, Filter, "ChangeFieldData", "SCIRun"),
+  last_field_generation_(0)
 {
 }
 
@@ -152,7 +146,7 @@ ReportMeshQualityMeasuresAlgo::get_compile_info(const TypeDescription *fsrc,
   static const string base_class_name("ReportMeshQualityMeasuresAlgo");
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
+    new CompileInfo(template_class_name + "." +
 		       fsrc->get_filename() + ".",
                        base_class_name, 
                        template_class_name, 

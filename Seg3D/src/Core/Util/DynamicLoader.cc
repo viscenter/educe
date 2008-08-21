@@ -38,13 +38,13 @@
 #include <Core/Util/Environment.h>
 #include <Core/Containers/StringUtil.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <fstream>
 #include <string>
 #include <iostream>
 #include <algorithm>
 #include <sstream>
-#include <sgi_stl_warnings_off.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -403,7 +403,7 @@ CompileInfo::create_cc(ostream &fstr, bool empty) const
     fstr << "  return 0;" << endl << "//";
   }
 
-  fstr << "  return scinew " << template_class_name_ << "<"
+  fstr << "  return new " << template_class_name_ << "<"
        << template_arg_ << ">;" << endl
        << "}" << endl << "}" << endl;
 }
@@ -542,11 +542,12 @@ DynamicLoader::compile_and_store(const CompileInfo &info, bool maybe_compile_p,
     map_lock_.unlock();
     if (so == 0)
     {
-      const string errmsg = "DYNAMIC LIB ERROR: " + full_so + " does not load!";
-      pr->error(errmsg);
+      const string errmsg1 = "DYNAMIC LIB ERROR: " + full_so + 
+        " does not load!";
+      pr->error(errmsg1);
       if (errmsg != "")
       {
-        std::cerr << errmsg << "\n";
+        std::cerr << errmsg << endl;
       }
       
       // Remove the null ref for this lib from the map.
@@ -660,15 +661,6 @@ DynamicLoader::compile_so(const CompileInfo &info, ProgressReporter *pr)
 
   FILE *pipe = 0;
   bool result = true;
-#ifdef __sgi
-  command += " 2>&1";
-  pipe = popen(command.c_str(), "r");
-  if (pipe == NULL)
-  {
-    pr->remark("DynamicLoader::compile_so() syscal error unable to make.");
-    result = false;
-  }
-#else
   command += " > " + info.filename_ + "log 2>&1";
 
 #ifdef _WIN32
@@ -749,7 +741,6 @@ DynamicLoader::compile_so(const CompileInfo &info, ProgressReporter *pr)
     result = false;
   }
   pipe = fopen(string(otf_dir() + "/" + info.filename_ + "log").c_str(), "r");
-#endif // __sgi
 
   char buffer[256];
   while (pipe && fgets(buffer, 256, pipe) != NULL)
@@ -757,11 +748,7 @@ DynamicLoader::compile_so(const CompileInfo &info, ProgressReporter *pr)
 //    pr->add_raw_message(buffer);
   }
 
-#ifdef __sgi
-  if (pipe) { pclose(pipe); }
-#else
   if (pipe) { fclose(pipe); }
-#endif
 
   if (result)
   {

@@ -29,7 +29,7 @@
 
 #include <Dataflow/Network/Module.h>
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/String.h>
 #include <Core/Datatypes/Matrix.h>
@@ -40,11 +40,11 @@
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <sstream>
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h> 
+ 
 
 namespace CardioWaveInterface {
 
@@ -67,6 +67,7 @@ private:
   GuiString guimembranename_;
   GuiString guimembraneparam_;
   GuiString guimembranedesc_;
+  GuiDouble guimembranecap_;
 
   SynapseXML synapsexml_;
 
@@ -80,7 +81,8 @@ DMDAddMembrane::DMDAddMembrane(GuiContext* ctx)
     guimembranenames_(get_ctx()->subVar("mem-names")),
     guimembranename_(get_ctx()->subVar("mem-name")),
     guimembraneparam_(get_ctx()->subVar("mem-param")),
-    guimembranedesc_(get_ctx()->subVar("mem-desc"))
+    guimembranedesc_(get_ctx()->subVar("mem-desc")),
+    guimembranecap_(get_ctx()->subVar("mem-cap"))
 {
     std::string defaultname = synapsexml_.get_default_name();
     guimembranename_.set(defaultname);
@@ -108,7 +110,7 @@ void DMDAddMembrane::execute()
   get_ctx()->reset();
   
   // Only execute if something has changed:
-  if (inputs_changed_  || guimembranename_.changed() || 
+  if (inputs_changed_  || guimembranename_.changed() || guimembranecap_.changed() ||
       guimembraneparam_.changed() || !oport_cached("MembraneBundle"))
   {
     // Create access point to field algorithms
@@ -138,7 +140,7 @@ void DMDAddMembrane::execute()
     // If we have an input bundle use that one otherwise create a new one:
     if (MembraneBundle.get_rep() == 0)
     {
-      MembraneBundle = scinew Bundle();
+      MembraneBundle = new Bundle();
       if (MembraneBundle.get_rep() == 0)
       {
         error("Could not allocate new membrane bundle");
@@ -154,7 +156,7 @@ void DMDAddMembrane::execute()
     }
 
     std::string membranename = guimembranename_.get();
-    StringHandle MembraneName = scinew String(membranename);
+    StringHandle MembraneName = new String(membranename);
 
     // Find what the next index will be for the membranes
     // We start with 1, so 0 means no membrane:
@@ -191,7 +193,7 @@ void DMDAddMembrane::execute()
     
     // Add a new bundle to the bundle with the data
     // from this module
-    Membrane = scinew Bundle();
+    Membrane = new Bundle();
     if (Membrane.get_rep() == 0)
     {
       error("Could not allocate new membrane bundle");
@@ -206,6 +208,9 @@ void DMDAddMembrane::execute()
     MembraneBundle->setBundle(fieldname,Membrane);
     
     Membrane->setField("Geometry",Geometry);
+   
+    MatrixHandle Capacitance = new DenseMatrix(guimembranecap_.get());
+    Membrane->setMatrix("Capacitance",Capacitance);
    
     // Get parameters from GUI:
     std::string paramstr; 
@@ -230,7 +235,7 @@ void DMDAddMembrane::execute()
       paramstr += oss.str();
     }
     
-    StringHandle Parameters = scinew String(paramstr);
+    StringHandle Parameters = new String(paramstr);
     if (Parameters.get_rep() == 0)
     {
       error("Could not create parameter string");
@@ -238,7 +243,7 @@ void DMDAddMembrane::execute()
     } 
     Membrane->setString("Parameters",Parameters);
       
-    StringHandle SourceFile = scinew String(item.sourcefile);
+    StringHandle SourceFile = new String(item.sourcefile);
     Membrane->setString("SourceFile",SourceFile);
     
     // Send the data downstream:

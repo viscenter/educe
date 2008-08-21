@@ -40,9 +40,12 @@
  *  Copyright (C) 2001 SCI Group
  */
 
-#include <Core/Util/Assert.h>
 #include <Core/Containers/StringUtil.h>
-#include <ctype.h> // for toupper() (at least for linux RH8)
+#include <Core/Util/Assert.h>
+
+#include <stdlib.h>
+#include <ctype.h>
+#include <teem/air.h>
 
 namespace SCIRun {
 
@@ -164,8 +167,80 @@ string_tolower(string str)
   return str;
 }
 
-  
 
+bool from_string(const string &str, double &value)
+{
+  std::string dstr = str + "\0";
+  char* eptr;
+  value = strtod(&(dstr[0]),&eptr);
+  if (eptr == &(dstr[0])) return (false);
+  return (true);
+}
+
+bool from_string(const string &str, float &value)
+{
+  std::string dstr = str + "\0";
+  char *eptr;
+  //value = strtof(&(dstr[0]),&eptr);
+  double tempValue = strtod(&(dstr[0]),&eptr);
+  value = (float) tempValue;
+  if (eptr == &(dstr[0])) return (false);
+  return (true);
+}
+  
+bool from_string(const string &str, int &value)
+{
+  std::string dstr = str+ "\0";
+  char *eptr;
+  value = static_cast<int>(strtol(&(dstr[0]),&eptr,0));
+  if (eptr == &(dstr[0])) return (false);
+  return (true);
+}
+
+bool from_string(const string &str, unsigned int &value)
+{
+  std::string dstr = str+ "\0";
+  char *eptr;
+  value = static_cast<unsigned int>(strtol(&(dstr[0]),&eptr,0));
+  if (eptr == &(dstr[0])) return (false);
+  return (true);
+}
+
+bool from_string(const string &str, long &value)
+{
+  std::string dstr = str+ "\0";
+  char *eptr;
+  value = static_cast<long>(strtol(&(dstr[0]),&eptr,0));
+  if (eptr == &(dstr[0])) return (false);
+  return (true);
+}
+
+bool from_string(const string &str, unsigned long &value)
+{
+  std::string dstr = str+ "\0";
+  char *eptr;
+  value = static_cast<unsigned long>(strtol(&(dstr[0]),&eptr,0));
+  if (eptr == &(dstr[0])) return (false);
+  return (true);
+}
+
+bool from_string(const string &str, long long &value)
+{
+  std::string dstr = str+ "\0";
+  char *eptr;  
+  value = static_cast<long long>(strtol(&(dstr[0]),&eptr,0));
+  if (eptr == &(dstr[0])) return (false);
+  return (true);
+}
+
+bool from_string(const string &str, unsigned long long &value)
+{
+  std::string dstr = str+ "\0";
+  char *eptr;
+  value = static_cast<unsigned long long>(strtol(&(dstr[0]),&eptr,0));
+  if (eptr == &(dstr[0])) return (false);
+  return (true);
+}
 
 
 } // End namespace SCIRun

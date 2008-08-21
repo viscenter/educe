@@ -29,7 +29,7 @@
 #include <libxml/xmlreader.h>
 #include <Core/XMLUtil/XMLUtil.h>
 #include <Core/Util/Environment.h>
-#include <Core/OS/Dir.h>
+#include <Core/Util/Dir.h>
 #include <Packages/CardioWaveInterface/Core/XML/OutputXML.h>
 
 #include <stdio.h>

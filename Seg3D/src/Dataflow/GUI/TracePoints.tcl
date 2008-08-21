@@ -41,9 +41,9 @@ itcl_class SCIRun_FieldsCreate_TracePoints {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        iwidgets::entryfield $w.tolerance \
+        sci_entryfield $w.tolerance \
           -labeltext "Tolerance for matching points" \
           -textvariable $this-tol
 

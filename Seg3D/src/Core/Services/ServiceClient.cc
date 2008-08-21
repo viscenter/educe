@@ -30,11 +30,6 @@
 
 #include <Core/Services/ServiceClient.h>
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1424
-#pragma set woff 1209 
-#endif
-
 namespace SCIRun {
 
 ServiceClient::ServiceClient() :
@@ -51,7 +46,7 @@ ServiceClient::~ServiceClient()
   // Make sure we close the socket
   if (need_send_end_stream_)
   {  
-    IComPacketHandle packet = scinew IComPacket();
+    IComPacketHandle packet = new IComPacket();
     packet->settag(TAG_END_STREAM);
     packet->setid(0);
     socket_.send(packet);
@@ -64,7 +59,7 @@ ServiceClient::~ServiceClient()
 
 ServiceClient*  ServiceClient::clone()
 {
-  ServiceClient* ptr = scinew ServiceClient();
+  ServiceClient* ptr = new ServiceClient();
   ptr->socket_= socket_;
   ptr->session_ = session_;
   ptr->version_ = version_;
@@ -130,7 +125,7 @@ bool ServiceClient::open(IComAddress address, std::string servicename, int sessi
     return(false);
   }
   
-  IComPacketHandle packet = scinew IComPacket();
+  IComPacketHandle packet = new IComPacket();
   
   if (packet == 0)
   {
@@ -230,7 +225,7 @@ bool ServiceClient::close()
 
   if (need_send_end_stream_)
   {  
-    IComPacketHandle packet = scinew IComPacket();
+    IComPacketHandle packet = new IComPacket();
     packet->settag(TAG_END_STREAM);
     packet->setid(0);
     socket_.send(packet);
@@ -242,9 +237,3 @@ bool ServiceClient::close()
 }
 
 }
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209 
-#endif
-

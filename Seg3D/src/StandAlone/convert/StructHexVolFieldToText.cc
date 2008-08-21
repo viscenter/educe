@@ -50,7 +50,7 @@
 #include <Core/Basis/HexTrilinearLgn.h>
 #include <Core/Datatypes/StructHexVolMesh.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <StandAlone/convert/FileUtils.h>
 #include <Core/Init/init.h>
 #include <iostream>

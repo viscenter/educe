@@ -51,17 +51,17 @@ itcl_class BioPSE_Forward_SetWireElectrodePotential {
         set_defaults
     }
     method set_defaults {} {
-	global $this-active
-	set $this-active "front"
-	global $this-voltage
-	set $this-voltage 5
+        global $this-active
+        set $this-active "front"
+        global $this-voltage
+        set $this-voltage 5
     }
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-	global $v
-        entry $w.e -textvariable $v
+        global $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
@@ -72,22 +72,22 @@ itcl_class BioPSE_Forward_SetWireElectrodePotential {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 30
-        frame $w.f
-	label $w.f.l -text "Active Side of Electrode:"
-	global $this-active
-	radiobutton $w.f.front -text "Front" \
-	    -variable $this-active -value "front"
-	radiobutton $w.f.back -text "Back" \
-	    -variable $this-active -value "back"
-	radiobutton $w.f.both -text "Both Sides" \
-	    -variable $this-active -value "both"
-	global $this-voltage
-	make_entry $w.f.v "Electrode Voltage:" $this-voltage \
-		"$this-c needexecute"
-	button $w.f.b -text "Execute" -command "$this-c needexecute"
-	pack $w.f.l $w.f.front $w.f.back $w.f.both $w.f.v $w.f.b -side top
-        pack $w.f -side top -fill x -expand yes
+        sci_frame $w.f
+        sci_label $w.f.l -text "Active Side of Electrode:"
+        global $this-active
+        sci_radiobutton $w.f.front -text "Front" \
+            -variable $this-active -value "front"
+        sci_radiobutton $w.f.back -text "Back" \
+            -variable $this-active -value "back"
+        sci_radiobutton $w.f.both -text "Both Sides" \
+            -variable $this-active -value "both"
+        global $this-voltage
+        make_entry $w.f.v "Electrode Voltage:" $this-voltage \
+          "$this-c needexecute"
+        sci_button $w.f.b -text "Execute" -command "$this-c needexecute"
+        pack $w.f.l $w.f.front $w.f.back $w.f.both $w.f.v $w.f.b -side top
+              pack $w.f -side top -fill x -expand yes
     }
 }

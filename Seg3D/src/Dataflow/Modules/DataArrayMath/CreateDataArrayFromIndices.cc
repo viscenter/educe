@@ -36,6 +36,7 @@ namespace SCIRun {
 class CreateDataArrayFromIndices : public Module {
   public:
     CreateDataArrayFromIndices(GuiContext*);
+    virtual ~CreateDataArrayFromIndices() {}
     virtual void execute();
 };
 
@@ -52,11 +53,12 @@ CreateDataArrayFromIndices::execute()
 {
   MatrixHandle Index, Template, Array;
   
-  if (!(get_input_handle("Indices",Index,true))) return;
-  if (!(get_input_handle("Template",Template,true))) return;
+  get_input_handle("Indices",Index,true);
+  get_input_handle("Template",Template,true);
   
   if (inputs_changed_ || !oport_cached("DataArray"))
   {    
+    update_state(Executing);
     MatrixHandle temp = Template->dense();
     MatrixHandle indices = Index->dense();
     
@@ -113,7 +115,7 @@ CreateDataArrayFromIndices::execute()
       return;
     }
       
-    Array = scinew DenseMatrix(indices_m,temp_n);
+    Array = new DenseMatrix(indices_m,temp_n);
     double* array_data = Array->get_data_pointer();
     
     for (Matrix::index_type p = 0; p < indices_m; p++)

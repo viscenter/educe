@@ -50,39 +50,39 @@ itcl_class SCIRun_Visualization_CreateViewerClockIcon {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 	wm title $w "Gen Clock"
 	
 # Type
-	iwidgets::labeledframe $w.type -labeltext "Clock Type"
+	sci_labeledframe $w.type -labeltext "Clock Type"
 	set type [$w.type childsite]
 
 # Type - analog
-	frame $type.analog
+	sci_frame $type.analog
 
-	radiobutton $type.analog.button -variable $this-type -value 0 \
+	sci_radiobutton $type.analog.button -variable $this-type -value 0 \
 	     -command "$this-c needexecute"
-	label $type.analog.label -text "Analog" -width 8 \
+	sci_label $type.analog.label -text "Analog" -width 8 \
 	    -anchor w -just left
 	
 	pack $type.analog.button $type.analog.label -side left
 
 # Type - digital
-	frame $type.digital
+	sci_frame $type.digital
 
-	radiobutton $type.digital.button -variable $this-type -value 1 \
+	sci_radiobutton $type.digital.button -variable $this-type -value 1 \
 	     -command "$this-c needexecute"
-	label $type.digital.label -text "Digital" -width 8 \
+	sci_label $type.digital.label -text "Digital" -width 8 \
 	    -anchor w -just left
 	
 	pack $type.digital.button $type.digital.label -side left
 
 # Type - analog/digital
-	frame $type.both
+	sci_frame $type.both
 
-	radiobutton $type.both.button -variable $this-type -value 2 \
+	sci_radiobutton $type.both.button -variable $this-type -value 2 \
 	     -command "$this-c needexecute"
-	label $type.both.label -text "Both" -width 8 \
+	sci_label $type.both.label -text "Both" -width 8 \
 	    -anchor w -just left
 	
 	pack $type.both.button $type.both.label -side left
@@ -93,15 +93,15 @@ itcl_class SCIRun_Visualization_CreateViewerClockIcon {
 
 
 # Style
-	iwidgets::labeledframe $w.style -labeltext "Clock Style"
+	sci_labeledframe $w.style -labeltext "Clock Style"
 	set style [$w.style childsite]
 
 # Style - box
-	frame $style.bbox
+	sci_frame $style.bbox
 
-	checkbutton $style.bbox.button -variable $this-bbox \
+	sci_checkbutton $style.bbox.button -variable $this-bbox \
 	     -command "$this-c needexecute"
-	label $style.bbox.label -text "Box" -width 4 \
+	sci_label $style.bbox.label -text "Box" -width 4 \
 	    -anchor w -just left
 	
 	pack $style.bbox.button $style.bbox.label -side left
@@ -109,17 +109,17 @@ itcl_class SCIRun_Visualization_CreateViewerClockIcon {
 	pack $style.bbox -side left
 
 # Style - color
-	frame $style.color
+	sci_frame $style.color
 	addColorSelection $style.color "Color" $this-color "color_change"
 	pack $style.color -side left -padx 5
 
 	pack $w.style -fill x -expand yes -side top
 
 # Style - format
-	frame $style.format
-	label $style.format.label -text "C Style Format" -width 15 \
+	sci_frame $style.format
+	sci_label $style.format.label -text "C Style Format" -width 15 \
 	    -anchor w -just left
-	entry $style.format.entry -width 16 -text $this-format
+	sci_entry $style.format.entry -width 16 -text $this-format
 
 	pack $style.format.label $style.format.entry -side left
 
@@ -127,30 +127,30 @@ itcl_class SCIRun_Visualization_CreateViewerClockIcon {
 
 
 # Range
-	iwidgets::labeledframe $w.range -labeltext "Analog Clock Range"
+	sci_labeledframe $w.range -labeltext "Analog Clock Range"
 	set range [$w.range childsite]
 
 # Range - minimum
-	frame $range.min
-	label $range.min.label -text "Min."  -width 5 -anchor w -just left
-	entry $range.min.entry -width 6 -text $this-min
+	sci_frame $range.min
+	sci_label $range.min.label -text "Min."  -width 5 -anchor w -just left
+	sci_entry $range.min.entry -width 6 -text $this-min
 
 	pack $range.min.label $range.min.entry -side left
 	pack $range.min -side left
 
 # Range - maximum
-	frame $range.max
-	label $range.max.label -text "Max."  -width 5 -anchor w -just left
-	entry $range.max.entry -width 6 -text $this-max
+	sci_frame $range.max
+	sci_label $range.max.label -text "Max."  -width 5 -anchor w -just left
+	sci_entry $range.max.entry -width 6 -text $this-max
 
 	pack $range.max.label $range.max.entry -side left
 	pack $range.max -side left -padx 5
 
 # Range - current
-	frame $range.current
-	label $range.current.label -text "Current" \
+	sci_frame $range.current
+	sci_label $range.current.label -text "Current" \
 	    -width 7 -anchor w -just left
-	entry $range.current.entry -width 6 -text $this-current
+	sci_entry $range.current.entry -width 6 -text $this-current
 
 	pack $range.current.label $range.current.entry -side left
 	pack $range.current -side left -padx 5
@@ -158,70 +158,70 @@ itcl_class SCIRun_Visualization_CreateViewerClockIcon {
 	pack $w.range -fill x -expand yes -side top
 
 
-	frame $w.twocol
+	sci_frame $w.twocol
 # -relief groove -borderwidth 2
 	
 # Size
-	iwidgets::labeledframe $w.twocol.size -labeltext "Clock Size"
+	sci_labeledframe $w.twocol.size -labeltext "Clock Size"
 	set size [$w.twocol.size childsite]
 
 # Size - tiny
-        frame $size.tiny
+        sci_frame $size.tiny
 
-        radiobutton $size.tiny.button -variable $this-size -value 0 \
+        sci_radiobutton $size.tiny.button -variable $this-size -value 0 \
             -command "$this-c needexecute"
-        label $size.tiny.label -text "Tiny" -width 6 \
+        sci_label $size.tiny.label -text "Tiny" -width 6 \
             -anchor w -just left
         
         pack $size.tiny.button $size.tiny.label -side left
         pack $size.tiny -side top -padx 5
 
 # Size - small
-	frame $size.small
+	sci_frame $size.small
 
-	radiobutton $size.small.button -variable $this-size -value 1 \
+	sci_radiobutton $size.small.button -variable $this-size -value 1 \
 	    -command "$this-c needexecute"
-	label $size.small.label -text "Small" -width 6 \
+	sci_label $size.small.label -text "Small" -width 6 \
 	    -anchor w -just left
 	
 	pack $size.small.button $size.small.label -side left
 	pack $size.small -side top -padx 5
 
 # Size - medium
-	frame $size.medium
+	sci_frame $size.medium
 
-	radiobutton $size.medium.button -variable $this-size -value 2 \
+	sci_radiobutton $size.medium.button -variable $this-size -value 2 \
 	    -command "$this-c needexecute"
-	label $size.medium.label -text "Medium" -width 6 \
+	sci_label $size.medium.label -text "Medium" -width 6 \
 	    -anchor w -just left
 	
 	pack $size.medium.button $size.medium.label -side left
 	pack $size.medium -side top -padx 5
 
 # Size - large
-	frame $size.large
+	sci_frame $size.large
 
-	radiobutton $size.large.button -variable $this-size -value 3 \
+	sci_radiobutton $size.large.button -variable $this-size -value 3 \
 	    -command "$this-c needexecute"
-	label $size.large.label -text "Large" -width 6 \
+	sci_label $size.large.label -text "Large" -width 6 \
 	    -anchor w -just left
 	
 	pack $size.large.button $size.large.label -side left
 	pack $size.large -side top -padx 5
 
 # Size - huge
-        frame $size.huge
+        sci_frame $size.huge
 
-        radiobutton $size.huge.button -variable $this-size -value 4 \
+        sci_radiobutton $size.huge.button -variable $this-size -value 4 \
             -command "$this-c needexecute"
-        label $size.huge.label -text "Huge" -width 6 \
+        sci_label $size.huge.label -text "Huge" -width 6 \
             -anchor w -just left
         
         pack $size.huge.button $size.huge.label -side left
         pack $size.huge -side top -padx 5
 
 # Location
-	iwidgets::labeledframe $w.twocol.location -labeltext "Clock Location"
+	sci_labeledframe $w.twocol.location -labeltext "Clock Location"
 	set location [$w.twocol.location childsite]
 
 	set locator [makeStickyLocator $location.gui \
@@ -281,13 +281,13 @@ itcl_class SCIRun_Visualization_CreateViewerClockIcon {
 	 set ig [expr int([set $color-g] * 65535)]
 	 set ib [expr int([set $color-b] * 65535)]
 	 
-	 frame $frame.colorFrame
-	 frame $frame.colorFrame.col -relief ridge -borderwidth \
+	 sci_frame $frame.colorFrame
+	 sci_frame $frame.colorFrame.col -relief ridge -borderwidth \
 		 4 -height 0.8c -width 1.0c \
 		 -background [format #%04x%04x%04x $ir $ig $ib]
 	 
 	 set cmmd "$this raiseColor $frame.colorFrame.col $color $colMsg"
-	 button $frame.colorFrame.set_color \
+	 sci_button $frame.colorFrame.set_color \
 		 -text $text -command $cmmd
 	 
 	 #pack the node color frame

@@ -34,67 +34,66 @@
 catch {rename Teem_DataIO_WriteNrrd ""}
 
 itcl_class Teem_DataIO_WriteNrrd {
-    inherit Module
-    constructor {config} {
-	set name WriteNrrd
-	set_defaults
+      inherit Module
+      constructor {config} {
+      set name WriteNrrd
+      set_defaults
     }
 
     method set_defaults {} {
-	global $this-filetype
-	set $this-filetype Binary
-	global $this-filename
-	set $this-filename MyFile
-	global $this-exporttype
-	# set $this-split 0
+      global $this-filetype
+      set $this-filetype Binary
+      global $this-filename
+      set $this-filename MyFile
+      global $this-exporttype
+      # set $this-split 0
     }
     
     method ui {} {
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    # Refresh UI
-	    biopseFDialog_RefreshCmd $w
-	    return
-	}
-	
-	toplevel $w -class TkFDialog
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          # Refresh UI
+          biopseFDialog_RefreshCmd $w
+          return
+      }
+      
+      sci_toplevel $w -class TkFDialog
 
-	# place to put preferred data directory
-	# it's used if $this-filename is empty
-	set initdir [netedit getenv SCIRUN_DATA]
+      # place to put preferred data directory
+      # it's used if $this-filename is empty
+      set initdir [netedit getenv SCIRUN_DATA]
 
-	#######################################################
-	# to be modified for particular reader
+      #######################################################
+      # to be modified for particular reader
 
-	# extansion to append if no extension supplied by user
-	set defext ".nrrd"
-	
-	# name to appear initially
-	set defname "MyNrrd"
-	set title "Save nrrd file"
+      # extansion to append if no extension supplied by user
+      set defext ".nrrd"
+      
+      # name to appear initially
+      set defname "MyNrrd"
+      set title "Save nrrd file"
 
-	# file types to appers in filter box
-	set types {
-	    {{Nrrd}     {.nrrd}      }
-	    {{Nrrd Header and Raw}     {.nhdr *.raw}      }
-	    {{All Files}       {.*}   }
-	}
-	
-	######################################################
-	
-	makeSaveFilebox \
-		-parent $w \
-		-filevar $this-filename \
-	        -setcmd "wm withdraw $w" \
-		-command "$this-c needexecute; wm withdraw $w" \
-		-cancel "wm withdraw $w" \
-		-title $title \
-		-filetypes $types \
-	        -initialfile $defname \
-		-initialdir $initdir \
-		-defaultextension $defext \
-		-formatvar $this-filetype \
-	        -selectedfiletype $this-exporttype
-		#-splitvar $this-split
-    }
+      # file types to appers in filter box
+      set types {
+          {{Nrrd}     {.nrrd}      }
+          {{Nrrd Header and Raw}     {.nhdr *.raw}      }
+          {{All Files}       {.*}   }
+      }
+      
+      ######################################################
+      
+      makeSaveFilebox \
+        -parent $w \
+        -filevar $this-filename \
+        -setcmd "wm withdraw $w" \
+        -command "$this-c needexecute; wm withdraw $w" \
+        -cancel "wm withdraw $w" \
+        -title $title \
+        -filetypes $types \
+        -initialfile $defname \
+        -initialdir $initdir \
+        -defaultextension $defext \
+        -formatvar $this-filetype \
+        -selectedfiletype $this-exporttype
+      }
 }

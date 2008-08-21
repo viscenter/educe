@@ -46,9 +46,9 @@
 #include <Core/Util/Assert.h>
 #include <Core/Datatypes/Field.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/ImportExport/share.h>
 

@@ -32,7 +32,7 @@
 
 #include <Core/Algorithms/Util/AlgoLibrary.h>
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/DenseMatrix.h>
@@ -41,10 +41,10 @@
 #include <Packages/CardioWaveInterface/Core/Model/BuildMembraneTable.h>
 #include <Packages/CardioWaveInterface/Core/Model/BuildStimulusTable.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <sstream>
-#include <sgi_stl_warnings_on.h>
+
 
 namespace CardioWaveInterface {
 
@@ -57,7 +57,7 @@ class ModelAlgo : public AlgoLibrary {
 
     bool DMDOptimizeByCoordinate(std::string optim_coord, FieldHandle ElementType, std::vector<FieldHandle>& Membranes, std::vector<MembraneTable>& MembraneTables, MatrixHandle CompToGeom, MatrixHandle& Reorder);
     bool DMDBuildMembraneTable(FieldHandle ElementType, FieldHandle MembraneModel, MatrixHandle CompToGeom, MatrixHandle NodeLink, MatrixHandle ElemLink, MembraneTable& Table, MatrixHandle& MappingMatrix, MatrixHandle& MappingMatrix2, Matrix::index_type &offset);
-    bool DMDBuildMembraneMatrix(std::vector<MembraneTable>& membranetable, std::vector<double>& nodetypes, Field::size_type num_volumenodes, Field::size_type num_synnodes, MatrixHandle& NodeType, MatrixHandle& Volume, MatrixHandle& MembaneMatrix);
+    bool DMDBuildMembraneMatrix(std::vector<MembraneTable>& membranetable, std::vector<double>& nodetypes, std::vector<double>& cmvalues, Field::size_type num_volumenodes, Field::size_type num_synnodes, MatrixHandle& NodeType, MatrixHandle& Volume, MatrixHandle& Capacitance, MatrixHandle& MembaneMatrix);
     bool DMDMembraneTableToMatrix(MembraneTable MemTable, MatrixHandle& MemMatrix);
 
     bool DMDBuildStimulusTable(FieldHandle ElementType, FieldHandle StimulusModel, MatrixHandle CompToGeom, double domainmin, double domainmax, StimulusTable& Table);

@@ -76,16 +76,15 @@ itcl_class SCIRun_Bundle_GetFieldsFromBundle {
         global $this-field5-entry
         global $this-field6-entry
 
-        toplevel $w 
+        sci_toplevel $w 
 
         wm minsize $w 100 150
-
         
-        iwidgets::labeledframe $w.frame -labeltext "BUNDLE FIELD OUTPUTS"
+        sci_labeledframe $w.frame -labeltext "BUNDLE FIELD OUTPUTS"
         set childframe [$w.frame childsite]
         pack $w.frame -fill both -expand yes
 
-        iwidgets::tabnotebook $childframe.pw -height 160 -width 400 -tabpos n
+        sci_tabnotebook $childframe.pw -height 160 -width 400 -tabpos n
         $childframe.pw add -label "Field1"
         $childframe.pw add -label "Field2" 
         $childframe.pw add -label "Field3" 
@@ -103,72 +102,72 @@ itcl_class SCIRun_Bundle_GetFieldsFromBundle {
         set field5 [$childframe.pw childsite 4]
         set field6 [$childframe.pw childsite 5]
 
-        frame $field1.name
-        frame $field1.sel
+        sci_frame $field1.name
+        sci_frame $field1.sel
         pack $field1.name -side top -fill x -expand no -padx 5p
         pack $field1.sel -side top -fill both -expand yes -padx 5p
 
-        label $field1.name.label -text "Name"
-        entry $field1.name.entry -textvariable $this-field1-name
+        sci_label $field1.name.label -text "Name"
+        sci_entry $field1.name.entry -textvariable $this-field1-name
         set $this-field1-entry $field1.name.entry
         pack $field1.name.label -side left 
         pack $field1.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $field1.sel.listbox  -selectioncommand [format "%s ChooseField1" $this]
+        sci_scrolledlistbox $field1.sel.listbox  -selectioncommand [format "%s ChooseField1" $this]
         set $this-field1-listbox $field1.sel.listbox
         $field1.sel.listbox component listbox configure -listvariable $this-field-selection -selectmode browse
         pack $field1.sel.listbox -fill both -expand yes
 
-        frame $field2.name
-        frame $field2.sel 
+        sci_frame $field2.name
+        sci_frame $field2.sel 
         pack $field2.name -side top -fill x -expand no -padx 5p
         pack $field2.sel -side top -fill both -expand yes -padx 5p
 
-        label $field2.name.label -text "Name"
-        entry $field2.name.entry -textvariable $this-field2-name
+        sci_label $field2.name.label -text "Name"
+        sci_entry $field2.name.entry -textvariable $this-field2-name
         set $this-field2-entry $field2.name.entry
         pack $field2.name.label -side left 
         pack $field2.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $field2.sel.listbox  -selectioncommand [format "%s ChooseField2" $this]
+        sci_scrolledlistbox $field2.sel.listbox  -selectioncommand [format "%s ChooseField2" $this]
         set $this-field2-listbox $field2.sel.listbox
         $field2.sel.listbox component listbox configure -listvariable $this-field-selection -selectmode browse
         pack $field2.sel.listbox -fill both -expand yes
         
-        frame $field3.name
-        frame $field3.sel
+        sci_frame $field3.name
+        sci_frame $field3.sel
         pack $field3.name -side top -fill x -expand no -padx 5p
         pack $field3.sel -side top -fill both -expand yes -padx 5p
 
-        label $field3.name.label -text "Name"
-        entry $field3.name.entry -textvariable $this-field3-name
+        sci_label $field3.name.label -text "Name"
+        sci_entry $field3.name.entry -textvariable $this-field3-name
         set $this-field3-entry $field3.name.entry
         pack $field3.name.label -side left 
         pack $field3.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $field3.sel.listbox  -selectioncommand [format "%s ChooseField3" $this]
+        sci_scrolledlistbox $field3.sel.listbox  -selectioncommand [format "%s ChooseField3" $this]
         set $this-field3-listbox $field3.sel.listbox
         $field3.sel.listbox component listbox configure -listvariable $this-field-selection -selectmode browse
         pack $field3.sel.listbox -fill both -expand yes
 
-        frame $field4.name
-        frame $field4.sel
+        sci_frame $field4.name
+        sci_frame $field4.sel
         pack $field4.name -side top -fill x -expand no -padx 5p
         pack $field4.sel -side top -fill both -expand yes -padx 5p
 
-        label $field4.name.label -text "Name"
-        entry $field4.name.entry -textvariable $this-field4-name
+        sci_label $field4.name.label -text "Name"
+        sci_entry $field4.name.entry -textvariable $this-field4-name
         set $this-field4-entry $field4.name.entry
         pack $field4.name.label -side left 
         pack $field4.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $field4.sel.listbox  -selectioncommand [format "%s ChooseField4" $this]
+        sci_scrolledlistbox $field4.sel.listbox  -selectioncommand [format "%s ChooseField4" $this]
         set $this-field4-listbox $field4.sel.listbox
         $field4.sel.listbox component listbox configure -listvariable $this-field-selection -selectmode browse
         pack $field4.sel.listbox -fill both -expand yes
 
-        frame $field5.name
-        frame $field5.sel
+        sci_frame $field5.name
+        sci_frame $field5.sel
         pack $field5.name -side top -fill x -expand no -padx 5p
         pack $field5.sel -side top -fill both -expand yes -padx 5p
 
@@ -178,23 +177,23 @@ itcl_class SCIRun_Bundle_GetFieldsFromBundle {
         pack $field5.name.label -side left 
         pack $field5.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $field5.sel.listbox  -selectioncommand [format "%s ChooseField5" $this]
+        sci_scrolledlistbox $field5.sel.listbox  -selectioncommand [format "%s ChooseField5" $this]
         set $this-field5-listbox $field5.sel.listbox
         $field5.sel.listbox component listbox configure -listvariable $this-field-selection -selectmode browse
         pack $field5.sel.listbox -fill both -expand yes
         
-        frame $field6.name
-        frame $field6.sel
+        sci_frame $field6.name
+        sci_frame $field6.sel
         pack $field6.name -side top -fill x -expand no -padx 5p
         pack $field6.sel -side top -fill both -expand yes -padx 5p
 
-        label $field6.name.label -text "Name"
-        entry $field6.name.entry -textvariable $this-field6-name
+        sci_label $field6.name.label -text "Name"
+        sci_entry $field6.name.entry -textvariable $this-field6-name
         set $this-field6-entry $field6.name.entry
         pack $field6.name.label -side left 
         pack $field6.name.entry -side left -fill x -expand yes
         
-        iwidgets::scrolledlistbox $field6.sel.listbox  -selectioncommand [format "%s ChooseField6" $this]
+        sci_scrolledlistbox $field6.sel.listbox  -selectioncommand [format "%s ChooseField6" $this]
         set $this-field6-listbox $field6.sel.listbox
         $field6.sel.listbox component listbox configure -listvariable $this-field-selection -selectmode browse
         pack $field6.sel.listbox -fill both -expand yes

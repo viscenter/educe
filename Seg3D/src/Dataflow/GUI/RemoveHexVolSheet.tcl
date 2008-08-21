@@ -52,50 +52,21 @@ itcl_class SCIRun_NewField_RemoveHexVolSheet {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 80
 
-	frame $w.f1
-	label $w.f1.l -text "List of Edges:"
-	entry $w.f1.e -width 30 -text $this-edge-list
-	bind $w.f1.e <Return> "$this-c needexecute"
-	pack $w.f1.l $w.f1.e -side left -fill both -expand 1
-	pack $w.f1 -fill x
+        sci_frame $w.f1
+        sci_label $w.f1.l -text "List of Edges:"
+        sci_entry $w.f1.e -width 30 -text $this-edge-list
+        bind $w.f1.e <Return> "$this-c needexecute"
+        pack $w.f1.l $w.f1.e -side left -fill both -expand 1
+        pack $w.f1 -fill x
 
-# 	frame $w.bound1
-# 	label $w.bound1.t1 -text "Intersected Hexes in"
-# 	pack $w.bound1.t1
-# 	pack $w.bound1
+        sci_frame $w.f
+        sci_frame $w.fb
+        pack $w.f $w.fb -padx 2 -pady 2 -side top -expand yes
 
-# 	frame $w.bound
-# 	radiobutton $w.bound.side_1 -text "Side 1" \
-# 	    -variable $this-side -value "side1"
-# 	radiobutton $w.bound.side_2 -text "Side 2" \
-# 	    -variable $this-side -value "side2"
-# 	pack $w.bound.side_1 $w.bound.side_2 \
-# 	    -side left -anchor nw -padx 3
-# 	pack $w.bound -side top
-
-# 	frame $w.layer1
-# 	label $w.layer1.t1
-# 	label $w.layer1.t2 -text "Add Sheet?"
-# 	pack $w.layer1.t1 $w.layer1.t2
-# 	pack $w.layer1
-
-# 	frame $w.layer
-# 	radiobutton $w.layer.addlayeron -text "On" \
-# 	    -variable $this-addlayer -value "On"
-# 	radiobutton $w.layer.addlayeroff -text "Off" \
-# 	    -variable $this-addlayer -value "Off"
-# 	pack $w.layer.addlayeron $w.layer.addlayeroff \
-# 	    -side left -anchor nw -padx 3
-# 	pack $w.layer -side top
-
-	frame $w.f
-  	frame $w.fb
- 	pack $w.f $w.fb -padx 2 -pady 2 -side top -expand yes
-
-        makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
     }
 }

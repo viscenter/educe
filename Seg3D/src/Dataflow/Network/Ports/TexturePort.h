@@ -29,16 +29,21 @@
 //    Author : Milan Ikits
 //    Date   : Thu Jul 15 15:00:29 2004
 
-#ifndef Volume_TexturePort_h
-#define Volume_TexturePort_h
+#ifndef DATAFLOW_NETWORK_PORTS_TEXTUREPORT_H
+#define DATAFLOW_NETWORK_PORTS_TEXTUREPORT_H 1
+
+#include <Core/Volume/Texture.h>
+#include <Core/Containers/LockingHandle.h>
 
 #include <Dataflow/Network/Ports/SimplePort.h>
-#include <Core/Volume/Texture.h>
 
 namespace SCIRun {
 
-typedef SimpleIPort<TextureHandle> TextureIPort;
-typedef SimpleOPort<TextureHandle> TextureOPort;
+typedef SimpleIPort<TextureHandle>  TextureIPort;
+typedef SimpleOPort<TextureHandle>  TextureOPort;
+typedef LockingHandle<TextureIPort> TextureIPortHandle;
+typedef LockingHandle<TextureOPort> TextureOPortHandle;
+
 
 } // namespace SCIRun
 

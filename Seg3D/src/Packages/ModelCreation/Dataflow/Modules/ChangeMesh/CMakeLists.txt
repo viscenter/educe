@@ -29,13 +29,10 @@
 # CMakeLists.txt for Packages/ModelCreation/Dataflow/Modules/ChangeMesh
 
 SET(Packages_ModelCreation_Dataflow_Modules_ChangeMesh_SRCS
-  CalculateLinkBetweenOppositeFieldBoundaries.cc
-  CalculateMeshNodes.cc
   FindClosestNodeIndexByValue.cc
   FindClosestNodeIndex.cc
   GetBoundingBox.cc
   MergeMeshNodes.cc
-  ScaleFieldMeshAndData.cc
 )
 
 SCIRUN_ADD_LIBRARY(Packages_ModelCreation_Dataflow_Modules_ChangeMesh ${Packages_ModelCreation_Dataflow_Modules_ChangeMesh_SRCS})
@@ -54,9 +51,9 @@ TARGET_LINK_LIBRARIES(Packages_ModelCreation_Dataflow_Modules_ChangeMesh
   Core_Geometry
   Core_GeomInterface
   Dataflow_TkExtensions
+  Core_Algorithms_FiniteElements
   Core_Algorithms_Fields
   Core_Algorithms_Converter
-  Core_Algorithms_ArrayMath
   ${TK_LIBRARY}
   ${GL_LIBRARY}
   ${M_LIBRARY}

@@ -30,18 +30,12 @@
  * FILE: IComAddress.cc
  * AUTH: Jeroen Stinstra
  */
- 
 
- 
+#include <Core/Containers/StringUtil.h> 
 #include <Core/ICom/IComAddress.h> 
 
 #define JGS_SCIRUNS_DEFAULT_PORT "9554"
 #define JGS_SCIRUN_DEFAULT_PORT "9553"
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209 
-#endif 
 
 // Functions for addressing
 
@@ -841,7 +835,7 @@ std::string IComAddress::printaddress()
 
 IComAddress    *IComAddress::clone()
 {
-    IComAddress *address = scinew IComAddress;
+    IComAddress *address = new IComAddress;
     
     address->protocol_ = protocol_;
     address->isinternal_ = isinternal_;
@@ -1177,7 +1171,7 @@ int IComAddress::ga_aistruct(struct addrinfo ***paipnext, const struct addrinfo 
 			break;
 		}
 		case AF_INET6: 
-        {
+    {
 			struct sockaddr_in6	*sin6ptr;
 			if ( (sin6ptr = reinterpret_cast<struct sockaddr_in6 *>(calloc(1, sizeof(struct sockaddr_in6)))) == 0) return(EAI_MEMORY);
 		
@@ -1199,17 +1193,19 @@ int IComAddress::ga_serv(struct addrinfo *aihead, const struct addrinfo *hintsp,
 
 	nfound = 0;
 	if (isdigit(serv[0])) 
-    {		/* check for port number string first */
-		port = htons(atoi(serv));
+  {		
+    /* check for port number string first */
+		int tport; std::string serv_str(serv); from_string(serv_str,tport);
+    port = htons(tport);
 		if (hintsp->ai_socktype) 
-        {
+    {
 				/* 4caller specifies socket type */
 			if ( (rc = ga_port(aihead, port, hintsp->ai_socktype)) < 0)
 				return(EAI_MEMORY);
 			nfound += rc;
 		} 
-        else 
-        {
+    else 
+    {
 				/* 4caller does not specify socket type */
 			if ( (rc = ga_port(aihead, port, SOCK_STREAM)) < 0)
 				return(EAI_MEMORY);
@@ -1317,12 +1313,5 @@ struct addrinfo* IComAddress::ga_clone(struct addrinfo *ai)
 
 #endif
 
-
-
 }
 
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1424
-#pragma reset woff 1209 
-#endif

@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
 #include "itkImageRegionIterator.h"
@@ -265,7 +265,7 @@ NrrdToImage::create_image()
   copy_kvp_to_dictionary(n, img);
 
   
-  ITKDatatype* result = scinew ITKDatatype;
+  ITKDatatype* result = new ITKDatatype;
   result->data_ = img;
   oimg_handle_ = result;
 
@@ -361,7 +361,7 @@ NrrdToImage::create_image2()
     img_iter.operator++();
   }
 
-  ITKDatatype* result = scinew ITKDatatype;
+  ITKDatatype* result = new ITKDatatype;
   result->data_ = img;
   oimg_handle_ = result;
 

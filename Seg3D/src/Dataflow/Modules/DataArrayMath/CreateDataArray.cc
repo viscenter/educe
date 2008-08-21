@@ -27,23 +27,20 @@
 */
 
 // Include all code for the dynamic engine
-#include <Core/Algorithms/ArrayMath/ArrayObject.h>
-#include <Core/Algorithms/ArrayMath/ArrayEngine.h>
-#include <Core/Algorithms/ArrayMath/ArrayEngineHelp.h>
-#include <Core/Algorithms/ArrayMath/ArrayEngineMath.h>
-
-
-#include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/String.h>
-#include <Dataflow/Network/Ports/StringPort.h>
-#include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Core/Datatypes/Matrix.h>
+#include <Core/Parser/ArrayMathEngine.h>
+
 #include <Dataflow/Network/Module.h>
+#include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Dataflow/Network/Ports/StringPort.h>
 
 namespace SCIRun {
 
 class CreateDataArray : public Module {
 public:
   CreateDataArray(GuiContext*);
+  ~CreateDataArray() {}
   virtual void execute();
   virtual void tcl_command(GuiArgs&, void*);
   
@@ -82,31 +79,9 @@ void CreateDataArray::execute()
   if (inputs_changed_ || guifunction_.changed() || guiformat_.changed() ||
       !oport_cached("Array"))
   {
-
-    // Check the size of the inputs
-    size_t numinputs = matrices.size();
-    if (numinputs > 26)
-    {
-      error("This module cannot handle more than 26 input matrices");
-      return;
-    }
-    
-    // Define input aray
-    SCIRunAlgo::ArrayObjectList inputlist(numinputs+1,SCIRunAlgo::ArrayObject(this));
-    SCIRunAlgo::ArrayObjectList outputlist(1,SCIRunAlgo::ArrayObject(this));
-  
-
-    if (func.get_rep())
-    {
-      guifunction_.set(func->get());
-      get_ctx()->reset();
-    }
-
-    
-    char mname = 'A';
-    std::string matrixname("A");
-    
-    int n = 1;
+    update_state(Executing);
+      
+    size_type n = 1;
 
     if (size.get_rep())
     {
@@ -118,63 +93,60 @@ void CreateDataArray::execute()
       n = static_cast<int>(size->get(0,0));
       if (n == 0) n = 1;
     }
-    
-    // Add an object for getting the index and size of the array.
-    if(!(inputlist[0].create_input_index("INDEX","SIZE")))
+
+    // Get number of matrix ports with data (the last one is always empty)
+    size_t numinputs = matrices.size();
+    if (numinputs > 23)
     {
-      error("Internal error in module");
+      error("This module cannot handle more than 23 input matrices.");
       return;
-    } 
-   
+    }
+      
+    NewArrayMathEngine engine;
+    engine.set_progress_reporter(this);
+
+    if (func.get_rep())
+    {
+      guifunction_.set(func->get());
+      get_ctx()->reset();
+    }
+    
+    char mname = 'A';
+    std::string matrixname("A");
+    
     for (size_t p = 0; p < numinputs; p++)
     {
-      if (matrices[p].get_rep())
+      if (matrices[p].get_rep() == 0)
       {
-        if ((matrices[p]->ncols()==1)||(matrices[p]->ncols()==3)||(matrices[p]->ncols()==6)||(matrices[p]->ncols()==9))
-        {
-          matrixname[0] = mname++;
-          inputlist[p+1].create_input_data(matrices[p],matrixname);
-        }
-        else
-        {
-          std::ostringstream oss;
-          oss << "Input matrix " << p+1 << "is not a valid ScalarArray, VectorArray, or TensorArray";
-          error(oss.str());
-          return;
-        }
-        
-        if (n > 1) 
-        {
-          if (n != matrices[p]->nrows()&&(matrices[p]->nrows() != 1))
-          {
-            std::ostringstream oss;
-            oss << "The number of elements in each ScalarArray, VectorArray, or TensorArray is not equal";
-            error(oss.str());
-            return;          
-          }
-        }
-        else
-        {
-          n = matrices[p]->nrows();
-        }
+        error("No matrix was found on input port.");
+        return;      
       }
-    }
-  
-    std::string format = guiformat_.get();
-      
-    MatrixHandle omatrix;  
-    outputlist[0].create_output_data(n,format,"RESULT",omatrix);
-    
-  
-    std::string function = guifunction_.get();
-    
-    SCIRunAlgo::ArrayEngine engine(this);
-    if (!engine.engine(inputlist,outputlist,function))
-    {
-      error("An error occured while executing function");
-      return;
-    }
 
+      matrixname[0] = mname++;
+      if (!(engine.add_input_matrix(matrixname,matrices[p]))) return;
+    }
+    
+    if(!(engine.add_output_matrix("RESULT",n))) return;    
+
+    // Add an object for getting the index and size of the array.
+
+    if(!(engine.add_index("INDEX"))) return;
+    if(!(engine.add_size("SIZE"))) return;
+
+    std::string function = guifunction_.get();
+    if(!(engine.add_expressions(function))) return;
+
+    // Actual engine call, which does the dynamic compilation, the creation of the
+    // code for all the objects, as well as inserting the function and looping 
+    // over every data point
+
+    if (!(engine.run())) return;
+
+    // Get the result from the engine
+    MatrixHandle omatrix;    
+    engine.get_matrix("RESULT",omatrix);
+
+    // send new output if there is any: 
     send_output_handle("DataArray", omatrix);
   }
 }
@@ -191,11 +163,11 @@ CreateDataArray::tcl_command(GuiArgs& args, void* userdata)
 
   if( args[1] == "gethelp" )
   {
-    DataArrayMath::ArrayEngineHelp Help;
-    get_gui()->lock();
-    get_gui()->eval("global " + get_id() +"-help");
-    get_gui()->eval("set " + get_id() + "-help {" + Help.gethelp(true) +"}");
-    get_gui()->unlock();
+//    DataArrayMath::ArrayEngineHelp Help;
+//    get_gui()->lock();
+//    get_gui()->eval("global " + get_id() +"-help");
+//    get_gui()->eval("set " + get_id() + "-help {" + Help.gethelp(true) +"}");
+//    get_gui()->unlock();
     return;
   }
   else

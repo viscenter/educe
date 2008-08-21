@@ -46,38 +46,64 @@ public:
   VTriSurfMesh(MESH* mesh) : VUnstructuredMesh<MESH>(mesh) {}
   virtual ~VTriSurfMesh() {}
   
-  virtual void get_nodes(VMesh::Node::array_type& nodes, VMesh::Edge::index_type i) const;
-  virtual void get_nodes(VMesh::Node::array_type& nodes, VMesh::Face::index_type i) const;
-  virtual void get_nodes(VMesh::Node::array_type& nodes, VMesh::Elem::index_type i) const;
-  virtual void get_nodes(VMesh::Node::array_type& nodes, VMesh::DElem::index_type i) const;
+  virtual void get_nodes(VMesh::Node::array_type& nodes, 
+                         VMesh::Edge::index_type i) const;
+  virtual void get_nodes(VMesh::Node::array_type& nodes,
+                         VMesh::Face::index_type i) const;
+  virtual void get_nodes(VMesh::Node::array_type& nodes, 
+                         VMesh::Elem::index_type i) const;
+  virtual void get_nodes(VMesh::Node::array_type& nodes,
+                         VMesh::DElem::index_type i) const;
 
-  virtual void get_enodes(VMesh::ENode::array_type& edges, VMesh::Face::index_type i) const;
-  virtual void get_enodes(VMesh::ENode::array_type& edges, VMesh::Elem::index_type i) const;
-  virtual void get_enodes(VMesh::ENode::array_type& edges, VMesh::DElem::index_type i) const;
-                                            
-  virtual void get_edges(VMesh::Edge::array_type& edges, VMesh::Face::index_type i) const;
-  virtual void get_edges(VMesh::Edge::array_type& edges, VMesh::Elem::index_type i) const;
-  virtual void get_edges(VMesh::Edge::array_type& edges, VMesh::DElem::index_type i) const;
+  virtual void get_enodes(VMesh::ENode::array_type& edges,
+                          VMesh::Face::index_type i) const;
+  virtual void get_enodes(VMesh::ENode::array_type& edges, 
+                          VMesh::Elem::index_type i) const;
+  virtual void get_enodes(VMesh::ENode::array_type& edges,
+                          VMesh::DElem::index_type i) const;
 
-  virtual void get_faces(VMesh::Face::array_type& faces, VMesh::Node::index_type i) const;
-  virtual void get_faces(VMesh::Face::array_type& faces, VMesh::Edge::index_type i) const;
-  virtual void get_faces(VMesh::Face::array_type& faces, VMesh::Elem::index_type i) const;
-  virtual void get_faces(VMesh::Face::array_type& faces, VMesh::DElem::index_type i) const;
+  virtual void get_edges(VMesh::Edge::array_type& edges, 
+                         VMesh::Node::index_type i) const;                                            
+  virtual void get_edges(VMesh::Edge::array_type& edges, 
+                         VMesh::Face::index_type i) const;
+  virtual void get_edges(VMesh::Edge::array_type& edges,
+                         VMesh::Elem::index_type i) const;
+  virtual void get_edges(VMesh::Edge::array_type& edges,
+                         VMesh::DElem::index_type i) const;
+
+  virtual void get_faces(VMesh::Face::array_type& faces, 
+                         VMesh::Node::index_type i) const;
+  virtual void get_faces(VMesh::Face::array_type& faces, 
+                         VMesh::Edge::index_type i) const;
+  virtual void get_faces(VMesh::Face::array_type& faces,
+                         VMesh::Elem::index_type i) const;
+  virtual void get_faces(VMesh::Face::array_type& faces,
+                         VMesh::DElem::index_type i) const;
   
-  virtual void get_elems(VMesh::Elem::array_type& elems, VMesh::Node::index_type i) const;
-  virtual void get_elems(VMesh::Elem::array_type& elems, VMesh::Edge::index_type i) const;
-  virtual void get_elems(VMesh::Elem::array_type& elems, VMesh::Face::index_type i) const;
-  virtual void get_elems(VMesh::Elem::array_type& elems, VMesh::DElem::index_type i) const;
+  virtual void get_elems(VMesh::Elem::array_type& elems, 
+                         VMesh::Node::index_type i) const;
+  virtual void get_elems(VMesh::Elem::array_type& elems, 
+                         VMesh::Edge::index_type i) const;
+  virtual void get_elems(VMesh::Elem::array_type& elems, 
+                         VMesh::Face::index_type i) const;
+  virtual void get_elems(VMesh::Elem::array_type& elems,
+                         VMesh::DElem::index_type i) const;
 
-  virtual void get_delems(VMesh::DElem::array_type& delems, VMesh::Face::index_type i) const;
-  virtual void get_delems(VMesh::DElem::array_type& delems, VMesh::Elem::index_type i) const;
+  virtual void get_delems(VMesh::DElem::array_type& delems,
+                          VMesh::Node::index_type i) const;
+  virtual void get_delems(VMesh::DElem::array_type& delems,
+                          VMesh::Edge::index_type i) const;
+  virtual void get_delems(VMesh::DElem::array_type& delems, 
+                          VMesh::Face::index_type i) const;
+  virtual void get_delems(VMesh::DElem::array_type& delems,
+                          VMesh::Elem::index_type i) const;
+                          
+  virtual void insert_node_into_elem(VMesh::Elem::array_type& newelems, 
+                                     VMesh::Node::index_type& newnode,
+                                     VMesh::Elem::index_type  elem,
+                                     Point& point);
 
-  virtual double find_closest_elem(Point& result, 
-                                   VMesh::Elem::index_type &i, 
-                                   const Point &point) const;
-  virtual double find_closest_elems(Point& result, 
-                                    VMesh::Elem::array_type &i, 
-                                    const Point &point) const;
+  virtual VMesh::index_type* get_elems_pointer() const;                          
 };
 
 
@@ -94,7 +120,7 @@ public:
 //! Create virtual interface 
 VMesh* CreateVTriSurfMesh(TriSurfMesh<TriLinearLgn<Point> >* mesh)
 {
-  return scinew VTriSurfMesh<TriSurfMesh<TriLinearLgn<Point> > >(mesh);
+  return new VTriSurfMesh<TriSurfMesh<TriLinearLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -109,7 +135,7 @@ static MeshTypeID TriSurfMesh_MeshID1(
 //! Create virtual interface 
 VMesh* CreateVTriSurfMesh(TriSurfMesh<TriQuadraticLgn<Point> >* mesh)
 {
-  return scinew VTriSurfMesh<TriSurfMesh<TriQuadraticLgn<Point> > >(mesh);
+  return new VTriSurfMesh<TriSurfMesh<TriQuadraticLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -124,7 +150,7 @@ static MeshTypeID TriSurfMesh_MeshID2(TriSurfMesh<TriQuadraticLgn<Point> >::type
 //! Create virtual interface 
 VMesh* CreateVTriSurfMesh(TriSurfMesh<TriCubicHmt<Point> >* mesh)
 {
-  return scinew VTriSurfMesh<TriSurfMesh<TriCubicHmt<Point> > >(mesh);
+  return new VTriSurfMesh<TriSurfMesh<TriCubicHmt<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -190,6 +216,14 @@ VTriSurfMesh<MESH>::get_enodes(VMesh::ENode::array_type& enodes,
 }
 
 
+
+template <class MESH>
+void 
+VTriSurfMesh<MESH>::get_edges(VMesh::Edge::array_type& edges, 
+                              VMesh::Node::index_type i) const
+{
+  this->mesh_->get_edges_from_node(edges,i);
+}
 
 template <class MESH>
 void 
@@ -282,6 +316,22 @@ VTriSurfMesh<MESH>::get_elems(VMesh::Elem::array_type& elems,
 template <class MESH>
 void 
 VTriSurfMesh<MESH>::get_delems(VMesh::DElem::array_type& delems, 
+                                VMesh::Node::index_type i) const
+{
+  this->mesh_->get_edges_from_node(delems,i);
+}
+
+template <class MESH>
+void 
+VTriSurfMesh<MESH>::get_delems(VMesh::DElem::array_type& delems, 
+                               VMesh::Edge::index_type i) const
+{
+  delems.resize(1); delems[0] = static_cast<VMesh::DElem::index_type>(i);
+}
+
+template <class MESH>
+void 
+VTriSurfMesh<MESH>::get_delems(VMesh::DElem::array_type& delems, 
                                 VMesh::Face::index_type i) const
 {
   this->mesh_->get_edges_from_face(delems,i);
@@ -295,23 +345,31 @@ VTriSurfMesh<MESH>::get_delems(VMesh::DElem::array_type& delems,
   this->mesh_->get_edges_from_face(delems,i);
 }
 
-template <class MESH>
-double 
-VTriSurfMesh<MESH>::find_closest_elem(Point& result,
-                                      VMesh::Elem::index_type &i, 
-                                      const Point &point) const
-{
-  return(this->mesh_->find_closest_elem(result,i,point));
-} 
 
 template <class MESH>
-double 
-VTriSurfMesh<MESH>::find_closest_elems(Point& result,
-                                       VMesh::Elem::array_type &i, 
-                                       const Point &point) const
+VMesh::index_type*
+VTriSurfMesh<MESH>::
+get_elems_pointer() const
 {
-  return(this->mesh_->find_closest_elems(result,i,point));
-} 
+  if (this->mesh_->faces_.size() == 0) return (0);
+   return (&(this->mesh_->faces_[0]));
+}
+
+// TODO: Fix this function so it does not need the vector conversion
+template <class MESH>
+void
+VTriSurfMesh<MESH>::insert_node_into_elem(VMesh::Elem::array_type& newelems, 
+                                     VMesh::Node::index_type& newnode,
+                                     VMesh::Elem::index_type  elem,
+                                     Point& point)
+{
+  // This wrapper fixes class types
+  typename MESH::Elem::array_type array;
+  typename MESH::Node::index_type index;
+  this->mesh_->insert_node_in_face(array,index,typename MESH::Elem::index_type(elem),point);
+  convert_vector(array,newelems);
+  newnode = VMesh::Node::index_type(index);
+}
 
 
 }// namespace SCIRun

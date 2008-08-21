@@ -31,7 +31,7 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/Field.h>
 #include <Dataflow/Network/Ports/SimplePort.h>
 #include <Dataflow/Network/Ports/ColorMap2Port.h>
@@ -45,20 +45,15 @@ class ColorMap2DSemantics : public Module
 {
 public:
   ColorMap2DSemantics(GuiContext*);
-  virtual ~ColorMap2DSemantics();
+  virtual ~ColorMap2DSemantics() {}
 
   virtual void execute();
   virtual void tcl_command(GuiArgs&, void*);
 };
 
-
 DECLARE_MAKER(ColorMap2DSemantics)
 ColorMap2DSemantics::ColorMap2DSemantics(GuiContext* ctx) : 
   Module("ColorMap2DSemantics", ctx, Source, "Visualization", "SCIRun")
-{
-}
-
-ColorMap2DSemantics::~ColorMap2DSemantics()
 {
 }
 
@@ -67,7 +62,6 @@ ColorMap2DSemantics::execute()
 {
   ColorMap2Handle icmap = 0;
   get_input_handle("Input Colormap", icmap, false);
-
   send_output_handle("Output Colormap", icmap);
 }
 

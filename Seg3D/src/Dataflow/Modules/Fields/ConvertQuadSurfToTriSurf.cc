@@ -26,21 +26,28 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+// Include the algorithm
+#include <Core/Algorithms/Fields/ConvertMeshType/ConvertMeshToTriSurfMesh.h>
 
+// Base class for the module
 #include <Dataflow/Network/Module.h>
-#include <Core/Datatypes/Field.h>
-#include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
 
+// Ports included in the module
+#include <Dataflow/Network/Ports/FieldPort.h>
+
+// For Windows support
 #include <Dataflow/Modules/Fields/share.h>
 
 namespace SCIRun {
 
 class SCISHARE ConvertQuadSurfToTriSurf : public Module {
-public:
-  ConvertQuadSurfToTriSurf(GuiContext*);
-
-  virtual void execute();
+  public:
+    ConvertQuadSurfToTriSurf(GuiContext*);
+    virtual ~ConvertQuadSurfToTriSurf() {}
+    virtual void execute();
+    
+  private:
+    SCIRunAlgo::ConvertMeshToTriSurfMeshAlgo algo_;  
 };
 
 
@@ -48,21 +55,26 @@ DECLARE_MAKER(ConvertQuadSurfToTriSurf)
 ConvertQuadSurfToTriSurf::ConvertQuadSurfToTriSurf(GuiContext* ctx)
   : Module("ConvertQuadSurfToTriSurf", ctx, Source, "ChangeMesh", "SCIRun")
 {
+  //! Forward errors to the module
+  algo_.set_progress_reporter(this);
 }
 
 
 void
 ConvertQuadSurfToTriSurf::execute()
 {
+  // Define fieldhandles
   FieldHandle ifield, ofield;
-  if (!(get_input_handle("QuadSurf",ifield,true))) return;
   
+  // Get data from input port
+  get_input_handle("QuadSurf",ifield,true);
+  
+  // We only execute if something changed
   if (inputs_changed_ || !oport_cached("TriSurf"))
   {
-    SCIRunAlgo::FieldsAlgo algo(this);
-
-    if (!(algo.ConvertMeshToTriSurf(ifield,ofield))) return;
-  
+    // Run the algorithm
+    if (!(algo_.run(ifield,ofield))) return;
+    // Send to output to the output port
     send_output_handle("TriSurf", ofield);
   }
 }

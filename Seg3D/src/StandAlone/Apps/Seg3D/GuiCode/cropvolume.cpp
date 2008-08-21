@@ -240,8 +240,6 @@ void CropVolume::OnStartButtonClick( wxCommandEvent& event )
   wxBeginBusyCursor();
   SCIRun::Painter::ThrowSkinnerSignal("Painter::FinishTool");
   wxEndBusyCursor();
-
-  SCIRun::Painter::global_seg3dframe_pointer_->HideTool();
 }
 
 /*!

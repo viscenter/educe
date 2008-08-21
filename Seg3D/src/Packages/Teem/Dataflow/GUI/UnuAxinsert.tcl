@@ -41,8 +41,8 @@ itcl_class Teem_UnuAtoM_UnuAxinsert {
         global $this-axis
         set $this-axis 0
 
-	global $this-label
-	set $this-label "Unknown"
+        global $this-label
+        set $this-label "Unknown"
 
     }
 
@@ -52,24 +52,25 @@ itcl_class Teem_UnuAtoM_UnuAxinsert {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.axis -labeltext "Axis:" -textvariable $this-axis
+        sci_entryfield $w.f.options.axis -labeltext "Axis:" -textvariable $this-axis
         pack $w.f.options.axis -side top -expand yes -fill x
 
-	iwidgets::entryfield $w.f.options.label -labeltext "Label for new Axis: " -textvariable $this-label
-	pack $w.f.options.label -side top -expand yes -fill x
+        sci_entryfield $w.f.options.label -labeltext "Label for new Axis: " -textvariable $this-label
+        pack $w.f.options.label -side top -expand yes -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+
     }
 }
 

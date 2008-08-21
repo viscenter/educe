@@ -26,30 +26,23 @@
    DEALINGS IN THE SOFTWARE.
 */
 
- 
-/*
- * FILE: ExportFieldsToMatlab.cc
- * AUTH: Jeroen G Stinstra
- * DATE: 30 JUL 2004
- */ 
-
-#include <sgi_stl_warnings_off.h>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
 
+#include <Core/Datatypes/String.h>
 #include <Core/Datatypes/Field.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/StringPort.h>
+
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Matlab/matlabfile.h>
 #include <Core/Matlab/matlabarray.h>
 #include <Core/Matlab/matlabconverter.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Datatypes/String.h>
-#include <Core/OS/FullFileName.h>
+#include <Core/Util/FullFileName.h>
 
 namespace MatlabIO {
 
@@ -118,7 +111,7 @@ DECLARE_MAKER(ExportFieldsToMatlab)
 ExportFieldsToMatlab::ExportFieldsToMatlab(GuiContext* ctx)
   : Module("ExportFieldsToMatlab", ctx, Sink, "DataIO", "MatlabInterface"),
     guifilename_(get_ctx()->subVar("filename")),
-    guifilenameset_(get_ctx()->subVar("filename-set")),
+    guifilenameset_(get_ctx()->subVar("filename-set",false)),
     guimatrixname_(get_ctx()->subVar("matrixname")),     
     guimatrixformat_(get_ctx()->subVar("matrixformat"))
 {

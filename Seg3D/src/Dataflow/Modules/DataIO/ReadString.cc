@@ -35,10 +35,10 @@
  *
  */
 
-#include <sgi_stl_warnings_off.h>
+
 #include <fstream>
 #include <string>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Dataflow/Modules/DataIO/GenericReader.h>
@@ -46,17 +46,15 @@
 namespace SCIRun {
 
 class ReadString : public GenericReader<StringHandle> {
-public:
-  ReadString(GuiContext*);
-  virtual ~ReadString();
-
-  virtual void execute();
-  
-protected:
-  GuiString gui_types_;
-
-  virtual bool call_importer(const string &filename, StringHandle &sHandle);
+  public:
+    ReadString(GuiContext*);
+    virtual ~ReadString() {}
+    virtual void execute();
     
+  protected:
+    GuiString gui_types_;
+
+    virtual bool call_importer(const string &filename, StringHandle &sHandle);
 };
 
 DECLARE_MAKER(ReadString)
@@ -67,12 +65,6 @@ ReadString::ReadString(GuiContext* ctx)
 {
   gui_types_.set("{ {{textfile} {.txt .asc .doc}} {{all files} {.*}} }");
 }
-
-
-ReadString::~ReadString()
-{
-}
-
 
 void
 ReadString::execute()
@@ -108,10 +100,9 @@ ReadString::call_importer(const string &filename, StringHandle &sHandle)
     return(false);
   }
   
-  sHandle = (StringHandle) scinew String(input);
+  sHandle = (StringHandle) new String(input);
   return true;
 }
-
 
 } // End namespace SCIRun
 

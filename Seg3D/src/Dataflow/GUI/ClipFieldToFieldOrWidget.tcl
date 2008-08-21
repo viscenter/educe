@@ -64,49 +64,49 @@ itcl_class SCIRun_NewField_ClipFieldToFieldOrWidget {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.location -relief groove -borderwidth 2
-	frame $w.execmode -relief groove -borderwidth 2
-	frame $w.whenexecute
-	frame $w.executes -relief groove -borderwidth 2
+        sci_frame $w.location -relief groove -borderwidth 2
+        sci_frame $w.execmode -relief groove -borderwidth 2
+        sci_frame $w.whenexecute
+        sci_frame $w.executes -relief groove -borderwidth 2
 
-	label $w.location.label -text "Location To Test"
-        Tooltip $w.location "The clip test will be performed at this location to determine which elements are preserved."
-	radiobutton $w.location.cell -text "Element Center" -variable $this-clip-location -value cell -command "$this locationclip"
-	radiobutton $w.location.nodeone -text "One Node" -variable $this-clip-location -value nodeone -command "$this locationclip"
-	radiobutton $w.location.nodeall -text "All Nodes" -variable $this-clip-location -value nodeall -command "$this locationclip"
+        sci_label $w.location.label -text "Location To Test"
+              Tooltip $w.location "The clip test will be performed at this location to determine which elements are preserved."
+        sci_radiobutton $w.location.cell -text "Element Center" -variable $this-clip-location -value cell -command "$this locationclip"
+        sci_radiobutton $w.location.nodeone -text "One Node" -variable $this-clip-location -value nodeone -command "$this locationclip"
+        sci_radiobutton $w.location.nodeall -text "All Nodes" -variable $this-clip-location -value nodeall -command "$this locationclip"
 
-	pack $w.location.label -side top -expand yes -fill both
-	pack $w.location.cell $w.location.nodeone $w.location.nodeall -side top -anchor w
+        pack $w.location.label -side top -expand yes -fill both
+        pack $w.location.cell $w.location.nodeone $w.location.nodeall -side top -anchor w
 
-	label $w.execmode.label -text "Execute Action"
-	radiobutton $w.execmode.replace -text "Replace" -variable $this-clipmode -value replace
-	radiobutton $w.execmode.union -text "Union" -variable $this-clipmode -value union
-	radiobutton $w.execmode.intersect -text "Intersect" -variable $this-clipmode -value intersect
-	radiobutton $w.execmode.remove -text "Remove" -variable $this-clipmode -value remove
+        sci_label $w.execmode.label -text "Execute Action"
+        sci_radiobutton $w.execmode.replace -text "Replace" -variable $this-clipmode -value replace
+        sci_radiobutton $w.execmode.union -text "Union" -variable $this-clipmode -value union
+        sci_radiobutton $w.execmode.intersect -text "Intersect" -variable $this-clipmode -value intersect
+        sci_radiobutton $w.execmode.remove -text "Remove" -variable $this-clipmode -value remove
 
-	pack $w.execmode.label -side top -fill both
-	pack $w.execmode.replace $w.execmode.union $w.execmode.intersect $w.execmode.remove -side top -anchor w 
+        pack $w.execmode.label -side top -fill both
+        pack $w.execmode.replace $w.execmode.union $w.execmode.intersect $w.execmode.remove -side top -anchor w 
 
-	checkbutton $w.whenexecute.check -text "Execute automatically" -variable $this-autoexecute
+        sci_checkbutton $w.whenexecute.check -text "Execute automatically" -variable $this-autoexecute
 
-	checkbutton $w.whenexecute.icheck -text "Invert automatically" -variable $this-autoinvert -command "$this locationclip"
-	
-	pack $w.whenexecute.check $w.whenexecute.icheck -side top -anchor w -padx 10
+        sci_checkbutton $w.whenexecute.icheck -text "Invert automatically" -variable $this-autoinvert -command "$this locationclip"
+        
+        pack $w.whenexecute.check $w.whenexecute.icheck -side top -anchor w -padx 10
 
-	button $w.executes.invert -text "Invert" -command "$this invert"
-	button $w.executes.undo -text "Undo" -command "$this undo"
-	button $w.executes.reset -text "Reset" -command "$this reset"
+        sci_button $w.executes.invert -text "Invert" -command "$this invert"
+        sci_button $w.executes.undo -text "Undo" -command "$this undo"
+        sci_button $w.executes.reset -text "Reset" -command "$this reset"
 
-	pack   $w.executes.invert $w.executes.undo $w.executes.reset -side left -e y -f both -padx 5 -pady 5
+        pack   $w.executes.invert $w.executes.undo $w.executes.reset -side left -e y -f both -padx 5 -pady 5
 
-	pack $w.location $w.execmode $w.whenexecute $w.executes -side top -e y -f both -padx 5 -pady 5
+        pack $w.location $w.execmode $w.whenexecute $w.executes -side top -e y -f both -padx 5 -pady 5
 
-	# Remove the (default) execute button so we can create our own
-	# with the specific execrunmode command.
-	makeSciButtonPanel $w $w $this -no_execute "\"Execute\" \"$this execrunmode\" \"\""
-	moveToCursor $w
+        # Remove the (default) execute button so we can create our own
+        # with the specific execrunmode command.
+        makeSciButtonPanel $w $w $this -no_execute "\"Execute\" \"$this execrunmode\" \"\""
+        moveToCursor $w
     }
 }
 

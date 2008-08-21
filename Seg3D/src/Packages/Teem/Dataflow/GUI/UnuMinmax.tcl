@@ -37,38 +37,39 @@ itcl_class Teem_UnuAtoM_UnuMinmax {
     }
 
     method set_defaults {} {
-	global $this-nrrds
-	global $this-old_nrrds
+        global $this-nrrds
+        global $this-old_nrrds
 
-	set $this-nrrds 0
-	set $this-old_nrrds 0
+        set $this-nrrds 0
+        set $this-old_nrrds 0
     }
 
     method init_axes { } {
-	for {set i 0} {$i < [set $this-nrrds]} {incr i} {
+        for {set i 0} {$i < [set $this-nrrds]} {incr i} {
 
-	    if { [catch { set t [set $this-mins$i] } ] } {
-		set $this-mins$i 0
-	    }
-	    if { [catch { set t [set $this-maxs$i]}] } {
-		set $this-maxs$i 0
-	    }
-	}
+            if { [catch { set t [set $this-mins$i] } ] } {
+              set $this-mins$i 0
+            }
+            if { [catch { set t [set $this-maxs$i]}] } {
+              set $this-maxs$i 0
+            }
+        }
     }
+    
     method make_min_max {} {
-	set w .ui[modname]
+        set w .ui[modname]
 
-	if {[winfo exists $w]} {
-	    
-	    if {[winfo exists $w.f.mmf.t]} {
-		destroy $w.f.mmf.t
-	    }
-	    
-	    # clear old ones using old_dim
-	    for {set i 0} {$i < [set $this-old_nrrds]} {incr i} {
-		if {[winfo exists $w.f.mmf.a$i]} {
-		    destroy $w.f.mmf.a$i
-		}
+        if {[winfo exists $w]} {
+            
+            if {[winfo exists $w.f.mmf.t]} {
+          destroy $w.f.mmf.t
+            }
+            
+            # clear old ones using old_dim
+            for {set i 0} {$i < [set $this-old_nrrds]} {incr i} {
+          if {[winfo exists $w.f.mmf.a$i]} {
+              destroy $w.f.mmf.a$i
+          }
 	    }
 	    
 	    set $this-old_nrrds [set $this-nrrds]
@@ -83,18 +84,18 @@ itcl_class Teem_UnuAtoM_UnuMinmax {
     }
     
     method create_min_max_info {w which min max} {
-	iwidgets::labeledframe $w -labeltext "Nrrd $which" \
-	    -labelpos nw
-	pack $w -side top -anchor nw -pady 3
+        sci_labeledframe $w -labeltext "Nrrd $which" \
+            -labelpos nw
+        pack $w -side top -anchor nw -pady 3
 
-	set n [$w childsite]
-	
-	frame $n.f 
-	pack $n.f -side top -anchor nw
-	
-	label $n.f.minl -text "Min: $min"
-	label $n.f.maxl -text "Max: $max"
-	pack $n.f.minl $n.f.maxl -side left  -padx 8
+        set n [$w childsite]
+        
+        sci_frame $n.f 
+        pack $n.f -side top -anchor nw
+        
+        sci_label $n.f.minl -text "Min: $min"
+        sci_label $n.f.maxl -text "Max: $max"
+        pack $n.f.minl $n.f.maxl -side left  -padx 8
     }
 
     method ui {} {
@@ -102,27 +103,28 @@ itcl_class Teem_UnuAtoM_UnuMinmax {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
         wm minsize $w 150 80
-	frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.mmf
-	pack $w.f.mmf -padx 2 -pady 2 -side top -expand yes
-	
-	if {[set $this-nrrds] == 0} {
-	    label $w.f.mmf.t -text "Need to Execute to know the number of Nrrds."
-	    pack $w.f.mmf.t
-	} else {
-	    init_axes 
-	    make_min_max
-	}
-	
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
-	
-	pack $w.f -expand 1 -fill x
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.mmf
+        pack $w.f.mmf -padx 2 -pady 2 -side top -expand yes
+        
+        if {[set $this-nrrds] == 0} {
+            sci_label $w.f.mmf.t -text "Need to Execute to know the number of Nrrds."
+            pack $w.f.mmf.t
+        } else {
+            init_axes 
+            make_min_max
+        }
+        
+        
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+
     }
 }
 

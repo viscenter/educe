@@ -53,11 +53,11 @@
 #include <process.h>
 #include "StackWalker.h"
 #endif
-#include <sgi_stl_warnings_off.h>
+
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <sgi_stl_warnings_on.h>
+
 #include <string.h>
 #ifdef HAVE_EXC
 #include <libexc.h>
@@ -65,13 +65,6 @@
 #include <execinfo.h>
 #include <cxxabi.h>
 #include <dlfcn.h>
-#endif
-
-
-#if defined(_AIX)
-// Needed for strcasecmp on aix 4.3 (on 5.1 we don't need this.)
-// currently blue is 4.3.
-#  include <strings.h>
 #endif
 
 namespace SCIRun {

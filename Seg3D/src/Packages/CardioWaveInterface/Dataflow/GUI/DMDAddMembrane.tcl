@@ -10,11 +10,13 @@ itcl_class CardioWaveInterface_DiscreteMultiDomain_DMDAddMembrane {
       global $this-mem-name
       global $this-mem-param
       global $this-mem-desc
+      global $this-mem-cap
       
       set $this-mem-names {}
  #     set $this-mem-name "NONE"
       set $this-mem-param ""
       set $this-mem-desc ""
+      set $this-mem-cap "1.0"
     
     }
 
@@ -51,6 +53,15 @@ itcl_class CardioWaveInterface_DiscreteMultiDomain_DMDAddMembrane {
             
       grid $mem.desc -row 2 -column 0 -sticky news
       $mem.desc insert end [set $this-mem-desc]
+      
+      frame $mem.cap 
+      grid $mem.cap -row 3 -column 0 -sticky news
+
+      label $mem.cap.label -text "Membrane Capacitance :"
+      entry $mem.cap.entry  -textvariable $this-mem-cap
+
+      grid $mem.cap.label -row 0 -column 0
+      grid $mem.cap.entry -row 0 -column 1
       
       makeSciButtonPanel $w $w $this
       moveToCursor $w

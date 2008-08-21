@@ -26,14 +26,14 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
+#include <Core/Containers/StringUtil.h>
 #include <Core/Datatypes/Matrix.h>
-#include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Core/Datatypes/DenseColMajMatrix.h>
 #include <Core/Datatypes/DenseMatrix.h>
 
-#include <teem/air.h>
+#include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
 
@@ -41,19 +41,18 @@ using namespace SCIRun;
 
 class CreateMatrix : public Module
 {
-public:
-  CreateMatrix(GuiContext*);
+  public:
+    CreateMatrix(GuiContext*);
+    virtual ~CreateMatrix() {}
 
-  virtual ~CreateMatrix();
+    virtual void execute();
 
-  virtual void execute();
-
-private:
-  GuiInt    nrows_;
-  GuiInt    ncols_;
-  GuiString data_;
-  GuiString clabel_;
-  GuiString rlabel_;
+  private:
+    GuiInt    nrows_;
+    GuiInt    ncols_;
+    GuiString data_;
+    GuiString clabel_;
+    GuiString rlabel_;
 };
 
 
@@ -69,74 +68,55 @@ CreateMatrix::CreateMatrix(GuiContext* ctx) :
 {
 }
 
-
-CreateMatrix::~CreateMatrix()
-{
-}
-
-
 void
 CreateMatrix::execute()
 {
   MatrixHandle handle;
   get_gui()->execute(get_id() + " update_matrixdata");
   
-  int nrows = nrows_.get();
-  int ncols = ncols_.get();
+  Matrix::size_type nrows = static_cast<Matrix::size_type>(nrows_.get());
+  Matrix::size_type ncols = static_cast<Matrix::size_type>(ncols_.get());
   std::string data = data_.get();
   
-  DenseColMajMatrix *mat = scinew DenseColMajMatrix(nrows,ncols);
+  MatrixHandle mat = new DenseColMajMatrix(nrows,ncols);
+  
+  if (mat.get_rep() == 0)
+  {
+    error("Could allocate output matrix");
+    return;
+  }
+  
   for (size_t p=0;p<data.size();p++)
   { 
     if ((data[p] == '}')||(data[p] == '{')) data[p] = ' ';
   }
+
+
+  std::vector<std::string> nums;
+  for (size_t p=0;p<data.size();)
+  { 
+    while((data[p] == ' ')&&(p<data.size())) p++;
+    if (p >= data.size()) break;
+
+    std::string::size_type next_space = data.find(' ',p);
+    if (next_space == std::string::npos) next_space = data.size();
+    nums.push_back(data.substr(p,next_space-p));
+    p = next_space;
+
+    if (p >= data.size()) break;
+  }
   
   double *ptr = mat->get_data_pointer();
-  
-  std::istringstream iss(data);
-  for (int p = 0; p < (nrows*ncols); p++)
-  {
-    iss >> ptr[p];
+ 
+  std::istringstream iss(data+"  ");
 
-    if (!iss)
-    {
-      char ibuf[5];
-      iss.clear();
-      iss.get(ibuf,4);
-      
-      // Make sure the comparison is case insensitive.
-      airToLower(ibuf);
-      if (strncmp(ibuf,"nan",3)==0)
-      {
-        ptr[p] = static_cast<double>(AIR_NAN);
-      }
-      else if (strncmp(ibuf,"inf",3)==0)
-      {
-        ptr[p] = static_cast<double>(AIR_POS_INF);
-      }
-      else
-      {
-        iss.clear();
-        iss.get(&(ibuf[3]),2);
-        // Set the last character to null for airToLower.
-        airToLower(ibuf);
-        if (strncmp(ibuf,"-inf",4)==0)
-        {
-          ptr[p] = static_cast<double>(AIR_NEG_INF);
-        }  	  	
-        else
-        {
-          error("Matrix contains invalid information");
-          return;
-        }
-      }
-    }
+
+  for (Matrix::index_type p = 0; p < (nrows*ncols); p++)
+  { 
+    from_string(nums[p],ptr[p]);
   }
 
-  DenseMatrix *dmat = mat->dense();
-  handle = dynamic_cast<Matrix *>(dmat);
-  delete mat;
-  
+  handle = mat->dense();
   send_output_handle("matrix", handle);
 }
 

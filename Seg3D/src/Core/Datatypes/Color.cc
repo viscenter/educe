@@ -41,7 +41,6 @@
  */
 
 #include <Core/Datatypes/Color.h>
-#include <Core/Math/MinMax.h>
 #include <Core/Persistent/Persistent.h>
 
 namespace SCIRun {

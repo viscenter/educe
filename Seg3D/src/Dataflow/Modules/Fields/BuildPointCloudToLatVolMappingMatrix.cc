@@ -60,20 +60,19 @@ namespace SCIRun {
 
 class BuildPointCloudToLatVolMappingMatrix : public Module
 {
+  typedef LatVolMesh<HexTrilinearLgn<Point> > LVMesh;
+  typedef PointCloudMesh<ConstantBasis<Point> > PCMesh;
+  public:
+    BuildPointCloudToLatVolMappingMatrix(GuiContext* ctx);
+    virtual ~BuildPointCloudToLatVolMappingMatrix() {}
 
-typedef LatVolMesh<HexTrilinearLgn<Point> > LVMesh;
-typedef PointCloudMesh<ConstantBasis<Point> > PCMesh;
+    virtual void execute();
 
-private:
-  UIdouble		epsilon_;
-  int			pcf_generation_;
-  int			lvf_generation_;
-  double		epsilon_cache_;
-public:
-  BuildPointCloudToLatVolMappingMatrix(GuiContext* ctx);
-  virtual ~BuildPointCloudToLatVolMappingMatrix();
-
-  virtual void execute();
+  private:
+    UIdouble		epsilon_;
+    int			pcf_generation_;
+    int			lvf_generation_;
+    double		epsilon_cache_;
 };
 
 
@@ -86,12 +85,6 @@ BuildPointCloudToLatVolMappingMatrix::BuildPointCloudToLatVolMappingMatrix(GuiCo
     lvf_generation_(-1)
 {
 }
-
-
-BuildPointCloudToLatVolMappingMatrix::~BuildPointCloudToLatVolMappingMatrix()
-{
-}
-
 
 void
 BuildPointCloudToLatVolMappingMatrix::execute()
@@ -220,19 +213,19 @@ BuildPointCloudToLatVolMappingMatrix::execute()
 
   // Convert the STL vectors into C arrays for SparseRowMatrix Constructor
   Matrix::size_type rsz = static_cast<Matrix::size_type>(rows.size());
-  Matrix::index_type *rowsarr = scinew Matrix::index_type[rsz];
+  Matrix::index_type *rowsarr = new Matrix::index_type[rsz];
   for (i = 0; i < rsz; ++i) rowsarr[i] = rows[i];
 
   Matrix::size_type csz = static_cast<Matrix::size_type>(cols.size());
-  Matrix::index_type *colsarr = scinew Matrix::index_type[csz];
+  Matrix::index_type *colsarr = new Matrix::index_type[csz];
   for (i = 0; i < csz; ++i) colsarr[i] = cols[i];
 
   Matrix::size_type dsz = static_cast<Matrix::size_type>(data.size());
-  double *dataarr = scinew double[dsz];
+  double *dataarr = new double[dsz];
   for (i = 0; i < dsz; ++i) dataarr[i] = data[i];
 
   // Create the SparseRowMatrix to send off
-  SparseRowMatrix *matrix = scinew 
+  SparseRowMatrix *matrix = new 
     SparseRowMatrix(lvmns, pcmns, rowsarr, colsarr, data.size(), dataarr);
 
   // DEBUG Validate/Print

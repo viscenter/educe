@@ -70,7 +70,7 @@ RefineMeshTetVolAlgoV(AlgoBase* algo, FieldHandle input, FieldHandle& output,
 
   VMesh::Node::array_type onodes(4);
   
-  mesh->synchronize_edges();
+  mesh->synchronize(Mesh::EDGES_E);
   
   // get all values, make computation easier
   VMesh::size_type num_nodes = mesh->num_nodes();
@@ -838,7 +838,7 @@ RefineMeshTriSurfAlgoV(AlgoBase* algo, FieldHandle input, FieldHandle& output,
 
   VMesh::Node::array_type onodes(3);
   
-  mesh->synchronize_edges();
+  mesh->synchronize(Mesh::EDGES_E);
   
   // get all values, make computation easier
   VMesh::size_type num_nodes = mesh->num_nodes();
@@ -1216,12 +1216,12 @@ class RefineMeshQuadSurfAlgoV
     #endif
 
 
-  static VMesh::Node::index_type lookup(VMesh *refined,
-                                         edge_hash_type &edgemap,
-                                         VMesh::Node::index_type a,
-                                         VMesh::Node::index_type b,
-                                         double factor,
-                                         std::vector<double>& ivalues)
+  VMesh::Node::index_type lookup(VMesh *refined,
+                                 edge_hash_type &edgemap,
+                                 VMesh::Node::index_type a,
+                                 VMesh::Node::index_type b,
+                                 double factor,
+                                 std::vector<double>& ivalues)
   {
     edgepair_t ep;
     ep.first = a; ep.second = b;
@@ -1231,9 +1231,9 @@ class RefineMeshQuadSurfAlgoV
       Point pa, pb;
       refined->get_point(pa, a);
       refined->get_point(pb, b);
-      const Point inbetween = (factor*pa + (factor-1.0)*pb).asPoint();
+      const Point inbetween = ((1.0-factor)*pa + (factor)*pb).asPoint();
       const VMesh::Node::index_type newnode = refined->add_point(inbetween);
-      ivalues.push_back((factor*ivalues[a]+(1.0-factor)*ivalues[b]));
+      ivalues.push_back(((1.0-factor)*ivalues[a]+(factor)*ivalues[b]));
       edgemap[ep] = newnode;
       return newnode;
     }
@@ -1243,9 +1243,9 @@ class RefineMeshQuadSurfAlgoV
     }
   }
 
-  static Point RIinterpolate(VMesh *refined,
-                             VMesh::Node::array_type& onodes,
-                             double coords[2])
+  Point RIinterpolate(VMesh *refined,
+                      VMesh::Node::array_type& onodes,
+                      double coords[2])
   {
     Point result(0.0, 0.0, 0.0);
     
@@ -1266,9 +1266,9 @@ class RefineMeshQuadSurfAlgoV
   }
 
 
-  static double RIinterpolateV(std::vector<double>& ivalues,
-                             VMesh::Node::array_type& onodes,
-                             double coords[2])
+  double RIinterpolateV(std::vector<double>& ivalues,
+                        VMesh::Node::array_type& onodes,
+                        double coords[2])
   {
     double w[4];
     const double x = coords[0], y = coords[1];  
@@ -1281,15 +1281,15 @@ class RefineMeshQuadSurfAlgoV
              w[2]*ivalues[onodes[2]] + w[3]*ivalues[onodes[3]]);
   }
                       
-  static void dice(VMesh *refined, edge_hash_type &emap,
-                   VMesh::Node::array_type onodes,
-                   VMesh::index_type index, 
-                   VMesh::mask_type mask,
-                   VMesh::size_type maxnode,
-                   std::vector<double>& ivalues,
-                   std::vector<double>& evalues,
-                   double vv,
-                   int basis_order);
+  void dice(VMesh *refined, edge_hash_type &emap,
+             VMesh::Node::array_type onodes,
+             VMesh::index_type index, 
+             VMesh::mask_type mask,
+             VMesh::size_type maxnode,
+             std::vector<double>& ivalues,
+             std::vector<double>& evalues,
+             double vv,
+             int basis_order);
 
 };
 

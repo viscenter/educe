@@ -1137,7 +1137,6 @@ class BioImageApp {
 
 	# Create the Connections between Modules
 	set c1 [addConnection $m4 0 $m5 0]
-	set c2 [addConnection $m28 1 $m29 0]
 
 	set c3 [addConnection $m27 0 $m30 0]
 	set c4 [addConnection $m26 0 $m31 0]
@@ -1191,7 +1190,7 @@ class BioImageApp {
 	set c53 [addConnection $m36 0 $m35 1]
 
 	global ConnectionRoutes
-	set ConnectionRoutes($c2) {274 2605 274 2614 579 2614 579 2378 386 2378 386 2385}
+#	set ConnectionRoutes($c2) {274 2605 274 2614 579 2614 579 2378 386 2378 386 2385}
 #	set ConnectionRoutes($c15) {22 963 22 1377 271 1277 271 31 468 31 468 1535 186 1535 186 1797}
 	set ConnectionRoutes($c17) {186 1854 186 1872.0 471 1872.0 471 1897}
 	set ConnectionRoutes($c18) {186 1854 186 1869.0 12 1869.0 12 1895}

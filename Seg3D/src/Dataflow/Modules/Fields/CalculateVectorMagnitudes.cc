@@ -26,35 +26,24 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+#include <Core/Datatypes/Field.h>
+#include <Core/Algorithms/Fields/FieldData/CalculateVectorMagnitudes.h>
 
-
-/*
- *  CalculateVectorMagnitudes.cc:  Unfinished modules
- *
- *  Written by:
- *   Michael Callahan
- *   Department of Computer Science
- *   University of Utah
- *   March 2001
- *
- *  Copyright (C) 2001 SCI Group
- */
-
-#include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Containers/Handle.h>
+#include <Dataflow/Network/Module.h>
 
-#include <Dataflow/Modules/Fields/CalculateVectorMagnitudes.h>
 
 namespace SCIRun {
 
 class CalculateVectorMagnitudes : public Module
 {
-public:
-  CalculateVectorMagnitudes(GuiContext* ctx);
-  virtual ~CalculateVectorMagnitudes();
+  public:
+    CalculateVectorMagnitudes(GuiContext* ctx);
+    virtual ~CalculateVectorMagnitudes() {}
+    virtual void execute();
 
-  virtual void execute();
+  private:
+    SCIRunAlgo::CalculateVectorMagnitudesAlgo algo_;
 };
 
 
@@ -63,72 +52,22 @@ DECLARE_MAKER(CalculateVectorMagnitudes)
 CalculateVectorMagnitudes::CalculateVectorMagnitudes(GuiContext* ctx)
   : Module("CalculateVectorMagnitudes", ctx, Filter, "ChangeFieldData", "SCIRun")
 {
-}
-
-CalculateVectorMagnitudes::~CalculateVectorMagnitudes()
-{
+  algo_.set_progress_reporter(this);
 }
 
 void
 CalculateVectorMagnitudes::execute()
 {
-  FieldHandle field_input_handle;
+  FieldHandle input, output;
 
-  if( !get_input_handle( "Input Field", field_input_handle, true ) )
-    return;
-
-  if (!field_input_handle->query_vector_interface(this).get_rep()) {
-    error( "This module only works on vector data.");
-    return;
-  }
+  get_input_handle( "Field", input, true );
 
   // If no data or a changed recalcute.
-  if( inputs_changed_ ||
-
-       !oport_cached("Output CalculateVectorMagnitudes") )
+  if( inputs_changed_ || !oport_cached("Field") )
   {
-    update_state(Executing);
-
-    const TypeDescription *vftd = field_input_handle->get_type_description();
-    const string oftn = 
-      field_input_handle->get_type_description(Field::FIELD_NAME_ONLY_E)->get_name() + "<" +
-      field_input_handle->get_type_description(Field::MESH_TD_E)->get_name() + ", " +
-      field_input_handle->get_type_description(Field::BASIS_TD_E)->get_similar_name("double",
-                                                         0, "<", " >, ") +
-      field_input_handle->get_type_description(Field::FDATA_TD_E)->get_similar_name("double",
-							 0, "<", " >") + " > ";
-    CompileInfoHandle ci = CalculateVectorMagnitudesAlgo::get_compile_info(vftd, oftn);
-
-    Handle<CalculateVectorMagnitudesAlgo> algo;
-    if (!module_dynamic_compile(ci, algo)) return;
-
-    FieldHandle field_output_handle = algo->execute(field_input_handle);
-
-    send_output_handle( "Output CalculateVectorMagnitudes", field_output_handle );
+    if (!(algo_.run(input,output))) return;
+    send_output_handle( "Field", output );
   }
-}
-
-
-CompileInfoHandle
-CalculateVectorMagnitudesAlgo::get_compile_info(const TypeDescription *vftd,
-				      const string &sftd)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("CalculateVectorMagnitudesAlgoT");
-  static const string base_class_name("CalculateVectorMagnitudesAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       vftd->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       vftd->get_name() + "," + sftd);
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  vftd->fill_compile_info(rval);
-  return rval;
 }
 
 } // End namespace SCIRun

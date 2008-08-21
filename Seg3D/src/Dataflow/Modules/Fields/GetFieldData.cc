@@ -43,6 +43,7 @@ class GetFieldData : public Module {
   public:
     //! constructor and execute function
     GetFieldData(GuiContext*);
+    virtual ~GetFieldData() {}
     virtual void execute();
   
   private:

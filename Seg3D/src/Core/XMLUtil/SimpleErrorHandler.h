@@ -30,19 +30,10 @@
 #ifndef UINTAH_HOMEBREW_SimpleErrorHandler_H
 #define UINTAH_HOMEBREW_SimpleErrorHandler_H
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#define IRIX
-#pragma set woff 1375
-#pragma set woff 3303
-#endif
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1375
-#pragma reset woff 3303
-#endif
 #include <xercesc/sax/ErrorHandler.hpp>
 #include <xercesc/sax/SAXException.hpp>
 #include <xercesc/sax/SAXParseException.hpp>

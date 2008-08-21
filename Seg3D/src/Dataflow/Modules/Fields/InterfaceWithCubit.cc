@@ -72,21 +72,23 @@ typedef PointCloudMesh<ConstantBasis<Point> > PCMesh;
 typedef TriSurfMesh<TriLinearLgn<Point> > TSMesh;
 typedef TetVolMesh<TetLinearLgn<Point> > TVMesh;
 
-private:
-  int			field1_generation_;
-  GuiString		cubitdir_;
-  GuiString		ncdump_;
-  string		base_;
-  
-  void			cleanup(string error="");
-  bool			write_facet_file(string, TSMesh::handle_type &);
-  bool			read_netcdf_file(string, TVMesh::handle_type &);
-  bool			write_journal_file(string, string, string);
-public:
-  InterfaceWithCubit(GuiContext* ctx);
-  virtual ~InterfaceWithCubit();
+  public:
+    InterfaceWithCubit(GuiContext* ctx);
+    virtual ~InterfaceWithCubit() {}
 
-  virtual void execute();
+    virtual void execute();
+    
+  private:
+    int			field1_generation_;
+    GuiString		cubitdir_;
+    GuiString		ncdump_;
+    string		base_;
+    
+    void			cleanup(string error="");
+    bool			write_facet_file(string, TSMesh::handle_type &);
+    bool			read_netcdf_file(string, TVMesh::handle_type &);
+    bool			write_journal_file(string, string, string);
+
 };
 
 
@@ -97,11 +99,6 @@ InterfaceWithCubit::InterfaceWithCubit(GuiContext* ctx)
     field1_generation_(-1),
     cubitdir_(get_ctx()->subVar("cubitdir"), "."),
     ncdump_(get_ctx()->subVar("ncdump"), "ncdump")
-{
-}
-
-
-InterfaceWithCubit::~InterfaceWithCubit()
 {
 }
 
@@ -335,7 +332,7 @@ InterfaceWithCubit::read_netcdf_file(string filename, TVMesh::handle_type &mesh)
     }
   }
   
-  TVMesh *tvm = scinew TVMesh();
+  TVMesh *tvm = new TVMesh();
   SimpleIter beg(0), end(nelems);
   tvm->fill_points(nodes.begin(), nodes.end(), FillNodeFtor());
   tvm->fill_cells(beg, end, FillCellFtor(elems));
@@ -424,7 +421,7 @@ InterfaceWithCubit::execute()
   cleanup();
   typedef ConstantBasis<double> CBF;
   typedef GenericField<TVMesh, CBF, vector<double> > TVField;
-  FieldHandle f = scinew TVField(mesh);
+  FieldHandle f = new TVField(mesh);
 
   send_output_handle("Field", f);
 }

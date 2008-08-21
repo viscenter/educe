@@ -36,12 +36,13 @@
  *
  */  
 
-#include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <sys/stat.h>
+#include <Core/Containers/StringUtil.h>
 
 #include <Dataflow/Network/Ports/NrrdPort.h>
+#include <Dataflow/Network/Module.h>
+
+#include <sys/stat.h>
+
 
 #ifdef _WIN32
 #define SCISHARE __declspec(dllimport)
@@ -171,11 +172,7 @@ void UnuMake::read_file_and_create_nrrd() {
 
   // If we haven't read yet, or if it's a new filename, 
   //  or if the datestamp has changed -- then read...
-#ifdef __sgi
-  time_t new_filemodification = buf.st_mtim.tv_sec;
-#else
   time_t new_filemodification = buf.st_mtime;
-#endif
 //   if(!read_handle_.get_rep() || 
 //      fn != old_filename_ || 
 //      new_filemodification != old_filemodification_)
@@ -185,7 +182,7 @@ void UnuMake::read_file_and_create_nrrd() {
     old_filename_=fn;
     read_handle_ = 0;
 
-    nout_ = scinew NrrdData();
+    nout_ = new NrrdData();
     nio_ = nrrdIoStateNew();
     
     
@@ -530,22 +527,32 @@ int UnuMake::parse_gui_vars() {
   // Spacing
   i=0, which = 0, start=0, end=0, counter=0;
   inword = false;
-  while (i < (int)spacing_.get().length()) {
+  while (i < (int)spacing_.get().length()) 
+  {
     ch = spacing_.get()[i];
-    if(isspace(ch)) {
-      if (inword) {
-	end = i;
-	sp_.push_back(atof(spacing_.get().substr(start, end-start).c_str()));
-	which++;
-	counter++;
-	inword = false;
+    if(isspace(ch)) 
+    {
+      if (inword) 
+      {
+        end = i;
+        double val;
+        from_string(spacing_.get().substr(start, end-start),val);
+        sp_.push_back(val);
+        which++;
+        counter++;
+        inword = false;
       }
-    } else if (i == (int)spacing_.get().length()-1) {
-      if (!inword) {
-	start = i;
+    } 
+    else if (i == (int)spacing_.get().length()-1) 
+    {
+      if (!inword) 
+      {
+        start = i;
       }
       end = i+1;
-      sp_.push_back(atof(spacing_.get().substr(start, end-start).c_str()));
+      double val;
+      from_string(spacing_.get().substr(start, end-start),val);
+      sp_.push_back(val);
       which++;
       counter++;
       inword = false;

@@ -26,29 +26,24 @@
    DEALINGS IN THE SOFTWARE.
 */
 
- 
-/*
- * FILE: ExportNrrdsToMatlab.cc
- * AUTH: Jeroen G Stinstra
- * DATE: 30 MAR 2004
- */ 
-
-#include <sgi_stl_warnings_off.h>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
 
 #include <Dataflow/Network/Module.h>
+
+#include <Core/Datatypes/NrrdData.h>
+#include <Core/Datatypes/String.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Dataflow/Network/Ports/StringPort.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Matlab/matlabfile.h>
 #include <Core/Matlab/matlabarray.h>
 #include <Core/Matlab/matlabconverter.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Datatypes/String.h>
-#include <Core/OS/FullFileName.h>
+
+#include <Core/Util/FullFileName.h>
 
 namespace MatlabIO {
 
@@ -118,7 +113,7 @@ DECLARE_MAKER(ExportNrrdsToMatlab)
 ExportNrrdsToMatlab::ExportNrrdsToMatlab(GuiContext* ctx)
   : Module("ExportNrrdsToMatlab", ctx, Sink, "DataIO", "MatlabInterface"),
     guifilename_(get_ctx()->subVar("filename")),
-    guifilenameset_(get_ctx()->subVar("filename-set")),
+    guifilenameset_(get_ctx()->subVar("filename-set",false)),
     guimatrixname_(get_ctx()->subVar("matrixname")),     
     guidataformat_(get_ctx()->subVar("dataformat")),    
     guimatrixformat_(get_ctx()->subVar("matrixformat"))

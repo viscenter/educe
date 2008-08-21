@@ -36,7 +36,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h> 
-#include <Core/OS/Dir.h> // for LSTAT, MKDIR
+#include <Core/Util/Dir.h> // for LSTAT, MKDIR
 
 #include <Core/Algorithms/DataIO/DataIOAlgo.h>
 
@@ -175,7 +175,7 @@ bool DataIOAlgo::ReadNrrd(std::string filename, NrrdDataHandle& nrrd, std::strin
     if (filename.substr(filename.size()-5,5) == std::string(".nhdr") ||  
         filename.substr(filename.size()-5,5) == std::string(".nrrd"))
     {
-      nrrd = scinew NrrdData;
+      nrrd = new NrrdData;
       if (nrrd.get_rep() == 0) return (false);
      
       Teem_Lock_.lock(); 

@@ -26,7 +26,8 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
+
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/BundlePort.h>
 
@@ -46,23 +47,31 @@ DECLARE_MAKER(ReportBundleInfo)
 
 ReportBundleInfo::ReportBundleInfo(GuiContext* ctx)
   : Module("ReportBundleInfo", ctx, Sink, "Bundle", "SCIRun"),
-    tclInfoString_(get_ctx()->subVar("tclinfostring"), "")
+    tclInfoString_(get_ctx()->subVar("tclinfostring",false), "")
 {
 }
 
 void ReportBundleInfo::execute()
 {
+  //! Define the dataflow object
   BundleHandle bundle;
 
-  if(!(get_input_handle("bundle",bundle,true))) return;
+  //! Get the bundle from the module
+  get_input_handle("bundle",bundle,true);
 
+  //! If the input changed we need to update output
   if (inputs_changed_)
   {
+    update_state(Executing);
     std::string tclinfostring;
+   
+    //! Get number of objects in bundle
     int numhandles = bundle->getNumHandles();
+
     std::string name;
     std::string type;
       
+    //! Loop through all objects and display name and type
     for (int p=0; p < numhandles; p++)
     {
       name = bundle->getHandleName(p);

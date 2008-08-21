@@ -35,22 +35,21 @@
 namespace SCIRun {
 
 class GetDomainBoundary : public Module {
-public:
-  GetDomainBoundary(GuiContext*);
-  virtual void execute();
-  
-private:
-  GuiInt    guiuserange_;
-  GuiDouble guiminrange_;
-  GuiDouble guimaxrange_;
-  GuiInt    guiusevalue_;
-  GuiDouble guivalue_;
-  GuiInt    guiincludeouterboundary_;
-  GuiInt    guiinnerboundaryonly_;
-  GuiInt    guinoinnerboundary_;
-  GuiInt    guidisconnect_;
-  
-  
+  public:
+    GetDomainBoundary(GuiContext*);
+    virtual ~GetDomainBoundary() {}
+    virtual void execute();
+    
+  private:
+    GuiInt    guiuserange_;
+    GuiDouble guiminrange_;
+    GuiDouble guimaxrange_;
+    GuiInt    guiusevalue_;
+    GuiDouble guivalue_;
+    GuiInt    guiincludeouterboundary_;
+    GuiInt    guiinnerboundaryonly_;
+    GuiInt    guinoinnerboundary_;
+    GuiInt    guidisconnect_;
 };
 
 
@@ -80,6 +79,7 @@ void GetDomainBoundary::execute()
   if(!(get_input_handle("Field",ifield,true))) return;
   get_input_handle("MinValue/Value",MinValue,false);
   get_input_handle("MaxValue",MaxValue,false);
+  get_input_handle("ElemLink",ElemLink,false);
   
   if (ifield->is_property("ElemLink")) ifield->get_property("ElemLink",ElemLink);
   

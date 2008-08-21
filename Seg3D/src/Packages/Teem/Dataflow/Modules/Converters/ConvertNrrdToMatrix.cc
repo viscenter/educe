@@ -39,7 +39,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -324,7 +324,7 @@ ConvertNrrdToMatrix::create_column_matrix(NrrdDataHandle dataH)
   remark("Creating column matrix");
   unsigned int rows = dataH->nrrd_->axis[0].size;
 
-  ColumnMatrix* matrix = scinew ColumnMatrix(rows);
+  ColumnMatrix* matrix = new ColumnMatrix(rows);
   
   PTYPE *val = (PTYPE*)dataH->nrrd_->data;
   double *data = matrix->get_data();
@@ -348,7 +348,7 @@ ConvertNrrdToMatrix::create_dense_matrix(NrrdDataHandle dataH)
   unsigned int rows = dataH->nrrd_->axis[1].size;
   unsigned int cols = dataH->nrrd_->axis[0].size;
 
-  DenseMatrix* matrix = scinew DenseMatrix(rows,cols);
+  DenseMatrix* matrix = new DenseMatrix(rows,cols);
   
   PTYPE *val = (PTYPE*)dataH->nrrd_->data;
   double *data = matrix->get_data_pointer();
@@ -456,9 +456,9 @@ ConvertNrrdToMatrix::create_sparse_matrix(NrrdDataHandle dataH, NrrdDataHandle r
   }
 
   // pointers to matrix arrays
-  double *d = scinew double[nnz];
-  Matrix::index_type *rr = scinew Matrix::index_type[rows_n->axis[0].size+offset];
-  Matrix::index_type *cc = scinew Matrix::index_type[nnz];
+  double *d = new double[nnz];
+  Matrix::index_type *rr = new Matrix::index_type[rows_n->axis[0].size+offset];
+  Matrix::index_type *cc = new Matrix::index_type[nnz];
   
   // copy rest of rows
   if (offset == 1) 
@@ -477,7 +477,7 @@ ConvertNrrdToMatrix::create_sparse_matrix(NrrdDataHandle dataH, NrrdDataHandle r
     d[i] = data_d[i];
   }
 
-  SparseRowMatrix *matrix = scinew SparseRowMatrix(rows, cols, rr, cc, nnz, d);
+  SparseRowMatrix *matrix = new SparseRowMatrix(rows, cols, rr, cc, nnz, d);
 
   MatrixHandle result(matrix);
 

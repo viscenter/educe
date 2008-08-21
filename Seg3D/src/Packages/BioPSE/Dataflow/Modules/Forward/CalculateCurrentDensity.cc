@@ -27,57 +27,29 @@
 */
 
 
-/*
- *  CalculateCurrentDensity: Compute current through a volume
- *
- *  Written by:
- *   David Weinstein
- *   Department of Computer Science
- *   University of Utah
- *   January 2002
- *
- *  Copyright (C) 2002 SCI Group
- */
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/FieldInformation.h>
 
-#include <Core/Geometry/Vector.h>
-#include <Core/Basis/TetLinearLgn.h>
-#include <Core/Basis/Constant.h>
-#include <Core/Datatypes/TetVolMesh.h>
-#include <Core/Datatypes/GenericField.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <iostream>
-#include <sstream>
+#include <Dataflow/Network/Module.h>
+
 
 namespace BioPSE {
 
 using namespace SCIRun;
 
 class CalculateCurrentDensity : public Module {
-typedef ConstantBasis<Vector>               ConVBasis;
-typedef TetLinearLgn<int>                   TFDintBasis;
-typedef TetLinearLgn<Tensor>                TFDTensorBasis;
-typedef TetLinearLgn<Vector>                TFDVectorBasis;
-typedef TetVolMesh<TetLinearLgn<Point> >    TVMesh;
-typedef GenericField<TVMesh, TFDTensorBasis, vector<Tensor> > TVFieldT;
-typedef GenericField<TVMesh, TFDVectorBasis, vector<Vector> > TVFieldV;
-typedef GenericField<TVMesh, ConVBasis, vector<Vector> >      TVFieldCV;
-typedef GenericField<TVMesh, TFDintBasis,    vector<int> >    TVFieldI;
 public:
   CalculateCurrentDensity(GuiContext *context);
-  virtual ~CalculateCurrentDensity();
+  virtual ~CalculateCurrentDensity() {}
   virtual void execute();
 };
 
 DECLARE_MAKER(CalculateCurrentDensity)
 
-
 CalculateCurrentDensity::CalculateCurrentDensity(GuiContext *context)
   : Module("CalculateCurrentDensity", context, Filter, "Forward", "BioPSE")
-{
-}
-
-CalculateCurrentDensity::~CalculateCurrentDensity()
 {
 }
 
@@ -85,81 +57,76 @@ void
 CalculateCurrentDensity::execute()
 {
   FieldHandle efieldH, sigmasH;
-  if (!get_input_handle("TetMesh EField", efieldH)) return;
-  if (!get_input_handle("TetMesh Sigmas", sigmasH)) return;
+  
+  get_input_handle("TetMesh EField", efieldH);
+  get_input_handle("TetMesh Sigmas", sigmasH);
 
-  if (efieldH->mesh().get_rep() != sigmasH->mesh().get_rep()) {
+  if (efieldH->mesh().get_rep() != sigmasH->mesh().get_rep()) 
+  {
     error("EField and Sigma Field need to have the same mesh.");
     return;
   }
 
-  TVFieldV *efield = dynamic_cast<TVFieldV*>(efieldH.get_rep());
-  if (!efield) {
-    error("EField isn't a TetVolField<Vector>.");
+  VField* efield = efieldH->vfield();
+  VMesh*  emesh = efieldH->vmesh();
+  VField* sfield = sigmasH->vfield();
+
+  if (sfield->basis_order() != 0) 
+  {
+    error("Need sigmas at Elements");
     return;
   }
-
-  bool index_based = true;
-  TVFieldI *sigmasInt =  dynamic_cast<TVFieldI*>(sigmasH.get_rep());
-  TVFieldT *sigmasTensor = dynamic_cast<TVFieldT*>(sigmasH.get_rep());
-  if (!sigmasInt && !sigmasTensor) {
-    error("Sigmas isn't a TetVolField<Tensor> or TetVolField<int>.");
-    return;
-  }
-  if (sigmasTensor) index_based = false;
-
-  if (sigmasH->basis_order() != 0) {
-    error("Need sigmas at Cells");
-    return;
-  }
-  if (efieldH->basis_order() != 0) {
-    error("Need efield at Cells");
-    return;
-  }
-
-  vector<pair<string, Tensor> > conds;
-  if (index_based && !sigmasH->get_property("conductivity_table", conds)) {
-    error("No conductivity_table found in Sigmas.");
-    return;
-  }
-
-  // For each cell in the mesh, find the dot product of the gradient
-  // vector and the conductivity tensor.  The result is a vector field
-  // with data at cells.
-
-  // Create output mesh
-  //  OFIELD *ofield = scinew OFIELD(imesh, 0);
   
-  TVMesh::handle_type mesh = efield->get_typed_mesh();
-  TVMesh::Cell::iterator fi, fe;
-  mesh->begin(fi);
-  mesh->end(fe);
+  if (efield->basis_order() != 0) 
+  {
+    error("Need efield at Elements");
+    return;
+  }
 
-  TVFieldCV *ofield = scinew TVFieldCV(mesh);
+  if (!(efield->is_vector()))
+  {
+    error("Electric field needs to vector data");
+    return;
+  }
+  
+  vector<pair<string, Tensor> > conds;
+  bool index_based = sfield->get_property("conductivity_table", conds); 
+  
 
-  while (fi != fe) {
-    Vector vec;
-    Vector e;
-    efield->value(e, *fi);
+  FieldInformation fi(efieldH);
+  fi.make_vector();
+  FieldHandle output_field = CreateField(fi,efieldH->mesh());
+  VField* ofield = output_field->vfield();
+
+  VMesh::size_type num_elems = emesh->num_elems();
+
+  Vector vec;
+  Vector e;
+  for (VMesh::Elem::index_type idx=0; idx<num_elems; idx++)
+  {
+    efield->get_value(e, idx);
+    
     Tensor s;
-    if (index_based) {
+    if (index_based) 
+    {
       int sigma_idx;
-      sigmasInt->value(sigma_idx, *fi);
+      sfield->get_value(sigma_idx, idx);
       s=conds[sigma_idx].second;
-    } else {
-      sigmasTensor->value(s, *fi);
+    } 
+    else 
+    {
+      sfield->get_value(s, idx);
     }
+
     // - sign added to vector to account for E = - Del V
     vec = Vector(-(s.mat_[0][0]*e.x()+s.mat_[0][1]*e.y()+s.mat_[0][2]*e.z()),
 		 -(s.mat_[1][0]*e.x()+s.mat_[1][1]*e.y()+s.mat_[1][2]*e.z()),
 		 -(s.mat_[2][0]*e.x()+s.mat_[2][1]*e.y()+s.mat_[2][2]*e.z()));
 
-    ofield->set_value(vec,*fi);
-    ++fi;
+    ofield->set_value(vec,idx);
   }
 
-  FieldHandle ftmp(ofield);
-  send_output_handle("Currents", ftmp);
+  send_output_handle("Currents", output_field);
 }
 
 } // End namespace BioPSE

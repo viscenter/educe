@@ -33,43 +33,43 @@ catch {rename BioPSE_Forward_SimulateEITAnalytically ""}
 itcl_class BioPSE_Forward_SimulateEITAnalytically {
     inherit Module
     constructor {config} {
-	set name SimulateEITAnalytically
-	set_defaults
+        set name SimulateEITAnalytically
+        set_defaults
     }
     method set_defaults {} {
-	global $this-outerRadiusTCL
-	global $this-innerRadiusTCL
-	global $this-bodyGeomTCL
-	set $this-outerRadiusTCL 0.150
-	set $this-innerRadiusTCL 0.070
-	set $this-bodyGeomTCL {"Concentric disks"}
+        global $this-outerRadiusTCL
+        global $this-innerRadiusTCL
+        global $this-bodyGeomTCL
+        set $this-outerRadiusTCL 0.150
+        set $this-innerRadiusTCL 0.070
+        set $this-bodyGeomTCL {"Concentric disks"}
     }
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
     method ui {} {
-	global $this-outerRadiusTCL
-	global $this-innerRadiusTCL
-	global $this-bodyGeomTCL
+        global $this-outerRadiusTCL
+        global $this-innerRadiusTCL
+        global $this-bodyGeomTCL
 
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    raise $w
-	    return;
-	}
-	toplevel $w
-	
-	make_labeled_radio $w.bodyGeom "Body Geometry:" "" top 1 $this-bodyGeomTCL \
-	    {{"Homogeneous disk"} {"Concentric disks"}}
-	make_entry $w.outerRadius "Outer radius:" $this-outerRadiusTCL "$this-c needexecute"
-	make_entry $w.innerRadius "Inner radius:" $this-innerRadiusTCL "$this-c needexecute"
-	bind $w.outerRadius <Return> "$this-c needexecute"
-	bind $w.innerRadius <Return> "$this-c needexecute"
-	pack $w.bodyGeom $w.outerRadius $w.innerRadius -side top -fill x
+        set w .ui[modname]
+        if {[winfo exists $w]} {
+            raise $w
+            return;
+        }
+        sci_toplevel $w
+        
+        make_labeled_radio $w.bodyGeom "Body Geometry:" "" top 1 $this-bodyGeomTCL \
+            {{"Homogeneous disk"} {"Concentric disks"}}
+        make_entry $w.outerRadius "Outer radius:" $this-outerRadiusTCL "$this-c needexecute"
+        make_entry $w.innerRadius "Inner radius:" $this-innerRadiusTCL "$this-c needexecute"
+        bind $w.outerRadius <Return> "$this-c needexecute"
+        bind $w.innerRadius <Return> "$this-c needexecute"
+        pack $w.bodyGeom $w.outerRadius $w.innerRadius -side top -fill x
     }
 }

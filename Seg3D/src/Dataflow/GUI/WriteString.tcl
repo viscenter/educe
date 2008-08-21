@@ -35,19 +35,19 @@ itcl_class SCIRun_DataIO_WriteString {
     
     method overwrite {} {
         global $this-confirm
-	global $this-confirm-once
-	global $this-filename
-	global $this-old-filename
+        global $this-confirm-once
+        global $this-filename
+        global $this-old-filename
+        
+        if {![info exists $this-old-filename]} {
+            set $this-old-filename ""
+        }
 	
-	if {![info exists $this-old-filename]} {
-	    set $this-old-filename ""
-	}
-	
-	if {[set $this-confirm-once] == 1} {
-	    if { [string equal [set $this-filename] [set $this-old-filename] ]} {
-		return 1
-	    }
-	}
+        if {[set $this-confirm-once] == 1} {
+            if { [string equal [set $this-filename] [set $this-old-filename] ]} {
+              return 1
+            }
+        }
         if {[info exists $this-confirm] && [info exists $this-filename] && \
                 [set $this-confirm] && [file exists [set $this-filename]] } {
             set value [tk_messageBox -type yesno -parent . \
@@ -56,7 +56,7 @@ itcl_class SCIRun_DataIO_WriteString {
             if [string equal "no" $value] { return 0 }
         }
 	
-	set $this-old-filename [set $this-filename]
+        set $this-old-filename [set $this-filename]
         return 1
     }
 
@@ -68,7 +68,7 @@ itcl_class SCIRun_DataIO_WriteString {
             return
         }
         
-        toplevel $w -class TkFDialog
+        sci_toplevel $w -class TkFDialog
         # place to put preferred data directory
         # it's used if $this-filename is empty
         set initdir [netedit getenv SCIRUN_DATA]
@@ -87,10 +87,10 @@ itcl_class SCIRun_DataIO_WriteString {
         set tmp1 [set $this-types]
         set tmp2 [eval "set tmp3 $tmp1"]
         
-	set types {
-	    {{Text files}       {.txt}      }
-	    {{All Files}       {.*}   }				
-	}
+        set types {
+          {{Text files}       {.txt}      }
+          {{All Files}       {.*}   }				
+        }
 
         ######################################################
         
@@ -99,7 +99,7 @@ itcl_class SCIRun_DataIO_WriteString {
             -filevar $this-filename \
             -cancel "wm withdraw $w" \
 						-setcmd "wm withdraw $w" \
-            -command "$this-c needexecute; wm withdraw $w" \
+            -command "$this-c needexecute" \
             -title $title \
             -filetypes $types \
             -initialfile $defname \

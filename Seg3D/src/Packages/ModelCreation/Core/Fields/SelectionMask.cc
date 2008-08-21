@@ -57,7 +57,7 @@ bool SelectionMask::create(int size)
   data_ = 0;
   size_ = 0;
   
-  handle_ = dynamic_cast<SCIRun::Matrix *>(scinew SCIRun::DenseMatrix(size,1));
+  handle_ = dynamic_cast<SCIRun::Matrix *>(new SCIRun::DenseMatrix(size,1));
   if (handle_.get_rep() == 0) return(false);
   
   data_ = handle_->get_data_pointer(); 
@@ -321,7 +321,7 @@ bool SelectionMask::get_indices(SCIRun::MatrixHandle& handle)
   int numindices = 0;
   for (int i=0; i < size_; i++) if (data_[i]) numindices++;
   
-  handle = dynamic_cast<SCIRun::Matrix *>(scinew SCIRun::DenseMatrix(numindices,1));
+  handle = dynamic_cast<SCIRun::Matrix *>(new SCIRun::DenseMatrix(numindices,1));
   if (handle.get_rep() == 0) { return(false); }
 
   double *data = handle->get_data_pointer();

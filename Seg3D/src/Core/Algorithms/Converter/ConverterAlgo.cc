@@ -28,12 +28,12 @@
 
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
 #include <sstream>
 #include <vector>
 #include <algorithm>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Algorithms/Converter/NrrdToField.h>
 #include <Core/Algorithms/Converter/FieldToNrrd.h>
@@ -399,7 +399,7 @@ bool ConverterAlgo::MatrixToTransform(MatrixHandle matrix, Transform& trans)
 
 bool ConverterAlgo::DoubleVectorToMatrix(std::vector<double> val, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(val.size(),1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(val.size(),1));
   if (matrix.get_rep() == 0) 
   {
     error("DoubleToMatrix: Could not allocate memory");
@@ -412,7 +412,7 @@ bool ConverterAlgo::DoubleVectorToMatrix(std::vector<double> val, MatrixHandle& 
 
 bool ConverterAlgo::IntVectorToMatrix(std::vector<int> val, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(val.size(),1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(val.size(),1));
   if (matrix.get_rep() == 0) 
   {
     error("DoubleToMatrix: Could not allocate memory");
@@ -425,7 +425,7 @@ bool ConverterAlgo::IntVectorToMatrix(std::vector<int> val, MatrixHandle& matrix
 
 bool ConverterAlgo::UnsignedIntVectorToMatrix(std::vector<unsigned int> val, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(val.size(),1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(val.size(),1));
   if (matrix.get_rep() == 0) 
   {
     error("DoubleToMatrix: Could not allocate memory");
@@ -439,7 +439,7 @@ bool ConverterAlgo::UnsignedIntVectorToMatrix(std::vector<unsigned int> val, Mat
 
 bool ConverterAlgo::IndexVectorToMatrix(std::vector<Matrix::index_type> val, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(val.size(),1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(val.size(),1));
   if (matrix.get_rep() == 0) 
   {
     error("DoubleToMatrix: Could not allocate memory");
@@ -453,7 +453,7 @@ bool ConverterAlgo::IndexVectorToMatrix(std::vector<Matrix::index_type> val, Mat
 
 bool ConverterAlgo::DoubleToMatrix(double val, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(1,1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(1,1));
   if (matrix.get_rep() == 0) 
   {
     error("DoubleToMatrix: Could not allocate memory");
@@ -465,7 +465,7 @@ bool ConverterAlgo::DoubleToMatrix(double val, MatrixHandle& matrix)
 
 bool ConverterAlgo::IntToMatrix(int val, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(1,1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(1,1));
   if (matrix.get_rep() == 0) 
   {
     error("IntToMatrix: Could not allocate memory");
@@ -477,7 +477,7 @@ bool ConverterAlgo::IntToMatrix(int val, MatrixHandle& matrix)
 
 bool ConverterAlgo::IndexToMatrix(Matrix::index_type idx, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(1,1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(1,1));
   if (matrix.get_rep() == 0) 
   {
     error("IntToMatrix: Could not allocate memory");
@@ -489,7 +489,7 @@ bool ConverterAlgo::IndexToMatrix(Matrix::index_type idx, MatrixHandle& matrix)
 
 bool ConverterAlgo::UnsignedIntToMatrix(unsigned int val, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(1,1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(1,1));
   if (matrix.get_rep() == 0) 
   {
     error("IntToMatrix: Could not allocate memory");
@@ -501,7 +501,7 @@ bool ConverterAlgo::UnsignedIntToMatrix(unsigned int val, MatrixHandle& matrix)
 
 bool ConverterAlgo::VectorToMatrix(Vector& vec, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(3,1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(3,1));
   if (matrix.get_rep() == 0) 
   {
     error("VectorToMatrix: Could not allocate memory");
@@ -516,7 +516,7 @@ bool ConverterAlgo::VectorToMatrix(Vector& vec, MatrixHandle& matrix)
 
 bool ConverterAlgo::PointToMatrix(Point& point, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(3,1));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(3,1));
   if (matrix.get_rep() == 0) 
   {
     error("VectorToMatrix: Could not allocate memory");
@@ -530,7 +530,7 @@ bool ConverterAlgo::PointToMatrix(Point& point, MatrixHandle& matrix)
 
 bool ConverterAlgo::TensorToMatrix(Tensor& ten, MatrixHandle matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(3,3));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(3,3));
   if (matrix.get_rep() == 0) 
   {
     error("TensorToMatrix: Could not allocate memory");
@@ -551,7 +551,7 @@ bool ConverterAlgo::TensorToMatrix(Tensor& ten, MatrixHandle matrix)
 
 bool ConverterAlgo::TransformToMatrix(Transform& trans, MatrixHandle& matrix)
 {
-  matrix = dynamic_cast<Matrix*>(scinew DenseMatrix(4,4));
+  matrix = dynamic_cast<Matrix*>(new DenseMatrix(4,4));
   if (matrix.get_rep() == 0) 
   {
     error("DoubleToMatrix: Could not allocate memory");
@@ -629,7 +629,7 @@ bool ConverterAlgo::NrrdToMatrix(NrrdDataHandle input,MatrixHandle& output)
   if (nrrd->dim > 0) m = nrrd->axis[0].size;
   if (nrrd->dim > 1) n = nrrd->axis[1].size;
   
-  output = dynamic_cast<Matrix *>(scinew DenseMatrix(n,m));
+  output = dynamic_cast<Matrix *>(new DenseMatrix(n,m));
   
   if (output.get_rep() == 0)
   {
@@ -749,7 +749,7 @@ bool ConverterAlgo::MatrixToString(MatrixHandle input, StringHandle& output)
     }
   }
   
-  output = scinew String(oss.str());
+  output = new String(oss.str());
 
   if (output.get_rep()==0)
   {

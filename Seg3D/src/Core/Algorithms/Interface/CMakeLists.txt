@@ -3,59 +3,26 @@ ADD_SUBDIRECTORY(Info)
 
 
 SET(Core_Algorithms_Interface_SRCS
-  DataIO/DataIOHelper.cc
-  DataIO/DataIOHelper.h
-  DataIO/WriteBundleAlg.cc
-  DataIO/WritePathAlg.cc
-  DataIO/WriteColorMap2DAlg.cc
-  DataIO/ReadHDF5FileAlg.cc
-  DataIO/ReadFieldAlg.cc
-  DataIO/ReadNrrdAlg.cc
-  DataIO/WriteColorMapAlg.cc
-  DataIO/ReadColorMap2DAlg.cc
-  DataIO/ReadStringAlg.cc
-  DataIO/ReadColorMapAlg.cc
-  DataIO/ReadMatrixAlg.cc
-  DataIO/WriteStringAlg.cc
-  DataIO/ReadPathAlg.cc
-  DataIO/WriteFieldAlg.cc
-  DataIO/ReadBundleAlg.cc
-  DataIO/StreamMatrixFromDiskAlg.cc
-  DataIO/WriteMatrixAlg.cc
-  NewField/JoinFieldsAlg.cc
-  NewField/RefineMeshByIsovalueAlg.cc
-  NewField/FairMeshAlg.cc
-  NewField/CreateStructHexAlg.cc
-  NewField/ClipLatVolByIndicesOrWidgetAlg.cc
-  NewField/GetFieldBoundaryAlg.cc
-  NewField/ConvertMatricesToMeshAlg.cc
-  NewField/ClipFieldToFieldOrWidgetAlg.cc
-  NewField/RefineMeshByIsovalue2Alg.cc
-  NewField/CreateLatVolAlg.cc
-  NewField/InterfaceWithCamalAlg.cc
-  NewField/ClipVolumeByIsovalueAlg.cc
-  NewField/RefineMeshAlg.cc
-  NewField/MergeFieldsAlg.cc
-  NewField/GetCentroidsFromMeshAlg.cc
-  NewField/ExtractIsosurfaceByFunctionAlg.cc
-  NewField/MergeTriSurfsAlg.cc
-  NewField/InterfaceWithTetGenAlg.cc
-  NewField/CreateImageAlg.cc
-  NewField/InsertHexVolSheetAlongSurfaceAlg.cc
-  NewField/GenerateSinglePointProbeFromFieldAlg.cc
-  NewField/InterfaceWithCubitAlg.cc
-  NewField/ClipFieldByFunctionAlg.cc
-  NewField/GetDomainBoundaryAlg.cc
-  NewField/CollectFieldsAlg.cc
-  NewField/GeneratePointSamplesFromFieldAlg.cc
-  NewField/GeneratePointSamplesFromFieldOrWidgetAlg.cc
-  NewField/DecimateTriSurfAlg.cc
-  NewField/GetSliceFromStructuredFieldByIndicesAlg.cc
-  NewField/RemoveHexVolSheetAlg.cc
-  NewField/SubsampleStructuredFieldByIndicesAlg.cc
-  NewField/GetAllSegmentationBoundariesAlg.cc
-  NewField/ClipFieldWithSeedAlg.cc
-  NewField/SplitNodesByDomainAlg.cc
+  Bundle/GetColorMapsFromBundleAlg.cc
+  Bundle/InsertFieldsIntoBundleAlg.cc
+  Bundle/GetFieldsFromBundleAlg.cc
+  Bundle/InsertColorMap2sIntoBundleAlg.cc
+  Bundle/GetBundlesFromBundleAlg.cc
+  Bundle/GetPathsFromBundleAlg.cc
+  Bundle/InsertStringsIntoBundleAlg.cc
+  Bundle/GetNrrdsFromBundleAlg.cc
+  Bundle/GetMatricesFromBundleAlg.cc
+  Bundle/JoinBundlesAlg.cc
+  Bundle/ReportBundleInfoAlg.cc
+  Bundle/InsertPathsIntoBundleAlg.cc
+  Bundle/GetColorMap2sFromBundleAlg.cc
+  Bundle/InsertMatricesIntoBundleAlg.cc
+  Bundle/InsertNrrdsIntoBundleAlg.cc
+  Bundle/InsertBundlesIntoBundleAlg.cc
+  Bundle/GetStringsFromBundleAlg.cc
+  Bundle/InsertColorMapsIntoBundleAlg.cc
+  Bundle/CreateParameterBundleAlg.cc
+  Bundle/InsertEnvironmentIntoBundleAlg.cc
   ChangeFieldData/ApplyMappingMatrixAlg.cc
   ChangeFieldData/MaskLatVolWithTriSurfAlg.cc
   ChangeFieldData/ConvertFieldBasisAlg.cc
@@ -102,6 +69,77 @@ SET(Core_Algorithms_Interface_SRCS
   ChangeMesh/SwapNodeLocationsWithMatrixEntriesAlg.cc
   ChangeMesh/MapFieldDataToNodeCoordinateAlg.cc
   ChangeMesh/ScaleFieldMeshAndDataAlg.cc
+  Converters/ConvertMatrixToStringAlg.cc
+  Converters/ConvertMatrixToFieldAlg.cc
+  Converters/ConvertNrrdToFieldAlg.cc
+  DataArrayMath/CreateDataArrayAlg.cc
+  DataArrayMath/CreateDataArrayFromIndicesAlg.cc
+  DataArrayMath/ReportDataArrayInfoAlg.cc
+  DataArrayMath/CreateVectorArrayAlg.cc
+  DataArrayMath/ReplicateDataArrayAlg.cc
+  DataArrayMath/SplitVectorArrayInXYZAlg.cc
+  DataArrayMath/DecomposeTensorArrayIntoEigenVectorsAlg.cc
+  DataArrayMath/CalculateDataArrayAlg.cc
+  DataArrayMath/ReportDataArrayMeasureAlg.cc
+  DataArrayMath/AppendDataArraysAlg.cc
+  DataArrayMath/CreateTensorArrayAlg.cc
+  DataIO/DataIOHelper.cc
+  DataIO/DataIOHelper.h
+  DataIO/WriteBundleAlg.cc
+  DataIO/WritePathAlg.cc
+  DataIO/WriteColorMap2DAlg.cc
+  DataIO/ReadHDF5FileAlg.cc
+  DataIO/ReadFieldAlg.cc
+  DataIO/ReadNrrdAlg.cc
+  DataIO/WriteColorMapAlg.cc
+  DataIO/ReadColorMap2DAlg.cc
+  DataIO/ReadStringAlg.cc
+  DataIO/ReadColorMapAlg.cc
+  DataIO/ReadMatrixAlg.cc
+  DataIO/WriteStringAlg.cc
+  DataIO/ReadPathAlg.cc
+  DataIO/WriteFieldAlg.cc
+  DataIO/ReadBundleAlg.cc
+  DataIO/StreamMatrixFromDiskAlg.cc
+  DataIO/WriteMatrixAlg.cc
+  NewField/JoinFieldsAlg.cc
+  NewField/KDTree.cc
+  NewField/RefineMeshByIsovalueAlg.cc
+  NewField/FairMeshAlg.cc
+  NewField/CreateStructHexAlg.cc
+  NewField/ClipLatVolByIndicesOrWidgetAlg.cc
+  NewField/GetFieldBoundaryAlg.cc
+  NewField/GenRayCastMAAlg.cc
+  NewField/ConvertMatricesToMeshAlg.cc
+  NewField/ClipFieldToFieldOrWidgetAlg.cc
+  NewField/RefineMeshByIsovalue2Alg.cc
+  NewField/CreateLatVolAlg.cc
+  NewField/InterfaceWithCamalAlg.cc
+  NewField/ClipVolumeByIsovalueAlg.cc
+  NewField/RefineMeshAlg.cc
+  NewField/MergeFieldsAlg.cc
+  NewField/GetCentroidsFromMeshAlg.cc
+  NewField/ExtractIsosurfaceByFunctionAlg.cc
+  NewField/MergeTriSurfsAlg.cc
+  NewField/InterfaceWithTetGenAlg.cc
+  NewField/CreateImageAlg.cc
+  NewField/InsertHexVolSheetAlongSurfaceAlg.cc
+  NewField/GenerateSinglePointProbeFromFieldAlg.cc
+  NewField/InterfaceWithCubitAlg.cc
+  NewField/ClipFieldByFunctionAlg.cc
+  NewField/GetDomainBoundaryAlg.cc
+  NewField/CollectFieldsAlg.cc
+  NewField/GeneratePointSamplesFromFieldAlg.cc
+  NewField/GeneratePointSamplesFromFieldOrWidgetAlg.cc
+  NewField/DecimateTriSurfAlg.cc
+  NewField/GetSliceFromStructuredFieldByIndicesAlg.cc
+  NewField/RemoveHexVolSheetAlg.cc
+  NewField/SubsampleStructuredFieldByIndicesAlg.cc
+  NewField/GetAllSegmentationBoundariesAlg.cc
+  NewField/ClipFieldWithSeedAlg.cc
+  NewField/SplitNodesByDomainAlg.cc
+  NewField/SetMatIndexAlg.cc
+  NewField/SeedIntersectionsAlg.cc
   Math/ReportColumnMatrixMisfitAlg.cc
   Math/EvaluateLinAlgGeneralAlg.cc
   Math/AppendMatrixAlg.cc
@@ -128,25 +166,6 @@ SET(Core_Algorithms_Interface_SRCS
   Math/ReportMatrixInfoAlg.cc
   Math/RemoveZerosFromMatrixAlg.cc
   Math/RemoveZeroRowsAndColumnsAlg.cc
-  DataArrayMath/CreateDataArrayAlg.cc
-  DataArrayMath/CreateDataArrayFromIndicesAlg.cc
-  DataArrayMath/ReportDataArrayInfoAlg.cc
-  DataArrayMath/CreateVectorArrayAlg.cc
-  DataArrayMath/ReplicateDataArrayAlg.cc
-  DataArrayMath/SplitVectorArrayInXYZAlg.cc
-  DataArrayMath/DecomposeTensorArrayIntoEigenVectorsAlg.cc
-  DataArrayMath/CalculateDataArrayAlg.cc
-  DataArrayMath/ReportDataArrayMeasureAlg.cc
-  DataArrayMath/AppendDataArraysAlg.cc
-  DataArrayMath/CreateTensorArrayAlg.cc
-  String/PrintMatrixIntoStringAlg.cc
-  String/GetFileNameAlg.cc
-  String/SplitFileNameAlg.cc
-  String/PrintStringIntoStringAlg.cc
-  String/CreateStringAlg.cc
-  String/ReportStringInfoAlg.cc
-  String/JoinStringsAlg.cc
-  String/GetNetworkFileNameAlg.cc
   MiscField/SetFieldPropertyAlg.cc
   MiscField/ReportScalarFieldStatsAlg.cc
   MiscField/SelectFieldROIWithBoxWidgetAlg.cc
@@ -161,26 +180,14 @@ SET(Core_Algorithms_Interface_SRCS
   MiscField/BuildMappingMatrixAlg.cc
   MiscField/CoregisterPointCloudsAlg.cc
   MiscField/CollectPointCloudsAlg.cc
-  Bundle/GetColorMapsFromBundleAlg.cc
-  Bundle/InsertFieldsIntoBundleAlg.cc
-  Bundle/GetFieldsFromBundleAlg.cc
-  Bundle/InsertColorMap2sIntoBundleAlg.cc
-  Bundle/GetBundlesFromBundleAlg.cc
-  Bundle/GetPathsFromBundleAlg.cc
-  Bundle/InsertStringsIntoBundleAlg.cc
-  Bundle/GetNrrdsFromBundleAlg.cc
-  Bundle/GetMatricesFromBundleAlg.cc
-  Bundle/JoinBundlesAlg.cc
-  Bundle/ReportBundleInfoAlg.cc
-  Bundle/InsertPathsIntoBundleAlg.cc
-  Bundle/GetColorMap2sFromBundleAlg.cc
-  Bundle/InsertMatricesIntoBundleAlg.cc
-  Bundle/InsertNrrdsIntoBundleAlg.cc
-  Bundle/InsertBundlesIntoBundleAlg.cc
-  Bundle/GetStringsFromBundleAlg.cc
-  Bundle/InsertColorMapsIntoBundleAlg.cc
-  Bundle/CreateParameterBundleAlg.cc
-  Bundle/InsertEnvironmentIntoBundleAlg.cc
+  String/PrintMatrixIntoStringAlg.cc
+  String/GetFileNameAlg.cc
+  String/SplitFileNameAlg.cc
+  String/PrintStringIntoStringAlg.cc
+  String/CreateStringAlg.cc
+  String/ReportStringInfoAlg.cc
+  String/JoinStringsAlg.cc
+  String/GetNetworkFileNameAlg.cc
   Visualization/ShowColorMapAlg.cc
   Visualization/CreateAndEditColorMap2DAlg.cc
   Visualization/ShowFieldAlg.cc
@@ -203,8 +210,6 @@ SET(Core_Algorithms_Interface_SRCS
   Visualization/CreateViewerClockIconAlg.cc
   Visualization/ConvertFieldsToTextureAlg.cc
   Visualization/ColorMap2DSemanticsAlg.cc
-  Converters/ConvertMatrixToStringAlg.cc
-  Converters/ConvertMatrixToFieldAlg.cc
   Time/TimeControlsAlg.cc
   )
 

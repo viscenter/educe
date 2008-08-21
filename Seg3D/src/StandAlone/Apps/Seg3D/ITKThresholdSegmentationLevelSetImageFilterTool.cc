@@ -97,27 +97,13 @@ ITKThresholdSegmentationLevelSetImageFilterTool::process_event
     if (!(painter_->current_volume_.get_rep() &&
           !painter_->current_volume_->label_))
     {
-      painter_->set_status("No active label volume to set as data volume.");
+      painter_->set_status("No active data volume.");
       return STOP_E;
     }
 
-    if (painter_->current_volume_ == seed_volume_) 
-    {
-      painter_->set_status("Cannot use same volumes for source and seed.");
-      painter_->redraw_all();
-      return STOP_E;
-    }
-    else
-    {
-      source_volume_ = painter_->current_volume_;
-    }
-    
-    if (!seed_volume_.get_rep()) 
-    {
-      painter_->set_status("No seed volume set.");
-      painter_->redraw_all();
-      return STOP_E;
-    }
+    source_volume_ = painter_->current_volume_;
+    painter_->set_status("Using " + source_volume_->name_ +
+                         " as data volume.");
   }
 
   if (dynamic_cast<FinishEvent *>(event.get_rep()))
@@ -256,6 +242,11 @@ ITKThresholdSegmentationLevelSetImageFilterTool::run_filter()
   painter_->volume_lock_.lock();
   new_layer->change_type_from_float_to_bit();
   painter_->volume_lock_.unlock();
+
+  UndoHandle undo =
+    new UndoReplaceLayer(painter_, "Undo Threshold Segmentation Level Set",
+                         0, new_layer, 0);
+  painter_->push_undo(undo);
 
   painter_->extract_all_window_slices();
   painter_->redraw_all();

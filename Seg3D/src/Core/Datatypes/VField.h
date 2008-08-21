@@ -99,37 +99,52 @@ public:
   
   //! resize the data fields to match the number of nodes/edges in the mesh
   inline void resize_fdata() 
-    { 
-      if (basis_order_ == -1)
-      {
-        VMesh::dimension_type dim;
-        dim.resize(1); dim[0] = 0;
-        vfdata_->resize_fdata(dim);
-        // do nothing
-      }
-      else if (basis_order_ == 0)
-      {
-        VMesh::dimension_type dim;
-        vmesh_->get_elem_dimensions(dim);
-        vfdata_->resize_fdata(dim);
-      }
-      else if (basis_order_ == 1)
-      {
-        VMesh::dimension_type dim;
-        vmesh_->get_dimensions(dim);
-        vfdata_->resize_fdata(dim);      
-      }
-      else if (basis_order_ == 2)
-      {
-        VMesh::dimension_type dim;
-        vmesh_->get_dimensions(dim);
-        vfdata_->resize_fdata(dim);      
-        vfdata_->resize_efdata(dim);      
-      }
+  { 
+    if (basis_order_ == -1)
+    {
+      VMesh::dimension_type dim;
+      dim.resize(1); dim[0] = 0;
+      vfdata_->resize_fdata(dim);
+      // do nothing
     }
+    else if (basis_order_ == 0)
+    {
+      VMesh::dimension_type dim;
+      vmesh_->get_elem_dimensions(dim);
+      vfdata_->resize_fdata(dim);
+    }
+    else if (basis_order_ == 1)
+    {
+      VMesh::dimension_type dim;
+      vmesh_->get_dimensions(dim);
+      vfdata_->resize_fdata(dim);      
+    }
+    else if (basis_order_ == 2)
+    {
+      VMesh::dimension_type dim;
+      vmesh_->get_dimensions(dim);
+      vfdata_->resize_fdata(dim);      
+      vfdata_->resize_efdata(dim);      
+    }
+  }
   //! same function but now uses the systematic naming 
   //! (resize_fdata is the old call, SCIRun was using)
   inline void resize_values() { resize_fdata(); }
+
+  inline bool get_center(Point& p, index_type idx)
+  {
+    if (basis_order_ == -1) return (false);
+    if (basis_order_ == 0)
+    {
+      vmesh_->get_center(p,VMesh::Elem::index_type(idx));
+      return (true);
+    }
+    else
+    {
+      vmesh_->get_center(p,VMesh::Node::index_type(idx));    
+      return (true);
+    }
+  }
 
   //! Get values from field (different varieties for different index types)
   //! Unlike the direct interface, we do not check index_type here
@@ -166,20 +181,20 @@ public:
   //! unlike the direct interface we do not use ASSERTs to check bounds and this function
   //! calls are thus exactly the same. They are provided for compatibility with the old
   //! classes
-  template<class T> inline void value(T& val, index_type idx) const
-  { vfdata_->get_value(val,idx); }  
-  template<class T>  inline void value(T& val, VMesh::Node::index_type idx) const
-  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx)); }
-  template<class T>  inline void value(T& val, VMesh::Edge::index_type idx) const
-  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx)); }
-  template<class T>  inline void value(T& val, VMesh::Face::index_type idx) const
-  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx)); }
-  template<class T>  inline void value(T& val, VMesh::Cell::index_type idx) const
-  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx)); }
-  template<class T>  inline void value(T& val, VMesh::Elem::index_type idx) const
-  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx)); }
-  template<class T>  inline void value(T& val, VMesh::DElem::index_type idx) const
-  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx)); }  
+  template<class T> inline bool value(T& val, index_type idx) const
+  { vfdata_->get_value(val,idx); return (true); }  
+  template<class T>  inline bool value(T& val, VMesh::Node::index_type idx) const
+  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx));return (true); }
+  template<class T>  inline bool value(T& val, VMesh::Edge::index_type idx) const
+  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx));return (true); }
+  template<class T>  inline bool value(T& val, VMesh::Face::index_type idx) const
+  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx));return (true); }
+  template<class T>  inline bool value(T& val, VMesh::Cell::index_type idx) const
+  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx));return (true); }
+  template<class T>  inline bool value(T& val, VMesh::Elem::index_type idx) const
+  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx));return (true); }
+  template<class T>  inline bool value(T& val, VMesh::DElem::index_type idx) const
+  { vfdata_->get_value(val,static_cast<VMesh::index_type>(idx));return (true); }  
 
   //! Functions for getting a weighted value
   template<class T> inline void get_weighted_value(T& val, index_type* idx, weight_type* w, size_type sz) const
@@ -215,13 +230,33 @@ public:
 
   //! Get/Set all values at once
   template<class T> inline void set_values(const vector<T>& values)
-  { vfdata_->set_values(&(values[0]),values.size()); }
-  template<class T> inline void set_values(const T* data, size_type sz)
-  { vfdata_->set_values(data,sz); }
+  { vfdata_->set_values(&(values[0]),values.size(),0); }
+  template<class T> inline void set_values(const T* data, size_type sz, index_type offset = 0)
+  { vfdata_->set_values(data,sz,offset); }
   template<class T> inline void get_values(vector<T>& values) const
-  { values.resize(vfdata_->fdata_size()); if (values.size()) vfdata_->get_values(&(values[0]),values.size()); }
-  template<class T> inline void get_values(T* data, size_type sz) const
-  { vfdata_->get_values(data,sz); }
+  { values.resize(vfdata_->fdata_size()); if (values.size()) vfdata_->get_values(&(values[0]),values.size(),0); }
+  template<class T> inline void get_values(T* data, size_type sz, index_type offset = 0) const
+  { vfdata_->get_values(data,sz,offset); }
+  
+  // Set/Get values per element array or node array
+  template<class T> inline void set_values(vector<T> values, VMesh::Node::array_type nodes)
+  { if (values.size() > 0) vfdata_->set_values(&(values[0]),nodes); }
+  template<class T> inline void set_values(vector<T> values, VMesh::Elem::array_type elems)
+  { if (values.size() > 0) vfdata_->set_values(&(values[0]),elems); }
+  template<class T> inline void set_values(const T* values, VMesh::Node::array_type nodes)
+  { vfdata_->set_values(values,nodes); }
+  template<class T> inline void set_values(const T* values, VMesh::Elem::array_type elems)
+  { vfdata_->set_values(values,elems); }
+  
+  template<class T> inline void get_values(vector<T>& values, VMesh::Node::array_type nodes) const
+  { values.resize(nodes.size()); if (values.size() > 0) vfdata_->get_values(&(values[0]),nodes); }
+  template<class T> inline void get_values(vector<T>& values, VMesh::Elem::array_type elems) const
+  { values.resize(elems.size()); if (values.size() > 0) vfdata_->get_values(&(values[0]),elems); }
+  template<class T> inline void get_values(T* values, VMesh::Node::array_type nodes) const
+  { vfdata_->get_values(values,nodes); }
+  template<class T> inline void get_values(T* values, VMesh::Elem::array_type elems) const
+  { vfdata_->get_values(values,elems); }
+  
   
   //! Set all values to a specific value
   template<class T> inline void set_all_values(const T val)
@@ -229,14 +264,14 @@ public:
 
 
   //! Functions for getting a weighted value
-  template<class T> inline void copy_weighted_value(VField* field, index_type* idx, weight_type* w, size_type sz, index_type i) const
-  { vfdata_->copy_weighted_value(field->vfdata_,idx,w,sz,i); }
-  template<class T> inline void copy_weighted_value(VField* field, index_array_type idx, weight_array_type w, index_type i) const
-  { vfdata_->copy_weighted_value(field->vfdata_,&(idx[0]),&(w[0]),idx.size(),i); }
-  template<class T> inline void copy_weighted_evalue(VField* field, index_type* idx, weight_type* w, size_type sz, index_type i) const
-  { vfdata_->copy_weighted_evalue(field->vfdata_,idx,w,sz,i); }
-  template<class T> inline void copy_weighted_evalue(VField* field, index_array_type idx, weight_array_type w, index_type i) const
-  { vfdata_->copy_weighted_value(field->vfdata_,&(idx[0]),&(w[0]),idx.size(),i); }
+  template<class INDEX> inline void copy_weighted_value(VField* field, index_type* idx, weight_type* w, size_type sz, INDEX i) const
+  { vfdata_->copy_weighted_value(field->vfdata_,idx,w,sz,index_type(i)); }
+  template<class INDEX, class ARRAY> inline void copy_weighted_value(VField* field, ARRAY idx, weight_array_type w, INDEX i) const
+  { vfdata_->copy_weighted_value(field->vfdata_,&(idx[0]),&(w[0]),idx.size(),index_type(i)); }
+  template<class INDEX> inline void copy_weighted_evalue(VField* field, index_type* idx, weight_type* w, size_type sz, INDEX i) const
+  { vfdata_->copy_weighted_evalue(field->vfdata_,idx,w,sz,index_type(i)); }
+  template<class INDEX, class ARRAY> inline void copy_weighted_evalue(VField* field, ARRAY idx, weight_array_type w, INDEX i) const
+  { vfdata_->copy_weighted_value(field->vfdata_,&(idx[0]),&(w[0]),idx.size(),index_type(i)); }
 
   //! Set all values to zero or its equivalent, all none double data will be casted
   //! to the proper value automatically. This way we do not need an additional
@@ -248,28 +283,44 @@ public:
   //! data. These functions need to know the size of the inserted data as they
   //! perform a safety check on the length of the fdata array.
   template<class T> inline void set_evalues(const vector<T>& values)
-  { vfdata_->set_evalues(&(values[0]),values.size()); }
-  template<class T> inline void set_evalues(const T* data, size_type sz)
-  { vfdata_->set_evalues(data,sz); }
+  { vfdata_->set_evalues(&(values[0]),values.size(),0); }
+  template<class T> inline void set_evalues(const T* data, size_type sz, index_type offset=0)
+  { vfdata_->set_evalues(data,sz,offset); }
+  
   template<class T> inline void get_evalues(vector<T>& values) const
-  { values.resize(vfdata_->efdata_size()); if (values.size()) vfdata_->get_evalues(&(values[0]),values.size()); }
-  template<class T> inline void get_evalues(T* data, size_type sz) const
-  { vfdata_->get_evalues(data,sz); }  
+  { values.resize(vfdata_->efdata_size()); if (values.size()) vfdata_->get_evalues(&(values[0]),values.size(),0); }
+  template<class T> inline void get_evalues(T* data, size_type sz, index_type offset = 0) const
+  { vfdata_->get_evalues(data,sz,offset); }  
 
   //! Copy a value from one vfdata container to another, without having to know
   //! its type. Often for geometric operations one only has to copy the data.
   //! in tota this function will do to virtual function calls to move data from
   //! one container to the next. It however does direct casting between types. 
   //! call these functions from the destination field to import data from another field
-  template<class INDEX1, class INDEX2> inline void copy_value(VField* field, INDEX1 idx1, INDEX2 idx2)
+  template<class INDEX1, class INDEX2> 
+  inline void copy_value(VField* field, INDEX1 idx1, INDEX2 idx2)
   {
     vfdata_->copy_value(field->vfdata_,index_type(idx1),index_type(idx2));
   }
   
   //! Same for edge values
-  template<class INDEX1, class INDEX2> inline void copy_evalue(VField* field, INDEX1 idx1, INDEX2 idx2)
+  template<class INDEX1, class INDEX2> 
+  inline void copy_evalue(VField* field, INDEX1 idx1, INDEX2 idx2)
   {
     vfdata_->copy_evalue(field->vfdata_,index_type(idx1),index_type(idx2));
+  }
+
+  template<class INDEX1, class INDEX2> 
+  inline void copy_values(VField* field, INDEX1 idx1, INDEX2 idx2, size_type sz)
+  {
+    vfdata_->copy_values(field->vfdata_,index_type(idx1),index_type(idx2),sz);
+  }
+  
+  //! Same for edge values
+  template<class INDEX1, class INDEX2> 
+  inline void copy_evalues(VField* field, INDEX1 idx1, INDEX2 idx2, size_type sz)
+  {
+    vfdata_->copy_evalues(field->vfdata_,index_type(idx1),index_type(idx2),sz);
   }
 
   //! Copy all the values from one container to another container
@@ -332,21 +383,51 @@ public:
   //! Note that different data orders have different implementations as non linear
   //! interpolation requires far more data, these are handled in separate classes
 
-  template<class T>  
-  inline void minterpolate(T& val,const  VMesh::coords_array_type &coords, VMesh::index_type idx) const
+  template<class ARRAY, class DATA>  
+  inline void minterpolate(ARRAY& val,
+                           const  VMesh::coords_array_type &coords, 
+                           VMesh::index_type idx,
+                           DATA def_value = ((DATA)0)) const
   { 
     VMesh::MultiElemInterpolate ei;
     vmesh_->get_minterpolate_weights(coords,idx,ei,basis_order_);
-    vfdata_->minterpolate(val,ei);
+    vfdata_->minterpolate(val,ei, static_cast<typename ARRAY::value_type>(def_value));
   }
 
   template<class T>  
-  inline void interpolate(T& val,const  VMesh::coords_type &coords, VMesh::index_type idx) const
+  inline void interpolate(T& val,
+                          const  VMesh::coords_type &coords, 
+                          VMesh::index_type idx,
+                          T def_value = ((T)0)) const
   { 
     VMesh::ElemInterpolate ei;
     vmesh_->get_interpolate_weights(coords,idx,ei,basis_order_);
-    vfdata_->interpolate(val,ei);
+    vfdata_->interpolate(val,ei,def_value);
   }
+
+  template<class ARRAY, class DATA>  
+  inline void minterpolate(ARRAY& val, 
+                           const vector<Point>& points,
+                           DATA def_value = ((DATA)0)) const
+  { 
+    VMesh::MultiElemInterpolate ei;
+    vmesh_->get_minterpolate_weights(points,ei,basis_order_);
+    vfdata_->minterpolate(val,ei, static_cast<typename ARRAY::value_type>(def_value));
+  }
+
+  template<class T>  
+  inline bool interpolate(T& val,const  Point& point, T def_value = ((T)0)) const
+  { 
+    VMesh::ElemInterpolate ei;
+    vmesh_->get_interpolate_weights(point,ei,basis_order_);
+    if (ei.elem_index >= 0)
+    {
+      vfdata_->interpolate(val,ei,def_value);
+      return (true);
+    }
+    return (false);
+  }
+
 
   inline void interpolate(Point& val,const  VMesh::coords_type &coords, VMesh::index_type idx) const
   {
@@ -375,10 +456,29 @@ public:
     vfdata_->gradient(val,eg);
   }
 
-  template<class T>  inline void mgradient(StackVector<T,3>& val, const VMesh::coords_array_type &coords, VMesh::index_type idx) const
+  template<class T>  inline void mgradient(vector<StackVector<T,3> >& val, const VMesh::coords_array_type &coords, VMesh::index_type idx) const
   { 
     VMesh::MultiElemGradient eg;
     vmesh_->get_mgradient_weights(coords,idx,eg,basis_order_);
+    vfdata_->mgradient(val,eg);
+  }
+
+  template<class T>  inline bool gradient(StackVector<T,3>& val, const Point& point) const
+  { 
+    VMesh::ElemGradient eg;
+    vmesh_->get_gradient_weights(point,eg,basis_order_);
+    if (eg.elem_index >= 0)
+    {
+      vfdata_->gradient(val,eg);
+      return (true);
+    }
+    return (false);
+  }
+
+  template<class T>  inline void mgradient(vector<StackVector<T,3> >& val, const vector<Point>& points) const
+  { 
+    VMesh::MultiElemGradient eg;
+    vmesh_->get_mgradient_weights(points,eg,basis_order_);
     vfdata_->mgradient(val,eg);
   }
 
@@ -400,6 +500,11 @@ public:
     vmesh_ = mesh->vmesh();
     mesh_ = mesh;
   }
+
+  // Use these two functions with extra care, as they can cause segmentation 
+  // errors if the type of the data is not taken into account
+  inline void* get_values_pointer()   { return (vfdata_->fdata_pointer()); }      
+  inline void* get_evalues_pointer()   { return (vfdata_->efdata_pointer()); }      
         
   inline void* fdata_pointer()   { return (vfdata_->fdata_pointer()); }      
   inline void* efdata_pointer()   { return (vfdata_->efdata_pointer()); }      
@@ -436,6 +541,22 @@ public:
   inline bool is_unsigned_longlong()   { return (data_type_=="unsigned long long"); }
   inline bool is_float()               { return (data_type_=="float"); }
   inline bool is_double()              { return (data_type_=="double"); }
+
+  inline bool is_type(char* )               { return (is_char()); }
+  inline bool is_type(unsigned char* )      { return (is_unsigned_char()); }
+  inline bool is_type(short* )              { return (is_short()); }
+  inline bool is_type(unsigned short* )     { return (is_unsigned_short()); }
+  inline bool is_type(int* )                { return (is_int()); }
+  inline bool is_type(unsigned int* )       { return (is_unsigned_int()); }
+  inline bool is_type(long* )               { return (is_long()); }
+  inline bool is_type(unsigned long* )      { return (is_unsigned_long()); }
+  inline bool is_type(long long* )          { return (is_longlong()); }
+  inline bool is_type(unsigned long long* ) { return (is_unsigned_longlong()); }
+  inline bool is_type(double* )             { return (is_double()); }
+  inline bool is_type(float* )              { return (is_float()); }
+  inline bool is_type(Vector* )             { return (is_vector()); }
+  inline bool is_type(Tensor* )             { return (is_tensor()); }
+  template<class T> bool is_type(T*)        { return (false); }
 
   inline string get_data_type()          { return (data_type_); }
   // check whether it is of integer class
@@ -484,6 +605,7 @@ protected:
   bool          is_pair_;
   bool          is_vector_;
   bool          is_tensor_;
+  bool          is_time_;
 
   std::string   data_type_;
 

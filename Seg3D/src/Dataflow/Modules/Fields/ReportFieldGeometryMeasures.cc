@@ -40,34 +40,32 @@
  *  Copyright (C) 2001 SCI Group
  */
 
-#include <Dataflow/Modules/Fields/ReportFieldGeometryMeasures.h>
-#include <Dataflow/Network/Module.h>
-#include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Core/Datatypes/ColumnMatrix.h>
 #include <Core/Datatypes/DenseMatrix.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Datatypes/Mesh.h>
-#include <iostream>
+#include <Core/Datatypes/Field.h>
+
+#include <Dataflow/Network/Ports/FieldPort.h>
+#include <Dataflow/Network/Ports/MatrixPort.h>
+#include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
 
 class ReportFieldGeometryMeasures : public Module
 {
-private:
-  GuiString simplexString_;
-  GuiInt xFlag_;
-  GuiInt yFlag_;
-  GuiInt zFlag_;
-  GuiInt idxFlag_;
-  GuiInt sizeFlag_;
-  GuiInt normalsFlag_;
-public:
-  ReportFieldGeometryMeasures(GuiContext* ctx);
-  virtual ~ReportFieldGeometryMeasures();
+  public:
+    ReportFieldGeometryMeasures(GuiContext* ctx);
+    virtual ~ReportFieldGeometryMeasures() {}
 
-  virtual void execute();
-
+    virtual void execute();
+  private:
+    GuiString simplexString_;
+    GuiInt xFlag_;
+    GuiInt yFlag_;
+    GuiInt zFlag_;
+    GuiInt idxFlag_;
+    GuiInt sizeFlag_;
+    GuiInt normalsFlag_;
 };
 
 
@@ -86,41 +84,39 @@ ReportFieldGeometryMeasures::ReportFieldGeometryMeasures(GuiContext* ctx)
 }
 
 
-
-ReportFieldGeometryMeasures::~ReportFieldGeometryMeasures()
-{
-}
-
-
 void
 ReportFieldGeometryMeasures::execute()
 {
   FieldHandle fieldhandle;
-  if (!get_input_handle("Input Field", fieldhandle)) return;
+  get_input_handle("Input Field", fieldhandle, true);
 
-  MeshHandle mesh = fieldhandle->mesh();
+  VMesh* mesh = fieldhandle->vmesh();
 
   //! This is a hack for now, it is definitely not an optimal way
   int syncflag = 0;
-  if (simplexString_.get() == "Node")
+  std::string simplex =simplexString_.get();
+  
+  if (simplex == "Elem")
+  {
+    if (mesh->dimensionality() == 0) simplex = "Node";
+    else if (mesh->dimensionality() == 1) simplex = "Edge";
+    else if (mesh->dimensionality() == 2) simplex = "Face";
+    else if (mesh->dimensionality() == 3) simplex = "Cell";
+  }
+
+  if (simplex == "Node")
     syncflag = Mesh::NODES_E | Mesh::NODE_NEIGHBORS_E;
-  else if (simplexString_.get() == "Edge")
+  else if (simplex == "Edge")
     syncflag = Mesh::EDGES_E | Mesh::ELEM_NEIGHBORS_E;
-  else if (simplexString_.get() == "Face")
+  else if (simplex == "Face")
     syncflag = Mesh::FACES_E | Mesh::ELEM_NEIGHBORS_E;
-  else if (simplexString_.get() == "Cell")
+  else if (simplex == "Cell")
     syncflag = Mesh::CELLS_E;
-  // TOTAL HACK!
-  else if (simplexString_.get() == "Elem")
-    syncflag = (Mesh::ALL_ELEMENTS_E | 
-		Mesh::ELEM_NEIGHBORS_E);
 
   mesh->synchronize(syncflag);
 
-  bool nnormals =
-    normalsFlag_.get() && simplexString_.get() == "Node";
-  const bool fnormals =
-    normalsFlag_.get() && simplexString_.get() == "Face";
+  bool nnormals = normalsFlag_.get() && (simplexString_.get() == "Node");
+  bool fnormals = normalsFlag_.get() && (simplexString_.get() == "Face");
 
   if (nnormals && !mesh->has_normals())
   {
@@ -131,69 +127,133 @@ ReportFieldGeometryMeasures::execute()
   {
     warning("Cannot compute normals at that simplex location, skipping.");
   }
+  
   if (nnormals)
   {
     mesh->synchronize(Mesh::NORMALS_E);
   }
 
-  const TypeDescription *meshtd = mesh->get_type_description();
-  const TypeDescription *simptd = 
-    scinew TypeDescription(meshtd->get_name()+"::"+simplexString_.get(), 
-			   meshtd->get_h_file_path(),
-			   meshtd->get_namespace());
-  CompileInfoHandle ci =
-    ReportFieldGeometryMeasuresAlgo::get_compile_info(meshtd, simptd, nnormals, fnormals);
-  Handle<ReportFieldGeometryMeasuresAlgo> algo;
-  if (!module_dynamic_compile(ci, algo)) 
+  bool x = xFlag_.get();
+  bool y = yFlag_.get();
+  bool z = zFlag_.get();
+  bool eidx = idxFlag_.get();
+  bool size = sizeFlag_.get();
+
+  Matrix::size_type ncols=0;
+  if (x)     ncols++;
+  if (y)     ncols++;
+  if (z)     ncols++;
+  if (eidx)   ncols++;
+  if (size)  ncols++;
+  if (nnormals) ncols+=3;
+  if (fnormals) ncols+=3;
+
+  if (ncols==0) 
   {
-    const string err = (string("Unable to compile ReportFieldGeometryMeasures for data at") +
-			simplexString_.get() + 
-			string(" in a ") +
-			meshtd->get_name());
-    error(err.c_str());
+    error("No measures selected.");
     return;
   }
 
-  // Execute and Send (ha, no extraneous local variables here!)
-  MatrixHandle mh(algo->execute(this, mesh,
-                                xFlag_.get(),
-                                yFlag_.get(),
-                                zFlag_.get(), 
-                                idxFlag_.get(), 
-                                sizeFlag_.get()));
+  MatrixHandle output;
 
-  send_output_handle("Output Measures Matrix", mh);
+  if (simplexString_.get() == "Node")
+  {
+    VMesh::Node::size_type nrows;
+    mesh->size(nrows);
+    output = new DenseMatrix(nrows,ncols);
+    double* dataptr = output->get_data_pointer();
+  
+    Matrix::index_type k = 0;
+    Point p; double vol; 
+    for(VMesh::Node::index_type idx=0; idx<nrows; idx++)
+    {
+      mesh->get_center(p,idx);
+      vol = mesh->get_size(idx);
+      if (x) { *dataptr = p.x(); dataptr++; }
+      if (y) { *dataptr = p.y(); dataptr++; }
+      if (z) { *dataptr = p.z(); dataptr++; }
+      if (eidx) { *dataptr = static_cast<double>(idx); dataptr++; }
+      if (size) { *dataptr = vol; dataptr++; }
+      if (nnormals) 
+      { 
+        Vector v; mesh->get_normal(v,idx); 
+        dataptr[0] = v.x(); dataptr[1] = v.y(); 
+        dataptr[2] = v.z(); dataptr += 3;
+      }
+    }
+  }
+  else if (simplexString_.get() == "Edge")
+  {
+    VMesh::Edge::size_type nrows;
+    mesh->size(nrows);
+    output = new DenseMatrix(nrows,ncols);
+    double* dataptr = output->get_data_pointer();
+  
+    Matrix::index_type k = 0;
+    Point p; double vol; 
+    for(VMesh::Edge::index_type idx=0; idx<nrows; idx++)
+    {
+      mesh->get_center(p,idx);
+      vol = mesh->get_size(idx);
+      if (x) { *dataptr = p.x(); dataptr++; }
+      if (y) { *dataptr = p.y(); dataptr++; }
+      if (z) { *dataptr = p.z(); dataptr++; }
+      if (eidx) { *dataptr = static_cast<double>(idx); dataptr++; }
+      if (size) { *dataptr = vol; dataptr++; }
+    }
+  }  
+  else if (simplexString_.get() == "Face")
+  {
+    VMesh::Face::size_type nrows;
+    mesh->size(nrows);
+    output = new DenseMatrix(nrows,ncols);
+    double* dataptr = output->get_data_pointer();
+  
+    Matrix::index_type k = 0;
+    Point p; double vol; 
+    VMesh::coords_type center;
+    mesh->get_element_center(center);
+    
+    for(VMesh::Face::index_type idx=0; idx<nrows; idx++)
+    {
+      mesh->get_center(p,idx);
+      vol = mesh->get_size(idx);
+      if (x) { *dataptr = p.x(); dataptr++; }
+      if (y) { *dataptr = p.y(); dataptr++; }
+      if (z) { *dataptr = p.z(); dataptr++; }
+      if (eidx) { *dataptr = static_cast<double>(idx); dataptr++; }
+      if (size) { *dataptr = vol; dataptr++; }
+      if (fnormals) 
+      { 
+        Vector v; mesh->get_normal(v,center,VMesh::Elem::index_type(idx)); 
+        dataptr[0] = v.x(); dataptr[1] = v.y(); 
+        dataptr[2] =v.z(); dataptr += 3;
+      }
+    }
+  }
+  else if (simplexString_.get() == "Cell")
+  {
+    VMesh::Cell::size_type nrows;
+    mesh->size(nrows);
+    output = new DenseMatrix(nrows,ncols);
+    double* dataptr = output->get_data_pointer();
+  
+    Matrix::index_type k = 0;
+    Point p; double vol; 
+    for(VMesh::Cell::index_type idx=0; idx<nrows; idx++)
+    {
+      mesh->get_center(p,idx);
+      vol = mesh->get_size(idx);
+      if (x) { *dataptr = p.x(); dataptr++; }
+      if (y) { *dataptr = p.y(); dataptr++; }
+      if (z) { *dataptr = p.z(); dataptr++; }
+      if (eidx) { *dataptr = static_cast<double>(idx); dataptr++; }
+      if (size) { *dataptr = vol; dataptr++; }
+    }
+  }
+
+  send_output_handle("Output Measures Matrix", output, true);
 }
-
-
-
-CompileInfoHandle
-ReportFieldGeometryMeasuresAlgo::get_compile_info(const TypeDescription *mesh_td,
-				    const TypeDescription *simplex_td,
-				    bool nnormals, bool fnormals)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(__FILE__);
-  string template_class_name("ReportFieldGeometryMeasuresAlgoT");
-  static const string base_class_name("ReportFieldGeometryMeasuresAlgo");
-
-  if (nnormals) { template_class_name += "NN"; }
-  if (fnormals) { template_class_name += "FN"; }
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       simplex_td->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       mesh_td->get_name() + ", " + simplex_td->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  mesh_td->fill_compile_info(rval);
-  simplex_td->fill_compile_info(rval);
-  return rval;
-}
-
 
 } // End namespace SCIRun
 

@@ -21,6 +21,7 @@
 ////@begin includes
 #include "wx/xrc/xmlres.h"
 #include "wx/spinctrl.h"
+#include "wx/valtext.h"
 ////@end includes
 
 /*!
@@ -94,7 +95,7 @@ public:
 
 ////@begin ITKConfidenceConnectedFilter member variables
     wxSpinCtrl* mIterations;
-    wxSpinCtrl* mMultipliers;
+    wxTextCtrl* mMultiplier;
     wxGauge* mPercentage;
 ////@end ITKConfidenceConnectedFilter member variables
 

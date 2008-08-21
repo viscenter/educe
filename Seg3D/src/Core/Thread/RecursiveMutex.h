@@ -95,6 +95,7 @@ public:
   // blocked waiting for the Mutex.
   void unlock();
 
+  friend class ConditionVariable;
 private:
   const char* name_;
   RecursiveMutex_private* priv_;

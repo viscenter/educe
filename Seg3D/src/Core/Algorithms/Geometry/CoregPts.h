@@ -102,7 +102,7 @@ private:
   double misfitTol_;
   string trans_;
   int &abort_;
-  ScalarFieldInterfaceHandle dField_;
+  VField* dField_;
   MusilRNG &mr_;
   Point origPtsCenter_;
   int NDIM_;
@@ -113,7 +113,7 @@ private:
   double simplex_step(vector<double>&sum, double factor, int worst);
 public:
   CoregPtsSimplexSearch(int maxIters, double misfitTol, int &abort,
-			ScalarFieldInterfaceHandle dField, 
+			VField* dField, 
 			MusilRNG &mr,
 			int allowScale=1, int allowRotate=1,
 			int allowTranslate=1);

@@ -46,8 +46,8 @@ itcl_class Teem_Tend_TendEpireg {
     }
 
     method send_text {} {
-	$this update_text
-	$this-c needexecute
+        $this update_text
+        $this-c needexecute
     }
 
     method ui {} {
@@ -57,66 +57,66 @@ itcl_class Teem_Tend_TendEpireg {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	option add *textBackground white	
-	iwidgets::scrolledtext $w.f.options.gradient_list \
-	    -vscrollmode dynamic -labeltext "List of gradients. example: (one gradient per line) 0.5645 0.32324 0.4432454"
+        option add *textBackground white	
+        sci_scrolledtext $w.f.options.gradient_list \
+          -vscrollmode dynamic -labeltext "List of gradients. example: (one gradient per line) 0.5645 0.32324 0.4432454"
 
-	catch {$w.f.options.gradient_list insert end [set $this-gradient_list]}
+        catch {$w.f.options.gradient_list insert end [set $this-gradient_list]}
 
         pack $w.f.options.gradient_list -side top -expand yes -fill x
-        iwidgets::entryfield $w.f.options.reference \
-	    -labeltext "reference:" -textvariable $this-reference
+        sci_entryfield $w.f.options.reference \
+          -labeltext "reference:" -textvariable $this-reference
         pack $w.f.options.reference -side top -expand yes -fill x
-        iwidgets::entryfield $w.f.options.blur_x -labeltext "blur_x:" \
-	    -textvariable $this-blur_x
+        sci_entryfield $w.f.options.blur_x -labeltext "blur_x:" \
+          -textvariable $this-blur_x
         pack $w.f.options.blur_x -side top -expand yes -fill x
-        iwidgets::entryfield $w.f.options.blur_y -labeltext "blur_y:" \
-	    -textvariable $this-blur_y
+        sci_entryfield $w.f.options.blur_y -labeltext "blur_y:" \
+          -textvariable $this-blur_y
         pack $w.f.options.blur_y -side top -expand yes -fill x
-	checkbutton $w.f.options.usedefaultthreshold -text \
-	    "Use Default Threshold" -variable $this-use-default-threshold
-	pack $w.f.options.usedefaultthreshold -side top -expand yes -fill x
-        iwidgets::entryfield $w.f.options.threshold -labeltext "threshold:" \
-	    -textvariable $this-threshold
+        sci_checkbutton $w.f.options.usedefaultthreshold -text \
+          "Use Default Threshold" -variable $this-use-default-threshold
+        pack $w.f.options.usedefaultthreshold -side top -expand yes -fill x
+        sci_entryfield $w.f.options.threshold -labeltext "threshold:" \
+          -textvariable $this-threshold
         pack $w.f.options.threshold -side top -expand yes -fill x
-        iwidgets::entryfield $w.f.options.cc_analysis \
-	    -labeltext "cc_analysis:" -textvariable $this-cc_analysis
+        sci_entryfield $w.f.options.cc_analysis \
+          -labeltext "cc_analysis:" -textvariable $this-cc_analysis
         pack $w.f.options.cc_analysis -side top -expand yes -fill x
-        iwidgets::entryfield $w.f.options.fitting -labeltext "fitting:" \
-	    -textvariable $this-fitting
+        sci_entryfield $w.f.options.fitting -labeltext "fitting:" \
+          -textvariable $this-fitting
         pack $w.f.options.fitting -side top -expand yes -fill x
 
-	make_labeled_radio $w.f.options.kernel "Kernel:" "" \
-		top 4 $this-kernel \
-		{{"Box" box} \
-		{"Tent" tent} \
-		{"Cubic (Catmull-Rom)" cubicCR} \
-		{"Cubic (B-spline)" cubicBS} \
-		{"Quartic" quartic} \
-		{"Windowed Sinc" hann} \
-		{"Gaussian" gaussian}}
+        make_labeled_radio $w.f.options.kernel "Kernel:" "" \
+          top 4 $this-kernel \
+          {{"Box" box} \
+          {"Tent" tent} \
+          {"Cubic (Catmull-Rom)" cubicCR} \
+          {"Cubic (B-spline)" cubicBS} \
+          {"Quartic" quartic} \
+          {"Windowed Sinc" hann} \
+          {"Gaussian" gaussian}}
 
         pack $w.f.options.kernel -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.sigma -labeltext "sigma:" \
-	    -textvariable $this-sigma
+        sci_entryfield $w.f.options.sigma -labeltext "sigma:" \
+          -textvariable $this-sigma
         pack $w.f.options.sigma -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.extent -labeltext "extent:" \
-	    -textvariable $this-extent
+        sci_entryfield $w.f.options.extent -labeltext "extent:" \
+          -textvariable $this-extent
         pack $w.f.options.extent -side top -expand yes -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

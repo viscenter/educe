@@ -57,6 +57,17 @@ ProgressReporter::~ProgressReporter()
 
 
 void
+ProgressReporter::report_start(std::string& tag, bool report_progress)
+{
+}
+
+void
+ProgressReporter::report_end()
+{
+}
+
+
+void
 ProgressReporter::error(const std::string& msg)
 {
   std::cerr << "Error: " << msg << std::endl;

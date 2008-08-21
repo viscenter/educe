@@ -42,13 +42,14 @@
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/GeometryPort.h>
 #include <Core/Geom/GeomGroup.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomText.h>
 #include <Core/Geom/GeomLine.h>
 #include <Core/Geom/GeomQuads.h>
 #include <Core/Geom/ColorMapTex.h>
 #include <Core/Geom/GeomTransform.h>
 #include <Core/Geometry/Transform.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Geom/GeomSticky.h>
 #include <Core/Geom/GeomDL.h>
 #include <Core/Geom/GeomSwitch.h>
@@ -154,8 +155,8 @@ ShowMatrix::ShowMatrix(GuiContext* context)
     right(1.0,0.0,0.0), left(-1.0,0.0,0.0), 
     up(0.0,1.0,0.0), down(0.0,-1.0,0.0),
     front(0.0,0.0,1.0), back(0.0,0.0,-1.0),
-    white_(scinew Material(Color(0,0,0), Color(1,1,1), Color(1,1,1), 20)),
-    black_(scinew Material(Color(0,0,0), Color(0,0,0), Color(0,0,0), 20)),
+    white_(new Material(Color(0,0,0), Color(1,1,1), Color(1,1,1), 20)),
+    black_(new Material(Color(0,0,0), Color(0,0,0), Color(0,0,0), 20)),
     swap_row_col_(false),
     gui_grid_x_(context->subVar("grid_x")),
     gui_grid_y_(context->subVar("grid_y")),
@@ -225,9 +226,9 @@ ShowMatrix::execute()
       error("Bogus Color Mode Selected" ); return;
     }
     
-    GeomGroup *plot = scinew GeomGroup();
+    GeomGroup *plot = new GeomGroup();
     GeomSwitch *grid = 
-      scinew GeomSwitch(scinew GeomMaterial(generate_grid(gui_3d_mode_.get()),
+      new GeomSwitch(new GeomMaterial(generate_grid(gui_3d_mode_.get()),
 					    white_));
     plot->add(grid);
     //    plot->add(generate_contour(mHandles[0]));
@@ -254,7 +255,7 @@ ShowMatrix::execute()
       if (gui_showtext_.get()) plot->add(generate_text(mHandles[m]));
     }
 
-    GeomTransform *trans = scinew GeomTransform(plot);
+    GeomTransform *trans = new GeomTransform(plot);
     geometery_output_handle_ = trans;
 
     const double scale = gui_scale_.get();
@@ -262,7 +263,7 @@ ShowMatrix::execute()
     trans->translate(Vector(gui_trans_x_.get(), gui_trans_y_.get(), -1.0));
     
     if (!gui_3d_mode_.get()) 
-      geometery_output_handle_ = scinew GeomSticky(trans);
+      geometery_output_handle_ = new GeomSticky(trans);
     
     send_output_handle( "Geometry",
 			geometery_output_handle_,
@@ -336,7 +337,7 @@ ShowMatrix::generate_grid(bool do_3d)
   const int gridy = gui_grid_y_.get();
   const int gridz = gui_grid_z_.get();
   
-  GeomLines *grid = scinew GeomLines();
+  GeomLines *grid = new GeomLines();
   int i;
   for (i = 0; i <= gridx; i++) {
     grid->add(Point(i,0,0), Point(i,gridy,0));
@@ -352,7 +353,7 @@ ShowMatrix::generate_grid(bool do_3d)
     grid->add(Point(0,0,i), Point(gridx,0,i));
     grid->add(Point(0,0,i), Point(0,gridy,i));  
   }
-  GeomTransform *graph = scinew GeomTransform(grid);
+  GeomTransform *graph = new GeomTransform(grid);
   graph->scale(Vector(1.0/gridx,1.0/gridy,1.0/gridz));
 
   return graph;
@@ -365,7 +366,7 @@ ShowMatrix::generate_text(MatrixHandle mh)
   ostringstream buffer;
   buffer.precision(2);
 
-  GeomTexts *text = scinew GeomTexts;
+  GeomTexts *text = new GeomTexts;
   text->set_font_index(2);
   const MatrixData &data = get_matrix_data(mh);
   for(int row = data.row_begin; row <= data.row_end; row++) {
@@ -375,7 +376,7 @@ ShowMatrix::generate_text(MatrixHandle mh)
       text->add(buffer.str(), Point(col, get_value(mh, row, col), row));
     }
   }
-  GeomTransform *graph = scinew GeomTransform(text);
+  GeomTransform *graph = new GeomTransform(text);
   switch (gui_gmode_.get()){
   case 1:
   case 3:
@@ -410,7 +411,7 @@ ShowMatrix::generate_line_graph(MatrixHandle mh)
 {
   const MatrixData &data = get_matrix_data(mh);
   set_color_scale(mh);
-  GeomCLineStrips *lines = scinew GeomCLineStrips();
+  GeomCLineStrips *lines = new GeomCLineStrips();
   lines->setLineWidth(3.0);
   for(int row = data.row_begin; row <= data.row_end; row++) {
     lines->newline();
@@ -418,7 +419,7 @@ ShowMatrix::generate_line_graph(MatrixHandle mh)
       lines->add(Point(col, get_value(mh, row, col), row), get_color(mh,row,col));
     }
   }
-  GeomTransform *graph = scinew GeomTransform(lines);
+  GeomTransform *graph = new GeomTransform(lines);
   if (gui_data_face_centered_.get() == 1) {
   graph->translate(Vector(-data.col_begin + 0.5, -data.min, -data.row_begin + 0.5));
   graph->scale(Vector(1.0 / (data.col_end - data.col_begin + 1.0), 
@@ -449,11 +450,11 @@ ShowMatrix::generate_3d_ribbon_graph(MatrixHandle mh,bool fill_sides)
   double midpoint = data.min;
   //double x_gap = gui_x_gap_.get();
   double z_gap = gui_z_gap_.get();
-  GeomGroup *bars = scinew GeomGroup();
+  GeomGroup *bars = new GeomGroup();
 
   for(int z = data.row_begin; z <= data.row_end; z++) {
     for (int x = data.col_begin; x < data.col_end; x++) {
-      GeomFastQuads *bar = scinew GeomFastQuads();
+      GeomFastQuads *bar = new GeomFastQuads();
       bars->add(bar);
       if (fill_sides){
 	//front
@@ -510,7 +511,7 @@ ShowMatrix::generate_3d_ribbon_graph(MatrixHandle mh,bool fill_sides)
 #endif
     }
   }
-  GeomTransform *graph = scinew GeomTransform(bars);
+  GeomTransform *graph = new GeomTransform(bars);
   graph->translate(Vector(-data.col_begin, -data.min, -data.row_begin));
   graph->scale(Vector(1.0 / (data.col_end - data.col_begin), 
 		      1.0 / (data.max - data.min),
@@ -525,10 +526,10 @@ ShowMatrix::generate_3d_sheet_graph(MatrixHandle mh)
   const MatrixData &data = get_matrix_data(mh);  
   set_color_scale(mh);
   int x,z;
-  GeomGroup *bars = scinew GeomGroup();
+  GeomGroup *bars = new GeomGroup();
   for(z = data.row_begin; z < data.row_end; z++) {
     for (x = data.col_begin; x < data.col_end; x++) {
-      GeomFastQuads *bar = scinew GeomFastQuads();
+      GeomFastQuads *bar = new GeomFastQuads();
       bars->add(bar);
       Point p0(x, get_value(mh,z,x), z);
       Point p1(x, get_value(mh,z+1,x), z+1);
@@ -552,7 +553,7 @@ ShowMatrix::generate_3d_sheet_graph(MatrixHandle mh)
 	       p3, normal, get_color(mh,z,x+1));
     }
   }
-  GeomTransform *sheet = scinew GeomTransform(bars);
+  GeomTransform *sheet = new GeomTransform(bars);
   sheet->translate(Vector(-data.col_begin, -data.min, -data.row_begin));
   sheet->scale(Vector(1.0 / (data.col_end - data.col_begin), 
 		      1.0 / (data.max - data.min),
@@ -580,7 +581,7 @@ ShowMatrix::generate_contour(MatrixHandle mh)
 
   Vector normal(0.0,1.0,0.0);
   colormap_input_handle_->Scale(data.min,data.max);
-  GeomFastQuads *quad = scinew GeomFastQuads();
+  GeomFastQuads *quad = new GeomFastQuads();
   for (row = data.row_begin; row < data.row_end; row++) {
     for (col = data.col_begin; col < data.col_end; col++) {
       quad->add(Point(col * dx + x_off, 0.0, row * dz + z_off),
@@ -612,7 +613,7 @@ ShowMatrix::generate_3d_bar_graph(MatrixHandle mh)
 
   const MatrixData &data = get_matrix_data(mh);
   double midpoint = data.min;
-  GeomGroup *bars= scinew GeomGroup();
+  GeomGroup *bars= new GeomGroup();
   for(int z = data.row_begin; z <= data.row_end; z++) {
     for (int x = data.col_begin; x <= data.col_end; x++) {
       const double y = get_value(mh,z,x);
@@ -620,7 +621,7 @@ ShowMatrix::generate_3d_bar_graph(MatrixHandle mh)
       if (fabs(y - midpoint) < ((data.max - data.min)/200.0)) continue;
       
       MaterialHandle color = get_color(mh,z,x);
-      GeomFastQuads *bar = scinew GeomFastQuads();
+      GeomFastQuads *bar = new GeomFastQuads();
       bars->add(bar);
 
       // Corners of box. Naming convention goes:
@@ -660,7 +661,7 @@ ShowMatrix::generate_3d_bar_graph(MatrixHandle mh)
 	       blr,down,black_,flr,down,black_);
     }
   }
-  GeomTransform *graph = scinew GeomTransform(bars);
+  GeomTransform *graph = new GeomTransform(bars);
   graph->translate(Vector(-data.col_begin, -data.min, -data.row_begin));
   graph->scale(Vector(1.0 / (data.col_end - data.col_begin + 1), 
 		      1.0 / (data.max - data.min),
@@ -755,7 +756,7 @@ ShowMatrix::get_matrix_data(MatrixHandle mh)
 
 #if 0
 
-  GeomGrid *grid2 = scinew GeomGrid(10,10,
+  GeomGrid *grid2 = new GeomGrid(10,10,
 				    Point(.0,.0,.0),
 				    Vector(2.0,0.0,0.0),
 				    Vector(0.0,0.0,2.0));

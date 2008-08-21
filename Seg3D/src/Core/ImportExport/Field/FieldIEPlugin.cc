@@ -49,9 +49,9 @@
 #  include <Core/ImportExport/ColorMap/ColorMapIEPlugin.h>
 #endif
 
-#include <sgi_stl_warnings_off.h>
+
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 
 using namespace std;
@@ -127,7 +127,7 @@ FieldIEPlugin::FieldIEPlugin(const string& pname,
 
   if (!field_plugin_table)
   {
-    field_plugin_table = scinew map<string, FieldIEPlugin *>();
+    field_plugin_table = new map<string, FieldIEPlugin *>();
   }
 
   string tmppname = pluginname;

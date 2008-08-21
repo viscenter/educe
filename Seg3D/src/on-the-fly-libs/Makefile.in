@@ -128,10 +128,10 @@ endif
 ifeq ($(SCI_MAKE_BE_QUIET),true)
 	@echo "Compiling: $<"
 	@rm -f $@ $(*).so $(*).dylib $(*).dll
-	@$(CXX) -c $(CFLAGS) $(INCLUDES) $< -o $@ 
+	@$(CXX) -c -O3  $(CFLAGS) $(INCLUDES) $< -o $@ 
 else
 	rm -f $@ $(*).so $(*).dylib $(*).dll
-	$(CXX) -c $(CFLAGS) $(INCLUDES) $< -o $@ 
+	$(CXX) -c -O3 $(CFLAGS) $(INCLUDES) $< -o $@ 
 endif
 
 # don't create deps with ms yet

@@ -191,25 +191,25 @@ ComputeActivation::execute()
   old_time_ = newtime;
 
 
-  MatrixHandle Activation = scinew DenseMatrix(data_size_,1);
+  MatrixHandle Activation = new DenseMatrix(data_size_,1);
   if (Activation.get_rep() == 0)
   {
     error("Could not allocate Activation Matrix");
   }
 
-  MatrixHandle Vmax = scinew DenseMatrix(data_size_,1);
+  MatrixHandle Vmax = new DenseMatrix(data_size_,1);
   if (Vmax.get_rep() == 0)
   {
     error("Could not allocate Vmax Matrix");
   }
 
-  MatrixHandle Dvdtmax = scinew DenseMatrix(data_size_,1);
+  MatrixHandle Dvdtmax = new DenseMatrix(data_size_,1);
   if (Dvdtmax.get_rep() == 0)
   {
     error("Could not allocate Vmax Matrix");
   }
 
-  MatrixHandle Threshold = scinew DenseMatrix(data_size_,5);
+  MatrixHandle Threshold = new DenseMatrix(data_size_,5);
   if (Dvdtmax.get_rep() == 0)
   {
     error("Could not allocate Vmax Matrix");

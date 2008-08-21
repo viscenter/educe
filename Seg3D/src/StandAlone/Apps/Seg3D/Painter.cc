@@ -1,43 +1,34 @@
-/*
-   For more information, please see: http://software.sci.utah.edu
+//  
+//  For more information, please see: http://software.sci.utah.edu
+//  
+//  The MIT License
+//  
+//  Copyright (c) 2006 Scientific Computing and Imaging Institute,
+//  University of Utah.
+//  
+//  
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//  
+//  The above copyright notice and this permission notice shall be included
+//  in all copies or substantial portions of the Software.
+//  
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+//  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//  
+//    File   : Painter.cc
+//    Author : McKay Davis
+//    Date   : Nov 2005
 
-   The MIT License
-
-   Copyright (c) 2004 Scientific Computing and Imaging Institute,
-   University of Utah.
-
-   
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the "Software"),
-   to deal in the Software without restriction, including without limitation
-   the rights to use, copy, modify, merge, publish, distribute, sublicense,
-   and/or sell copies of the Software, and to permit persons to whom the
-   Software is furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-*/
-
-
-/*
- *  Painter.cc
- *
- *  Written by:
- *   McKay Davis
- *   School of Computing
- *   University of Utah
- *   November, 2005
- *
- *  Copyright (C) 2005 SCI Group
- */
 #include <sci_comp_warn_fixes.h>
 #include <stdlib.h>
 #include <math.h>
@@ -49,7 +40,7 @@
 #include <Core/Containers/Array3.h>
 #include <Core/Datatypes/Field.h> 
 #include <Core/Exceptions/GuiException.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/ColorMappedNrrdTextureObj.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Core/Skinner/GeomSkinnerVarSwitch.h>
@@ -58,7 +49,7 @@
 #include <Core/Geom/TexSquare.h>
 #include <Core/Geom/OpenGLViewport.h>
 #include <Core/Geom/FreeType.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/MinMax.h>
 #include <Core/Thread/CleanupManager.h>
@@ -77,14 +68,11 @@
 #include <StandAlone/Apps/Seg3D/PointerToolSelectorTool.h>
 #include <StandAlone/Apps/Seg3D/KeyToolSelectorTool.h>
 #include <StandAlone/Apps/Seg3D/Seg3DFrame.h>
-#include <StandAlone/Apps/Seg3D/BrushTool.h>
-#include <StandAlone/Apps/Seg3D/ITKCurvatureAnisotropicDiffusionImageFilterTool.h>
-
-#include <StandAlone/Apps/Seg3D/ITKNeighborhoodConnectedImageFilterTool.h>
-
-#include <StandAlone/Apps/Seg3D/ITKThresholdImageFilterTool.h>
-#include <StandAlone/Apps/Seg3D/ITKDiscreteGaussianImageFilterTool.h>
+#include <StandAlone/Apps/Seg3D/Seg3DwxGuiUtils.h>
 #include <itkGDCMSeriesFileNames.h>
+
+#include <StandAlone/Apps/Seg3D/GuiCode/cursorinformation.h>
+#include <StandAlone/Apps/Seg3D/GuiCode/seg3devents.h>
 
 // needed for Painter::maker
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
@@ -113,8 +101,11 @@ Painter::Painter(Skinner::Variables *variables, VarContext* ctx) :
   current_vrender_target_deferred_(false),
   volume_lock_("Volume")
 {
+  undo_manager_ = new UndoManager();
+
   tm_.add_tool(new PointerToolSelectorTool(this), 50);
-  tm_.add_tool(new KeyToolSelectorTool(this), 51);
+  tm_.add_tool(new SliceWindowKeyToolSelectorTool(this), 51);
+  global_key_tool_ = new GlobalKeyToolSelectorTool(this);
 
   event_handle_t event;
   InitializeSignalCatcherTargets(event);
@@ -186,7 +177,7 @@ Painter::build_layer_button(unsigned int &bpos, NrrdVolumeHandle &volume)
   // layer UI moves to wxwidgets).
   if (bpos >= layer_buttons_.size())
   {
-    set_status("Layer button overflow.");
+    set_status("Volume button overflow.");
     return;
   }
 
@@ -240,8 +231,6 @@ Painter::build_layer_button(unsigned int &bpos, NrrdVolumeHandle &volume)
 void
 Painter::build_volume_list(NrrdVolumes &volumes)
 {
-  // TODO:  Get rid of this and use volumes_ directly.
-  // Make a copy of volumes_.  Probably should just return volumes directly.
   volume_lock_.lock();
   for (unsigned int i = 0; i < volumes_.size(); ++i) {
     volumes.push_back(volumes_[i]);
@@ -273,7 +262,7 @@ Painter::opacity_up()
 
 
 void
-Painter::current_layer_up()
+Painter::current_layer_down()
 {
   if (!current_volume_.get_rep()) return;
 
@@ -297,12 +286,12 @@ Painter::current_layer_up()
 
 
 void
-Painter::current_layer_down()
+Painter::current_layer_up()
 {
   if (!current_volume_.get_rep()) return;
 
   volume_lock_.lock();
-  int pos;
+  int pos = 0;
   int i;
   for (i = 0; i < (int)layer_buttons_.size(); i++)
   {
@@ -321,7 +310,7 @@ Painter::current_layer_down()
 
 
 void
-Painter::move_layer_up()
+Painter::move_layer_down()
 {
   if (!current_volume_.get_rep()) return;
 
@@ -350,7 +339,7 @@ Painter::move_layer_up()
 
 
 void
-Painter::move_layer_down()
+Painter::move_layer_up()
 {
   if (!current_volume_.get_rep()) return;
 
@@ -418,6 +407,10 @@ Painter::find_volume_by_name(const string &name, NrrdVolumeHandle parent)
 string
 Painter::unique_layer_name(string base)
 {
+  if (!find_volume_by_name(base).get_rep())
+  {
+    return base;
+  }
   string::size_type pos = base.find_last_not_of(" 0123456789");
   base = base.substr(0, pos+1);
   int i = 0;
@@ -521,9 +514,11 @@ Painter::get_filename_series(string filename)
   try {
     typedef itk::GDCMSeriesFileNames series_t;
     series_t::Pointer names = series_t::New();
+    names->SetUseSeriesDetails(true);
     names->SetInputDirectory(dfile.first);
     vector<string> series = names->GetSeriesUIDs();
     bool found = false;
+    int selected = 0;
     for (size_t i = 0; i < series.size(); i++)
     {
       files = names->GetFileNames(series[i]);
@@ -544,9 +539,43 @@ Painter::get_filename_series(string filename)
           break;
         }
       }
-      if (found) break;
+      if (found) { selected = i; break; }
     }
+
     if (!found) { files.clear(); }
+
+#if 0
+    // TODO:  Fix dicom series selection so the user doesn't have to guess
+    // from the license plate style names which one they really want to open.
+    else if (series.size() > 1)
+    {
+      wxString *choices = new wxString[series.size()];
+      for (size_t i = 0; i < series.size(); i++)
+      {
+        choices[i] = std2wx(series[i]);
+      }
+
+      wxSingleChoiceDialog dialog(global_seg3dframe_pointer_,
+                                  _T("There are multiple series dicoms in this directory.\nPlease select the one you would like to open."),
+                                  _T("Dicom series selection"),
+                                  series.size(), choices);
+      dialog.SetSelection(selected);
+
+      int newselected = -1;
+      if (dialog.ShowModal() == wxID_OK)
+      {
+        newselected = dialog.GetSelection();
+      }
+      else
+      {
+        files.clear();
+      }
+      if (newselected != -1 && selected != newselected)
+      {
+        files = names->GetFileNames(series[newselected]);
+      }
+    }
+#endif
   }
   catch (...)
   {
@@ -574,22 +603,37 @@ Painter::get_filename_series(string filename)
 BaseTool::propagation_state_e
 Painter::process_event(event_handle_t &event)
 {
+  KeyEvent *ke = dynamic_cast<KeyEvent *>(event.get_rep());
+  if (ke)
+  {
+    unsigned int s = ke->get_key_state();
+
+    if (s & KeyEvent::KEY_PRESS_E)
+    {
+      if (global_key_tool_->key_press(ke->get_key_string(),
+                                      ke->get_keyval(),
+                                      ke->get_modifiers(),
+                                      ke->get_time()) == STOP_E)
+      {
+        return STOP_E;
+      }
+    }
+  }
+
   ThrowSkinnerSignalEvent *tsse =
     dynamic_cast<ThrowSkinnerSignalEvent *>(event.get_rep());
   if (tsse)
   {
     tsse->set_vars(get_vars());
     throw_signal(tsse->get_name());
-#ifdef __WX_GTK__
+#if defined(__WX_GTK__) || defined(_WIN32)
     // Finish the event for threaded synchronous throw.
     tsse->up();
 #endif
     return STOP_E;
   }
-  else
-  {
-    return Parent::process_event(event);
-  }
+
+  return Parent::process_event(event);
 }
 
 
@@ -606,14 +650,18 @@ Painter::ThrowSkinnerSignal(ThrowSkinnerSignalEvent *tsse, bool sync)
 {
   if (sync)
   {
-#ifdef __WX_GTK__
-    wxMutexGuiLeave();
+#if defined(__WX_GTK__)
     event_handle_t event(tsse);
     EventManager::add_event(event);
-
     // Wait for the event to finish.
+    wxMutexGuiLeave();
     tsse->down();
     wxMutexGuiEnter();
+#elif defined(_WIN32)
+    event_handle_t event(tsse);
+    EventManager::add_event(event);
+    // Wait for the event to finish.
+    tsse->down();
 #else
     // Throw in this thread, backwards compatable (thread unsafe)
     tsse->set_vars(global_painter_pointer->get_vars());
@@ -626,6 +674,17 @@ Painter::ThrowSkinnerSignal(ThrowSkinnerSignalEvent *tsse, bool sync)
     event_handle_t event(tsse);
     EventManager::add_event(event);
   }
+}
+
+
+string
+Painter::get_current_layer_name()
+{
+  if (global_painter_pointer->current_volume_.get_rep())
+  {
+    return global_painter_pointer->current_volume_->name_;
+  }
+  return "";
 }
 
 
@@ -719,6 +778,140 @@ Painter::create_new_label(NrrdVolumeHandle &likethis, const string &name)
   volume_lock_.unlock();
 
   return result;
+}
+
+
+void
+Painter::set_pointer_position(const Point &p)
+{
+  pointer_pos_ = p;
+
+  CursorInformationStruct *CI = new CursorInformationStruct();
+  CI->x = pointer_pos_.x();
+  CI->y = pointer_pos_.y();
+  CI->z = pointer_pos_.z();
+  CI->value = 0.0;
+
+  if (current_volume_.get_rep() && current_volume_->inside_p(pointer_pos_))
+  {
+    float val = 0.0;
+    const vector<int> index = current_volume_->world_to_index(pointer_pos_);
+    current_volume_->get_value(index, val);
+    CI->value = val;
+    CI->xi = index[1];
+    CI->yi = index[2];
+    CI->zi = index[3];
+    CI->value_is_valid = true;
+  }
+  else
+  {
+    CI->value_is_valid = false;
+  }
+	
+  wxCommandEvent event(wxEVT_CURSOR_INFORMATION_CHANGE, wxID_ANY);
+  event.SetClientData((void *)CI);
+  wxPostEvent(global_seg3dframe_pointer_->cursorInformation_, event);
+}
+
+
+void
+Painter::set_session_appearance_vars()
+{
+  // Set the active volume index.
+  int avi = -1;
+  for (int i = 0; i < (int)volumes_.size(); i++)
+  {
+    if (current_volume_ == volumes_[i]) avi = i;
+  }
+  get_vars()->insert("Painter::active_volume_index", to_string(avi), "int");
+  
+  // Grab the point from a random slice window, they should all be the same.
+  // TODO:  This doesn't work, fixme.
+  const Point &probe = windows_[0]->center_;
+  get_vars()->insert("Painter::probe::x", to_string(probe.x()), "double");
+  get_vars()->insert("Painter::probe::y", to_string(probe.y()), "double");
+  get_vars()->insert("Painter::probe::z", to_string(probe.z()), "double");
+}
+
+
+void
+Painter::get_session_appearance_vars(Skinner::Variables *vars)
+{
+  if (vars->exists("Painter::volume_visible"))
+  {
+    const bool vis = vars->get_bool("Painter::volume_visible");
+    get_vars()->set_by_string("Painter::volume_visible", to_string(vis));
+  }
+
+  if (vars->exists("Painter::active_volume_index"))
+  {
+    const int avi = vars->get_int("Painter::active_volume_index");
+    if (avi >= 0 && avi < (int)volumes_.size())
+    {
+      current_volume_ = volumes_[avi];
+    }
+  }
+
+  if (vars->exists("Painter::probe::x") &&
+      vars->exists("Painter::probe::y") &&
+      vars->exists("Painter::probe::z"))
+  {
+    const double px = vars->get_double("Painter::probe::x");
+    const double py = vars->get_double("Painter::probe::y");
+    const double pz = vars->get_double("Painter::probe::z");
+    const Point probe(px, py, pz);
+    for (unsigned int i = 0; i < windows_.size(); i++)
+    {
+      windows_[i]->center_ = probe;
+    }
+  }
+  else
+  {
+    if (current_volume_.get_rep())
+    {
+      for (unsigned int i = 0; i < windows_.size(); i++)
+      {
+        windows_[i]->center_ = current_volume_->center();
+      }
+    }
+  }
+}
+
+
+void
+Painter::toggle_current_volume_visibility()
+{
+  if (current_volume_.get_rep() && current_volume_->button_)
+  {
+    const bool vis = current_volume_->visible();
+    if (vis)
+    {
+      set_status("Toggling current volume visibility off.");
+    }
+    else
+    {
+      set_status("Toggling current volume visibility on.");
+    }
+    current_volume_->button_->layer_visible_ = !vis;
+  }
+  redraw_all();    
+}
+
+
+double
+Painter::scene_scale()
+{
+  if (volumes_.empty()) return 1.0;
+  
+  double mscale = AIR_POS_INF;
+  for (size_t i = 0; i < volumes_.size(); i++)
+  {
+    const Vector vscale = volumes_[i]->scale();
+    mscale = Min(mscale, vscale.x());
+    mscale = Min(mscale, vscale.y());
+    mscale = Min(mscale, vscale.z());
+  }
+  return mscale;
 }
 
 

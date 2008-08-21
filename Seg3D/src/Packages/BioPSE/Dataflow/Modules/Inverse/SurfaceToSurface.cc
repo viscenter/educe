@@ -533,11 +533,6 @@ SurfaceToSurface::jacobi_sci(Matrix* matrix,
 {
   int size=matrix->nrows();
 
-  int flop=0;
-  int memref=0;
-  int gflop=0;
-  int grefs=0;
-
   iteration.set(0);
     
   ColumnMatrix invdiag(size);
@@ -548,15 +543,13 @@ SurfaceToSurface::jacobi_sci(Matrix* matrix,
   {
     invdiag[i]=1./matrix->get(i,i);
   }
-  flop+=size;
-  memref=2*size*sizeof(double);
 
   ColumnMatrix Z(size);
-  matrix->mult(lhs, Z, flop, memref);
+  matrix->mult(lhs, Z);
 
-  Sub(Z, Z, rhs, flop, memref);
-  double bnorm=rhs.vector_norm(flop, memref);
-  double err=Z.vector_norm(flop, memref)/bnorm;
+  Sub(Z, Z, rhs);
+  double bnorm=rhs.vector_norm();
+  double err=Z.vector_norm()/bnorm;
 
   current_error.set(err);
 
@@ -565,11 +558,6 @@ SurfaceToSurface::jacobi_sci(Matrix* matrix,
   if(toomany == 0)
     toomany=2*size;
   double max_error=target_error.get();
-
-  gflop+=flop/1000000000;
-  flop=flop%1000000000;
-  grefs+=memref/1000000000;
-  memref=memref%1000000000;
     
   int last_update=0;
 
@@ -602,18 +590,13 @@ SurfaceToSurface::jacobi_sci(Matrix* matrix,
       break;
     }
 
-    Mult(Z, invdiag, Z, flop, memref);
-    ScMult_Add(lhs, 1, lhs, Z, flop, memref);
-    //	Sub(lhs, lhs, Z, flop, memref);
+    Mult(Z, invdiag, Z);
+    ScMult_Add(lhs, 1, lhs, Z);
+    //	Sub(lhs, lhs, Z );
 
-    matrix->mult(lhs, Z, flop, memref);
-    Sub(Z, rhs, Z, flop, memref);
-    err=Z.vector_norm(flop, memref)/bnorm;
-
-    gflop+=flop/1000000000;
-    flop=flop%1000000000;
-    grefs+=memref/1000000000;
-    memref=memref%1000000000;
+    matrix->mult(lhs, Z );
+    Sub(Z, rhs, Z);
+    err=Z.vector_norm()/bnorm;
 
     if(niter == 1 || niter == 5 || niter%10 == 0)
     {

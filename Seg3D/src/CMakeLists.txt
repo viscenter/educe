@@ -15,7 +15,7 @@
 #  Software is furnished to do so, subject to the following conditions:
 # 
 #  The above copyright notice and this permission notice shall be included
-#  in all copies or substantial portions of the Software.
+#  in all copies or substantial portions of the Software. 
 # 
 #  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 #  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -98,6 +98,12 @@ SET(SCIRUN_CORE_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 # shared/static
 OPTION(BUILD_SHARED_LIBS "Build shared libraries" ON)
 MARK_AS_ADVANCED(BUILD_SHARED_LIBS)
+
+#----------------------------------------------------------------------------
+# Skip the building of dataflow.  If this is not set we just build the core
+# libraries.  Used by Seg3D build script.
+OPTION(BUILD_DATAFLOW "Build SCIRun executable, dataflow, and packages" ON)
+MARK_AS_ADVANCED(BUILD_DATAFLOW)
 
 #----------------------------------------------------------------------------
 # Output directories.
@@ -183,6 +189,9 @@ ENDIF(APPLE)
 # DV also maybe need to add binary flags here
 # Set NBITS (64 or 32) based on the size of a void pointer.
 # Handle if machine defaults to one bit size but user is trying to do another
+
+OPTION(SCIRUN_64BITS_INDEX "Toggle the use of full 64bits indices and size type for SCIRun (will allow objects larger than 2Gb)" OFF)
+
 IF(CMAKE_SIZEOF_VOID_P MATCHES  8)
   SET(NBITS 64 CACHE INTERNAL "64 or 32 bit build")
 ELSE(CMAKE_SIZEOF_VOID_P MATCHES 8)
@@ -193,6 +202,12 @@ SET (SCIRUN_ENABLE_64BIT 0 CACHE BOOL "Enable 64 bit build.")
 IF(SCIRUN_ENABLE_64BIT)
   SET(NBITS 64 CACHE INTERNAL "64 bit build")
 ENDIF(SCIRUN_ENABLE_64BIT)
+
+IF (NBITS EQUAL 64)
+  IF(SCIRUN_64BITS_INDEX)
+    SET(DEF_SCIRUN_64BITS_INDEX "#define SCIRUN_64BITS_INDEX 1")
+  ENDIF(SCIRUN_64BITS_INDEX)
+ENDIF(NBITS EQUAL 64)
 
 MESSAGE(STATUS "FYI: This is a ${NBITS} bit build.")
 MARK_AS_ADVANCED(CLEAR SCIRUN_ENABLE_64BIT)
@@ -245,11 +260,28 @@ ENDMACRO(SCIRUN_INSTALL_LIBRARY)
 INSTALL(DIRECTORY pixmaps DESTINATION src
   PATTERN ".svn" EXCLUDE # don't want the subversion directory
   )
+
 INSTALL(FILES
   main/Makefile.vc
   main/scisplash.ppm
+  main/sciabout.ppm
   main/scirun.rc
   DESTINATION src/main
+  )
+
+INSTALL(FILES
+  LICENSE
+  DESTINATION bin
+  )
+
+INSTALL(FILES
+  LICENSE
+  DESTINATION src
+  )
+
+INSTALL(FILES
+  scirunrc
+  DESTINATION src
   )
 
 # Installs the directories in src.  Input is a list.  Don't pass stuff
@@ -269,14 +301,23 @@ MACRO(SCIRUN_INSTALL_PACKAGE package_name)
   SET(COPY_DIRS
     Packages/${package_name}/Dataflow/XML
     Packages/${package_name}/Dataflow/GUI
+    Packages/${package_name}/nets
     )
   SCIRUN_INSTALL_DIRECTORIES(${COPY_DIRS})
+
+  IF (EXISTS ${SCIRUN_CORE_SOURCE_DIR}/Packages/${package_name}/Services)
+    SET(COPY_DIRS
+      Packages/${package_name}/Services
+      )
+    SCIRUN_INSTALL_DIRECTORIES(${COPY_DIRS})
+  ENDIF (EXISTS ${SCIRUN_CORE_SOURCE_DIR}/Packages/${package_name}/Services)
 ENDMACRO(SCIRUN_INSTALL_PACKAGE)
 
 # Install the core directories
 SET(COPY_DIRS
   Dataflow/XML
   Dataflow/GUI
+  nets
   )
 SCIRUN_INSTALL_DIRECTORIES(${COPY_DIRS})
 
@@ -500,11 +541,13 @@ MARK_AS_ADVANCED(ENABLE_SCI_MALLOC)
 FIND_LIBRARY(ZLIB_LIBRARY 
   NAMES z zlib zdll
   PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
-  NO_DEFAULT_PATH)
+  NO_DEFAULT_PATH
+  )
 
 FIND_PATH(ZLIB_INCLUDE zlib.h
   ${SCIRUN_THIRDPARTY_DIR}/include/
-  NO_DEFAULT_PATH)
+  NO_DEFAULT_PATH
+  )
 
 IF(MINIMAL_CORE AND NOT ZLIB_LIBRARY)
   # min core and thirdparty - look in system.  Base scirun will not touch this
@@ -521,11 +564,13 @@ ENDIF(NOT ZLIB_LIBRARY)
 # png lib in Thirdparty
 FIND_LIBRARY(PNG_LIBRARY png
              PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
-             NO_DEFAULT_PATH)
+             NO_DEFAULT_PATH
+             )
 
 FIND_PATH(PNG_INCLUDE png.h
           ${SCIRUN_THIRDPARTY_DIR}/include/
-          NO_DEFAULT_PATH)
+          NO_DEFAULT_PATH
+          )
 
 IF(PNG_LIBRARY)
 #   MESSAGE(STATUS "Found PNG: ${PNG_LIBRARY}")
@@ -545,128 +590,137 @@ IF (TEEM_LIBRARY)
   IF (TEEM_INCLUDE_DIR)
     SET(SCIRUN_INCLUDE_THIRDPARTY ${SCIRUN_INCLUDE_THIRDPARTY} ${TEEM_INCLUDE_DIR})
   ENDIF(TEEM_INCLUDE_DIR)
+SET(TEEM_LIBRARIES ${TEEM_LIBRARY})
 ENDIF(TEEM_LIBRARY)
 
 #-----------------------------------------------------------------------------
 # XML2 in Thirdparty
 FIND_LIBRARY(XML2_LIBRARY xml2
             PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
-            NO_DEFAULT_PATH)
+            NO_DEFAULT_PATH
+            )
 
 FIND_PATH(XML2_INCLUDE libxml/xmlreader.h
            ${SCIRUN_THIRDPARTY_DIR}/include/libxml2/
            ${SCIRUN_THIRDPARTY_DIR}/include/
-           NO_DEFAULT_PATH)
+           /usr/include/libxml2/
+           NO_DEFAULT_PATH
+           )
+
 SET(SCIRUN_INCLUDE_THIRDPARTY ${SCIRUN_INCLUDE_THIRDPARTY} ${XML2_INCLUDE})
 
 #-----------------------------------------------------------------------------
+# Look for the thirdparty TCL/TK libraries if we're building dataflow.
+IF(BUILD_DATAFLOW)
+  IF(WIN32)
+    # BJW - find a better way to do this
+    SET(TCL_VERSION 8.4 CACHE STRING "TCL version")
+    SET(TK_VERSION 8.4 CACHE STRING "TK version")
+    SET(ITCL_VERSION 3.2 CACHE STRING "ITCL version")
+  ELSE(WIN32)
+    SET(TCL_VERSION 8.3 CACHE STRING "TCL version")
+    SET(TK_VERSION 8.3 CACHE STRING "TK version")
+    SET(ITCL_VERSION 3.1 CACHE STRING "ITCL version")
+  ENDIF(WIN32)
 
-IF(WIN32)
-  # BJW - find a better way to do this
-  SET(TCL_VERSION 8.4 CACHE STRING "TCL version")
-  SET(TK_VERSION 8.4 CACHE STRING "TK version")
-  SET(ITCL_VERSION 3.2 CACHE STRING "ITCL version")
-ELSE(WIN32)
-  SET(TCL_VERSION 8.3 CACHE STRING "TCL version")
-  SET(TK_VERSION 8.3 CACHE STRING "TK version")
-  SET(ITCL_VERSION 3.1 CACHE STRING "ITCL version")
-ENDIF(WIN32)
-
-# When looking for static versions of many of the tcl and friends'
-# libraries you need to search for the library with the version
-# suffixed.
-
-FIND_LIBRARY(TCL_LIBRARY NAMES tcl${TCL_VERSION} tcl
-             PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
-             NO_DEFAULT_PATH)
-
-IF (NOT TCL_LIBRARY)
-  SET(TCL_VERSION 8.3 CACHE STRING "TCL version" FORCE)
+  # When looking for static versions of many of the tcl and friends'
+  # libraries you need to search for the library with the version
+  # suffixed.
+  
   FIND_LIBRARY(TCL_LIBRARY NAMES tcl${TCL_VERSION} tcl
-             PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+               PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+               NO_DEFAULT_PATH)
+  
+  IF (NOT TCL_LIBRARY)
+    SET(TCL_VERSION 8.3 CACHE STRING "TCL version" FORCE)
+    FIND_LIBRARY(TCL_LIBRARY NAMES tcl${TCL_VERSION} tcl
+               PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+               NO_DEFAULT_PATH)
+               
+  ENDIF (NOT TCL_LIBRARY)
+  
+  FIND_PATH(TCL_INCLUDE1 tcl.h
+             ${SCIRUN_THIRDPARTY_DIR}/include
+             NO_DEFAULT_PATH)
+  
+  FIND_PATH(TCL_INCLUDE2 tclMath.h
+             ${SCIRUN_THIRDPARTY_DIR}/src/tcl/generic
+             ${SCIRUN_THIRDPARTY_DIR}/include
              NO_DEFAULT_PATH)
              
-ENDIF (NOT TCL_LIBRARY)
-
-FIND_PATH(TCL_INCLUDE1 tcl.h
-           ${SCIRUN_THIRDPARTY_DIR}/include
-           NO_DEFAULT_PATH)
-
-FIND_PATH(TCL_INCLUDE2 tclMath.h
-           ${SCIRUN_THIRDPARTY_DIR}/src/tcl/generic
-           ${SCIRUN_THIRDPARTY_DIR}/include
-           NO_DEFAULT_PATH)
-           
-MARK_AS_ADVANCED(TCL_INCLUDE1 TCL_INCLUDE2 TCL_VERSION)
-
-# Tk in Thirdparty
-
-FIND_LIBRARY(TK_LIBRARY NAMES tk${TK_VERSION} tk
-             PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
-             NO_DEFAULT_PATH)
-             
-IF (NOT TK_LIBRARY)
-
-  SET(TK_VERSION 8.3 CACHE STRING "TK version" FORCE)
+  MARK_AS_ADVANCED(TCL_INCLUDE1 TCL_INCLUDE2 TCL_VERSION)
+  
+  # Tk in Thirdparty
+  
   FIND_LIBRARY(TK_LIBRARY NAMES tk${TK_VERSION} tk
                PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
                NO_DEFAULT_PATH)
-
-ENDIF (NOT TK_LIBRARY)
-
-#-----------------------------------------------------------------------------
-# ITCL library in Thirdparty
-
-FIND_LIBRARY(ITCL_LIBRARY NAMES itcl${ITCL_VERSION} itcl
-             PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
-             NO_DEFAULT_PATH)
-
-IF (NOT ITCL_LIBRARY)
-  SET(ITCL_VERSION 3.1 CACHE STRING "ITCL version" FORCE)
+               
+  IF (NOT TK_LIBRARY)
+  
+    SET(TK_VERSION 8.3 CACHE STRING "TK version" FORCE)
+    FIND_LIBRARY(TK_LIBRARY NAMES tk${TK_VERSION} tk
+                 PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+                 NO_DEFAULT_PATH)
+  
+  ENDIF (NOT TK_LIBRARY)
+  
+  #-----------------------------------------------------------------------------
+  # ITCL library in Thirdparty
+  
   FIND_LIBRARY(ITCL_LIBRARY NAMES itcl${ITCL_VERSION} itcl
                PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
                NO_DEFAULT_PATH)
-ENDIF (NOT ITCL_LIBRARY)
-
-FIND_PATH(ITCL_INCLUDE itcl.h
-           ${SCIRUN_THIRDPARTY_DIR}/include
-           NO_DEFAULT_PATH)
-#-----------------------------------------------------------------------------
-# ITK in Thirdparty
-FIND_LIBRARY(ITK_LIBRARY NAMES itk${ITCL_VERSION} itk
-             PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+  
+  IF (NOT ITCL_LIBRARY)
+    SET(ITCL_VERSION 3.1 CACHE STRING "ITCL version" FORCE)
+    FIND_LIBRARY(ITCL_LIBRARY NAMES itcl${ITCL_VERSION} itcl
+                 PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+                 NO_DEFAULT_PATH)
+  ENDIF (NOT ITCL_LIBRARY)
+  
+  FIND_PATH(ITCL_INCLUDE itcl.h
+             ${SCIRUN_THIRDPARTY_DIR}/include
              NO_DEFAULT_PATH)
-
-FIND_PATH(ITK_INCLUDE itk.h
-           ${SCIRUN_THIRDPARTY_DIR}/include
-           NO_DEFAULT_PATH)
-
-#-----------------------------------------------------------------------------
-# blt lib in Thirdparty
-FIND_LIBRARY(BLT_LIBRARY BLT
-             PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+  #-----------------------------------------------------------------------------
+  # ITK in Thirdparty
+  FIND_LIBRARY(ITK_LIBRARY NAMES itk${ITCL_VERSION} itk
+               PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+               NO_DEFAULT_PATH)
+  
+  FIND_PATH(ITK_INCLUDE itk.h
+             ${SCIRUN_THIRDPARTY_DIR}/include
              NO_DEFAULT_PATH)
-
-FIND_PATH(BLT_INCLUDE blt.h
-           ${SCIRUN_THIRDPARTY_DIR}/include
-           NO_DEFAULT_PATH)
-
-IF(WIN32)
-  SET(BLT_LIBRARY ${BLT_LIBRARY} gdi32 winspool comdlg32 user32 advapi32)
-ENDIF(WIN32)
-
+  
+  #-----------------------------------------------------------------------------
+  # blt lib in Thirdparty
+  FIND_LIBRARY(BLT_LIBRARY BLT
+               PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+               NO_DEFAULT_PATH)
+  
+  FIND_PATH(BLT_INCLUDE blt.h
+             ${SCIRUN_THIRDPARTY_DIR}/include
+             NO_DEFAULT_PATH)
+  
+  IF(WIN32)
+    SET(BLT_LIBRARY ${BLT_LIBRARY} gdi32 winspool comdlg32 user32 advapi32)
+  ENDIF(WIN32)
+ENDIF(BUILD_DATAFLOW)
 
 #-----------------------------------------------------------------------------
 # Freetype in Thirdparty
 FIND_LIBRARY(FREETYPE_LIBRARY 
-             NAMES freetype libfreetype.so libfreetype.a
+             NAMES freetype
              PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
-             NO_DEFAULT_PATH)
+              NO_DEFAULT_PATH
+             )
 
 FIND_PATH(FREETYPE_INCLUDE freetype/freetype.h
            ${SCIRUN_THIRDPARTY_DIR}/include/freetype2/
            ${SCIRUN_THIRDPARTY_DIR}/include/
-           NO_DEFAULT_PATH)
+           /usr/include/freetype2/
+           NO_DEFAULT_PATH
+           )
 
 IF(FREETYPE_LIBRARY)
   SET(DEF_FREETYPE "#define HAVE_FREETYPE 1")
@@ -716,6 +770,12 @@ SET(THREAD_LIBRARY ${CMAKE_THREAD_LIBS} CACHE INTERNAL "Thread library.")
 # DV Define DEF_THREAD?
 
 IF(CMAKE_USE_PTHREADS)
+  FIND_LIBRARY(THREAD_LIBRARY_TEMP pthread
+    PATHS /usr/lib /usr/local/lib /lib)
+  IF(THREAD_LIBRARY_TEMP)
+    SET(THREAD_LIBRARY ${THREAD_LIBRARY_TEMP} CACHE INTERNAL "Thread library.")
+  ENDIF(THREAD_LIBRARY_TEMP)
+  
   SET(DEF_THREAD "#define SCI_PTHREAD 1")
   # Check for sempahore libs w/in pthread library
   # DV can I scale down the lib like configure.ac for loop
@@ -726,10 +786,12 @@ IF(CMAKE_USE_PTHREADS)
       -l${THREAD_LIBRARY}
       -I/usr/local/include -I/usr/include -I/include
     )
-    IF(HAS_SEMAPHORE_LIBS)
-      SET(SEMAPHORE_LIBRARY ${THREAD_LIBRARY} CACHE INTERNAL "Semaphore library in pthreads.")
-    ENDIF(HAS_SEMAPHORE_LIBS)
-  ELSE(CMAKE_USE_PTHREADS)
+  IF(HAS_SEMAPHORE_LIBS)
+    SET(SEMAPHORE_LIBRARY ${THREAD_LIBRARY} CACHE INTERNAL "Semaphore library in pthreads.")
+  ENDIF(HAS_SEMAPHORE_LIBS)
+
+  
+ELSE(CMAKE_USE_PTHREADS)
     SET(DEF_THREAD "") 
 ENDIF(CMAKE_USE_PTHREADS)
 
@@ -761,10 +823,10 @@ ENDIF(UNIX)
 OPTION(WITH_LAPACK "Build with lapack library" OFF)
 MARK_AS_ADVANCED(WITH_LAPACK)		   
 IF(WITH_LAPACK OR LAPACK_DIR)		   
-  IF(CMAKE_SYSTEM MATCHES "IRIX.*" OR CMAKE_SYSTEM MATCHES "OSF.*" OR CMAKE_SYSTEM MATCHES "AIX.*" OR APPLE)
+  IF(APPLE)
     # these guys have one lib for both blas and lapack - find it in the blas section
     SET(WITH_BLAS="ON")
-  ELSE(CMAKE_SYSTEM MATCHES "IRIX.*" OR CMAKE_SYSTEM MATCHES "OSF.*" OR CMAKE_SYSTEM MATCHES "AIX.*" OR APPLE)
+  ELSE(APPLE)
     # everybody else - probably linux
     MESSAGE(STATUS "Looking for LAPACK")
     SET(LAPACK_DIR ${LAPACK_DIR} CACHE PATH "Path to Lapack" FORCE)
@@ -782,7 +844,7 @@ IF(WITH_LAPACK OR LAPACK_DIR)
       SET(HAVE_LAPACK "NO")
       MESSAGE(FATAL_ERROR "WITH_LAPACK OR LAPACK_DIR specified and lapack was not found")
     ENDIF(LAPACK_LIBRARY)
-  ENDIF(CMAKE_SYSTEM MATCHES "IRIX.*" OR CMAKE_SYSTEM MATCHES "OSF.*" OR CMAKE_SYSTEM MATCHES "AIX.*" OR APPLE)
+  ENDIF(APPLE)
 ELSE(WITH_LAPACK OR LAPACK_DIR)
    SET(HAVE_LAPACK "NO")
 ENDIF(WITH_LAPACK OR LAPACK_DIR)
@@ -899,12 +961,14 @@ SET(scirun_src_dir "${SCIRUN_CORE_SOURCE_DIR}" CACHE INTERNAL "Path to SCIRun's 
 # these projets separately!!!
 SET(scirun_obj_dir ${SCIRUN_CORE_BINARY_DIR} CACHE INTERNAL "Path to SCIRun's binary directory")
 
-SET(ITCL_WIDGETS ${SCIRUN_THIRDPARTY_DIR}/iwidgets/scripts CACHE INTERNAL "Path to iwidgets scripts")
-SET(ITCL_LIB_DIR ${SCIRUN_THIRDPARTY_DIR}/lib)
+IF(BUILD_DATAFLOW)
+  SET(ITCL_WIDGETS ${SCIRUN_THIRDPARTY_DIR}/iwidgets/scripts CACHE INTERNAL "Path to iwidgets scripts")
+  SET(ITCL_LIB_DIR ${SCIRUN_THIRDPARTY_DIR}/lib)
+ENDIF(BUILD_DATAFLOW)
 
 # sci_defs/error_defs.h
 SET(THROW_LEVEL 0 CACHE STRING "Set throw level N(0-3)")
-SET(ASSERTION_LEVEL 2 CACHE STRING "Set assertion level N(0-3)")
+SET(ASSERTION_LEVEL 1 CACHE STRING "Set assertion level N(0-3)")
 IF(CMAKE_BUILD_TYPE STREQUAL Debug)
   SET(ASSERTION_LEVEL 3)
 ENDIF(CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -1026,8 +1090,9 @@ SET(HAVE_UUID_UUID_H 0)
 # mpi libray
 
 OPTION(WITH_MPI "Build with mpi library" OFF)
-MARK_AS_ADVANCED(WITH_MPI)		   
-IF(WITH_MPI OR MPI_DIR)		   
+MARK_AS_ADVANCED(WITH_MPI)
+
+IF(WITH_MPI OR MPI_DIR)
   MESSAGE(STATUS "Looking for MPI")
   SET(MPI_DIR ${MPI_DIR} CACHE PATH "Path to MPI" FORCE)
   MARK_AS_ADVANCED(CLEAR MPI_DIR)
@@ -1065,11 +1130,11 @@ IF(WITH_MPI OR MPI_DIR)
       # mpich (with pmpich
       SET(MPI_LIBS ${MPICH_LIBRARY} CACHE INTERNAL "All MPI libs needed")   
       SET(MPI_LIBRARY ${MPICH_LIBRARY} CACHE FILEPATH "Set MPI libs to mpich" FORCE)
-    ENDIF(MPICH_LIBRARY)
+    ELSE(MPICH_LIBRARY)
       FIND_LIBRARY(PMPICH_LIBRARY 
         NAMES pmpich
         PATHS ${MPI_DIR}/lib NO_DEFAULT_PATH)
-      MARK_AS_ADVANCED(PMPICH_LIBRARY)
+      MARK_AS_ADVANCED(PMPICH_LIBRARY)#
       IF(PMPICH_LIBRARY)
         SET(MPI_LIBS ${MPI_LIBS} ${PMPICH_LIBRARY} CACHE INTERNAL "All MPI libs needed")
       ENDIF(PMPICH_LIBRARY)
@@ -1084,7 +1149,7 @@ IF(WITH_MPI OR MPI_DIR)
       SET(DEF_MPICH "#define HAVE_MPICH 1")
     ENDIF(MPICH_LIBRARY)
   ELSE(MPI_LIBRARY OR MPICH_LIBRARY)
-  MESSAGE(STATUS "Looking for MPI - not found")
+    MESSAGE(STATUS "Looking for MPI - not found")
     SET(HAVE_MPI "NO")
   ENDIF(MPI_LIBRARY OR MPICH_LIBRARY)
 
@@ -1218,6 +1283,22 @@ ENDIF(WITH_HYPRE OR HYPRE_DIR)
 
 # DV FIX check for unipetsc if petsc not found
 
+
+# sci_defs/version_defs.h
+
+IF(WIN32)
+  SET(CMAKE_PROGRAM_PATH_OLD ${CMAKE_PROGRAM_PATH})
+  SET(CMAKE_PROGRAM_PATH "c:/cygwin/bin")
+ENDIF(WIN32)
+
+FIND_PACKAGE(Subversion)
+IF(Subversion_FOUND)
+  Subversion_WC_INFO(${SCIRUN_CORE_SOURCE_DIR} SCIRUN_SVN)
+ENDIF(Subversion_FOUND)
+
+IF(WIN32)
+  SET(CMAKE_PROGRAM_PATH ${CMAKE_PROGRAM_PATH_OLD})
+ENDIF(WIN32)
 #----------------------------------------------------------------------------
 # Search for Mesquite
 
@@ -1271,46 +1352,21 @@ ELSE(MESQUITE_DIR)
   SET(DEF_MESQUITE "" CACHE INTERNAL "Do not edit" FORCE)
   
 ENDIF(MESQUITE_DIR)
-
 #----------------------------------------------------------------------------
-# Search for Verdict 
-IF(VERDICT_DIR)
+# Search for vtk (contains verdict now)
+OPTION(WITH_VTK "link against vtk libs" OFF)
 
-  FIND_LIBRARY(VERDICT_LIBRARY 
-    NAMES verdict110 
-    PATHS ${VERDICT_DIR}
-    ${VERDICT_DIR}/lib)
-
-  FIND_PATH(VERDICT_INCLUDE verdict.h
-    ${VERDICT_DIR}
-    ${VERDICT_DIR}/include
-    ${VERDICT_DIR}/../include)
-
-  IF(VERDICT_LIBRARY AND VERDICT_INCLUDE)
-    MESSAGE(STATUS "Looking for VERDICT - found")
+IF(WITH_VTK)
+  FIND_PACKAGE(VTK 5.3 QUIET)
   
-    SET(HAVE_VERDICT "YES" CACHE INTERNAL "Do not edit" FORCE)
-    SET(DEF_VERDICT "#define HAVE_VERDICT 1" 
-      CACHE INTERNAL "Do not edit" FORCE)
-    SET(SCIRUN_INCLUDE_THIRDPARTY 
-      ${SCIRUN_INCLUDE_THIRDPARTY} 
-      ${VERDICT_INCLUDE})
-
-  ELSE(VERDICT_LIBRARY AND VERDICT_INCLUDE)
-    MESSAGE(FATAL_ERROR "Cannot find verdict installation at ${VERDICT_DIR}") 
-  ENDIF(VERDICT_LIBRARY AND VERDICT_INCLUDE)
-
-ELSE(VERDICT_DIR)
-  SET(VERDICT_DIR 
-    VERDICT_DIR-NOTFOUND 
-    CACHE 
-    PATH 
-    "Path to Verdict installation")
-  MARK_AS_ADVANCED(VERDICT_DIR)
-  SET(HAVE_VERDICT "NO" CACHE INTERNAL "Do not edit" FORCE)
-  SET(DEF_VERDICT "" CACHE INTERNAL "Do not edit" FORCE)
-ENDIF(VERDICT_DIR)
-
+  IF(VTK_FOUND)
+    INCLUDE(${VTK_USE_FILE})
+    SET(DEF_VTK "#define HAVE_VTK 1" CACHE INTERNAL "Have vtk")
+    SET(HAVE_VTK "YES" CACHE INTERNAL "Linking against VTK")
+  ELSE(VTK_FOUND)
+    MESSAGE(FATAL_ERROR "Cannot find VTK. Please set VTK_DIR.")
+  ENDIF(VTK_FOUND)
+ENDIF(WITH_VTK)
 
 #----------------------------------------------------------------------------
 # Search for Tetgen (http://tetgen.berlios.de)
@@ -1522,27 +1578,6 @@ IF(WITH_BLAS OR BLAS_DIR)
     SET(CBLAS_LIBRARY ${CBLAS_LIBRARY} ${ATLAS_LIBRARY} CACHE INTERNAL "c blas with atlas")
   ENDIF(ATLAS_LIBRARY AND CBLAS_LIBRARY)
 
-  IF(CMAKE_SYSTEM MATCHES "IRIX.*")
-    FIND_LIBARY(FBLAS_LIBRARY complib.sgimath PATHS /usr/local/lib /usr/lib /lib)
-  ELSE(CMAKE_SYSTEM MATCHES "IRIX.*")
-    # dec needs cxml
-    IF(CMAKE_SYSTEM MATCHES "OSF.*")
-      FIND_LIBARY(FBLAS_LIBRARY cxml PATHS /usr/local/lib /usr/lib /lib)
-    ELSE(CMAKE_SYSTEM MATCHES "OSF.*")
-      # aix needs essl
-      IF(CMAKE_SYSTEM MATCHES "AIX.*")
-        FIND_LIBARY(FBLAS_LIBRARY essl PATHS /usr/local/lib /usr/lib /lib)
-      ELSE(CMAKE_SYSTEM MATCHES "AIX.*")
-        IF(APPLE)
-          SET(CBLAS_LIBRARY "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
-          SET(FBLAS_LIBRARY "-framework vecLib" CACHE STRING "FBLAS library" FORCE)
-          SET(HAVE_BLAS "YES" CACHE INTERNAL "Do not edit" FORCE)
-          SET(DEF_BLAS "#define HAVE_BLAS 1" CACHE INTERNAL "Do not edit" FORCE)
-        ENDIF(APPLE)
-      ENDIF(CMAKE_SYSTEM MATCHES "AIX.*")
-    ENDIF(CMAKE_SYSTEM MATCHES "OSF.*")
-  ENDIF(CMAKE_SYSTEM MATCHES "IRIX.*")
-
   MARK_AS_ADVANCED(CBLAS_LIBRARY)
   MARK_AS_ADVANCED(FBLAS_LIBRARY)
   MARK_AS_ADVANCED(ATLAS_LIBRARY)
@@ -1559,7 +1594,7 @@ ENDIF(WITH_BLAS OR BLAS_DIR)
 # Look for it in the Thirdparty
 IF(EXISTS ${SCIRUN_THIRDPARTY_DIR}/lib/InsightToolkit)
   MESSAGE(STATUS "Found ITK in SCIRun Thirdparty: ${SCIRUN_THIRDPARTY_DIR}/lib/InsightToolkit")
-  SET(ITK_DIR ${SCIRUN_THIRDPARTY_DIR}/lib/InsightToolkit CACHE PATH "Path to IInsight Toolkit")
+  SET(ITK_DIR ${SCIRUN_THIRDPARTY_DIR}/lib/InsightToolkit CACHE PATH "Path to Insight Toolkit")
   MESSAGE(STATUS "Setting ITK_DIR=${ITK_DIR}")
   SET(FIND_ITK 1 CACHE INTERNAL "Do not edit" FORCE)
 ENDIF(EXISTS ${SCIRUN_THIRDPARTY_DIR}/lib/InsightToolkit)
@@ -1779,14 +1814,18 @@ ADD_SUBDIRECTORY(externals/slivr)
 ADD_SUBDIRECTORY(include)
 ADD_SUBDIRECTORY(Core)
 
-OPTION(BUILD_UTILS "Build convert and util apps" ON)
+OPTION(BUILD_UTILS "Build convert and util apps" OFF)
 MARK_AS_ADVANCED(BUILD_UTILS)
 
 IF(BUILD_UTILS)
   ADD_SUBDIRECTORY(StandAlone)
 ENDIF(BUILD_UTILS)
 
-MARK_AS_ADVANCED(BLT_INCLUDE BLT_LIBRARY FREETYPE_INCLUDE FREETYPE_LIBRARY TCL_LIBRARY TCL_INCLUDE ITCL_INCLUDE ITCL_LIBRARY ITK_INCLUDE ITK_LIBRARY TK_INCLUDE TK_LIBRARY PNG_INCLUDE PNG_LIBRARY ZLIB_INCLUDE ZLIB_LIBRARY XML2_LIBRARY XML2_INCLUDE TEEM_LIBRARY TEEM_INCLUDE_DIR MPEG_LIBRARY MPEG_INCLUDE M_LIBRARY WITH_MPEG SLIVRG_LIBRARY SLIVRV_LIBRARY SLIVR_INCLUDE_DIR)
+MARK_AS_ADVANCED(FREETYPE_INCLUDE FREETYPE_LIBRARY PNG_INCLUDE PNG_LIBRARY ZLIB_INCLUDE ZLIB_LIBRARY XML2_LIBRARY XML2_INCLUDE TEEM_LIBRARY TEEM_INCLUDE_DIR MPEG_LIBRARY MPEG_INCLUDE M_LIBRARY WITH_MPEG SLIVRG_LIBRARY SLIVRV_LIBRARY SLIVR_INCLUDE_DIR)
+
+IF(BUILD_DATAFLOW)
+  MARK_AS_ADVANCED(BLT_INCLUDE BLT_LIBRARY TCL_LIBRARY TCL_INCLUDE ITCL_INCLUDE ITCL_LIBRARY ITK_INCLUDE ITK_LIBRARY TK_INCLUDE TK_LIBRARY)
+ENDIF(BUILD_DATAFLOW)
 
 # Option for building Seg3D
 SET(DEFAULT_SEG3D OFF)
@@ -1811,13 +1850,11 @@ ENDIF(BUILD_SEG3D)
 MARK_AS_ADVANCED(BUILD_SEG3D)
 
 # Option for building scirun executable, dataflow, packages
-OPTION(BUILD_DATAFLOW "Build SCIRun executable, dataflow, and packages" ON)
 IF(BUILD_DATAFLOW)
   SET(SCIRUN_DIR ${SCIRUN_CORE_BINARY_DIR})
   MARK_AS_ADVANCED(SCIRUN_DIR)
   ADD_SUBDIRECTORY(Dataflow)
 ENDIF(BUILD_DATAFLOW)
-MARK_AS_ADVANCED(BUILD_DATAFLOW)
 
 # Option for building scirun python interface
 OPTION(BUILD_SR_PY "Build SCIRun Python interface" OFF)
@@ -1891,9 +1928,9 @@ ENDIF(BUILD_DYNAMIC_MODULES_LIB)
 # defined, because on win32 systems the variable doesn't exist.  If it isn't
 # defined then, NOT PURGE_ON_THE_FLY_DIRECTORY will be true and erroneously add
 # the dependency to a target that doesn't exist.
-IF(DEFINED PURGE_ON_THE_FLY_DIRECTORY AND NOT PURGE_ON_THE_FLY_DIRECTORY AND BUILD_DATAFLOW)
-  ADD_DEPENDENCIES(otfl-build ${SCIRUN_LIBRARY_LIST})
-ENDIF(DEFINED PURGE_ON_THE_FLY_DIRECTORY AND NOT PURGE_ON_THE_FLY_DIRECTORY AND BUILD_DATAFLOW)
+#IF(DEFINED PURGE_ON_THE_FLY_DIRECTORY AND NOT #PURGE_ON_THE_FLY_DIRECTORY AND BUILD_DATAFLOW)
+#  ADD_DEPENDENCIES(otfl-build ${SCIRUN_LIBRARY_LIST})
+#ENDIF(DEFINED PURGE_ON_THE_FLY_DIRECTORY AND NOT #PURGE_ON_THE_FLY_DIRECTORY AND BUILD_DATAFLOW)
 
 IF(BUILD_DYNAMIC_MODULES_LIB AND BUILD_DATAFLOW)
   ADD_SUBDIRECTORY(DynamicModules)
@@ -1901,3 +1938,34 @@ ENDIF(BUILD_DYNAMIC_MODULES_LIB AND BUILD_DATAFLOW)
 
 # Some stuff for installing stuff
 ADD_SUBDIRECTORY(InstallUtils)
+
+# License files
+
+FILE(MAKE_DIRECTORY "${SCIRUN_CORE_BINARY_DIR}/Licenses")
+
+FILE(READ "${SCIRUN_CORE_SOURCE_DIR}/LICENSE" LICENSE_TEXT )
+FILE(WRITE "${SCIRUN_CORE_BINARY_DIR}/Licenses/SCIRun.license" ${LICENSE_TEXT})
+INSTALL(FILES
+    ${SCIRUN_CORE_BINARY_DIR}/Licenses/SCIRun.license
+    DESTINATION Licenses
+)
+
+IF (TETGEN_DIR) 
+  FILE(READ "${TETGEN_DIR}/LICENSE" LICENSE_TEXT )
+  FILE(WRITE "${SCIRUN_CORE_BINARY_DIR}/Licenses/TetGen.license" ${LICENSE_TEXT})
+  INSTALL(FILES
+      ${SCIRUN_CORE_BINARY_DIR}/Licenses/TetGen.license
+      DESTINATION Licenses
+  )
+ENDIF (TETGEN_DIR)
+
+IF (MESQUITE_DIR) 
+  FILE(READ "${MESQUITE_DIR}/LGPL" LICENSE_TEXT )
+  FILE(WRITE "${SCIRUN_CORE_BINARY_DIR}/Licenses/Mesquite.license" ${LICENSE_TEXT})
+  INSTALL(FILES
+      ${SCIRUN_CORE_BINARY_DIR}/Licenses/Mesquite.license
+      DESTINATION Licenses
+  )
+ENDIF (MESQUITE_DIR)
+
+

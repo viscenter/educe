@@ -31,6 +31,8 @@
 #ifndef CORE_DATATYPES_TYPES_H
 #define CORE_DATATYPES_TYPES_H 1
 
+#include <sci_defs/bits_defs.h>
+
 // #define SCIRUN_64BITS_INDEX 1
 
 namespace SCIRun {

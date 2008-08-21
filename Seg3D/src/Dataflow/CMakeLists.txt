@@ -271,61 +271,19 @@ FOREACH( pkg ${PACKAGE_LIST})
   ENDIF(NOT ${pkg} MATCHES "SCIRun" AND NOT HANDLED_PACKAGE_${pkg})
 ENDFOREACH( pkg )
 
-SET(SCIRUN_SRCS ${SCIRUN_CORE_SOURCE_DIR}/main/main.cc)
 
-IF(WIN32)
-  SET(SCIRUN_SRCS ${SCIRUN_SRCS} ${SCIRUN_CORE_SOURCE_DIR}/main/scirun.rc)
-ENDIF(WIN32)
+ADD_SUBDIRECTORY(${SCIRUN_CORE_SOURCE_DIR}/main/ main)
 
-# scirun executable
-ADD_EXECUTABLE(scirun ${SCIRUN_SRCS})
-SCIRUN_INSTALL_EXECUTABLE(scirun)
 
-ADD_EXECUTABLE(scirunremote
-${SCIRUN_CORE_SOURCE_DIR}/main/scirunremote.cc)
-SCIRun_INSTALL_EXECUTABLE(scirunremote)
 
-SET(SCIRUN_LIBS
-  Core_Basis         
-  Core_Containers    
-  Core_Events
-  Core_Exceptions 
-  Core_Geom          
-  Dataflow_GuiInterface  
-  Core_ICom          
-  Core_Init         
-  Core_Services      
-  Core_SystemCall    
-  Core_Thread        
-  Dataflow_TkExtensions  
-  Core_Util          
-  Core_Volume        
-  Core_XMLUtil       
-  Dataflow_Network   
-  Dataflow_TCLThread
-  ${GLEW_LIBRARY}
-)
-
-IF(NOT WIN32)
-# don't add malloc to windows version
-  SET(SCIRUN_LIBS ${SCIRUN_LIBS})
-ENDIF(NOT WIN32)
-
-TARGET_LINK_LIBRARIES(scirun ${SCIRUN_LIBS}
-)
-
-TARGET_LINK_LIBRARIES(scirunremote ${SCIRUN_LIBS}
-)
-
-IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
-    TARGET_LINK_LIBRARIES(scirun Core_Datatypes Core_ImportExport Core_Persistent)
-ENDIF(CMAKE_SYSTEM_NAME MATCHES Darwin)
 
 # Determine if we should delete the contents of the on-the-fly-libs directory
-SET(PURGE_ON_THE_FLY_DIRECTORY ON CACHE BOOL "Deletes contents of the on-the-fly directory upon configuration")
+IF(WIN32)
+  SET(PURGE_ON_THE_FLY_DIRECTORY OFF CACHE BOOL "Deletes contents of the on-the-fly directory upon configuration")
+ELSE(WIN32)
+  SET(PURGE_ON_THE_FLY_DIRECTORY ON CACHE BOOL "Deletes contents of the on-the-fly directory upon configuration")
+ENDIF(WIN32)
 MARK_AS_ADVANCED(PURGE_ON_THE_FLY_DIRECTORY)
-
-
 
 IF (NOT WIN32)
 
@@ -351,8 +309,7 @@ IF (NOT WIN32)
       COMMENT "Purging files in ${SCIRUN_CORE_BINARY_DIR}/on-the-fly-libs"
       )
     # Make sure this target is run if we do 'make scirun'
-    ADD_DEPENDENCIES(scirun otfl-delete)
-
+    
   ELSE(PURGE_ON_THE_FLY_DIRECTORY)
     
     # Always run make in the on-the-fly-libs

@@ -51,19 +51,19 @@ itcl_class BioPSE_Forward_SetWireElectrodeProperties {
         set_defaults
     }
     method set_defaults {} {
-	global $this-voltage
-	set $this-voltage 5
-	global $this-radius
-	set $this-radius 0.1
-	global $this-nu
-	set $this-nu 5
+        global $this-voltage
+        set $this-voltage 5
+        global $this-radius
+        set $this-radius 0.1
+        global $this-nu
+        set $this-nu 5
     }
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-	global $v
-        entry $w.e -textvariable $v
+        global $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
@@ -74,20 +74,20 @@ itcl_class BioPSE_Forward_SetWireElectrodeProperties {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 30
-        frame $w.f
-	global $this-voltage
-	make_entry $w.f.v "Voltage:" $this-voltage \
-		"$this-c needexecute"
-	global $this-radius
-	make_entry $w.f.r "Wire radius:" $this-radius \
-		"$this-c needexecute"
-	global $this-nu
-	make_entry $w.f.nu "Circular segments:" $this-nu \
-		"$this-c needexecute"
-	button $w.f.b -text "Execute" -command "$this-c needexecute"
-	pack $w.f.v $w.f.r $w.f.nu $w.f.b -side top
+        sci_frame $w.f
+        global $this-voltage
+        make_entry $w.f.v "Voltage:" $this-voltage \
+          "$this-c needexecute"
+        global $this-radius
+        make_entry $w.f.r "Wire radius:" $this-radius \
+          "$this-c needexecute"
+        global $this-nu
+        make_entry $w.f.nu "Circular segments:" $this-nu \
+          "$this-c needexecute"
+        sci_button $w.f.b -text "Execute" -command "$this-c needexecute"
+        pack $w.f.v $w.f.r $w.f.nu $w.f.b -side top
         pack $w.f -side top -fill x -expand yes
     }
 }

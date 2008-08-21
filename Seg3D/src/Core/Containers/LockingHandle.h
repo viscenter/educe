@@ -83,12 +83,7 @@ public:
 
 
 #ifndef SCI_NOPERSISTENT
-#if defined(_AIX)
-  template <typename Type> 
-  friend void TEMPLATE_TAG Pio TEMPLATE_BOX (Piostream& stream,LockingHandle<Type>& data);
-#else
   friend void TEMPLATE_TAG Pio TEMPLATE_BOX (Piostream& stream,LockingHandle<T>& data);
-#endif
 #endif
 };
 

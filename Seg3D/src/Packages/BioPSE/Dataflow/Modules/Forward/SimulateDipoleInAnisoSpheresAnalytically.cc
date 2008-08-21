@@ -214,14 +214,14 @@ SimulateDipoleInAnisoSpheresAnalytically::execute()
 
   // compute potential at the selected points (i.e. at the electrodes)
   ColumnMatrix result(numElectrodes);
-  svc = scinew SphericalVolumeConductor(dipoleMatrix, electrodeMatrix, radii, radCond, tanCond, result, numDipoles, numElectrodes, accuracy.get(), 1.0);
+  svc = new SphericalVolumeConductor(dipoleMatrix, electrodeMatrix, radii, radCond, tanCond, result, numDipoles, numElectrodes, accuracy.get(), 1.0);
   svc->computePotential();
   expTerms.set(svc->getNumberOfSeriesTerms());
 
   // create new output field containing the potential values
-  PCMesh *newElectrodeMesh = scinew PCMesh(*hMeshE->clone());
+  PCMesh *newElectrodeMesh = new PCMesh(*hMeshE->clone());
   PCMesh::handle_type hNewMesh(newElectrodeMesh);
-  PCFieldD *nElectrodes = scinew PCFieldD(hNewMesh);
+  PCFieldD *nElectrodes = new PCFieldD(hNewMesh);
   
   // set new electrode values
   vector<double>& newElectrodeValues = nElectrodes->fdata();

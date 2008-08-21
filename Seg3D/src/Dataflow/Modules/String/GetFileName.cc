@@ -103,7 +103,7 @@ GetFileName::execute()
   else if( gui_filename_.changed( true ) ||
 	   !oport_cached("Full Filename") )
   {
-    StringHandle handle(scinew String(gui_filename_.get()));
+    StringHandle handle(new String(gui_filename_.get()));
     send_output_handle("Full Filename", handle);
   }
 
@@ -112,7 +112,7 @@ GetFileName::execute()
   if( gui_number_in_series_.changed( true ) ||
       !oport_cached("Number in Series") )
   {
-    DenseMatrix *selected = scinew DenseMatrix(1,1);
+    DenseMatrix *selected = new DenseMatrix(1,1);
 
     selected->put(0, 0, gui_number_in_series_.get() );
  
@@ -143,7 +143,7 @@ void GetFileName::tcl_command(GuiArgs& args, void* userdata)
     // such, do not add the name unless it has change.
     if( gui_filename_.changed( true ) )
     {
-      stringHandles_.push_back( StringHandle(scinew String(gui_filename_.get())) );
+      stringHandles_.push_back( StringHandle(new String(gui_filename_.get())) );
       // Send an execute message - but only if there is one string.
       // The other strings will be handled once the first one has been
       // sent.

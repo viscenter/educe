@@ -43,8 +43,8 @@ itcl_class SCIRun_NewField_InterfaceWithCubit {
 
         # file types to appers in filter box
         set types { 
-	    { {All Files} {*} }
-	}
+          { {All Files} {*} }
+        }
         makeOpenFilebox \
 	    -parent [toplevel $w -class TkFDialog] \
 	    -filevar $this-ncdump \
@@ -54,7 +54,7 @@ itcl_class SCIRun_NewField_InterfaceWithCubit {
 	    -filetypes $types \
 	    -initialdir /usr/local/bin 
         moveToCursor $w
-	SciRaise $w
+      SciRaise $w
     }
 
 
@@ -64,26 +64,26 @@ itcl_class SCIRun_NewField_InterfaceWithCubit {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.d
-	pack $w.d -side top -e y -f both -padx 5 -pady 5	
-	label $w.d.l -text "Directoy containing claro: "
-	entry $w.d.e -textvariable $this-cubitdir
-	pack $w.d.l $w.d.e -side left
+        sci_frame $w.d
+        pack $w.d -side top -e y -f both -padx 5 -pady 5	
+        sci_label $w.d.l -text "Directoy containing claro: "
+        sci_entry $w.d.e -textvariable $this-cubitdir
+        pack $w.d.l $w.d.e -side left
 
-	frame $w.e
-	pack $w.e -side top -e y -f both -padx 5 -pady 5	
-	label $w.e.l -text "Path to ncdump: "
-	entry $w.e.e -textvariable $this-ncdump
-	button $w.e.b -text Browse... -command "$this choose_ncdump"
-	pack $w.e.l $w.e.e $w.e.b -side left
+        sci_frame $w.e
+        pack $w.e -side top -e y -f both -padx 5 -pady 5	
+        sci_label $w.e.l -text "Path to ncdump: "
+        sci_entry $w.e.e -textvariable $this-ncdump
+        sci_button $w.e.b -text Browse... -command "$this choose_ncdump"
+        pack $w.e.l $w.e.e $w.e.b -side left
 
 
 
-	makeSciButtonPanel $w $w $this
+        makeSciButtonPanel $w $w $this
 
-	moveToCursor $w
+        moveToCursor $w
     }
 }
 

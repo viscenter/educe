@@ -42,7 +42,7 @@
 #include <algorithm>
 
 //! for Windows support
-#include <Core/Algorithms/Fields/share.h>
+#include <Dataflow/Modules/Fields/share.h>
 
 namespace SCIRun {
 
@@ -125,7 +125,7 @@ ClipLatVolByIndicesOrWidgetAlgoT<FIELD>::execute(FieldHandle fieldh,
 
   Point bmin(0.0, 0.0, 0.0);
   Point bmax(1.0, 1.0, 1.0);
-  LVMesh *mesh = scinew LVMesh(nx, ny, nz, bmin, bmax);
+  LVMesh *mesh = new LVMesh(nx, ny, nz, bmin, bmax);
 
   Transform trans = omesh->get_transform();
   trans.post_translate(Vector(s.i_, s.j_, s.k_));
@@ -133,7 +133,7 @@ ClipLatVolByIndicesOrWidgetAlgoT<FIELD>::execute(FieldHandle fieldh,
   mesh->get_transform().load_identity();
   mesh->transform(trans);
 
-  FIELD *fld = scinew FIELD(mesh);
+  FIELD *fld = new FIELD(mesh);
   fld->copy_properties(lv);
 
   if (lv->basis_order() == 1)

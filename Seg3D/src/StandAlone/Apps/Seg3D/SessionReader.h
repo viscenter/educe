@@ -47,15 +47,22 @@ public:
   ~SessionReader();
   bool                  load_session(string filename);
 private:
+  
+  bool                  load_session_old(string filename);
+  bool                  load_session_tgz(string filename);
+  bool                  parse_session_xml(const char *xmlbuf, size_t bufsize);
+
   void                  eval_volume_node (const xmlNodePtr, NrrdVolumes pars);
   void                  eval_appearance_node (const xmlNodePtr);
   void                  eval_seg3d_node (const xmlNodePtr);
   Painter *             painter_;
   string                dir_;
-  string                first_data_file_;
   NrrdVolumeHandle      first_volume_;
   NrrdVolumes           volumes_;
   int                   version_;
+
+  typedef std::map<string, NrrdDataHandle, less<string> > tgz_map_type;
+  tgz_map_type tgz_nrrds_;
 };
 
 

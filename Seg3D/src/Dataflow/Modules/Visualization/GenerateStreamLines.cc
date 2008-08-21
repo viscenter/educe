@@ -30,18 +30,16 @@
 //    Author : Allen R. Sanderson
 //    Date   : July 2006
 
-
-#include <Dataflow/Modules/Visualization/GenerateStreamLines.h>
-
+#include <Core/Algorithms/Fields/StreamLines/GenerateStreamLines.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
+#include <Dataflow/Network/Module.h>
 
 namespace SCIRun {
 
 class GenerateStreamLines : public Module {
 public:
   GenerateStreamLines(GuiContext* ctx);
-
-  virtual ~GenerateStreamLines();
+  virtual ~GenerateStreamLines() {}
 
   virtual void execute();
 
@@ -53,10 +51,9 @@ private:
   GuiInt                        gui_value_;
   GuiInt                        gui_remove_colinear_pts_;
   GuiInt                        gui_method_;
-  GuiInt                        gui_nthreads_;
   GuiInt                        gui_auto_parameterize_;
-
-  bool execute_error_;
+  
+  SCIRunAlgo::GenerateStreamLinesAlgo algo_;
 };
 
 DECLARE_MAKER(GenerateStreamLines)
@@ -68,47 +65,24 @@ GenerateStreamLines::GenerateStreamLines(GuiContext* ctx) :
   gui_max_steps_(get_ctx()->subVar("maxsteps"), 2000),
   gui_direction_(get_ctx()->subVar("direction"), 1),
   gui_value_(get_ctx()->subVar("value"), 1),
-  gui_remove_colinear_pts_(get_ctx()->subVar("remove-colinear-pts"), 1),
+  gui_remove_colinear_pts_(get_ctx()->subVar("remove-colinear-points"), 1),
   gui_method_(get_ctx()->subVar("method"), 4),
-  gui_nthreads_(get_ctx()->subVar("nthreads"), 1),
-  gui_auto_parameterize_(get_ctx()->subVar("auto-parameterize"), false),
-  execute_error_(0)
+  gui_auto_parameterize_(get_ctx()->subVar("auto-parameterize"), false)
 {
-}
-
-GenerateStreamLines::~GenerateStreamLines()
-{
+  algo_.set_progress_reporter(this);
 }
 
 void
 GenerateStreamLines::execute()
 {
-  FieldHandle vfHandle;
-  if( !get_input_handle( "Vector Field", vfHandle ) )
-    return;
+  FieldHandle input, seeds, output;
 
-  //! Check that the input field input is a vector field.
-  VectorFieldInterfaceHandle vfi =
-    vfHandle.get_rep()->query_vector_interface(this);
-  if (!vfi.get_rep()) {
-    error("FlowField is not a Vector field.");
-    return;
-  }
-
-  //! Works for surfaces and volume data only.
-  if (vfHandle.get_rep()->mesh()->dimensionality() == 1) {
-    error("The GenerateStreamLines module does not works on 1D fields.");
-    return;
-  }
-
-  FieldHandle spHandle;
-  if( !get_input_handle( "Seed Points", spHandle, true ) )
-    return;
-
+  get_input_handle( "Vector Field", input, true );
+  get_input_handle( "Seed Points", seeds, true );
+  
+  
   if( inputs_changed_                          ||
-
       !oport_cached("Streamlines")             ||
-
       gui_tolerance_.changed( true )           ||
       gui_step_size_.changed( true )           ||
       gui_max_steps_.changed( true )           ||
@@ -116,209 +90,30 @@ GenerateStreamLines::execute()
       gui_value_.changed( true )               ||
       gui_remove_colinear_pts_.changed( true ) ||
       gui_method_.changed( true )              ||
-      gui_nthreads_.changed( true )            ||
-      gui_auto_parameterize_.changed( true )   ||
-      execute_error_ )
+      gui_auto_parameterize_.changed( true ))
   {
-    execute_error_ = false;
-
     update_state(Executing);
-
-    Field *vField = vfHandle.get_rep();
-    Field *sField = spHandle.get_rep();
-
-    const TypeDescription *sftd = sField->get_type_description();
+    algo_.set_scalar("tolerance",gui_tolerance_.get());
+    algo_.set_scalar("step_size",gui_step_size_.get());
+    algo_.set_int("max_steps",gui_max_steps_.get());
+    algo_.set_int("direction",gui_direction_.get());
+    algo_.set_int("value",gui_value_.get());
+    algo_.set_bool("remove_colinear_points",gui_remove_colinear_pts_.get());
+    int method = gui_method_.get();
+    if (method == 0) algo_.set_option("method","AdamsBashforth");
+    else if (method == 2) algo_.set_option("method","Heun");
+    else if (method == 3) algo_.set_option("method","RungeKutta");
+    else if (method == 4) algo_.set_option("method","RungeKuttaFehlberg");
+    else if (method == 5) algo_.set_option("method","CellWalk");
+    algo_.set_bool("auto_parameters",gui_auto_parameterize_.get());
     
-    const TypeDescription *sfdtd = 
-      (*sField->get_type_description(Field::FDATA_TD_E)->get_sub_type())[0];
-    const TypeDescription *sltd = sField->order_type_description();
-    string dsttype = "double";
-    if (gui_value_.get() == 0) dsttype = sfdtd->get_name();
+    if(!(algo_.run(input,seeds,output))) return;
+    gui_tolerance_.set(algo_.get_scalar("tolerance"));
+    gui_step_size_.set(algo_.get_scalar("step_size"));
+    get_ctx()->reset();
 
-    vField->mesh()->synchronize(Mesh::LOCATE_E);
-    vField->mesh()->synchronize(Mesh::EDGES_E);
-
-    if (gui_method_.get() == 5 ) {
-
-      if( vfHandle->basis_order() != 0) {
-	error("The Cell Walk method only works for cell centered FlowFields.");
-	execute_error_ = true;
-	return;
-      }
-
-      const string dftn =
-        "GenericField<CurveMesh<CrvLinearLgn<Point> >, CrvLinearLgn<" +
-        dsttype + ">, vector<" + dsttype + "> > ";
-
-      const TypeDescription *vtd = vfHandle->get_type_description();
-      CompileInfoHandle aci =
-	GenerateStreamLinesAccAlgo::get_compile_info(sftd, sltd, vtd,
-                                             dftn, gui_value_.get());
-      Handle<GenerateStreamLinesAccAlgo> accalgo;
-      if (!module_dynamic_compile(aci, accalgo)) return;
-      
-      FieldHandle field_output_handle =
-	accalgo->execute(this, sField, vfHandle,
-			 gui_max_steps_.get(),
-			 gui_direction_.get(),
-			 gui_value_.get(),
-			 gui_remove_colinear_pts_.get());
-
-      send_output_handle( "Streamlines", field_output_handle, true );
-    }
-    else
-    {
-      if (gui_auto_parameterize_.get())
-      {
-        // Compute a reasonable tolerance and step size based upon the input
-        // vector field.
-        const TypeDescription *vmtd = vfHandle->mesh()->get_type_description();
-        CompileInfoHandle cie =
-          EstimateElementLengthAlgo::get_compile_info(vmtd);
-        Handle<EstimateElementLengthAlgo> algoe;
-        if (!module_dynamic_compile(cie, algoe)) return;
-        double length = algoe->execute(this, vfHandle->mesh());
-        gui_tolerance_.set(length / 20.0);
-        gui_step_size_.set(length / 5.0);
-      }
-
-      CompileInfoHandle ci =
-	GenerateStreamLinesAlgo::get_compile_info(sftd, dsttype, sltd,
-                                                  gui_value_.get());
-      Handle<GenerateStreamLinesAlgo> algo;
-      if (!module_dynamic_compile(ci, algo)) return;
-      
-      FieldHandle field_output_handle =
-	algo->execute(this, sField, vfi,
-		      gui_tolerance_.get(),
-                      gui_step_size_.get(),
-		      gui_max_steps_.get(),
-		      gui_direction_.get(),
-		      gui_value_.get(),
-		      gui_remove_colinear_pts_.get(),
-		      gui_method_.get(),
-		      gui_nthreads_.get());
-
-
-      send_output_handle( "Streamlines", field_output_handle, true );
-    }
+    send_output_handle( "Streamlines", output, true );
   }
 }
-
-
-vector<Point>::iterator
-GenerateStreamLinesAlgo::CleanupPoints(vector<Point> &input, double e2)
-{
-  // Removes colinear points from the list of points.
-  unsigned int i, j = 0;
-
-  for (i=1; i < input.size()-1; i++)
-  {
-    const Vector v0 = input[i] - input[j];
-    const Vector v1 = input[i] - input[i+1];
-
-    if (Cross(v0, v1).length2() > e2 && Dot(v0, v1) < 0.0)
-    {
-      j++;
-      if (i != j) { input[j] = input[i]; }
-    }
-  }
-
-  if (input.size() > 1)
-  {
-    j++;
-    input[j] = input[input.size()-1];
-  }
-
-  return input.begin() + j + 1;
-}
-
-
-CompileInfoHandle
-GenerateStreamLinesAlgo::get_compile_info(const TypeDescription *fsrc,
-                                          const string &dsrc,
-                                          const TypeDescription *sloc,
-                                          int value)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("GenerateStreamLinesAlgoT");
-  static const string base_class_name("GenerateStreamLinesAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + (value?"M":"F") + "." +
-		       fsrc->get_filename() + "." +
-		       sloc->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name + (value?"M":"F"), 
-		       fsrc->get_name() + ", " +
-		       dsrc + ", " +
-		       sloc->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_basis_include("Core/Basis/CrvLinearLgn.h");
-  rval->add_mesh_include("Core/Datatypes/CurveMesh.h");
-  fsrc->fill_compile_info(rval);
-  return rval;
-}
-
-
-CompileInfoHandle
-GenerateStreamLinesAccAlgo::get_compile_info(const TypeDescription *fsrc,
-                                             const TypeDescription *sloc,
-                                             const TypeDescription *vfld,
-                                             const string &fdst,
-                                             int value)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("GenerateStreamLinesAccAlgoT");
-  static const string base_class_name("GenerateStreamLinesAccAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + (value?"M":"F") + "." +
-		       fsrc->get_filename() + "." +
-		       sloc->get_filename() + "." +
-		       vfld->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name + (value?"M":"F"),
-		       fsrc->get_name() + ", " +
-		       sloc->get_name() + ", " +
-		       vfld->get_name() + ", " +
-                       fdst);
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_basis_include("Core/Basis/CrvLinearLgn.h");
-  rval->add_mesh_include("Core/Datatypes/CurveMesh.h");
-  fsrc->fill_compile_info(rval);
-  vfld->fill_compile_info(rval);
-  return rval;
-}
-
-
-CompileInfoHandle
-EstimateElementLengthAlgo::get_compile_info(const TypeDescription *msrc)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("EstimateElementLengthAlgoT");
-  static const string base_class_name("EstimateElementLengthAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + 
-		       msrc->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name,
-		       msrc->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  msrc->fill_compile_info(rval);
-  return rval;
-}
-
-
 
 } // End namespace SCIRun

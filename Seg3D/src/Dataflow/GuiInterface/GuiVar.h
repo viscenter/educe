@@ -43,9 +43,9 @@
 #ifndef SCI_project_GuiVar_h
 #define SCI_project_GuiVar_h 1
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
-#include <sgi_stl_warnings_on.h>
+
 #include <Dataflow/GuiInterface/GuiContext.h>
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>

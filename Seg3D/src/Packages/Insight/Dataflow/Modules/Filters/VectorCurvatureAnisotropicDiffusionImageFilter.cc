@@ -35,7 +35,7 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
 
@@ -144,7 +144,7 @@ VectorCurvatureAnisotropicDiffusionImageFilter::run( itk::Object *obj_InputImage
   }
 
   // get filter output
-  ITKDatatype* out_OutputImage_ = scinew ITKDatatype; 
+  ITKDatatype* out_OutputImage_ = new ITKDatatype; 
   
   out_OutputImage_->data_ = dynamic_cast<FilterType* >(filter_.GetPointer())->GetOutput();
   

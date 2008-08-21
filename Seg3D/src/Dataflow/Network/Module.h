@@ -31,22 +31,33 @@
 #define DATAFLOW_NETWORK_MODULE_H 1
 
 #include <Dataflow/Network/Ports/Port.h>
+
 #include <Core/Util/Assert.h>
-#include <Core/GeomInterface/Pickable.h>
-#include <Core/Thread/RecursiveMutex.h>
-#include <Core/Thread/Mailbox.h>
-#include <Core/Thread/Time.h>
-#include <Core/Thread/FutureValue.h>
-#include <Dataflow/GuiInterface/GuiCallback.h>
-#include <Dataflow/GuiInterface/GuiInterface.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Util/TypeDescription.h>
 #include <Core/Util/DynamicLoader.h>
 #include <Core/Util/DynamicCompilation.h>
 #include <Core/Util/Timer.h>
 #include <Core/Util/ProgressReporter.h>
+
 #include <Core/Containers/StringUtil.h>
 #include <Core/Containers/LockingHandle.h>
+
+#include <Core/GeomInterface/Pickable.h>
+
+#include <Core/Thread/RecursiveMutex.h>
+#include <Core/Thread/Mailbox.h>
+#include <Core/Thread/Time.h>
+#include <Core/Thread/FutureValue.h>
+
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/FieldInformation.h>
+#include <Core/Datatypes/Matrix.h>
+#include <Core/Datatypes/String.h>
+
+#include <Dataflow/GuiInterface/GuiCallback.h>
+#include <Dataflow/GuiInterface/GuiInterface.h>
+#include <Dataflow/GuiInterface/GuiVar.h>
+
+
 #include <sstream>
 #include <iosfwd>
 #include <string>
@@ -299,6 +310,9 @@ public:
   virtual void remark(const std::string&);
   virtual void compile_error(const std::string&);
   virtual void add_raw_message(const std::string&);
+  virtual void report_start(std::string& tag, bool report_progress);
+  virtual void report_end();
+
   
   // This one isn't as thread safe as the other ProgressReporter functions.
   // Use add_raw_message or one of the others instead if possible.
@@ -317,8 +331,13 @@ public:
   virtual void          update_progress(int current, int max);
   virtual void          increment_progress();
 
-  virtual string get_modulename() { return module_name_; };
-  virtual string get_packagename() { return package_name_; };
+  string get_modulename()   { return module_name_; };
+  string get_categoryname() { return category_name_; };
+  string get_packagename()  { return package_name_; };
+
+  string get_old_modulename()   { return old_module_name_; };
+  string get_old_categoryname() { return old_category_name_; };
+  string get_old_packagename()  { return old_package_name_; };
 
   //! The next 12 functions are all deprecated:
   //! Do not use these as they are not thread safe and return
@@ -447,9 +466,15 @@ protected:
   void set_stack_size(unsigned long stack_size);
   void reset_vars();
 
+  void set_modulename(string name)   { module_name_ = name; }
+  void set_categoryname(string name) { category_name_ = name; }
+  void set_packagename(string name)  { package_name_ = name; }
+  void set_old_modulename(string name)   { old_module_name_ = name; }
+  void set_old_categoryname(string name) { old_category_name_ = name; }
+  void set_old_packagename(string name)  { old_package_name_ = name; }
+  void set_old_version(string name)      { old_version_ = name; }
 
-
-
+public:
   //! Get the handle for a single port.
   template<class DH>
   bool get_input_handle(std::string name, DH& handle, bool required = true);
@@ -492,66 +517,77 @@ protected:
 			  vector<GeomHandle>& handle,
 			  vector<string>& obj_name);
 
-  GuiInterface          *gui_;
-  string                 module_name_;
-  string                 package_name_;
-  string                 category_name_;
-  Scheduler             *sched_;
-  bool                   lastportdynamic_;
-  int                    pid_;
-  bool                   have_own_dispatch_;
-  string                 id_;
-  bool                   abort_flag_;
-  Time::SysClock         timer_;
-  ostringstream          msg_stream_;
-  bool                   need_execute_;
-  SchedClass             sched_class_;
+  protected:
 
-  //! Used by the execute module;
-  //! True if either the gui vars or data has changed.
-  bool                   inputs_changed_;   
-  //! Error during execution not related to checks.
-  bool                   execute_error_;    
+    GuiInterface          *gui_;
+    string                 module_name_;
+    string                 package_name_;
+    string                 category_name_;
+    string                 version_;
 
-  double                 get_time()
-  { return Time::secondsPerTick()*(Time::currentTicks()-timer_); }
+    string                 old_module_name_;
+    string                 old_package_name_;
+    string                 old_category_name_;
+    string                 old_version_;
 
-  //! Version control
-  string get_version() { return (version_); }
-  void set_version(string ver) { version_ = ver; }
+    Scheduler             *sched_;
+    bool                   lastportdynamic_;
+    int                    pid_;
+    bool                   have_own_dispatch_;
+    string                 id_;
+    bool                   abort_flag_;
+    Time::SysClock         timer_;
+    ostringstream          msg_stream_;
+    bool                   need_execute_;
+    SchedClass             sched_class_;
 
-private:
+    //! Used by the execute module;
+    //! True if either the gui vars or data has changed.
+    bool                   inputs_changed_;   
+    //! Error during execution not related to checks.
+    bool                   execute_error_;    
 
-  void remove_iport(int);
-  void add_iport(IPort*);
-  void add_oport(OPort*);
+    double                 get_time()
+    { return Time::secondsPerTick()*(Time::currentTicks()-timer_); }
 
-  GuiContext*            ctx_;
-  State                  state_;
-  MsgState               msg_state_;  
-    		         
-  PortManager<OPortHandle,oport_maker>  oports_;
-  PortManager<IPortHandle,iport_maker>  iports_;
-  iport_maker               dynamic_port_maker_;
-  string                    lastportname_;
-  int                       first_dynamic_port_;
-  unsigned long             stacksize_;
-  ModuleHelper              *helper_;
-  Thread                    *helper_thread_;
-  Network                   *network_;
-		         
-  bool                      show_stats_;
-		         
-  GuiString                 log_string_;
+    //! Version control
+    string get_version() { return (version_); }
+    string get_old_version() { return (old_version_); }
 
-  //! for module version control, this one is by default 1.0
-  string                    version_;
+    void set_version(string ver) { version_ = ver; }
+
+  private:
   
-  //! cache the number of dynamic ports at previous execute
-  unsigned int              old_num_dynamic_ports_;
+    void remove_iport(int);
+    void add_iport(IPort*);
+    void add_oport(OPort*);
 
-  Module(const Module&);
-  Module& operator=(const Module&);
+    GuiContext*            ctx_;
+    State                  state_;
+    MsgState               msg_state_;  
+                   
+    PortManager<OPortHandle,oport_maker>  oports_;
+    PortManager<IPortHandle,iport_maker>  iports_;
+    iport_maker               dynamic_port_maker_;
+    string                    lastportname_;
+    int                       first_dynamic_port_;
+    unsigned long             stacksize_;
+    ModuleHelper              *helper_;
+    Thread                    *helper_thread_;
+    Network                   *network_;
+    bool                      show_stats_;
+    GuiString                 log_string_;
+
+    //! for module version control, this one is by default 1.0
+    
+    //! For reporting progress
+    std::list<std::string>    tags_;
+    
+    //! cache the number of dynamic ports at previous execute
+    unsigned int              old_num_dynamic_ports_;
+
+    Module(const Module&);
+    Module& operator=(const Module&);
 };
 
 
@@ -593,14 +629,15 @@ Module::get_input_handle(std::string name,
   {
     //! The first input on the port was required to have a valid
     //! handle and data so report an error.
-    error( "No handle or representation for input port '" +
-           name + "'."  );
+    throw "No handle or representation for input port '" +
+           name + "'.";
   }
   else
   {
     //! See if the data has changed. Note only change the boolean if
     //! it is false this way it can be cascaded with other handle gets.
-    if( inputs_changed_ == false ) {
+    if( inputs_changed_ == false ) 
+    {
       inputs_changed_ = dataport->changed();
     }  
   }

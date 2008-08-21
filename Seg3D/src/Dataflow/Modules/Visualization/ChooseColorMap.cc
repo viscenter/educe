@@ -46,8 +46,9 @@
 namespace SCIRun {
 
 class ChooseColorMap : public ChooseModule< ColorMapHandle > {
-public:
-  ChooseColorMap(GuiContext* ctx);
+  public:
+    ChooseColorMap(GuiContext* ctx);
+    virtual ~ChooseColorMap() {}
 };
 
 DECLARE_MAKER(ChooseColorMap)

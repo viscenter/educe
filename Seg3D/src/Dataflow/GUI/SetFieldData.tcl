@@ -44,9 +44,9 @@ itcl_class SCIRun_ChangeFieldData_SetFieldData {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        checkbutton $w.kst -text "Keep scalar field input type" \
+        sci_checkbutton $w.kst -text "Keep scalar field input type" \
           -variable $this-keepscalartype
         pack $w.kst
         

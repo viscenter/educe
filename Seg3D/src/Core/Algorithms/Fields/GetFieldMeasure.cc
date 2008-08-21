@@ -43,7 +43,7 @@ bool GetFieldMeasureAlgo::GetFieldMeasure(ProgressReporter *pr,FieldHandle input
 
   FieldInformation fi(input);
     
-  SCIRun::CompileInfoHandle ci = scinew CompileInfo("ALGOGetFieldMeasureAlgo." + fi.get_field_filename() + ".",
+  SCIRun::CompileInfoHandle ci = new CompileInfo("ALGOGetFieldMeasureAlgo." + fi.get_field_filename() + ".",
                        "GetFieldMeasureAlgo","GetFieldMeasureAlgoT", fi.get_field_name());
                        
   // Add in the include path to compile this obj

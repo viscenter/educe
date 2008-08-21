@@ -155,16 +155,16 @@ proc portIsConnected { port } {
 proc portCount { port } {    
     global Subnet
     if [isaSubnetIcon [pMod port]] {
-	set port "Subnet$Subnet([pMod port]_num) 0 [invType port]"
+      set port "Subnet$Subnet([pMod port]_num) 0 [invType port]"
     }
     if [isaSubnetEditor [pMod port]] {
-	set idx [expr [string equal o [pType port]]?1:3]
-	set conns [portConnections "[pMod port] all [pType port]"]
-	set conns [lsort -integer -decreasing -index $idx $conns]
-	if ![llength $conns] { return 0 }
-	return [expr [lindex [lindex $conns 0] $idx]+1]
+      set idx [expr [string equal o [pType port]]?1:3]
+      set conns [portConnections "[pMod port] all [pType port]"]
+      set conns [lsort -integer -decreasing -index $idx $conns]
+      if ![llength $conns] { return 0 }
+      return [expr [lindex [lindex $conns 0] $idx]+1]
     } else {
-	return [[pMod port]-c [pType port]portcount]
+      return [[pMod port]-c [pType port]portcount]
     }
 }
 
@@ -192,24 +192,24 @@ proc drawPorts { modid { porttypes "i o" } } {
     if { ![info exists Subnet($modid)] } { return }
     set subnet $Subnet($modid)
     if [isaSubnetEditor $modid] {
-	drawPorts SubnetIcon$subnet
-	set modframe .subnet${subnet}.can
+      drawPorts SubnetIcon$subnet
+      set modframe .subnet${subnet}.can
     } else {
-	set modframe $Subnet(Subnet${subnet}_canvas).module$modid
-	$modid resize_icon
+      set modframe $Subnet(Subnet${subnet}_canvas).module$modid
+      $modid resize_icon
     }
     foreach porttype $porttypes {
-	set i 0
-	while {[winfo exists $modframe.port$porttype$i]} {
-	    destroy $modframe.port$porttype$i
-	    destroy $modframe.portlight$porttype$i
-	    incr i
-	}
-	set num [portCount "$modid 0 $porttype"]
-	for {set i 0 } {$i < $num} {incr i} {
-	    set port [list $modid $i $porttype]
-	    drawPort $port [portColor $port] [portIsConnected $port]
-	}
+      set i 0
+      while {[winfo exists $modframe.port$porttype$i]} {
+        destroy $modframe.port$porttype$i
+        destroy $modframe.portlight$porttype$i
+        incr i
+      }
+      set num [portCount "$modid 0 $porttype"]
+      for {set i 0 } {$i < $num} {incr i} {
+        set port [list $modid $i $porttype]
+        drawPort $port [portColor $port] [portIsConnected $port]
+      }
     }
 }
 
@@ -219,51 +219,53 @@ proc drawPort { port { color red } { connected 0 } } {
     set isSubnetEditor [isaSubnetEditor [pMod port]]
     set subnet $Subnet([pMod port])
     if $isSubnetEditor {
-	set modframe .subnet${subnet}.can
+      set modframe .subnet${subnet}.can
     } else {
-	set modframe $Subnet(Subnet${subnet}_canvas).module[pMod port]
+      set modframe $Subnet(Subnet${subnet}_canvas).module[pMod port]
     }
     if { ![winfo exists $modframe] } return
     set isoport [string equal [pType port] o]
-    set x [expr [pNum port]*$port_spacing+($isSubnetEditor?13:6)]
+    set x [expr [pNum port]*$port_spacing+($isSubnetEditor?10:6)]
     set e [expr $connected?"out":""][expr $isoport?"bottom":"top"]
     set portbevel $modframe.port[pType port][pNum port]
     set portlight $modframe.portlight[pType port][pNum port]
+    
     bevel $portbevel -width $port_width -height $port_height \
-	-borderwidth 3 -edge $e -background $color \
-	-pto 2 -pwidth 7 -pborder 2
-    frame $portlight -width $port_width -height 4 \
-	-relief raised -background black -borderwidth 0
+      -borderwidth 2 -edge $e -background $color \
+      -pto 2 -pwidth 6 -pborder 1
+    frame $portlight -width $port_width -height 2 \
+      -relief raised -background black -borderwidth 0
 
     Tooltip $portlight $ToolTipText(ModulePortlight)
     Tooltip $portbevel $ToolTipText(ModulePort)
 
     if { $isSubnetEditor && $isoport } {
-	place $portbevel -bordermode outside \
+      place $portbevel -bordermode outside \
 	    -y $port_light_height -anchor nw -x $x
     } elseif { $isSubnetEditor && !$isoport } {
-	place $portbevel -bordermode ignore -x $x -rely 1 -y -4 -anchor sw
+      place $portbevel -bordermode ignore -x $x -rely 1 -y -4 -anchor sw
     } elseif { !$isSubnetEditor && $isoport } {
-	place $portbevel -bordermode ignore -rely 1 -anchor sw -x $x
+      place $portbevel -bordermode ignore -rely 1 -anchor sw -x $x
     } elseif { !$isSubnetEditor && !$isoport } {
-	place $portbevel -bordermode outside -x $x -y 0 -anchor nw
+      place $portbevel -bordermode outside -x $x -y 0 -anchor nw
     }
 
     if $isoport {
-	place $portlight -in $portbevel -x 0 -y 0 -anchor sw
+      place $portlight -in $portbevel -x 0 -y 0 -anchor sw
     } else {
-	place $portlight -in $portbevel -x 0 -rely 1.0 -anchor nw
+      place $portlight -in $portbevel -x 0 -rely 1.0 -anchor nw
     }
+
     if !$isSubnetEditor {
-	foreach p [list $portbevel $portlight] {
-	    bind $p <2> "startPortConnection {$port}"
-	    bind $p <B2-Motion> "trackPortConnection {$port} %x %y"
-	    bind $p <ButtonRelease-2> "endPortConnection {$port}"
-	    bind $p <ButtonPress-1> "tracePort {$port}"
-	    bind $p <Control-Button-1> "tracePort {$port} 1"
-	    bind $p <ButtonRelease-1> "deleteTraces"
-	    bind $p <3> "portMenu %X %Y {$port} %x %y"
-	}
+      foreach p [list $portbevel $portlight] {
+          bind $p <2> "startPortConnection {$port}"
+          bind $p <B2-Motion> "trackPortConnection {$port} %x %y"
+          bind $p <ButtonRelease-2> "endPortConnection {$port}"
+          bind $p <ButtonPress-1> "tracePort {$port}"
+          bind $p <Control-Button-1> "tracePort {$port} 1"
+          bind $p <ButtonRelease-1> "deleteTraces"
+          bind $p <3> "portMenu %X %Y {$port} %x %y"
+      }
     }
 }
 
@@ -433,7 +435,7 @@ proc findModulesToInsertOnPort { port } {
 
 
 proc insertModuleOnPortMenu { port menu } {
-    global network_executing
+    global Color
 
     # Return if this menu already exists
     if { [winfo exists $menu] } { return 1 }
@@ -442,10 +444,13 @@ proc insertModuleOnPortMenu { port menu } {
     set moduleList [findModulesToInsertOnPort $port]
     if { ![llength $moduleList] } { return 0 }
 
-    if {$network_executing == "1"} { return 0 }
-
     # create a new menu
-    menu $menu -tearoff false -disabledforeground black
+    menu $menu -tearoff false -disabledforeground black\
+      -bd 2 -activeborderwidth 0 \
+      -activebackground $Color(MenuSelectBackGround)  \
+      -activeforeground $Color(MenuSelectForeGround) \
+      -background $Color(MenuBackGround) \
+      -foreground $Color(MenuForeGround)
 
     set pmod [pMod port]
     set pnum [pNum port]
@@ -463,23 +468,27 @@ proc insertModuleOnPortMenu { port menu } {
 
     set added ""
     foreach path $moduleList {
-	if { [lsearch $added [lindex $path 0]] == -1 } {
-	    lappend added [lindex $path 0]
-	    # Add a menu separator if this package isn't the first one
-	    if { [$menu index end] != "none" } {
-		$menu add separator 
-	    }
-	    # Add a label for the Package name
-	    $menu add command -label [lindex $path 0] -state disabled
-	}
+      if { [lsearch $added [lindex $path 0]] == -1 } {
+        lappend added [lindex $path 0]
+        # Add a menu separator if this package isn't the first one
+        if { [$menu index end] != "none" } {
+          $menu add separator 
+        }
+        # Add a label for the Package name
+        $menu add command -label [lindex $path 0] -state disabled
+      }
 
-	set submenu $menu.menu_[join [lrange $path 0 1] _]
-	if { ![winfo exists $submenu] } {
-	    menu $submenu -tearoff false
-	    $menu add cascade -label "  [lindex $path 1]" -menu $submenu
-	}
-	set command "insertModuleOnPort \{$port\} $path"
-	$submenu add command -label [lindex $path 2] -command $command
+      set submenu $menu.menu_[join [lrange $path 0 1] _]
+      if { ![winfo exists $submenu] } {
+          menu $submenu -tearoff false -bd 2 -activeborderwidth 0 \
+              -activebackground $Color(MenuSelectBackGround)  \
+              -activeforeground $Color(MenuSelectForeGround) \
+              -background $Color(MenuBackGround) \
+              -foreground $Color(MenuForeGround)
+          $menu add cascade -label "  [lindex $path 1]" -menu $submenu
+      }
+      set command "insertModuleOnPort \{$port\} $path"
+      $submenu add command -label [lindex $path 2] -command $command
     }
     update idletasks
     return 1

@@ -35,6 +35,9 @@
 #include <Core/Skinner/Parent.h>
 #include <Core/Skinner/Signals.h>
 #include <string>
+
+#include <Core/Skinner/share.h>
+
 using std::string;
 
 namespace SCIRun {

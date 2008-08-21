@@ -29,22 +29,10 @@
 
 
 #include <Core/Util/XMLParser.h>
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 3303
-#pragma set woff 3201
-#pragma set woff 1209
-#pragma set woff 1110
-#endif
 #include <xercesc/sax/SAXException.hpp>
 #include <xercesc/sax/SAXParseException.hpp>
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 3303
-#pragma reset woff 3201
-#pragma reset woff 1209
-#pragma reset woff 1110
-#endif
 #include <iostream>
 using std::cout;
 using std::endl;

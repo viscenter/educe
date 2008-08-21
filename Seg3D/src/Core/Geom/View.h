@@ -105,15 +105,6 @@ protected:
   bool                     is_ortho_;
 };
 
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-/* 
-   cc-1375 CC: REMARK File = ../../Core/Geom/View.h, Line = 71
-   The destructor for base class "View" is not virtual.
-*/
-#pragma set woff 1375
-#endif
-
 class SCISHARE ExtendedView : public View
 {
   int xres_, yres_;
@@ -141,11 +132,6 @@ public:
 };
 
 } // End namespace SCIRun
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1375
-#endif
-
 
 #endif /* SCI_Geom_View_h */
 

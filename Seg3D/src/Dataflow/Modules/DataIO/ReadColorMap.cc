@@ -48,18 +48,18 @@ namespace SCIRun {
 template class GenericReader<ColorMapHandle>;
 
 class ReadColorMap : public GenericReader<ColorMapHandle> {
-protected:
-  GuiString gui_types_;
-  GuiString gui_filetype_;
+  protected:
+    GuiString gui_types_;
+    GuiString gui_filetype_;
 
-  virtual bool call_importer(const string &filename,
-			     ColorMapHandle & cmHandle);
+    virtual bool call_importer(const string &filename,
+             ColorMapHandle & cmHandle);
 
-public:
-  ReadColorMap(GuiContext* ctx);
-  virtual ~ReadColorMap();
+  public:
+    ReadColorMap(GuiContext* ctx);
+    virtual ~ReadColorMap() {}
 
-  virtual void execute();
+    virtual void execute();
 };
 
 DECLARE_MAKER(ReadColorMap)
@@ -93,11 +93,6 @@ ReadColorMap::ReadColorMap(GuiContext* ctx)
   importtypes += "}";
 
   gui_types_.set(importtypes);
-}
-
-
-ReadColorMap::~ReadColorMap()
-{
 }
 
 

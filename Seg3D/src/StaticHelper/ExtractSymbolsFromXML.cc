@@ -1,6 +1,6 @@
 //#include <Dataflow/Network/PackageDB.h>
 //#include <Dataflow/Network/ComponentNode.h>
-#include <Core/OS/Dir.h> // for LSTAT
+#include <Core/Util/Dir.h> // for LSTAT
 #include <Core/Util/FileUtils.h>
 #include <Core/Util/Environment.h>
 #include <Core/Util/Assert.h>

@@ -41,11 +41,16 @@
  *  Copyright (C) 2002 SCI Group
  */
 
-#include <Dataflow/Network/Ports/FieldPort.h>
-#include <Packages/BioPSE/Dataflow/Modules/Forward/ConvertFieldDataFromIndicesToTensors.h>
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Mesh.h>
+#include <Core/Datatypes/FieldInformation.h>
 #include <Core/Geometry/Tensor.h>
-#include <iostream>
-#include <sstream>
+
+#include <Dataflow/Network/Ports/FieldPort.h>
+#include <Dataflow/Network/Module.h>
+
+#include <vector>
+#include <string>
 
 namespace BioPSE {
 
@@ -54,82 +59,65 @@ using namespace SCIRun;
 class ConvertFieldDataFromIndicesToTensors : public Module {
 public:
   ConvertFieldDataFromIndicesToTensors(GuiContext *context);
-  virtual ~ConvertFieldDataFromIndicesToTensors();
+  virtual ~ConvertFieldDataFromIndicesToTensors() {}
+  
   virtual void execute();
 };
 
 
 DECLARE_MAKER(ConvertFieldDataFromIndicesToTensors)
 
-
 ConvertFieldDataFromIndicesToTensors::ConvertFieldDataFromIndicesToTensors(GuiContext *context)
   : Module("ConvertFieldDataFromIndicesToTensors", context, Filter, "Forward", "BioPSE")
 {
 }
 
-
-ConvertFieldDataFromIndicesToTensors::~ConvertFieldDataFromIndicesToTensors()
-{
-}
-
-
 void
 ConvertFieldDataFromIndicesToTensors::execute()
 {
   FieldHandle ifieldH;
-  if (!get_input_handle("IndexField", ifieldH)) return;
+  get_input_handle("IndexField", ifieldH);
 
-  vector<pair<string, Tensor> > conds;
-  if (!ifieldH->get_property("conductivity_table", conds)) {
+  std::vector<std::pair<string, Tensor> > conds;
+  if (!ifieldH->get_property("conductivity_table", conds)) 
+  {
     error("Error - input field does not have a conductivity_table property.");
     return;
   }
 
-  const TypeDescription *field_src_td = ifieldH->get_type_description();
-  const string field_dst_name = 
-    ifieldH->get_type_description(Field::FIELD_NAME_ONLY_E)->get_name() + "<" +
-    ifieldH->get_type_description(Field::MESH_TD_E)->get_name() + ", " +
-    ifieldH->get_type_description(Field::BASIS_TD_E)->get_similar_name("Tensor", 
-                                                       0, "<", " >, ") +
-    ifieldH->get_type_description(Field::FDATA_TD_E)->get_similar_name("Tensor",
-                                                       0, "<", " >") + " >";
+  if (!(ifieldH->has_virtual_interface()))
+  {
+    error("This module only needs a field with a virtual interface");
+    return;
+  }
 
-  CompileInfoHandle ci =
-    ConvertFieldDataFromIndicesToTensorsAlgo::get_compile_info(field_src_td, field_dst_name);
-  Handle<ConvertFieldDataFromIndicesToTensorsAlgo> algo;
-  if (!module_dynamic_compile(ci, algo)) return;
+  VField* src = ifieldH->vfield();
+  
+  FieldInformation fi(ifieldH);
+  fi.make_tensor();
+  
+  FieldHandle ofieldH = CreateField(fi,ifieldH->mesh());
+  VField* dst = ofieldH->vfield();
 
-  FieldHandle ofieldH = algo->execute(ifieldH);
+  src->get_property("conductivity_table", conds);
 
+  VField::size_type num_values = dst->num_values();
+  Tensor null_tensor(0);
+  for (VField::index_type idx=0; idx<num_values;idx++)
+  {
+    int index;
+    src->get_value(index,idx);
+    if (idx >= 0 && idx < conds.size())
+    {
+      dst->set_value(conds[index].second,idx);
+    }
+    else
+    {
+      dst->set_value(null_tensor,idx);
+    }
+  }
+  
   send_output_handle("TensorField", ofieldH);
 }
 
-
 } // End namespace BioPSE
-
-
-namespace SCIRun {
-CompileInfoHandle
-ConvertFieldDataFromIndicesToTensorsAlgo::get_compile_info(const TypeDescription *field_src_td,
-				       const string &field_dst_name)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("ConvertFieldDataFromIndicesToTensorsAlgoT");
-  static const string base_class_name("ConvertFieldDataFromIndicesToTensorsAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       field_src_td->get_filename() + "." +
-		       to_filename(field_dst_name) + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       field_src_td->get_name() + "," + field_dst_name + " ");
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  field_src_td->fill_compile_info(rval);
-  rval->add_data_include("../src/Core/Geometry/Tensor.h");
-  return rval;
-}
-} // End namespace SCIRun

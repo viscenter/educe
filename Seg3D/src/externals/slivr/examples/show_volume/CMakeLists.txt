@@ -29,10 +29,13 @@ ENDIF(APPLE)
 # and for each of your dependant executable/library targets:
 # MACOSX_BUNDLE : add this to make a MAC bundle.
 ADD_EXECUTABLE(wxgladetest WIN32 MACOSX_BUNDLE
-               main.cpp MainWindow.cpp OGLCanvas.cc)
+  main.cpp MainWindow.cpp OGLCanvas.cc)
 
-TARGET_LINK_LIBRARIES(wxgladetest slivrV slivrG 
-		      ${wxWidgets_LIBRARIES} ${TEEM_LIBRARIES} libGLEW.a)
+TARGET_LINK_LIBRARIES(wxgladetest slivrV slivrG
+  ${wxWidgets_LIBRARIES} ${TEEM_LIBRARIES} ${GLEW_LIBRARY})
+IF(APPLE_LEOPARD)
+  SET_TARGET_PROPERTIES(wxgladetest PROPERTIES LINK_FLAGS "${GL_LINK}")
+ENDIF(APPLE_LEOPARD)
+
 INCLUDE_DIRECTORIES(.)
 INSTALL(TARGETS wxgladetest RUNTIME DESTINATION bin/examples)
-

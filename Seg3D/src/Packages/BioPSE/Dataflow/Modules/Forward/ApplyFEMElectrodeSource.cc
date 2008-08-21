@@ -54,7 +54,7 @@
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Widgets/BoxWidget.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MinMax.h>
 #include <Core/Math/Trig.h>
 #include <Core/Math/MiscMath.h>
@@ -138,7 +138,7 @@ ApplyFEMElectrodeSource::execute()
   {
     if (hRhsIn->ncols() == 1 && hRhsIn->nrows() == nsizeTri)
     {
-      rhs = scinew ColumnMatrix(nsizeTri);
+      rhs = new ColumnMatrix(nsizeTri);
       string units;
       if (hRhsIn->get_property("units", units))
         rhs->set_property("units", units, false);
@@ -155,7 +155,7 @@ ApplyFEMElectrodeSource::execute()
   }
   if (rhs == 0)
   {
-    rhs = scinew ColumnMatrix(nsizeTri);
+    rhs = new ColumnMatrix(nsizeTri);
     rhs->set_property("units", string("volts"), false);
     rhs->zero();
   }
@@ -192,7 +192,7 @@ ApplyFEMElectrodeSource::ProcessTriElectrodeSet( ColumnMatrix* rhs,
   MatrixHandle  hElectrodeParams;
   if (!get_input_handle("Electrode Parameters", hElectrodeParams)) return;
 
-  ColumnMatrix* electrodeParams = scinew ColumnMatrix(numParams);
+  ColumnMatrix* electrodeParams = new ColumnMatrix(numParams);
   electrodeParams = dynamic_cast<ColumnMatrix*>(hElectrodeParams.get_rep());
 
   unsigned int electrodeModel = (unsigned int)((*electrodeParams)[0]);
@@ -307,7 +307,7 @@ ApplyFEMElectrodeSource::ProcessTriElectrodeSet( ColumnMatrix* rhs,
   // mappingolated electrode field as this could influence the value of
   // numElectrodes Also, this input is not needed for the continuum
   // case and may not be present in this case.
-  ColumnMatrix* currentPattern = scinew ColumnMatrix(numElectrodes);
+  ColumnMatrix* currentPattern = new ColumnMatrix(numElectrodes);
   currentPattern=dynamic_cast<ColumnMatrix*>(hCurrentPattern.get_rep());
 
   // Allocate vector for the mesh-to-electrode-map
@@ -316,7 +316,7 @@ ApplyFEMElectrodeSource::ProcessTriElectrodeSet( ColumnMatrix* rhs,
   hTriMesh->size(msize);
   Field::size_type numMeshNodes = msize;
 
-  meshToElectrodeMap = scinew ColumnMatrix(msize);
+  meshToElectrodeMap = new ColumnMatrix(msize);
 
   // Initialize meshToElectrodeMap to all -1s. -1 indicates a
   // non-electrode node; later we will identify the electrode nodes.

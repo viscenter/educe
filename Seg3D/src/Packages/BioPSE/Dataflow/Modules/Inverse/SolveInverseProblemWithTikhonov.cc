@@ -33,7 +33,7 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <stdio.h>
 #include <math.h>
@@ -210,16 +210,15 @@ SolveInverseProblemWithTikhonov::execute()
   int lambda_index;
 
   // calculate A^T * Y
-  int flops, memrefs;
-  MatrixHandle AtrYHandle = scinew ColumnMatrix(N);
+  MatrixHandle AtrYHandle = new ColumnMatrix(N);
   ColumnMatrix &mat_AtrY = *(AtrYHandle->as_column());
-  matrixForMatD.mult_transpose(matrixMeasDatD, mat_AtrY, flops, memrefs);
+  matrixForMatD.mult_transpose(matrixMeasDatD, mat_AtrY);
 
-  MatrixHandle regForMatrix_handle = scinew DenseMatrix(N, N);
+  MatrixHandle regForMatrix_handle = new DenseMatrix(N, N);
   DenseMatrix &regForMatrix = *(regForMatrix_handle->as_dense());
-  MatrixHandle solution_handle = scinew ColumnMatrix(N);
-  MatrixHandle Ax_handle = scinew ColumnMatrix(M);
-  MatrixHandle Rx_handle = scinew ColumnMatrix(N);
+  MatrixHandle solution_handle = new ColumnMatrix(N);
+  MatrixHandle Ax_handle = new ColumnMatrix(M);
+  MatrixHandle Rx_handle = new ColumnMatrix(N);
   ColumnMatrix &solution = *(solution_handle->as_column());
   ColumnMatrix &Ax = *(Ax_handle->as_column());
   ColumnMatrix &Rx = *(Rx_handle->as_column());
@@ -247,7 +246,7 @@ SolveInverseProblemWithTikhonov::execute()
     int i, j, k;
     const int nLambda = lambda_num_.get();
 
-    ColumnMatrix *kapa = scinew ColumnMatrix(nLambda);
+    ColumnMatrix *kapa = new ColumnMatrix(nLambda);
 
     vector<double> lambdaArray(nLambda, 0.0);
     vector<double> rho(nLambda, 0.0);
@@ -328,7 +327,7 @@ SolveInverseProblemWithTikhonov::execute()
 
   lambda2 = lambda * lambda;
 
-  MatrixHandle RegParameter = scinew ColumnMatrix(1);
+  MatrixHandle RegParameter = new ColumnMatrix(1);
   RegParameter->put(0, 0, lambda);
 
   for (int i=0; i<N; i++)

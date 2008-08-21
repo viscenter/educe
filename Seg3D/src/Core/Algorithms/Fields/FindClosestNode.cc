@@ -59,7 +59,7 @@ bool FindClosestNodeAlgo::FindClosestNode(ProgressReporter *pr, FieldHandle inpu
 
   // Setup dynamic files
 
-  SCIRun::CompileInfoHandle ci = scinew CompileInfo(
+  SCIRun::CompileInfoHandle ci = new CompileInfo(
     "ALGOFindClosestNode."+fi.get_field_filename()+"."+fp.get_field_filename()+".",
     "FindClosestNodeAlgo","FindClosestNodeAlgoT",
     fi.get_field_name() + "," + fp.get_field_name());

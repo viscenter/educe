@@ -63,7 +63,7 @@ public:
   typedef StructHexVolMesh<HexTrilinearLgn<Point> > SHVMesh;
 
   CreateStructHex(GuiContext* ctx);
-  virtual ~CreateStructHex();
+  virtual ~CreateStructHex() {}
 
   virtual void execute();
 
@@ -91,114 +91,6 @@ CreateStructHex::CreateStructHex(GuiContext* ctx)
 }
 
 
-#if 0
-static Point
-user_cylinder_transform(const Point &p)
-{
-  double phi, r, uu, vv;
-
-  const double a = p.x();
-  const double b = p.y();
-  const double c = p.z();
-  
-  if (a > -b)
-  {
-    if (a > b)
-    {
-      r = a;
-      phi = (M_PI/4.0) * b/a;
-    }
-    else
-    {
-      r = b;
-      phi = (M_PI/4.0) * (2 - a/b);
-    }
-  }
-  else
-  {
-    if (a < b)
-    {
-      r = -a;
-      phi = (M_PI/4.0) * (4 + (b/a));
-    }
-    else
-    {
-      r = -b;
-      if (b != 0)
-      {
-	phi = (M_PI/4.0) * (6 - a/b);
-      }
-      else
-      {
-	phi = 0;
-      }
-    }
-  }
-
-  uu = r * cos(phi);
-  vv = r * sin(phi);
-  
-  return Point(uu, vv, c);
-}
-
-
-
-static Point
-user_sphere_transform(const Point &p)
-{
-  double phi, r, u, v;
-
-  const double a = p.x();
-  const double b = p.y();
-  const double c = p.z();
-  
-  if (a > -b)
-  {
-    if (a > b)
-    {
-      r = a;
-      phi = (M_PI/4.0) * b/a;
-    }
-    else
-    {
-      r = b;
-      phi = (M_PI/4.0) * (2 - a/b);
-    }
-  }
-  else
-  {
-    if (a < b)
-    {
-      r = -a;
-      phi = (M_PI/4.0) * (4 + (b/a));
-    }
-    else
-    {
-      r = -b;
-      if (b != 0)
-      {
-	phi = (M_PI/4.0) * (6 - a/b);
-      }
-      else
-      {
-	phi = 0;
-      }
-    }
-  }
-
-  u = r * cos(phi);
-  v = r * sin(phi);
-  
-  return Point(u, v, c);
-}
-#endif
-
-
-CreateStructHex::~CreateStructHex()
-{
-}
-
-
 void
 CreateStructHex::execute()
 {
@@ -214,11 +106,11 @@ CreateStructHex::execute()
   else
   {
     datatype = SCALAR;
-    if (ifieldhandle->query_vector_interface(this).get_rep())
+    if (ifieldhandle->vfield()->is_vector())
     {
       datatype = VECTOR;
     }
-    else if (ifieldhandle->query_tensor_interface(this).get_rep())
+    else if (ifieldhandle->vfield()->is_tensor())
     {
       datatype = TENSOR;
     }
@@ -235,7 +127,7 @@ CreateStructHex::execute()
   unsigned int sizex = Max(2, size_x_.get());
   unsigned int sizey = Max(2, size_y_.get());
   unsigned int sizez = Max(2, size_z_.get());
-  SHVMesh::handle_type mesh = scinew SHVMesh(sizex, sizey, sizez);
+  SHVMesh::handle_type mesh = new SHVMesh(sizex, sizey, sizez);
 
   Transform trans;
   trans.pre_scale(Vector(1.0 / (sizex-1.0),
@@ -275,11 +167,11 @@ CreateStructHex::execute()
     
     if (basis_order == -1) {
       typedef GenericField<SHVMesh, NBasis, FData3d<double,SHVMesh> > SHVField;
-      SHVField *lvf = scinew SHVField(mesh);
+      SHVField *lvf = new SHVField(mesh);
       ofh = lvf;
     } else if (basis_order == 0) {
       typedef GenericField<SHVMesh, CBasis, FData3d<double,SHVMesh> > SHVField;
-      SHVField *lvf = scinew SHVField(mesh);
+      SHVField *lvf = new SHVField(mesh);
       SHVField::fdata_type::iterator itr = lvf->fdata().begin();
       while (itr != lvf->fdata().end())
       {
@@ -289,7 +181,7 @@ CreateStructHex::execute()
       ofh = lvf;
     } else {
       typedef GenericField<SHVMesh, LBasis, FData3d<double,SHVMesh> > SHVField;
-      SHVField *lvf = scinew SHVField(mesh);
+      SHVField *lvf = new SHVField(mesh);
       SHVField::fdata_type::iterator itr = lvf->fdata().begin();
       while (itr != lvf->fdata().end())
       {
@@ -307,11 +199,11 @@ CreateStructHex::execute()
     
     if (basis_order == -1) {
       typedef GenericField<SHVMesh, NBasis, FData3d<Vector,SHVMesh> > SHVField;
-      SHVField *lvf = scinew SHVField(mesh);
+      SHVField *lvf = new SHVField(mesh);
       ofh = lvf;
     } else if (basis_order == 0) {
       typedef GenericField<SHVMesh, CBasis, FData3d<Vector,SHVMesh> > SHVField;
-      SHVField *lvf = scinew SHVField(mesh);
+      SHVField *lvf = new SHVField(mesh);
       SHVField::fdata_type::iterator itr = lvf->fdata().begin();
       while (itr != lvf->fdata().end())
       {
@@ -321,7 +213,7 @@ CreateStructHex::execute()
       ofh = lvf;
     } else {
       typedef GenericField<SHVMesh, LBasis, FData3d<Vector,SHVMesh> > SHVField;
-      SHVField *lvf = scinew SHVField(mesh);
+      SHVField *lvf = new SHVField(mesh);
       SHVField::fdata_type::iterator itr = lvf->fdata().begin();
       while (itr != lvf->fdata().end())
       {
@@ -339,11 +231,11 @@ CreateStructHex::execute()
     
     if (basis_order == -1) {
       typedef GenericField<SHVMesh, NBasis, FData3d<Tensor,SHVMesh> > SHVField;
-      SHVField *lvf = scinew SHVField(mesh);
+      SHVField *lvf = new SHVField(mesh);
       ofh = lvf;
     } else if (basis_order == 0) {
       typedef GenericField<SHVMesh, CBasis, FData3d<Tensor,SHVMesh> > SHVField;
-      SHVField *lvf = scinew SHVField(mesh);
+      SHVField *lvf = new SHVField(mesh);
       SHVField::fdata_type::iterator itr = lvf->fdata().begin();
       while (itr != lvf->fdata().end())
       {
@@ -353,7 +245,7 @@ CreateStructHex::execute()
       ofh = lvf;
     } else {
       typedef GenericField<SHVMesh, LBasis, FData3d<Tensor,SHVMesh> > SHVField;
-      SHVField *lvf = scinew SHVField(mesh);
+      SHVField *lvf = new SHVField(mesh);
       SHVField::fdata_type::iterator itr = lvf->fdata().begin();
       while (itr != lvf->fdata().end())
       {

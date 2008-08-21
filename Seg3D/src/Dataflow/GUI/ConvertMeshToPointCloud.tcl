@@ -42,11 +42,11 @@ itcl_class SCIRun_ChangeMesh_ConvertMeshToPointCloud {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        radiobutton $w.nodeloc -text "Extract Node Locations" -variable $this-datalocation \
+        sci_radiobutton $w.nodeloc -text "Extract Node Locations" -variable $this-datalocation \
           -value 0
-        radiobutton $w.dataloc -text "Extract Data Locations" -variable $this-datalocation \
+        sci_radiobutton $w.dataloc -text "Extract Data Locations" -variable $this-datalocation \
           -value 1
 
         pack $w.nodeloc $w.dataloc -side top -expand yes -fill both

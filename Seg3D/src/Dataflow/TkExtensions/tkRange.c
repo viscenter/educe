@@ -251,9 +251,9 @@ static Tk_ClassProcs rangeClass = {
 #else 
 static TkClassProcs rangeClass = {
 #endif
-    NULL,			/* createProc. */
+    0,			/* createProc. */
     RangeWorldChanged,		/* geometryProc. */
-    NULL			/* modalProc. */
+    0			/* modalProc. */
 };
 
 

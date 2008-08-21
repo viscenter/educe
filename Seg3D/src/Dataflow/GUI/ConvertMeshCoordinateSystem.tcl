@@ -34,49 +34,49 @@ itcl_class SCIRun_ChangeMesh_ConvertMeshCoordinateSystem {
     inherit Module
     
     constructor {config} {
-	set name ConvertMeshCoordinateSystem
+      set name ConvertMeshCoordinateSystem
     }
     
     method ui {} {
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    raise $w
-	    return;
-	}
-	
-	toplevel $w
-	frame $w.f 
-	pack $w.f -padx 2 -pady 2 -expand 1 -fill x
-	set n "$this-c needexecute "
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          raise $w
+          return;
+      }
+      
+      sci_toplevel $w
+      sci_frame $w.f 
+      pack $w.f -padx 2 -pady 2 -expand 1 -fill x
+      set n "$this-c needexecute "
 
-	frame $w.f.old -relief groove -borderwidth 2
-	frame $w.f.new -relief groove -borderwidth 2
-	
-	label $w.f.old.l -text "Input coordinate system: "
-	radiobutton $w.f.old.e -text "Cartesian   " -variable $this-oldsystem \
-	    -value "Cartesian"
-	radiobutton $w.f.old.s -text "Spherical   " -variable $this-oldsystem \
-	    -value "Spherical"
-	radiobutton $w.f.old.p -text "Polar   " -variable $this-oldsystem \
-	    -value "Polar"
-	radiobutton $w.f.old.r -text "Range" -variable $this-oldsystem \
-	    -value "Range"
-	pack $w.f.old.l $w.f.old.e $w.f.old.s $w.f.old.p $w.f.old.r -side top -anchor w
+      sci_frame $w.f.old -relief groove -borderwidth 2
+      sci_frame $w.f.new -relief groove -borderwidth 2
+      
+      sci_label $w.f.old.l -text "Input coordinate system: "
+      sci_radiobutton $w.f.old.e -text "Cartesian   " -variable $this-oldsystem \
+          -value "Cartesian"
+      sci_radiobutton $w.f.old.s -text "Spherical   " -variable $this-oldsystem \
+          -value "Spherical"
+      sci_radiobutton $w.f.old.p -text "Polar   " -variable $this-oldsystem \
+          -value "Polar"
+      sci_radiobutton $w.f.old.r -text "Range" -variable $this-oldsystem \
+          -value "Range"
+      pack $w.f.old.l $w.f.old.e $w.f.old.s $w.f.old.p $w.f.old.r -side top -anchor w
 
-	label $w.f.new.l -text "Output coordinate system: "
-	radiobutton $w.f.new.e -text "Cartesian   " -variable $this-newsystem \
-	    -value "Cartesian"
-	radiobutton $w.f.new.s -text "Spherical   " -variable $this-newsystem \
-	    -value "Spherical"
-	radiobutton $w.f.new.p -text "Polar   " -variable $this-newsystem \
-	    -value "Polar"
-	radiobutton $w.f.new.r -text "Range" -variable $this-newsystem \
-	    -value "Range"
-	pack $w.f.new.l $w.f.new.e $w.f.new.s $w.f.new.p $w.f.new.r -side top -anchor w
+      sci_label $w.f.new.l -text "Output coordinate system: "
+      sci_radiobutton $w.f.new.e -text "Cartesian   " -variable $this-newsystem \
+          -value "Cartesian"
+      sci_radiobutton $w.f.new.s -text "Spherical   " -variable $this-newsystem \
+          -value "Spherical"
+      sci_radiobutton $w.f.new.p -text "Polar   " -variable $this-newsystem \
+          -value "Polar"
+      sci_radiobutton $w.f.new.r -text "Range" -variable $this-newsystem \
+          -value "Range"
+      pack $w.f.new.l $w.f.new.e $w.f.new.s $w.f.new.p $w.f.new.r -side top -anchor w
 
-	pack $w.f.old $w.f.new -side left -pady 2 -padx 2
+      pack $w.f.old $w.f.new -side left -pady 2 -padx 2
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
     }
 }

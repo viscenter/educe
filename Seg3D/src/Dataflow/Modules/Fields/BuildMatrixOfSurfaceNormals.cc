@@ -24,107 +24,48 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
-//  
-//    File   : BuildMatrixOfSurfaceNormals.cc
-//    Author : Martin Cole
-//    Date   : Mon Feb 27 10:39:28 2006
 
+
+#include <Core/Algorithms/Fields/MeshData/GetSurfaceNodeNormals.h>
 
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Dataflow/Modules/Fields/BuildMatrixOfSurfaceNormals.h>
-#include <Core/Algorithms/Fields/ApplyMappingMatrix.h>
+#include <Dataflow/Network/Module.h>
 
-#include <iostream>
 
 namespace SCIRun {
 
-//! Module to build a surface field from a volume field.
 class BuildMatrixOfSurfaceNormals : public Module {
-public:
-  BuildMatrixOfSurfaceNormals(GuiContext* ctx);
-  virtual ~BuildMatrixOfSurfaceNormals();
-  virtual void execute();
+  public:
+    BuildMatrixOfSurfaceNormals(GuiContext* ctx);
+    virtual ~BuildMatrixOfSurfaceNormals() {}
+    virtual void execute();
 
-private:
-  
-  //! Input should be a volume field.
-  FieldIPort*               infield_;
-  int                       inmesh_gen_;
-
-  //! Handle on the generated surface.
-  MatrixHandle              normals_h_;
+  private:
+    SCIRunAlgo::GetSurfaceNodeNormalsAlgo algo_;
 };
 
 DECLARE_MAKER(BuildMatrixOfSurfaceNormals)
+
 BuildMatrixOfSurfaceNormals::BuildMatrixOfSurfaceNormals(GuiContext* ctx) : 
-  Module("BuildMatrixOfSurfaceNormals", ctx, Filter, "MiscField", "SCIRun"),
-  inmesh_gen_(-1),
-  normals_h_(0)
+  Module("BuildMatrixOfSurfaceNormals", ctx, Filter, "MiscField", "SCIRun")
 {
+  algo_.set_progress_reporter(this);
 }
-
-BuildMatrixOfSurfaceNormals::~BuildMatrixOfSurfaceNormals()
-{
-}
-
 
 void 
 BuildMatrixOfSurfaceNormals::execute()
 {
-  FieldHandle input;
-  if (!get_input_handle("Surface Field", input)) return;
+  FieldHandle input; MatrixHandle output;
+  
+  get_input_handle("Surface Field", input);
 
-  // This module only can operate on surface fields.
-  if (input->mesh()->dimensionality() != 2) 
+  if (inputs_changed_ || !oport_cached("Nodal Surface Normals"))
   {
-    error("Input field must be a Surface field.");
-    return;
+    if(!(algo_.run(input,output))) return;
+    send_output_handle("Nodal Surface Normals", output, true);
   }
-
-  MeshHandle mesh = input->mesh();
-  if (inmesh_gen_ != mesh->generation ||
-      normals_h_.get_rep() == 0)
-  {
-    inmesh_gen_ = mesh->generation;
-
-    const TypeDescription *mtd = mesh->get_type_description();
-    CompileInfoHandle ci = BuildMatrixOfSurfaceNormalsAlgo::get_compile_info(mtd);
-    Handle<BuildMatrixOfSurfaceNormalsAlgo> algo;
-    if (!module_dynamic_compile(ci, algo)) {
-      error("Faild to get BuildMatrixOfSurfaceNormalsAlgo");
-      return;
-    }
-
-    normals_h_ = algo->execute(this, mesh);
-  }
-
-  // Keep it around unless user selects port caching.
-  send_output_handle("Nodal Surface Normals", normals_h_, true);
 }
-
-
-CompileInfoHandle
-BuildMatrixOfSurfaceNormalsAlgo::get_compile_info(const TypeDescription *mesh_td)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("BuildMatrixOfSurfaceNormalsAlgoT");
-  static const string base_class_name("BuildMatrixOfSurfaceNormalsAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       mesh_td->get_name(".", ".") + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       mesh_td->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  mesh_td->fill_compile_info(rval);
-  return rval;
-}
-
 
 } // End namespace SCIRun
 

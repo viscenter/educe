@@ -57,6 +57,7 @@ class SCISHARE ConvertFieldBasisTypeAlgo : public AlgoBase
     }
   
     bool run(FieldHandle input, FieldHandle& output, MatrixHandle& mapping);
+    bool run(FieldHandle input, FieldHandle& output);
 };
 
 } // end namespace SCIRunAlgo

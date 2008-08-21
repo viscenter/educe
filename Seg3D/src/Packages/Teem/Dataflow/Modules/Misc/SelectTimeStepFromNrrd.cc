@@ -105,7 +105,7 @@ SelectTimeStepFromNrrd::send_selection(NrrdDataHandle in,
 
   if ((unsigned int)time_axis == in->nrrd_->dim - 1)
   {
-    NrrdData *out = scinew NrrdData(in.get_rep());
+    NrrdData *out = new NrrdData(in.get_rep());
 
     // Copy all of the nrrd header from in to out.
     if (nrrdBasicInfoCopy(out->nrrd_, in->nrrd_,
@@ -141,7 +141,7 @@ SelectTimeStepFromNrrd::send_selection(NrrdDataHandle in,
   else
   {
     // Do the slice.
-    NrrdData *out = scinew NrrdData();
+    NrrdData *out = new NrrdData();
     if (nrrdSlice(out->nrrd_, in->nrrd_, time_axis, which))
     {
       char *err = biffGetDone(NRRD);
@@ -155,11 +155,9 @@ SelectTimeStepFromNrrd::send_selection(NrrdDataHandle in,
   // Copy the properties.
   onrrd_handle->copy_properties(in.get_rep());
 
-  NrrdOPort *onrrd = (NrrdOPort *)get_oport("Time Slice");
-  onrrd->set_cache( cache );
-  onrrd->send_and_dereference(onrrd_handle);
+  send_output_handle("Time Slice",onrrd_handle,cache);
 
-  ColumnMatrix *selected = scinew ColumnMatrix(1);
+  ColumnMatrix *selected = new ColumnMatrix(1);
   selected->put(0, 0, (double)which);
   MatrixHandle stmp(selected);
   send_output_handle("Selected Index", stmp);
@@ -225,7 +223,7 @@ SelectTimeStepFromNrrd::execute()
   for (unsigned int i = 0; i < (unsigned int)nrrd_handle->nrrd_->dim; i++)
   {
     if (nrrd_handle->nrrd_->axis[i].label &&
-	string(nrrd_handle->nrrd_->axis[i].label) == string("Time"))
+        string(nrrd_handle->nrrd_->axis[i].label) == string("Time"))
     {
       time_axis = i;
       break;
@@ -275,7 +273,8 @@ SelectTimeStepFromNrrd::execute()
       inc_ = (start>end)?-1:1;
 
     // If the current value is invalid, reset it to the start.
-    if (current_.get() < lower || current_.get() > upper) {
+    if (current_.get() < lower || current_.get() > upper) 
+    {
       current_.set(start);
       inc_ = (start>end)?-1:1;
     }
@@ -286,61 +285,72 @@ SelectTimeStepFromNrrd::execute()
     which = current_.get();
 
     // If updating, we're done for now.
-    if (execmode == "update") {
+    if (execmode == "update") 
+    {
 
-    } else if (execmode == "step") {
+    } 
+    else if (execmode == "step") 
+    {
       which = increment(current_.get(), lower, upper);
       send_selection(nrrd_handle, which, time_axis, cache);
-
-    } else if (execmode == "stepb") {
+    } 
+    else if (execmode == "stepb") 
+    {
       inc_ *= -1;
       which = increment(current_.get(), lower, upper);
       inc_ *= -1;
       send_selection(nrrd_handle, which, time_axis, cache);
-      
-    } else if (execmode == "play") {
-
-      if( !loop_ ) {
-	if (playmode_.get() == "once" && which >= end)
-	  which = start;
+    } 
+    else if (execmode == "play") 
+    {
+      if( !loop_ ) 
+      {
+        if (playmode_.get() == "once" && which >= end)
+          which = start;
       }
 
       send_selection(nrrd_handle, which, time_axis, cache);
 
       // User may have changed the execmode to stop so recheck.
       execmode_.reset();
-      if ( loop_ = (execmode_.get() == "play") ) {
-	const int delay = delay_.get();
-      
-	if( delay > 0) {
-	  Time::waitFor(delay/1000.0); // use this for cross platform instead of below
-	  //const unsigned int secs = delay / 1000;
-	  //const unsigned int msecs = delay % 1000;
-	  //if (secs)  { sleep(secs); }
-	  //if (msecs) { usleep(msecs * 1000); }
-	}
-    
-	int next = increment(which, lower, upper);    
+      if ( loop_ = (execmode_.get() == "play") ) 
+      {
+        const int delay = delay_.get();
+            
+        if( delay > 0) 
+        {
+          Time::waitFor(delay/1000.0); // use this for cross platform instead of below
+          //const unsigned int secs = delay / 1000;
+          //const unsigned int msecs = delay % 1000;
+          //if (secs)  { sleep(secs); }
+          //if (msecs) { usleep(msecs * 1000); }
+        }
+          
+        int next = increment(which, lower, upper);    
 
-	// Incrementing may cause a stop in the execmode so recheck.
-	execmode_.reset();
-	if( loop_ = (execmode_.get() == "play") ) {
-	  which = next;
+        // Incrementing may cause a stop in the execmode so recheck.
+        execmode_.reset();
+        if( loop_ = (execmode_.get() == "play") ) 
+        {
+          which = next;
 
-	  want_to_execute();
-	}
+          want_to_execute();
+        }
       }
-    } else {
+    } 
+    else 
+    {
       if( execmode == "rewind" )
-	which = start;
+        which = start;
 
       else if( execmode == "fforward" )
-	which = end;
+        which = end;
     
       send_selection(nrrd_handle, which, time_axis, cache);
     
-      if (playmode_.get() == "inc_w_exec") {
-	which = increment(which, lower, upper);
+      if (playmode_.get() == "inc_w_exec") 
+      {
+        which = increment(which, lower, upper);
       }
     }
   }

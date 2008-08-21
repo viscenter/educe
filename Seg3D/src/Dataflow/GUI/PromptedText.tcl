@@ -33,7 +33,7 @@ proc prompted_text {t {prompt ""} {command ""} args} {
     global $t.command
     set $t.command $command
     set $t.prompt $prompt
-    eval {text $t} $args
+    eval {sci_text $t} $args
     set $t.real_text [$t get 1.0 end]
     prompted_text_add_prompt $t
     bindtags $t [concat [bindtags $t] PromptedText$t] 

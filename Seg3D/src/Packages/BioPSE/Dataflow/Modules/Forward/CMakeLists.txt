@@ -75,7 +75,7 @@ TARGET_LINK_LIBRARIES(Packages_BioPSE_Dataflow_Modules_Forward
   Dataflow_TkExtensions
   Core_Util
   Dataflow_Network
-  Core_Algorithms_Math
+  Core_Algorithms_FiniteElements
   ${TK_LIBRARY}
   ${GL_LIBRARY}
   ${M_LIBRARY}

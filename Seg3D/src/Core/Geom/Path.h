@@ -96,7 +96,7 @@ class SCISHARE Path : public PropertyManager {
   double    path_prm;              // current value of corresponding parameter
                                    // (changes from 0 to 1)
 
-  int       is_loop, is_built, is_back, is_acc, is_run;
+  bool       is_loop, is_built, is_back, is_acc, is_run;
   
   int       path_t;
   int       acc_t;

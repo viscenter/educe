@@ -42,7 +42,7 @@
 
 #include <Core/Geom/GeomTexSlices.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #ifdef _WIN32
 #include <string.h>
 #else
@@ -55,7 +55,7 @@ namespace SCIRun {
 
 Persistent* make_GeomTexSlices()
 {
-    return scinew GeomTexSlices(0,0,0,Point(0,0,0), Point(1,1,1));
+    return new GeomTexSlices(0,0,0,Point(0,0,0), Point(1,1,1));
 }
 
 PersistentTypeID GeomTexSlices::type_id("GeomTexSlices", "GeomObj", make_GeomTexSlices);
@@ -92,7 +92,7 @@ void GeomTexSlices::get_bounds(BBox& bb)
 
 GeomObj* GeomTexSlices::clone()
 {
-    return scinew GeomTexSlices(*this);
+    return new GeomTexSlices(*this);
 }
 
 #define GeomTexSlices_VERSION 1

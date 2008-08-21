@@ -57,9 +57,9 @@ itcl_class SCIRun_DataArrayMath_ReportDataArrayInfo {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        iwidgets::Labeledframe $w.att -labelpos nw \
+        sci_labeledframe $w.att -labelpos nw \
                          -labeltext "Input DataArray Attributes" 
                    
         pack $w.att -fill x
@@ -78,71 +78,71 @@ itcl_class SCIRun_DataArrayMath_ReportDataArrayInfo {
     
    method entrypair { win text1 text2 } {
 
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 -width [set $this-firstwidth] \
-		      -anchor w -just left
-	label $win.colon -text ":" -width 2 -anchor w -just left 
+        sci_frame $win 
+        pack $win -side top -padx 5
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
+                -anchor w -just left
+        sci_label $win.colon -text ":" -width 2 -anchor w -just left 
 
-	entry $win.l2 -textvar $text2 \
-	    -just left -width 40 \
-	    -relief flat -state disabled \
-	    -fore darkred -borderwidth 0 \
-	    -xscrollcommand [list $win.xscroll set]
+        sci_entry $win.l2 -textvar $text2 \
+            -just left -width 40 \
+            -relief flat -state disabled \
+            -fore darkred -borderwidth 0 \
+            -xscrollcommand [list $win.xscroll set]
 
-	scrollbar $win.xscroll -orient horizontal \
-	    -command [list $win.l2 xview]
+        sci_scrollbar $win.xscroll -orient horizontal \
+            -command [list $win.l2 xview]
 
-	pack $win.l1 $win.colon $win.l2 -side left
-	pack $win.xscroll -side left -fill x
+        pack $win.l1 $win.colon $win.l2 -side left
+        pack $win.xscroll -side left -fill x
     } 
 
     method labelpair { win text1 text2 } {
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 -width [set $this-firstwidth] \
-		      -anchor w -just left
-	label $win.colon -text ":" -width 2 -anchor w -just left 
-	label $win.l2 -textvar $text2 -anchor w -just left \
-	    -fore darkred -borderwidth 0
-	pack $win.l1 $win.colon $win.l2 -side left
+        sci_frame $win 
+        pack $win -side top -padx 5
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
+                -anchor w -just left
+        sci_label $win.colon -text ":" -width 2 -anchor w -just left 
+        sci_label $win.l2 -textvar $text2 -anchor w -just left \
+            -fore darkred -borderwidth 0
+        pack $win.l1 $win.colon $win.l2 -side left
     } 
 
     method labelpair2 { win text1 text2x text2y } {
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 -width [set $this-firstwidth] \
-		      -anchor w -just left
-	label $win.colon  -text ": " -width 2 -anchor w -just left
-	label $win.l2x -textvar $text2x -anchor w -just left \
-	    -fore darkred -borderwidth 0
-	label $win.comma1  -text ", " -anchor w -just left  \
-	    -fore darkred -borderwidth 0
-	label $win.l2y -textvar $text2y -anchor w -just left \
-	    -fore darkred -borderwidth 0
-	pack $win.l1 $win.colon \
-	    $win.l2x $win.comma1 $win.l2y -side left -padx 0
+        sci_frame $win 
+        pack $win -side top -padx 5
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
+                -anchor w -just left
+        sci_label $win.colon  -text ": " -width 2 -anchor w -just left
+        sci_label $win.l2x -textvar $text2x -anchor w -just left \
+            -fore darkred -borderwidth 0
+        sci_label $win.comma1  -text ", " -anchor w -just left  \
+            -fore darkred -borderwidth 0
+        sci_label $win.l2y -textvar $text2y -anchor w -just left \
+            -fore darkred -borderwidth 0
+        pack $win.l1 $win.colon \
+            $win.l2x $win.comma1 $win.l2y -side left -padx 0
     } 
 
     method labelpair3 { win text1 text2x text2y text2z } {
-	frame $win 
-	pack $win -side top -padx 5
-	label $win.l1 -text $text1 -width [set $this-firstwidth] \
-		      -anchor w -just left
-	label $win.colon  -text ": " -width 2 -anchor w -just left
-	label $win.l2x -textvar $text2x -anchor w -just left \
-	    -fore darkred -borderwidth 0
-	label $win.comma1  -text ", " -anchor w -just left  \
-	    -fore darkred -borderwidth 0
-	label $win.l2y -textvar $text2y -anchor w -just left \
-	    -fore darkred -borderwidth 0
-	label $win.comma2  -text ", " -anchor w -just left \
-	    -fore darkred -borderwidth 0
-	label $win.l2z -textvar $text2z -anchor w -just left \
-	    -fore darkred -borderwidth 0
-	pack $win.l1 $win.colon \
-	    $win.l2x $win.comma1 $win.l2y $win.comma2 $win.l2z \
-	    -side left -padx 0
+        sci_frame $win 
+        pack $win -side top -padx 5
+        sci_label $win.l1 -text $text1 -width [set $this-firstwidth] \
+                -anchor w -just left
+        sci_label $win.colon  -text ": " -width 2 -anchor w -just left
+        sci_label $win.l2x -textvar $text2x -anchor w -just left \
+            -fore darkred -borderwidth 0
+        sci_label $win.comma1  -text ", " -anchor w -just left  \
+            -fore darkred -borderwidth 0
+        sci_label $win.l2y -textvar $text2y -anchor w -just left \
+            -fore darkred -borderwidth 0
+        sci_label $win.comma2  -text ", " -anchor w -just left \
+            -fore darkred -borderwidth 0
+        sci_label $win.l2z -textvar $text2z -anchor w -just left \
+            -fore darkred -borderwidth 0
+        pack $win.l1 $win.colon \
+            $win.l2x $win.comma1 $win.l2y $win.comma2 $win.l2z \
+            -side left -padx 0
     } 
     
 

@@ -38,8 +38,9 @@ CMAKE=cmake-2.4.5
 printhelp() {
     echo -e "--nodashboard\t\tDo not commit results to dashboard"
     echo -e "--newimages\t\tRender a new set of baseline images"
-    echo -e "--imagedir\tSet the directory with the baseline images"
-    echo -e "--datadir\tSet the directory with scirun data"
+    echo -e "--imagedir\t\tSet the directory with the baseline images"
+    echo -e "--datadir\t\tSet the directory with scirun data"
+    echo -e "--match\t\t\tOnly run tests that match keyword"
     echo -e "-?\t\t\tThis help"
     exit 0
 }
@@ -86,14 +87,14 @@ do_ctest() {
     rm -f $DIR/Testing/*.png
     trybuild $cmakebin . $sitename -DWITH_WXWIDGETS=OFF -DBUILD_TESTING=ON -DRUN_UNIT_TESTS=ON -DRUN_CLASS_TESTS=OFF -DRUN_SAMPLE_TESTS=OFF -DTEST_IMAGES_DIR=$DIR/Testing -DCOMPARE_IMAGES=OFF -DBUILD_SEG3D=OFF
 #    trybuild make -j4
-    trybuild $ctestbin $submit
+    trybuild $ctestbin $submit $match
     rm -rf $imagedir
     mkdir $imagedir
     cp $DIR/Testing/*.png $imagedir
   else
     trybuild $cmakebin . $sitename -DWITH_WXWIDGETS=OFF -DBUILD_TESTING=ON -DRUN_UNIT_TESTS=ON -DRUN_CLASS_TESTS=OFF -DRUN_SAMPLE_TESTS=OFF -DTEST_IMAGES_DIR=$DIR/Testing -DCOMPARE_IMAGES=ON -DBASELINE_IMAGES_DIR=$imagedir -DBUILD_SEG3D=OFF
 #    trybuild make -j4
-    trybuild $ctestbin $submit  
+    trybuild $ctestbin $submit $match 
   fi
 }
 
@@ -122,7 +123,7 @@ echo "Parsing arguments..."
 imagedir=$DIR/Testing/BaselineImages/
 export SCIRUN_DATA="$DIR/../../SCIRunData"
 
-
+match=""
 
 while [ "$1" != "" ]; do
     case "$1" in
@@ -145,12 +146,15 @@ while [ "$1" != "" ]; do
         --datadir=*)
           datadir=`echo $1 | awk -F '\=' '{print $2}'`
           export SCIRUN_DATA=`echo $1 | awk -F '\=' '{print $2}'`;;
+        --match=*)
+          match=`echo $1 | awk -F '\=' '{print " -R .*"$2".*"}'`;;
         *) 
             echo \`$1\' parameter ignored;;
     esac
     shift 1
 done
 
+echo "${match}"
 find_cmake
 
 do_ctest 

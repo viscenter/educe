@@ -31,22 +31,23 @@
 
 
 #include <Core/Volume/CM2Widget.h>
-#include <Core/Malloc/Allocator.h>
+
+
 #include <Core/Datatypes/Color.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 
 #ifdef _WIN32
-#include <Core/OS/Rand.h>
+#include <Core/Util/Rand.h>
 #endif
 
 #include <sci_gl.h>
 
 #include <sci_comp_warn_fixes.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include   <iostream>
 #include   <sstream>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -127,7 +128,7 @@ CM2Widget::slivr2sr(SLIVR::CM2Widget *w)
 
 static Persistent* ParaboloidCM2Widget_maker()
 {
-  return scinew ParaboloidCM2Widget;
+  return new ParaboloidCM2Widget;
 }
 
 PersistentTypeID ParaboloidCM2Widget::type_id("ParaboloidCM2Widget",
@@ -200,7 +201,7 @@ ParaboloidCM2Widget::clone()
 
 static Persistent* EllipsoidCM2Widget_maker()
 {
-  return scinew EllipsoidCM2Widget;
+  return new EllipsoidCM2Widget;
 }
 
 PersistentTypeID EllipsoidCM2Widget::type_id("EllipsoidCM2Widget",
@@ -257,7 +258,7 @@ EllipsoidCM2Widget::clone()
 
 static Persistent* RectangleCM2Widget_maker()
 {
-  return scinew RectangleCM2Widget;
+  return new RectangleCM2Widget;
 }
 
 PersistentTypeID RectangleCM2Widget::type_id("RectangleCM2Widget", 
@@ -355,7 +356,7 @@ RectangleCM2Widget::clone()
 
 static Persistent* TriangleCM2Widget_maker()
 {
-  return scinew TriangleCM2Widget;
+  return new TriangleCM2Widget;
 }
 
 PersistentTypeID TriangleCM2Widget::type_id("TriangleCM2Widget", "CM2Widget",
@@ -446,7 +447,7 @@ TriangleCM2Widget::clone()
 
 static Persistent* ImageCM2Widget_maker()
 {
-  return scinew ImageCM2Widget;
+  return new ImageCM2Widget;
 }
 
 PersistentTypeID ImageCM2Widget::type_id("ImageCM2Widget", "CM2Widget",
@@ -497,7 +498,7 @@ ImageCM2Widget::clone()
 
 static Persistent* PaintCM2Widget_maker()
 {
-  return scinew PaintCM2Widget;
+  return new PaintCM2Widget;
 }
 
 PersistentTypeID PaintCM2Widget::type_id("PaintCM2Widget", "CM2Widget",
@@ -554,7 +555,7 @@ PaintCM2Widget::clone()
 
 static Persistent* ColorMapCM2Widget_maker()
 {
-  return scinew ColorMapCM2Widget;
+  return new ColorMapCM2Widget;
 }
 
 PersistentTypeID ColorMapCM2Widget::type_id("ColorMapCM2Widget", 
@@ -635,7 +636,7 @@ ColorMapCM2Widget::clone()
 
 static Persistent* ClippingCM2Widget_maker()
 {
-  return scinew ClippingCM2Widget;
+  return new ClippingCM2Widget;
 }
 
 PersistentTypeID ClippingCM2Widget::type_id("ClippingCM2Widget", "CM2Widget",

@@ -248,16 +248,15 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlab {
 
         # create a new gui window
 
-        toplevel $w 
+        sci_toplevel $w 
 
         wm minsize $w 100 150
 
-	
-        iwidgets::labeledframe $w.ioframe -labeltext "INPUT/OUPUT"
+        sci_labeledframe $w.ioframe -labeltext "INPUT/OUPUT"
         set childframe [$w.ioframe childsite]
         pack $w.ioframe -fill x
 
-        iwidgets::tabnotebook $childframe.pw -height 200 -tabpos n
+        sci_tabnotebook $childframe.pw -height 200 -tabpos n
         $childframe.pw add -label "Matrices"
         $childframe.pw add -label "Fields" 
         $childframe.pw add -label "Nrrds" 
@@ -277,206 +276,206 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlab {
         set $this-string-menu $string
         
 
-        frame $matrix.in
-        frame $matrix.out
+        sci_frame $matrix.in
+        sci_frame $matrix.out
         pack $matrix.in $matrix.out -side left -padx 5p -anchor n
 
-        label $matrix.in.t -text "INPUT MATRICES"
+        sci_label $matrix.in.t -text "INPUT MATRICES"
         pack $matrix.in.t -side top -anchor n	
 	
-        label $matrix.out.t -text "OUTPUT MATRICES"
+        sci_label $matrix.out.t -text "OUTPUT MATRICES"
         pack $matrix.out.t -side top -anchor n	
 	
         for {set x 0} {$x < [set $this-numport-matrix]} {incr x} {
             
-            frame $matrix.in.m-$x
-            pack $matrix.in.m-$x -side top -fill x -expand yes
+          sci_frame $matrix.in.m-$x
+          pack $matrix.in.m-$x -side top -fill x -expand yes
 
-            label $matrix.in.m-$x.label -text [format "matrix %d" [expr $x+1]]
-            entry $matrix.in.m-$x.name 
-            
-            $matrix.in.m-$x.name insert 0 [lindex [set $this-input-matrix-name] $x] 
-            
-            iwidgets::optionmenu $matrix.in.m-$x.type
-            foreach dformat {{same as data} {double} {single} {int8} {uint8} {int16} {uint16} {int32} {uint32}} {
-                $matrix.in.m-$x.type insert end $dformat
-            }
-            
-            set dataformatindex [lsearch {{same as data} {double} {single} {int8} {uint8} {int16} {uint16} {int32} {uint32}} [lindex [set $this-input-matrix-type] $x]]
-            if [expr $dataformatindex > 0] { $matrix.in.m-$x.type select $dataformatindex }
-            
-            iwidgets::optionmenu $matrix.in.m-$x.array
-            foreach dformat {{numeric array} {struct array}} {
-                $matrix.in.m-$x.array insert end $dformat
-            }
+          sci_label $matrix.in.m-$x.label -text [format "matrix %d" [expr $x+1]]
+          sci_entry $matrix.in.m-$x.name 
+          
+          $matrix.in.m-$x.name insert 0 [lindex [set $this-input-matrix-name] $x] 
+          
+          sci_optionmenu $matrix.in.m-$x.type
+          foreach dformat {{same as data} {double} {single} {int8} {uint8} {int16} {uint16} {int32} {uint32}} {
+            $matrix.in.m-$x.type insert end $dformat
+          }
+          
+          set dataformatindex [lsearch {{same as data} {double} {single} {int8} {uint8} {int16} {uint16} {int32} {uint32}} [lindex [set $this-input-matrix-type] $x]]
+          if [expr $dataformatindex > 0] { $matrix.in.m-$x.type select $dataformatindex }
+          
+          sci_optionmenu $matrix.in.m-$x.array
+          foreach dformat {{numeric array} {struct array}} {
+            $matrix.in.m-$x.array insert end $dformat
+          }
 
-            set matrixformatindex [lsearch {{numeric array} {struct array}} [lindex [set $this-input-matrix-array] $x]]
-            if [expr $matrixformatindex > 0] { $matrix.in.m-$x.array select $matrixformatindex }
-            
-            pack $matrix.in.m-$x.label $matrix.in.m-$x.name $matrix.in.m-$x.type $matrix.in.m-$x.array -side left
+          set matrixformatindex [lsearch {{numeric array} {struct array}} [lindex [set $this-input-matrix-array] $x]]
+          if [expr $matrixformatindex > 0] { $matrix.in.m-$x.array select $matrixformatindex }
+          
+          pack $matrix.in.m-$x.label $matrix.in.m-$x.name $matrix.in.m-$x.type $matrix.in.m-$x.array -side left
 
-            frame $matrix.out.m-$x
-            pack $matrix.out.m-$x -side top -fill x -expand yes -pady 4p
-            
-            label $matrix.out.m-$x.label -text [format "matrix %d" [expr $x+1]]
-            entry $matrix.out.m-$x.name 
+          sci_frame $matrix.out.m-$x
+          pack $matrix.out.m-$x -side top -fill x -expand yes -pady 4p
+          
+          sci_label $matrix.out.m-$x.label -text [format "matrix %d" [expr $x+1]]
+          sci_entry $matrix.out.m-$x.name 
 
-            $matrix.out.m-$x.name insert 0 [lindex [set $this-output-matrix-name] $x] 
+          $matrix.out.m-$x.name insert 0 [lindex [set $this-output-matrix-name] $x] 
 
-            pack $matrix.out.m-$x.label $matrix.out.m-$x.name -side left
+          pack $matrix.out.m-$x.label $matrix.out.m-$x.name -side left
         }
 
-        frame $field.in
-        frame $field.out
+        sci_frame $field.in
+        sci_frame $field.out
         pack $field.in $field.out -side left -padx 5p -anchor n 
 
-        label $field.in.t -text "INPUT FIELD MATRICES"
+        sci_label $field.in.t -text "INPUT FIELD MATRICES"
         pack $field.in.t -side top -anchor n	
 	
-        label $field.out.t -text "OUTPUT FIELD MATRICES"
+        sci_label $field.out.t -text "OUTPUT FIELD MATRICES"
         pack $field.out.t -side top -anchor n	
 	
         for {set x 0} {$x < [set $this-numport-field]} {incr x} {
-            
-            frame $field.in.m-$x
-            pack $field.in.m-$x -side top -fill x -expand yes
+          
+          sci_frame $field.in.m-$x
+          pack $field.in.m-$x -side top -fill x -expand yes
 
-            label $field.in.m-$x.label -text [format "field %d" [expr $x+1]]
-            entry $field.in.m-$x.name 
-            
-            $field.in.m-$x.name insert 0 [lindex [set $this-input-field-name] $x] 
-            
-            iwidgets::optionmenu $field.in.m-$x.array
-            foreach dformat {{numeric array} {struct array}} {
-                $field.in.m-$x.array insert end $dformat
-            }
+          sci_label $field.in.m-$x.label -text [format "field %d" [expr $x+1]]
+          sci_entry $field.in.m-$x.name 
+          
+          $field.in.m-$x.name insert 0 [lindex [set $this-input-field-name] $x] 
+          
+          sci_optionmenu $field.in.m-$x.array
+          foreach dformat {{numeric array} {struct array}} {
+              $field.in.m-$x.array insert end $dformat
+          }
 
-            set fieldformatindex [lsearch {{numeric array} {struct array}} [lindex [set $this-input-field-array] $x]]
-            if [expr $fieldformatindex > 0] { $field.in.m-$x.array select $fieldformatindex }
-            
-            pack $field.in.m-$x.label $field.in.m-$x.name $field.in.m-$x.array -side left
+          set fieldformatindex [lsearch {{numeric array} {struct array}} [lindex [set $this-input-field-array] $x]]
+          if [expr $fieldformatindex > 0] { $field.in.m-$x.array select $fieldformatindex }
+          
+          pack $field.in.m-$x.label $field.in.m-$x.name $field.in.m-$x.array -side left
 
-            frame $field.out.m-$x
-            pack $field.out.m-$x -side top -fill x -expand yes -pady 4p
-            
-            label $field.out.m-$x.label -text [format "field %d" [expr $x+1]]
-            entry $field.out.m-$x.name 
+          sci_frame $field.out.m-$x
+          pack $field.out.m-$x -side top -fill x -expand yes -pady 4p
+          
+          sci_label $field.out.m-$x.label -text [format "field %d" [expr $x+1]]
+          sci_entry $field.out.m-$x.name 
 
-            $field.out.m-$x.name insert 0 [lindex [set $this-output-field-name] $x] 
+          $field.out.m-$x.name insert 0 [lindex [set $this-output-field-name] $x] 
 
-            pack $field.out.m-$x.label $field.out.m-$x.name -side left
+          pack $field.out.m-$x.label $field.out.m-$x.name -side left
         }
 
 
-        frame $nrrd.in
-        frame $nrrd.out
+        sci_frame $nrrd.in
+        sci_frame $nrrd.out
         pack $nrrd.in $nrrd.out -side left -padx 5p -anchor n 
 
-        label $nrrd.in.t -text "INPUT NRRD MATRICES"
+        sci_label $nrrd.in.t -text "INPUT NRRD MATRICES"
         pack $nrrd.in.t -side top -anchor n	
 	
-        label $nrrd.out.t -text "OUTPUT NRRD MATRICES"
+        sci_label $nrrd.out.t -text "OUTPUT NRRD MATRICES"
         pack $nrrd.out.t -side top -anchor n	
 	
         for {set x 0} {$x < [set $this-numport-nrrd]} {incr x} {
             
-            frame $nrrd.in.m-$x
-            pack $nrrd.in.m-$x -side top -fill x -expand yes
+          sci_frame $nrrd.in.m-$x
+          pack $nrrd.in.m-$x -side top -fill x -expand yes
 
-            label $nrrd.in.m-$x.label -text [format "nrrd %d" [expr $x+1]]
-            entry $nrrd.in.m-$x.name 
-            
-            $nrrd.in.m-$x.name insert 0 [lindex [set $this-input-nrrd-name] $x] 
-            
-            iwidgets::optionmenu $nrrd.in.m-$x.type
-            foreach dformat {{same as data} {double} {single} {int8} {uint8} {int16} {uint16} {int32} {uint32}} {
-                $nrrd.in.m-$x.type insert end $dformat
-            }
-            
-            set dataformatindex [lsearch {{same as data} {double} {single} {int8} {uint8} {int16} {uint16} {int32} {uint32}} [lindex [set $this-input-nrrd-type] $x]]
-            if [expr $dataformatindex > 0] { $nrrd.in.m-$x.type select $dataformatindex }
-            
-            iwidgets::optionmenu $nrrd.in.m-$x.array
-            foreach dformat {{numeric array} {struct array}} {
-                $nrrd.in.m-$x.array insert end $dformat
-            }
+          sci_label $nrrd.in.m-$x.label -text [format "nrrd %d" [expr $x+1]]
+          sci_entry $nrrd.in.m-$x.name 
+          
+          $nrrd.in.m-$x.name insert 0 [lindex [set $this-input-nrrd-name] $x] 
+          
+          sci_optionmenu $nrrd.in.m-$x.type
+          foreach dformat {{same as data} {double} {single} {int8} {uint8} {int16} {uint16} {int32} {uint32}} {
+              $nrrd.in.m-$x.type insert end $dformat
+          }
+          
+          set dataformatindex [lsearch {{same as data} {double} {single} {int8} {uint8} {int16} {uint16} {int32} {uint32}} [lindex [set $this-input-nrrd-type] $x]]
+          if [expr $dataformatindex > 0] { $nrrd.in.m-$x.type select $dataformatindex }
+          
+          sci_optionmenu $nrrd.in.m-$x.array
+          foreach dformat {{numeric array} {struct array}} {
+              $nrrd.in.m-$x.array insert end $dformat
+          }
 
-            set nrrdformatindex [lsearch {{numeric array} {struct array}} [lindex [set $this-input-nrrd-array] $x]]
-            if [expr $nrrdformatindex > 0] { $nrrd.in.m-$x.array select $nrrdformatindex }
-            
-            pack $nrrd.in.m-$x.label $nrrd.in.m-$x.name $nrrd.in.m-$x.type $nrrd.in.m-$x.array -side left
+          set nrrdformatindex [lsearch {{numeric array} {struct array}} [lindex [set $this-input-nrrd-array] $x]]
+          if [expr $nrrdformatindex > 0] { $nrrd.in.m-$x.array select $nrrdformatindex }
+          
+          pack $nrrd.in.m-$x.label $nrrd.in.m-$x.name $nrrd.in.m-$x.type $nrrd.in.m-$x.array -side left
 
-            frame $nrrd.out.m-$x
-            pack $nrrd.out.m-$x -side top -fill x -expand yes -pady 4p
-            
-            label $nrrd.out.m-$x.label -text [format "nrrd %d" [expr $x+1]]
-            entry $nrrd.out.m-$x.name 
+          sci_frame $nrrd.out.m-$x
+          pack $nrrd.out.m-$x -side top -fill x -expand yes -pady 4p
+          
+          sci_label $nrrd.out.m-$x.label -text [format "nrrd %d" [expr $x+1]]
+          sci_entry $nrrd.out.m-$x.name 
 
-            $nrrd.out.m-$x.name insert 0 [lindex [set $this-output-nrrd-name] $x] 
+          $nrrd.out.m-$x.name insert 0 [lindex [set $this-output-nrrd-name] $x] 
 
-            pack $nrrd.out.m-$x.label $nrrd.out.m-$x.name -side left
+          pack $nrrd.out.m-$x.label $nrrd.out.m-$x.name -side left
         }
 
 
-        frame $string.in
-        frame $string.out
+        sci_frame $string.in
+        sci_frame $string.out
         pack  $string.in $string.out -side left -padx 5p -anchor n 
 
-        label $string.in.t -text "INPUT STRINGS"
+        sci_label $string.in.t -text "INPUT STRINGS"
         pack  $string.in.t -side top -anchor n	
 	
-        label $string.out.t -text "OUTPUT STRINGS"
+        sci_label $string.out.t -text "OUTPUT STRINGS"
         pack  $string.out.t -side top -anchor n	
 	
         for {set x 0} {$x < [set $this-numport-string]} {incr x} {
             
-            frame $string.in.m-$x
-            pack $string.in.m-$x -side top -fill x -expand yes -pady 4p
+          sci_frame $string.in.m-$x
+          pack $string.in.m-$x -side top -fill x -expand yes -pady 4p
 
-            label $string.in.m-$x.label -text [format "string %d" [expr $x+1]]
-            entry $string.in.m-$x.name 
-            
-            $string.in.m-$x.name insert 0 [lindex [set $this-input-string-name] $x] 
-            
-            pack $string.in.m-$x.label $string.in.m-$x.name -side left
+          sci_label $string.in.m-$x.label -text [format "string %d" [expr $x+1]]
+          sci_entry $string.in.m-$x.name 
+          
+          $string.in.m-$x.name insert 0 [lindex [set $this-input-string-name] $x] 
+          
+          pack $string.in.m-$x.label $string.in.m-$x.name -side left
 
-            frame $string.out.m-$x
-            pack $string.out.m-$x -side top -fill x -expand yes -pady 4p
-            
-            label $string.out.m-$x.label -text [format "string %d" [expr $x+1]]
-            entry $string.out.m-$x.name 
+          sci_frame $string.out.m-$x
+          pack $string.out.m-$x -side top -fill x -expand yes -pady 4p
+          
+          sci_label $string.out.m-$x.label -text [format "string %d" [expr $x+1]]
+          sci_entry $string.out.m-$x.name 
 
-            $string.out.m-$x.name insert 0 [lindex [set $this-output-string-name] $x] 
-            pack $string.out.m-$x.label $string.out.m-$x.name -side left
+          $string.out.m-$x.name insert 0 [lindex [set $this-output-string-name] $x] 
+          pack $string.out.m-$x.label $string.out.m-$x.name -side left
         }
 
-        iwidgets::labeledframe $w.inetframe -labeltext "MATLAB ENGINE ADDRESS"
+        sci_labeledframe $w.inetframe -labeltext "MATLAB ENGINE ADDRESS"
         set childframe [$w.inetframe childsite]
         pack $w.inetframe -fill x
-        frame $childframe.f1
-        frame $childframe.f2
-        frame $childframe.f3
-        frame $childframe.f4
-        frame $childframe.f5
-        frame $childframe.f6
+        sci_frame $childframe.f1
+        sci_frame $childframe.f2
+        sci_frame $childframe.f3
+        sci_frame $childframe.f4
+        sci_frame $childframe.f5
+        sci_frame $childframe.f6
         pack $childframe.f5 $childframe.f6 -side bottom -anchor w
         pack $childframe.f1 $childframe.f2 $childframe.f3 -side left -fill x -expand yes
         pack $childframe.f4 -side top -anchor e
         
 
-        label $childframe.f1.addresslabel -text "Address:"
-        entry $childframe.f1.address -textvariable $this-inet-address
-        label $childframe.f2.portlabel -text "Port:" 
-        entry $childframe.f2.port -textvariable $this-inet-port
-        label $childframe.f3.passwdlabel -text "Password:" 
-        entry $childframe.f3.passwd -textvariable $this-inet-passwd -show "*"
-        label $childframe.f4.sessionlabel -text "Session:" 
-        entry $childframe.f4.session -textvariable $this-inet-session
+        sci_label $childframe.f1.addresslabel -text "Address:"
+        sci_entry $childframe.f1.address -textvariable $this-inet-address
+        sci_label $childframe.f2.portlabel -text "Port:" 
+        sci_entry $childframe.f2.port -textvariable $this-inet-port
+        sci_label $childframe.f3.passwdlabel -text "Password:" 
+        sci_entry $childframe.f3.passwd -textvariable $this-inet-passwd -show "*"
+        sci_label $childframe.f4.sessionlabel -text "Session:" 
+        sci_entry $childframe.f4.session -textvariable $this-inet-session
 
-        label $childframe.f5.info -text "Note: leave the addressbar empty for a matlab engine on local machine"
+        sci_label $childframe.f5.info -text "Note: leave the addressbar empty for a matlab engine on local machine"
         pack $childframe.f5.info -anchor w -side left
 
-        button $childframe.f6.localconfig -text "Edit Local Config of Matlab Engine" -command "$this editconfig"
+        sci_button $childframe.f6.localconfig -text "Edit Local Config of Matlab Engine" -command "$this editconfig"
         pack $childframe.f6.localconfig -anchor w -side left
 
         pack $childframe.f1.addresslabel -side left -padx 3p -pady 2p -padx 4p
@@ -489,11 +488,11 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlab {
         pack $childframe.f4.session -side left -padx 3p -pady 2p -anchor e
 
 
-        iwidgets::labeledframe $w.matlabframe -labeltext "MATLAB"
+        sci_labeledframe $w.matlabframe -labeltext "MATLAB"
         set childframe [$w.matlabframe childsite]
         pack $w.matlabframe -fill both -expand yes
         
-        iwidgets::tabnotebook $childframe.pw -tabpos n -height 300
+        sci_tabnotebook $childframe.pw -tabpos n -height 300
         $childframe.pw add -label "Matlab Code"
         $childframe.pw add -label "Matlab Engine Output" 
         $childframe.pw add -label "Matlab Engine Status" 
@@ -508,32 +507,30 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlab {
         set output [$childframe.pw childsite 1]
         set status [$childframe.pw childsite 2]
         
-        frame $code.f1
-        frame $output.f1
-        frame $status.f1
-        frame $code.f2
-        frame $code.f3
-        frame $output.f2
-        frame $status.f2
+        sci_frame $code.f1
+        sci_frame $output.f1
+        sci_frame $status.f1
+        sci_frame $code.f2
+        sci_frame $code.f3
+        sci_frame $output.f2
+        sci_frame $status.f2
         pack $code.f1 $output.f1 $status.f1 -side top -fill both -expand yes
         pack $code.f2 $code.f3 $output.f2 $status.f2 -side top -fill x  
 
         option add *textBackground white	
-        iwidgets::scrolledtext $code.f1.cmd -vscrollmode dynamic \
-            -labeltext "Matlab Commands" -height 150 
+        sci_scrolledtext $code.f1.cmd -vscrollmode dynamic -height 100 
         $code.f1.cmd insert end [set $this-matlab-code]
         pack $code.f1.cmd -fill both -expand yes
-        button $code.f2.clear -text "clear" -command "$this ClearMCode"
-        button $code.f2.load -text "load" -command "$this LoadMCode"
-        button $code.f2.save -text "save" -command "$this SaveMCode"
+        sci_button $code.f2.clear -text "clear" -command "$this ClearMCode"
+        sci_button $code.f2.load -text "load" -command "$this LoadMCode"
+        sci_button $code.f2.save -text "save" -command "$this SaveMCode"
 
         pack $code.f2.load $code.f2.save $code.f2.clear -anchor e -side left
 
-        label $code.f3.info -text "Please do not use the 'keyboard' instruction in the matlab code"
+        sci_label $code.f3.info -text "Please do not use the 'keyboard' instruction in the matlab code"
         pack $code.f3.info -anchor w -side left
 
-        iwidgets::scrolledtext $output.f1.display -vscrollmode dynamic \
-            -labeltext "Matlab Output" -height 150 
+        sci_scrolledtext $output.f1.display -vscrollmode dynamic -height 100 
         
         set textwidget [$output.f1.display component text]
         bind $textwidget <KeyPress> "$this KeyStroke %A %K"
@@ -541,18 +538,17 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlab {
         $output.f1.display insert end [set $this-matlab-output]
         set $this-matlab-var $this-matlab-output
         pack $output.f1.display -fill both -expand yes
-        button $output.f2.clear -text "clear" -command "$this ClearOutput"
+        sci_button $output.f2.clear -text "clear" -command "$this ClearOutput"
         pack $output.f2.clear -anchor e -side left
 
 
-        iwidgets::scrolledtext $status.f1.status -vscrollmode dynamic \
-            -labeltext "Matlab Engine Information" -height 150
+        sci_scrolledtext $status.f1.status -vscrollmode dynamic -height 100
         $status.f1.status clear	
         $status.f1.status insert end [set $this-matlab-status]
         pack $status.f1.status -fill both -expand yes
 
-        button $status.f2.disconnect -text "disconnect" -command "$this-c disconnect"
-        button $status.f2.connect -text "connect" -command "$this-c connect"
+        sci_button $status.f2.disconnect -text "disconnect" -command "$this-c disconnect"
+        sci_button $status.f2.connect -text "connect" -command "$this-c connect"
 
         pack $status.f2.connect $status.f2.disconnect  -anchor e -side left 
 
@@ -619,25 +615,25 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlab {
             return
         }
 	
-        toplevel $w -class TkFDialog        
+        sci_toplevel $w -class TkFDialog        
       
-        iwidgets::labeledframe $w.config -labeltext "CONFIGURATION FILE"
+        sci_labeledframe $w.config -labeltext "CONFIGURATION FILE"
         set childframe [$w.config childsite]
 
         pack $w.config -fill both -expand true
 
-        iwidgets::scrolledtext $childframe.file -labeltext "matlab engine configuration file" \
+        sci_scrolledtext $childframe.file -labeltext "matlab engine configuration file" \
         -visibleitems 70x20 -vscrollmode dynamic -hscrollmode dynamic -wrap none
 
         pack $childframe.file -fill both -expand true
         set a $childframe
         set b [set $this-configfile]
         $childframe.file import [set $this-configfile]
-        frame $childframe.f1
+        sci_frame $childframe.f1
         pack $childframe.f1 -side bottom -anchor e
   
-        button $childframe.f1.load -text "load" -command "$a.file clear; $a.file import $b"
-        button $childframe.f1.save -text "save" -command "$a.file export $b"
+        sci_button $childframe.f1.load -text "load" -command "$a.file clear; $a.file import $b"
+        sci_button $childframe.f1.save -text "save" -command "$a.file export $b"
 
         pack $childframe.f1.load $childframe.f1.save -anchor e -side left
                           
@@ -661,7 +657,7 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlab {
             return
         }
 	
-        toplevel $w -class TkFDialog
+        sci_toplevel $w -class TkFDialog
 
         set initdir ""
 	
@@ -730,7 +726,7 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlab {
             return
         }
 	
-        toplevel $w -class TkFDialog
+        sci_toplevel $w -class TkFDialog
 
         set initdir ""
 	
@@ -792,14 +788,14 @@ itcl_class MatlabInterface_Interface_InterfaceWithMatlab {
         append $this-matlab-output $text
         set w .ui[modname]
         if {[winfo exists $w]} {
-            set menu [set $this-matlab-output-menu]
-            $menu.f1.display insert end $text
-            set textwidget [$menu.f1.display component text]
-            if {[$textwidget compare 1000.end < end]} {
-               $textwidget delete 1.0 2.0
-            }
-            $textwidget index end
-            $menu.f1.display yview moveto 1
+          set menu [set $this-matlab-output-menu]
+          $menu.f1.display insert end $text
+          set textwidget [$menu.f1.display component text]
+          if {[$textwidget compare 1000.end < end]} {
+             $textwidget delete 1.0 2.0
+          }
+          $textwidget index end
+          $menu.f1.display yview moveto 1
         }
     }
 

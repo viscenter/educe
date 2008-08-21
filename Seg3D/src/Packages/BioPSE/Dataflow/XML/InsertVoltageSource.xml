@@ -39,7 +39,7 @@
   <io>
     <inputs lastportdynamic="no">
       <port>
-        <name>TetMesh</name>
+        <name>FEMesh</name>
 	<datatype>SCIRun::Field</datatype>
       </port>
       <port>
@@ -49,7 +49,7 @@
     </inputs>
     <outputs>
       <port>
-        <name>TetMesh</name>
+        <name>FEMesh</name>
 	<datatype>SCIRun::Field</datatype>
       </port>
     </outputs>

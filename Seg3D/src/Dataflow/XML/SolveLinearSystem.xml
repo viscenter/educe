@@ -56,7 +56,15 @@ and the user wants to find the solution vector x.</summary>
     <outputs>
       <port>
         <name>Solution</name>
-	<datatype>SCIRun::Matrix</datatype>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>NumIterations</name>
+        <datatype>SCIRun::Matrix</datatype>
+      </port>
+      <port>
+        <name>Residue</name>
+        <datatype>SCIRun::Matrix</datatype>
       </port>
     </outputs>
   </io>

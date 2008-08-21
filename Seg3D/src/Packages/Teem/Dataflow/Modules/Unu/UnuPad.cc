@@ -40,7 +40,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Containers/StringUtil.h>
@@ -218,7 +218,7 @@ UnuPad::execute()
 	free(err);
     }
 
-    last_nrrdH_ = scinew NrrdData(nout);
+    last_nrrdH_ = new NrrdData(nout);
 
     // Copy the properies, kinds, and labels.
     last_nrrdH_->copy_properties(nrrdH.get_rep());

@@ -27,7 +27,7 @@
 */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/DenseMatrix.h>
@@ -287,9 +287,9 @@ ConvertTimeToWeightedIndices::execute()
     
   if (o2 == -1)
   {
-    Matrix::index_type* rr = scinew Matrix::index_type[2];
-    Matrix::index_type* cc = scinew Matrix::index_type[1];
-    double* vv = scinew double[1];
+    Matrix::index_type* rr = new Matrix::index_type[2];
+    Matrix::index_type* cc = new Matrix::index_type[1];
+    double* vv = new double[1];
     
     if ((rr==0)||(cc==0)||(vv==0))
     {
@@ -302,13 +302,13 @@ ConvertTimeToWeightedIndices::execute()
     }
 
     rr[0] = 0; rr[1] = 1; cc[0] = o1; vv[0] = w1;
-    Weights = scinew SparseRowMatrix(1,size,rr,cc,1,vv);
+    Weights = new SparseRowMatrix(1,size,rr,cc,1,vv);
   }
   else
   {
-    Matrix::index_type* rr = scinew Matrix::index_type[2];
-    Matrix::index_type* cc = scinew Matrix::index_type[2];
-    double* vv = scinew double[2];
+    Matrix::index_type* rr = new Matrix::index_type[2];
+    Matrix::index_type* cc = new Matrix::index_type[2];
+    double* vv = new double[2];
     
     if ((rr==0)||(cc==0)||(vv==0))
     {
@@ -321,12 +321,12 @@ ConvertTimeToWeightedIndices::execute()
     }
 
     rr[0] = 0; rr[1] = 2; cc[0] = o1; cc[1] = o2; vv[0] = w1; vv[1] = w2;
-    Weights = scinew SparseRowMatrix(1,size,rr,cc,2,vv);
+    Weights = new SparseRowMatrix(1,size,rr,cc,2,vv);
   }
 
   if (Time.get_rep() == 0)
   {
-    Time = scinew DenseMatrix(1, 1);
+    Time = new DenseMatrix(1, 1);
     if (Time.get_rep()) Time->put(0,0,time);
   }
   

@@ -105,20 +105,6 @@ cd $DIR/src/tcl/unix
 ############
 # Update Makefiles
 
-if test "$BITS" = "64" && test "$OSNAME" = "IRIX64"; then 
-    echo
-    echo "#### FIXING MAKEFILE FOR 64bit SGI BUILD ####"
-    echo
-    # TCL's configure, on SGI IRIX, can't figure out the '-64' flag,
-    # so we add it manually to the Makefile.
-
-    mv Makefile Makefile.old
-    sed -e "s/-n32/-64/g" Makefile.old > Makefile
-
-    echo
-    echo "#### DONE                                ####"
-    echo
-fi
 
 if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then 
     echo
@@ -126,10 +112,20 @@ if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then
     echo
 
     mv $DIR/src/tcl/unix/Makefile $DIR/src/tcl/unix/Makefile.old
-    sed -e 's:gcc -pipe:gcc -pipe -m64:g' $DIR/src/tcl/unix/Makefile.old >$DIR/src/tcl/unix/Makefile
+    sed -e 's:gcc -pipe:gcc -pipe -m64 -arch ppc64 -arch x86_64:g' $DIR/src/tcl/unix/Makefile.old >$DIR/src/tcl/unix/Makefile
     mv $DIR/src/tcl/unix/Makefile $DIR/src/tcl/unix/Makefile.old
-    sed -e 's:cc -dynamiclib:cc -dynamiclib -m64:g' $DIR/src/tcl/unix/Makefile.old >$DIR/src/tcl/unix/Makefile
+    sed -e 's:cc -dynamiclib:cc -dynamiclib -m64 -arch ppc64 -arch x86_64:g' $DIR/src/tcl/unix/Makefile.old >$DIR/src/tcl/unix/Makefile
+fi
 
+if test "$BITS" = "32" && test "$OSNAME" = "Darwin"; then
+    echo
+    echo "#### FIXING MAKEFILE FOR 32bit DARWIN BUILD ####"
+    echo
+
+    mv $DIR/src/tcl/unix/Makefile $DIR/src/tcl/unix/Makefile.old
+    sed -e 's:gcc -pipe:gcc -pipe -arch i386 -arch ppc:g' $DIR/src/tcl/unix/Makefile.old >$DIR/src/tcl/unix/Makefile
+    mv $DIR/src/tcl/unix/Makefile $DIR/src/tcl/unix/Makefile.old
+    sed -e 's:cc -dynamiclib:cc -dynamiclib -arch i386 -arch ppc:g' $DIR/src/tcl/unix/Makefile.old >$DIR/src/tcl/unix/Makefile
 fi
 
 ############

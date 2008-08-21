@@ -40,7 +40,7 @@
  */
 
 #include <Core/Geom/GeomDL.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 #include <algorithm>
 
@@ -51,7 +51,7 @@ namespace SCIRun {
 
 Persistent* make_GeomDL()
 {
-  return scinew GeomDL(0);
+  return new GeomDL(0);
 }
 
 PersistentTypeID GeomDL::type_id("GeomDL", "GeomObj", make_GeomDL);
@@ -71,7 +71,7 @@ GeomDL::GeomDL(const GeomDL &copy)
 GeomObj*
 GeomDL::clone()
 {
-  return scinew GeomDL(*this);
+  return new GeomDL(*this);
 }
 
 

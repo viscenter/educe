@@ -52,10 +52,10 @@
 #include <math.h>
 
 // STL STUFF
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
 #include <string>
-#include <sgi_stl_warnings_on.h>
+
 
 // Class for reading matlab files
 #include <Core/Matlab/matlabfile.h>
@@ -83,12 +83,13 @@
 namespace MatlabIO {
 
 
-class SCISHARE FieldToMatlabAlgo : public SCIRun::DynamicAlgoBase, public matfilebase
+class SCISHARE FieldToMatlabAlgo : public matfilebase
 {
   public:
 
     //////// CONSTRUCTOR ///////////////////////////////////
     inline FieldToMatlabAlgo();
+    virtual ~FieldToMatlabAlgo();
 
     //////// OPTIONS FOR CONVERTER ////////////////////////
 
@@ -108,9 +109,6 @@ class SCISHARE FieldToMatlabAlgo : public SCIRun::DynamicAlgoBase, public matfil
     //////// DYNAMIC ALGO ENTRY POINT /////////////////////
 
     virtual bool execute(SCIRun::FieldHandle fieldH, matlabarray &mlarray);
-
-    static SCIRun::CompileInfoHandle 
-                      get_compile_info(SCIRun::FieldHandle field);
 
     inline void setreporter(SCIRun::ProgressReporter* pr);
 

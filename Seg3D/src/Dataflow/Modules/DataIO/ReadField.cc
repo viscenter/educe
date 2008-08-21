@@ -48,17 +48,16 @@ namespace SCIRun {
 template class GenericReader<FieldHandle>;
 
 class ReadField : public GenericReader<FieldHandle> {
-protected:
-  GuiString gui_types_;
-  GuiString gui_filetype_;
+  protected:
+    GuiString gui_types_;
+    GuiString gui_filetype_;
 
-  virtual bool call_importer(const string &filename, FieldHandle &fHandle);
+    virtual bool call_importer(const string &filename, FieldHandle &fHandle);
 
-public:
-  ReadField(GuiContext* ctx);
-  virtual ~ReadField();
-
-  virtual void execute();
+  public:
+    ReadField(GuiContext* ctx);
+    virtual ~ReadField() {}
+    virtual void execute();
 };
 
 
@@ -95,12 +94,6 @@ ReadField::ReadField(GuiContext* ctx)
   gui_types_.set(importtypes);
 }
 
-
-ReadField::~ReadField()
-{
-}
-
-
 bool
 ReadField::call_importer(const string &filename,
 			 FieldHandle & fHandle)
@@ -120,7 +113,6 @@ ReadField::call_importer(const string &filename,
   return false;
 }
 
-
 void
 ReadField::execute()
 {
@@ -131,8 +123,10 @@ ReadField::execute()
   importing_ = !(ft == "" ||
 		 ft == "SCIRun Field File" ||
 		 ft == "SCIRun Field Any");
+     
+  if (gui_types_.changed() || gui_filetype_.changed()) inputs_changed_ = true; 
+     
   GenericReader<FieldHandle>::execute();
 }
-
 
 } // End namespace SCIRun

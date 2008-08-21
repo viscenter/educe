@@ -91,13 +91,13 @@ ConvertNrrdToColorMap2::execute()
       return;
     }
 
-    NrrdDataHandle temp = scinew NrrdData;
+    NrrdDataHandle temp = new NrrdData;
     nrrdFlip(temp->nrrd_, h->nrrd_, 2);
 
     vector<SLIVR::CM2Widget*> widget;
-    widget.push_back(scinew ImageCM2Widget(temp));
+    widget.push_back(new ImageCM2Widget(temp));
 
-    ocmap_h_ = scinew ColorMap2(widget, false, -1, make_pair(0.0, -1.0));
+    ocmap_h_ = new ColorMap2(widget, false, false, make_pair(0.0, -1.0));
   }
 
   send_output_handle("Output ColorMap", ocmap_h_, true);

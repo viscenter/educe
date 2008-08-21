@@ -44,46 +44,47 @@ itcl_class Teem_UnuAtoM_UnuGamma {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.gamma -labeltext "Gamma:" \
-	    -textvariable $this-gamma
+        sci_entryfield $w.f.options.gamma -labeltext "Gamma:" \
+          -textvariable $this-gamma
         pack $w.f.options.gamma -side top -expand yes -fill x
 
-	frame $w.f.options.min -relief groove -borderwidth 2
-	pack $w.f.options.min -side top -expand yes -fill x
+        sci_frame $w.f.options.min -relief groove -borderwidth 2
+        pack $w.f.options.min -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.min.v -labeltext "Min:" \
-	    -textvariable $this-min
+        sci_entryfield $w.f.options.min.v -labeltext "Min:" \
+          -textvariable $this-min
         pack $w.f.options.min.v -side top -anchor nw
 
-        checkbutton $w.f.options.min.useinputmin \
-	    -text "Use lowest value of input nrrd as min" \
-	    -variable $this-useinputmin
+        sci_checkbutton $w.f.options.min.useinputmin \
+          -text "Use lowest value of input nrrd as min" \
+          -variable $this-useinputmin
         pack $w.f.options.min.useinputmin -side top -anchor nw
 
-	frame $w.f.options.max -relief groove -borderwidth 2
-	pack $w.f.options.max -side top -expand yes -fill x
+        sci_frame $w.f.options.max -relief groove -borderwidth 2
+        pack $w.f.options.max -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.max.v -labeltext "Max:" \
-	    -textvariable $this-max
-	pack $w.f.options.max.v -side top -anchor nw
+        sci_entryfield $w.f.options.max.v -labeltext "Max:" \
+          -textvariable $this-max
+        pack $w.f.options.max.v -side top -anchor nw
 
-        checkbutton $w.f.options.max.useinputmax \
-	    -text "Use highest value of input nrrd as max" \
-	    -variable $this-useinputmax
+        sci_checkbutton $w.f.options.max.useinputmax \
+          -text "Use highest value of input nrrd as max" \
+          -variable $this-useinputmax
         pack $w.f.options.max.useinputmax -side top -anchor nw
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
+
     }
 }
 

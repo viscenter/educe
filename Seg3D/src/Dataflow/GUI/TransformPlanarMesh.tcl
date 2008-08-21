@@ -26,13 +26,7 @@
 #  DEALINGS IN THE SOFTWARE.
 #
 
-
-
-catch {rename TransformPlanarMesh ""}
-
-package require Iwidgets 3.0   
-
-itcl_class SCIRun_ChangeFieldMesh_TransformPlanarMesh {
+itcl_class SCIRun_ChangeMesh_TransformPlanarMesh {
     inherit Module
     
     constructor {config} {
@@ -40,55 +34,55 @@ itcl_class SCIRun_ChangeFieldMesh_TransformPlanarMesh {
     }
     
     method ui {} {
-	global $this-axis
+      global $this-axis
 
-	set w .ui[modname]
-	if {[winfo exists $w]} {
-	    return
-	}
-	
-	toplevel $w
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          return
+      }
+      
+      sci_toplevel $w
 
-	iwidgets::labeledframe $w.axis -labelpos nw -labeltext "Axis of Alignment"
-	set axis [$w.axis childsite]
+      sci_labeledframe $w.axis -labelpos nw -labeltext "Axis of Alignment"
+      set axis [$w.axis childsite]
 
-	radiobutton $axis.x -text "X" -width 6 \
-	    -anchor w -just left -variable $this-axis -value 0
-	radiobutton $axis.y -text "Y" -width 6 \
-	    -anchor w -just left -variable $this-axis -value 1
-	radiobutton $axis.z -text "Z" -width 6 \
-	    -anchor w -just left -variable $this-axis -value 2
+      sci_radiobutton $axis.x -text "X" -width 6 \
+          -anchor w -just left -variable $this-axis -value 0
+      sci_radiobutton $axis.y -text "Y" -width 6 \
+          -anchor w -just left -variable $this-axis -value 1
+      sci_radiobutton $axis.z -text "Z" -width 6 \
+          -anchor w -just left -variable $this-axis -value 2
 
-	checkbutton $axis.invert -text "Invert" -width 6 \
-	    -anchor w -just left -variable $this-invert
-	
-	pack $axis.x $axis.y $axis.z $axis.invert -side left
-	pack $w.axis -side top
+      sci_checkbutton $axis.invert -text "Invert" -width 6 \
+          -anchor w -just left -variable $this-invert
+      
+      pack $axis.x $axis.y $axis.z $axis.invert -side left
+      pack $w.axis -side top
 
-	iwidgets::labeledframe $w.trans -labelpos nw -labeltext "Transform"
-	set trans [$w.trans childsite]
+      sci_labeledframe $w.trans -labelpos nw -labeltext "Transform"
+      set trans [$w.trans childsite]
 
-	iwidgets::spinner $trans.x -labeltext "Left-Right" \
-		-width 10 -fixed 10 \
-		-validate  "$this trans_in %P $this-trans_x" \
-		-decrement "$this trans_angle -1 $trans.x $this-trans_x" \
-		-increment "$this trans_angle  1 $trans.x $this-trans_x" 
+      sci_spinner $trans.x -labeltext "Left-Right" \
+        -width 10 -fixed 10 \
+        -validate  "$this trans_in %P $this-trans_x" \
+        -decrement "$this trans_angle -1 $trans.x $this-trans_x" \
+        -increment "$this trans_angle  1 $trans.x $this-trans_x" 
 
-	$trans.x insert 0 [set $this-trans_x]
+      $trans.x insert 0 [set $this-trans_x]
 
-	iwidgets::spinner $trans.y -labeltext "Up-Down: " \
-		-width 10 -fixed 10 \
-		-validate  "$this trans_in %P $this-trans_y" \
-		-decrement "$this trans_angle -1 $trans.y $this-trans_y" \
-		-increment "$this trans_angle  1 $trans.y $this-trans_y" 
+      sci_spinner $trans.y -labeltext "Up-Down: " \
+        -width 10 -fixed 10 \
+        -validate  "$this trans_in %P $this-trans_y" \
+        -decrement "$this trans_angle -1 $trans.y $this-trans_y" \
+        -increment "$this trans_angle  1 $trans.y $this-trans_y" 
 
-	$trans.y insert 0 [set $this-trans_y]
-	
-	pack $trans.x $trans.y -side left
-	pack $w.trans -side top
+      $trans.y insert 0 [set $this-trans_y]
+      
+      pack $trans.x $trans.y -side left
+      pack $w.trans -side top
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+      makeSciButtonPanel $w $w $this
+      moveToCursor $w
     }
 
     method trans_in {new trans} {

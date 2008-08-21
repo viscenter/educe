@@ -24,27 +24,55 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
-//  
-//    File   : ConvertFieldsToTexture.cc
-//    Author : Milan Ikits
-//    Date   : Fri Jul 16 03:28:21 2004
 
-#include <Dataflow/Modules/Visualization/ConvertFieldsToTexture.h>
+
+#include <slivr/VideoCardInfo.h>
+#include <slivr/ShaderProgramARB.h>
+
 #include <Core/Containers/StringUtil.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Malloc/Allocator.h>
 
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/TexturePort.h>
 
-#include <slivr/VideoCardInfo.h>
-#include <slivr/ShaderProgramARB.h>
+#include <Dataflow/Modules/Visualization/share.h>
 
 namespace SCIRun {
 
 using namespace SLIVR;
 
+class SCISHARE ConvertFieldsToTexture : public Module
+{
+  public:
+    ConvertFieldsToTexture(GuiContext* ctx, const std::string& name = "ConvertFieldsToTexture",
+                           SchedClass sc = Source, const string& cat = "Visualization", 
+                           const string& pack = "SCIRun");
+    virtual ~ConvertFieldsToTexture() {}
+    virtual void execute();
+
+    template<class T>
+    void create_scaled_value_nrrd(T* value, unsigned char* nrrd, size_t sz, double fmin, double fmax );
+
+    template<class T>
+    void create_scaled_value_normal_nrrd(T* value, Vector* normal, unsigned char* nrrd, size_t sz, double fmin, double fmax );
+    void create_scaled_gradient_magnitude_nrrd(Vector* gradient, unsigned char* nrrd, size_t sz, double fmin, double fmax );
+
+  protected:
+
+    GuiDouble gui_vminval_;
+    GuiDouble gui_vmaxval_;
+    GuiDouble gui_gminval_;
+    GuiDouble gui_gmaxval_;
+
+    GuiInt gui_fixed_;
+    GuiInt gui_card_mem_;
+    GuiInt gui_card_mem_auto_;
+
+    GuiInt gui_histogram_;    
+    GuiDouble gui_gamma_;
+    
+    int card_mem_;
+};
 
 DECLARE_MAKER(ConvertFieldsToTexture)
   
@@ -62,11 +90,6 @@ ConvertFieldsToTexture::ConvertFieldsToTexture(GuiContext* ctx, const std::strin
   gui_gamma_(get_ctx()->subVar("gamma"),0.5),
   card_mem_(video_card_memory_size())
 {}
-
-
-ConvertFieldsToTexture::~ConvertFieldsToTexture()
-{}
-
 
 template<class T>
 void
@@ -159,7 +182,6 @@ ConvertFieldsToTexture::execute()
     
   get_input_handle("Value Field",ValueHandle,true);
   get_input_handle("Gradient Magnitude Field",GradientHandle,false);
-//  get_input_handle("Mask Field",MaskHandle,false);
   
   if (inputs_changed_ ||gui_card_mem_.changed() || gui_card_mem_.changed()  ||
       gui_vminval_.changed() || gui_vmaxval_.changed() || gui_gminval_.changed() ||
@@ -167,10 +189,11 @@ ConvertFieldsToTexture::execute()
       gui_histogram_.changed() || !oport_cached("Texture"))
   {
     // Check the memory of the graphics card
+    update_state(Executing);
+    
     if (card_mem_ != 0 && gui_card_mem_auto_.get()) gui_card_mem_.set(card_mem_);
     else if (card_mem_ == 0) gui_card_mem_auto_.set(0);
 
-    
     bool has_gradient = false;
     bool has_gradient_magnitude = false;
     
@@ -279,7 +302,7 @@ ConvertFieldsToTexture::execute()
       vmesh->get_elem_dimensions(dim);
     }
 
-    ValueNrrd = scinew NrrdData;
+    ValueNrrd = new NrrdData;
     
 
     if( gui_fixed_.get() )
@@ -297,7 +320,7 @@ ConvertFieldsToTexture::execute()
 
     if (has_gradient || has_gradient_magnitude)
     {
-      GradientNrrd = scinew NrrdData;
+      GradientNrrd = new NrrdData;
     }
     
     if (!has_gradient)
@@ -576,7 +599,7 @@ ConvertFieldsToTexture::execute()
       }   
     }
     
-    TextureHandle TextureH = scinew Texture();
+    TextureHandle TextureH = new Texture();
     Nrrd* v = 0;
     Nrrd* g = 0;
     if (ValueNrrd.get_rep()) v = ValueNrrd->nrrd_;
@@ -592,7 +615,7 @@ ConvertFieldsToTexture::execute()
     
     if (GradientNrrd.get_rep() && gui_histogram_.get())
     {
-      NrrdDataHandle HistoGramNrrd = scinew NrrdData;
+      NrrdDataHandle HistoGramNrrd = new NrrdData;
 
       // build joint histogram
       size_t sx = 256;
@@ -679,12 +702,7 @@ ConvertFieldsToTexture::execute()
 
       send_output_handle("JointHistoGram",HistoGramNrrd,true);
     }
-    
   }
 }
-
-
-
-
 
 } // namespace SCIRun

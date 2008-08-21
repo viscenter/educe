@@ -41,7 +41,7 @@
 #include <Core/Datatypes/TypeName.h>
 #include <Core/Datatypes/MeshTypes.h>
 #include <Core/Containers/LockingHandle.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Persistent/PersistentSTL.h>
 #include <Core/Containers/FData.h>
 #include <Core/Datatypes/CastFData.h>
@@ -401,7 +401,7 @@ GenericField<Mesh, Basis, FData>::resize_fdata()
   {
     // do nothing (really, we want to resize to zero)
   }
-  else if (basis_order_ == 1)
+  else if (basis_order_ == 0 || basis_order_ == 1)
   {
     typename mesh_type::Node::size_type ssize;
     mesh_->synchronize(Mesh::NODES_E);
@@ -428,14 +428,14 @@ template <class Mesh, class Basis, class FData>
 Persistent *
 GenericField<Mesh, Basis, FData>::maker()
 {
-  return scinew GenericField<Mesh, Basis, FData>;
+  return new GenericField<Mesh, Basis, FData>;
 }
 
 template <class Mesh, class Basis, class FData>
 FieldHandle
 GenericField<Mesh, Basis, FData>::field_maker()
 {
-  return FieldHandle(scinew GenericField<Mesh, Basis, FData>());
+  return FieldHandle(new GenericField<Mesh, Basis, FData>());
 }
 
 
@@ -444,7 +444,7 @@ FieldHandle
 GenericField<Mesh, Basis, FData>::field_maker_mesh(MeshHandle mesh)
 {
   mesh_handle_type mesh_handle = dynamic_cast<mesh_type *>(mesh.get_rep());
-  if (mesh_handle.get_rep()) return FieldHandle(scinew GenericField<Mesh, Basis, FData>(mesh_handle));
+  if (mesh_handle.get_rep()) return FieldHandle(new GenericField<Mesh, Basis, FData>(mesh_handle));
   else return FieldHandle(0);
 }
 
@@ -497,7 +497,7 @@ void GenericField<Mesh, Basis, FData>::io(Piostream& stream)
 template <class Mesh, class Basis, class FData>
 GenericField<Mesh, Basis, FData>::GenericField() : 
   Field(),
-  mesh_(mesh_handle_type(scinew mesh_type())),
+  mesh_(mesh_handle_type(new mesh_type())),
   fdata_(0),
   vfield_(0),
   basis_order_(0),
@@ -511,7 +511,7 @@ GenericField<Mesh, Basis, FData>::GenericField() :
   VFData* vfdata = CreateVFData(fdata(),get_basis().get_nodes(),get_basis().get_derivs());
   if (vfdata)
   {  
-    vfield_ = scinew VGenericField<GenericField<Mesh,Basis,FData> >(this, vfdata);
+    vfield_ = new VGenericField<GenericField<Mesh,Basis,FData> >(this, vfdata);
   }
 }
 
@@ -528,7 +528,7 @@ GenericField<Mesh, Basis, FData>::GenericField(const GenericField& copy) :
   VFData* vfdata = CreateVFData(fdata(),get_basis().get_nodes(),get_basis().get_derivs());
   if (vfdata)
   {  
-    vfield_ = scinew VGenericField<GenericField<Mesh,Basis,FData> >(this, vfdata);
+    vfield_ = new VGenericField<GenericField<Mesh,Basis,FData> >(this, vfdata);
   }
 }
 
@@ -550,7 +550,7 @@ GenericField<Mesh, Basis, FData>::GenericField(mesh_handle_type mesh) :
   VFData* vfdata = CreateVFData(fdata(),get_basis().get_nodes(),get_basis().get_derivs());
   if (vfdata)
   {  
-    vfield_ = scinew VGenericField<GenericField<Mesh,Basis,FData> >(this, vfdata);
+    vfield_ = new VGenericField<GenericField<Mesh,Basis,FData> >(this, vfdata);
   }  
 }
 
@@ -599,12 +599,6 @@ GenericField<Mesh, Basis, FData>::mesh_detach()
   mesh_->thaw();
   vfield_->update_mesh_pointer(mesh_.get_rep());
 }
-
-
-// Turn off warning for CHECKARRAYBOUNDS
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1183 1506
-#endif
 
 template <class Mesh, class Basis, class FData>
 bool
@@ -750,11 +744,6 @@ value(typename mesh_type::Cell::index_type i) const
   return fdata_[i];
 }
 
-// Reenable warning for CHECKARRAYBOUNDS
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1183 1506
-#endif
-
 template <class Mesh, class Basis, class FData>
 typename GenericField<Mesh, Basis, FData>::fdata_type &
 GenericField<Mesh, Basis, FData>::fdata()
@@ -822,11 +811,11 @@ GenericField<Mesh, Basis, FData>::get_type_description(td_info_e td) const
     {
       static TypeDescription* tdn1 = 0;
       if (tdn1 == 0) {
-	TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(3);
+	TypeDescription::td_vec *subs = new TypeDescription::td_vec(3);
 	(*subs)[0] = sub1;
 	(*subs)[1] = sub2;
 	(*subs)[2] = sub3;
-	tdn1 = scinew TypeDescription(name, subs, path, namesp, 
+	tdn1 = new TypeDescription(name, subs, path, namesp, 
 				      TypeDescription::FIELD_E);
       } 
       return tdn1;
@@ -835,7 +824,7 @@ GenericField<Mesh, Basis, FData>::get_type_description(td_info_e td) const
     {
       static TypeDescription* tdn0 = 0;
       if (tdn0 == 0) {
-	tdn0 = scinew TypeDescription(name, 0, path, namesp, 
+	tdn0 = new TypeDescription(name, 0, path, namesp, 
 				      TypeDescription::FIELD_E);
       }
       return tdn0;

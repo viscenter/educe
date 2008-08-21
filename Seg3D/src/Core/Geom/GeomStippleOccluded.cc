@@ -43,14 +43,14 @@
  *  Copyright (C) 2005 SCI Group
  */
 #include <Core/Geom/GeomStippleOccluded.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 
 namespace SCIRun {
 
 Persistent* make_GeomStippleOccluded()
 {
-    return scinew GeomStippleOccluded(0,0);
+    return new GeomStippleOccluded(0,0);
 }
 
 PersistentTypeID GeomStippleOccluded::type_id("GeomStippleOccluded", "GeomSwitch", make_GeomStippleOccluded);
@@ -67,7 +67,7 @@ GeomStippleOccluded::GeomStippleOccluded(const GeomStippleOccluded& copy)
 
 GeomObj* GeomStippleOccluded::clone()
 {
-    return scinew GeomStippleOccluded(*this);
+    return new GeomStippleOccluded(*this);
 }
 
 

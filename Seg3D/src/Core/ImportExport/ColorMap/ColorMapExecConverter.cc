@@ -42,7 +42,7 @@
 // Use a standalone converter to convert a scirun object into a
 // temporary file, then read in that file.
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/ImportExport/ColorMap/ColorMapIEPlugin.h>
 #include <Core/ImportExport/ExecConverter.h>
 #include <Core/Persistent/Pstreams.h>

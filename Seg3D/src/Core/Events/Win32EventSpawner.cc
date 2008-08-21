@@ -36,7 +36,7 @@
 #include <Core/Events/keysyms.h>
 #include <Core/Geom/Win32OpenGLContext.h>
 #include <Core/Containers/StringUtil.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/Timer.h>
 #include <Core/Util/Assert.h>
 #include <Core/Util/Environment.h>
@@ -408,7 +408,7 @@ Win32GLContextRunnable::iterate()
       break;
     }
     case WM_CLOSE:
-      event = scinew WindowEvent(WindowEvent::DESTROY_E, target_); break;
+      event = new WindowEvent(WindowEvent::DESTROY_E, target_); break;
     default:
       CallWindowProc(WindowEventProc, msg.hwnd, msg.message, msg.wParam, msg.lParam);
       if (sci_getenv_p("SCI_DEBUG"))
@@ -432,7 +432,7 @@ void
 Win32GLContextRunnable::run()
 {
   CHECK_OPENGL_ERROR( "Win32GLContextRunnable::run() - begin" );
-  context_ = scinew Win32OpenGLContext(visual_, x_, y_, width_, height_, border_);
+  context_ = new Win32OpenGLContext(visual_, x_, y_, width_, height_, border_);
   created_.up();
   ThrottledRunnable::run();
   CHECK_OPENGL_ERROR( "Win32GLContextRunnable::run() - end" );

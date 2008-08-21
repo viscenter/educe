@@ -56,10 +56,10 @@ public:
 
   virtual bool		make_current();
   virtual void		release();
-  virtual int		width();
-  virtual int		height();
+  virtual int     width();
+  virtual int     height();
   virtual void		swap();
-
+  virtual bool    has_shaders();
   WindowPtr             window_;
 private:  
   void                  create_context(int w, int h, 

@@ -35,6 +35,8 @@
 #include <Core/Algorithms/Visualization/Sage.h>
 #include <Core/Algorithms/Visualization/TetMC.h>
 #include <Core/Algorithms/Visualization/HexMC.h>
+#include <Core/Geom/GeomGroup.h>
+#include <Core/Geom/GeomMaterial.h>
 
 namespace SCIRun {
 
@@ -58,9 +60,9 @@ append_sparse_matrices(vector<MatrixHandle> &matrices)
     nnz += sparse->nnz;
   }
 
-  int *rr = scinew int[nrows+1];
-  int *cc = scinew int[nnz];
-  double *dd = scinew double[nnz];
+  int *rr = new int[nrows+1];
+  int *cc = new int[nnz];
+  double *dd = new double[nnz];
 
   int offset = 0;
   int nnzcounter = 0;
@@ -81,7 +83,7 @@ append_sparse_matrices(vector<MatrixHandle> &matrices)
     offset += sparse->rows[snrows];
   }
 
-  return scinew SparseRowMatrix(nrows, ncols, rr, cc, nnz, dd);
+  return new SparseRowMatrix(nrows, ncols, rr, cc, nnz, dd);
 }
 
 //! Algorithm Interface.
@@ -119,7 +121,7 @@ ExtractIsosurfaceAlg::execute(size_t field_id, size_t cmap_id,
 	DynamicAlgoHandle  dalgo;    //! the algorithm instance (return data)
 	if (!DynamicCompilation::compile(ci, dalgo)) {
 	  if (prog)
-	  prog->error( "Marching Cubes can not work with this field.");
+            prog->error( "Marching Cubes can not work with this field.");
 	  return rval;
 	}
 	
@@ -195,8 +197,8 @@ ExtractIsosurfaceAlg::execute(size_t field_id, size_t cmap_id,
 	sage_alg->set_field(field_input_handle.get_rep());
 
 	for (unsigned int iv=0; iv<isovals.size(); iv++) {
-	  GeomGroup *group = scinew GeomGroup;
-	  GeomPoints *points = scinew GeomPoints();
+	  GeomGroup *group = new GeomGroup;
+	  GeomPoints *points = new GeomPoints();
 	  sage_alg->search(isovals[iv], group, points);
 	  geom_hndls.push_back( group );
 	}
@@ -268,7 +270,7 @@ ExtractIsosurfaceAlg::execute(size_t field_id, size_t cmap_id,
   if(get_p_build_geom() && isovals.size()) 
   {
       
-    GeomGroup *geomGroup = scinew GeomGroup;
+    GeomGroup *geomGroup = new GeomGroup;
 
     for (unsigned int iv=0; iv<isovals.size(); iv++) {
       MaterialHandle material_handle;
@@ -276,12 +278,12 @@ ExtractIsosurfaceAlg::execute(size_t field_id, size_t cmap_id,
       if (colormap_input_handle.get_rep()) {
 	material_handle = colormap_input_handle->lookup(isovals[iv]);
       } else {
-	material_handle = scinew Material(Color(get_p_color_r(),
+	material_handle = new Material(Color(get_p_color_r(),
 						get_p_color_g(),
 						get_p_color_b()));
       }
       if (geom_hndls[iv].get_rep()) {
-	geomGroup->add(scinew GeomMaterial(geom_hndls[iv],
+	geomGroup->add(new GeomMaterial(geom_hndls[iv],
 					   material_handle));
       }
     }

@@ -40,7 +40,7 @@
  */
 
 #include <Core/Geom/BBoxCache.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::cerr;
 using std::ostream;
@@ -49,7 +49,7 @@ namespace SCIRun {
 
 Persistent* make_GeomBBoxCache()
 {
-    return scinew GeomBBoxCache(0);
+    return new GeomBBoxCache(0);
 }
 
 PersistentTypeID GeomBBoxCache::type_id("GeomBBoxCache", "GeomObj",

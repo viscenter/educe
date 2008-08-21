@@ -75,14 +75,13 @@ public:
                          VMesh::DElem::index_type i) const;
 
   virtual void get_delems(VMesh::DElem::array_type& delems, 
+                          VMesh::Node::index_type i) const;
+  virtual void get_delems(VMesh::DElem::array_type& delems, 
+                          VMesh::Edge::index_type i) const;
+  virtual void get_delems(VMesh::DElem::array_type& delems, 
                           VMesh::Elem::index_type i) const;
 
-  virtual double find_closest_elem(Point& result, 
-                                   VMesh::Elem::index_type &i, 
-                                   const Point &point) const;
-  virtual double find_closest_elems(Point& result, 
-                                    VMesh::Elem::array_type &i, 
-                                    const Point &point) const;
+  virtual VMesh::index_type* get_elems_pointer() const;
 };
 
 
@@ -95,7 +94,7 @@ public:
 //! 3) cubic interpolation
 VMesh* CreateVCurveMesh(CurveMesh<CrvLinearLgn<Point> >* mesh)
 {
-  return scinew VCurveMesh<CurveMesh<CrvLinearLgn<Point> > >(mesh);
+  return new VCurveMesh<CurveMesh<CrvLinearLgn<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -105,7 +104,7 @@ static MeshTypeID CurveMesh_MeshID1(CurveMesh<CrvLinearLgn<Point> >::type_name(-
 #if (SCIRUN_QUADRATIC_SUPPORT > 0)
 VMesh* CreateVCurveMesh(CurveMesh<CrvQuadraticLgn<Point> >* mesh)
 {
-  return scinew VCurveMesh<CurveMesh<CrvQuadraticLgn<Point> > >(mesh);
+  return new VCurveMesh<CurveMesh<CrvQuadraticLgn<Point> > >(mesh);
 }
 //! Register class maker, so we can instantiate it
 static MeshTypeID CurveMesh_MeshID2(CurveMesh<CrvQuadraticLgn<Point> >::type_name(-1),
@@ -117,7 +116,7 @@ static MeshTypeID CurveMesh_MeshID2(CurveMesh<CrvQuadraticLgn<Point> >::type_nam
 #if (SCIRUN_CUBIC_SUPPORT > 0)
 VMesh* CreateVCurveMesh(CurveMesh<CrvCubicHmt<Point> >* mesh)
 {
-  return scinew VCurveMesh<CurveMesh<CrvCubicHmt<Point> > >(mesh);
+  return new VCurveMesh<CurveMesh<CrvCubicHmt<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -225,27 +224,35 @@ VCurveMesh<MESH>::get_elems(VMesh::Elem::array_type& elems,
 template <class MESH>
 void
 VCurveMesh<MESH>::get_delems(VMesh::DElem::array_type& delems, 
+                             VMesh::Node::index_type i) const
+{
+  delems.resize(1); delems[0] = static_cast<VMesh::DElem::index_type>(i);  
+}
+
+
+template <class MESH>
+void
+VCurveMesh<MESH>::get_delems(VMesh::DElem::array_type& delems, 
                              VMesh::Elem::index_type i) const
 {
   this->mesh_->get_nodes_from_edge(delems,i);
 }
 
 template <class MESH>
-double 
-VCurveMesh<MESH>::find_closest_elem(Point& result,
-                                    VMesh::Elem::index_type &i, 
-                                    const Point &point) const
+void
+VCurveMesh<MESH>::get_delems(VMesh::DElem::array_type& delems, 
+                             VMesh::Edge::index_type i) const
 {
-  return(this->mesh_->find_closest_elem(result,i,point));
+  this->mesh_->get_nodes_from_edge(delems,i);
 }
 
 template <class MESH>
-double 
-VCurveMesh<MESH>::find_closest_elems(Point& result,
-                                    VMesh::Elem::array_type &i, 
-                                    const Point &point) const
+VMesh::index_type*
+VCurveMesh<MESH>::
+get_elems_pointer() const
 {
-  return(this->mesh_->find_closest_elems(result,i,point));
+  if (this->mesh_->edges_.size() == 0) return (0);
+   return (&(this->mesh_->edges_[0]));
 }
 
 } // end namespace

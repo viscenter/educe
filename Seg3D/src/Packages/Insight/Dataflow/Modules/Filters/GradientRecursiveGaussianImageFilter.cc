@@ -35,7 +35,7 @@
 
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/ITKDatatypePort.h>
 
@@ -141,7 +141,7 @@ GradientRecursiveGaussianImageFilter::run( itk::Object *obj_InputImage)
   }
 
   // get filter output
-  ITKDatatype* out_VectorImage_ = scinew ITKDatatype; 
+  ITKDatatype* out_VectorImage_ = new ITKDatatype; 
   
   out_VectorImage_->data_ = dynamic_cast<FilterType* >(filter_.GetPointer())->GetOutput();
   

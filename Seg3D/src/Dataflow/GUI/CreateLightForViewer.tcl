@@ -38,20 +38,19 @@ itcl_class SCIRun_Visualization_CreateLightForViewer {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
-	
-	set n "$this-c needexecute"
+        sci_toplevel $w
+    
+        set n "$this-c needexecute"
 
-	make_labeled_radio $w.light_type "Light type:" $n left \
-	    $this-type { {Directional 0} {Point 1} {Spot 2}}
-	checkbutton  $w.on  -text "on/off" \
-	    -variable $this-on \
-	    -command $n
-	pack $w.light_type $w.on  -side top
+        make_labeled_radio $w.light_type "Light type:" $n left 1\
+            $this-type { {Directional 0} {Point 1} {Spot 2}}
+        sci_checkbutton  $w.on  -text "on/off" \
+            -variable $this-on \
+            -command $n
+        pack $w.light_type $w.on  -side top
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
-	
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

@@ -41,7 +41,7 @@
  */
 
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #undef SCISHARE
 #if defined(_WIN32) && !defined(BUILD_SCIRUN_STATIC)
@@ -54,10 +54,10 @@ namespace SCIRun {
 
 extern "C" {
 SCISHARE IPort* make_MatrixIPort(Module* module, const string& name) {
-  return scinew SimpleIPort<MatrixHandle>(module,name);
+  return new SimpleIPort<MatrixHandle>(module,name);
 }
 SCISHARE OPort* make_MatrixOPort(Module* module, const string& name) {
-  return scinew SimpleOPort<MatrixHandle>(module,name);
+  return new SimpleOPort<MatrixHandle>(module,name);
 }
 }
 

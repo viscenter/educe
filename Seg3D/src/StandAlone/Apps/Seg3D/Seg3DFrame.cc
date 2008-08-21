@@ -137,22 +137,30 @@ BEGIN_EVENT_TABLE(Seg3DFrame, wxFrame)
   EVT_MENU(MENU_FILTER_T_S_L_S_F, Seg3DFrame::Filter_TSLSF)
   EVT_MENU(MENU_FILTER_OTSU_T_F, Seg3DFrame::Filter_OTSUTF)
   EVT_MENU(MENU_FILTER_G_M_F, Seg3DFrame::Filter_GMF)
+  EVT_MENU(MENU_FILTER_INHOMO_CORRECTION, Seg3DFrame::Filter_InhomoCorrection)
   EVT_MENU(MENU_FILTER_LABEL_EXTRACT, Seg3DFrame::Filter_LabelExtract)
   EVT_MENU(MENU_FILTER_FILL_HOLE, Seg3DFrame::Filter_FillHole)
   EVT_MENU(MENU_FILTER_FLOOD_FILL_COPY, Seg3DFrame::Filter_FloodFillCopy)
   EVT_MENU(MENU_FILTER_MEDIAN_FILTER, Seg3DFrame::Filter_MedianFilter)
-  EVT_MENU(MENU_FILTER_THRESHOLD_FILTER, Seg3DFrame::Filter_ThresholdFilter)
   EVT_MENU(MENU_FILTER_DISCRETE_GAUSSIAN_FILTER, Seg3DFrame::Filter_DiscreteGaussianFilter)
   EVT_MENU(MENU_FILTER_HISTO_EQ, Seg3DFrame::Filter_HistoEq)
   EVT_MENU(MENU_FILTER_MASK_DATA, Seg3DFrame::Filter_MaskData)
   EVT_MENU(MENU_FILTER_MASK_LABEL, Seg3DFrame::Filter_MaskLabel)
   EVT_MENU(MENU_FILTER_LABEL_INVERT_FILTER, Seg3DFrame::Filter_LabelInvertFilter)
   EVT_MENU(MENU_FILTER_MASK_AND, Seg3DFrame::Filter_MaskAnd)
+  EVT_MENU(MENU_FILTER_MASK_REMOVE, Seg3DFrame::Filter_MaskRemove)
   EVT_MENU(MENU_FILTER_MASK_OR, Seg3DFrame::Filter_MaskOr)
+  EVT_MENU(MENU_FILTER_MASK_XOR, Seg3DFrame::Filter_MaskXor)
+
+  EVT_MENU(MENU_FILTER_S_T_P_G_D_F, Seg3DFrame::Filter_SpeedToPathGradientDescent)
+  EVT_MENU(MENU_FILTER_S_T_P_R_S_G_D_F, Seg3DFrame::Filter_SpeedToPathRegularStepGradientDescent)
+  EVT_MENU(MENU_FILTER_S_T_P_I_N_F, Seg3DFrame::Filter_SpeedToPathIterateNeighborhood)
 
   EVT_MENU(MENU_HELP_UNDO, Seg3DFrame::Undo)
   EVT_MENU(MENU_HELP_INDEX, Seg3DFrame::Index)
   EVT_MENU(MENU_HELP_ABOUT, Seg3DFrame::About)
+
+  EVT_COMMAND(wxID_ANY, wxEVT_VOLUME_INFO_PANEL, Seg3DFrame::OnVolumeInfoPanel)
 END_EVENT_TABLE()
 
 
@@ -165,7 +173,7 @@ Seg3DFrame::Seg3DFrame(const std::string& target, wxFrame *frame,
   wxBoxSizer* left_sizer = new wxBoxSizer(wxVERTICAL);
   SetSizer(main_sizer);
   wxSize panel_size(PANEL_WIDTH, wxDefaultSize.y);
-  toolsPanel_ = scinew wxPanel(this, wxID_ANY, wxDefaultPosition, panel_size, style);
+  toolsPanel_ = new wxPanel(this, wxID_ANY, wxDefaultPosition, panel_size, style);
   toolsPanel_->SetMinSize(panel_size);
   main_sizer->Add(left_sizer, 0, wxEXPAND);
   left_sizer->Add(toolsPanel_, 1, wxEXPAND, 0);
@@ -254,11 +262,6 @@ Seg3DFrame::Seg3DFrame(const std::string& target, wxFrame *frame,
   tools_sizer->Show(optionless_, false);
   tools_sizer->Layout();
 
-  itk_thresholdfilter_ = new ITKThresholdFilter(toolsPanel_);
-  tools_sizer->Add(itk_thresholdfilter_, 0, 0, 0);
-  tools_sizer->Show(itk_thresholdfilter_, false);
-  tools_sizer->Layout();
-
   itk_discretegaussianfilter_ = new itkDiscreteGaussianImageFilter(toolsPanel_);
   tools_sizer->Add(itk_discretegaussianfilter_, 0, 0, 0);
   tools_sizer->Show(itk_discretegaussianfilter_, false);
@@ -269,8 +272,24 @@ Seg3DFrame::Seg3DFrame(const std::string& target, wxFrame *frame,
   tools_sizer->Show(maskfilter_, false);
   tools_sizer->Layout();
 
+  itk_STPGDF_ = new ITKSpeedToPathGradientDescentFilter(toolsPanel_);
+  tools_sizer->Add(itk_STPGDF_, 0, 0, 0);
+  tools_sizer->Show(itk_STPGDF_, false);
+  tools_sizer->Layout();
+
+  itk_STPRSGDF_ = new ITKSpeedToPathRegularStepGradientDescentFilter(toolsPanel_);
+  tools_sizer->Add(itk_STPRSGDF_, 0, 0, 0);
+  tools_sizer->Show(itk_STPRSGDF_, false);
+  tools_sizer->Layout();
+
+  itk_STPINF_ = new ITKSpeedToPathIterateNeighborhoodFilter(toolsPanel_);
+  tools_sizer->Add(itk_STPINF_, 0, 0, 0);
+  tools_sizer->Show(itk_STPINF_, false);
+  tools_sizer->Layout();
+
+
   context_ =
-    scinew WXOpenGLContext(target, this, wxID_ANY,
+    new WXOpenGLContext(target, this, wxID_ANY,
                            wxDefaultPosition, wxDefaultSize, style);
   main_sizer->Add(context_, 1, wxEXPAND, 0);
 
@@ -312,13 +331,10 @@ Seg3DFrame::HideTool()
 bool
 Seg3DFrame::Init()
 {
-  wxMenu * winMenu = new wxMenu;
   wxMenuBar * menuBar = new wxMenuBar;
 
-  CurrentDocPath = wxEmptyString;
-
-  //#if wxUSE_FILEDG
   // File menu dialog
+  wxMenu * winMenu = new wxMenu;
   winMenu->Append( MENU_FILE_LOAD_VOLUME, _T("Open &Volume") );
   winMenu->Append( MENU_FILE_LOAD_SESSION, _T("&Open Session") );
   winMenu->Append( MENU_FILE_IMPORT_SEGMENTATION, _T("&Import Segmentation") );
@@ -327,7 +343,6 @@ Seg3DFrame::Init()
   winMenu->Append( MENU_FILE_EXPORT_SEGMENTATION, _T("&Export Segmentation") );
   winMenu->Append( MENU_FILE_QUIT, _T("&Quit") );
   menuBar->Append( winMenu, _T("&File") );
-  //#endif
 
   // View menu dialog
   winMenu = new wxMenu;
@@ -356,6 +371,16 @@ Seg3DFrame::Init()
   winMenu->Append(MENU_TOOL_FLIP, _T("&Flip Tool"));
   winMenu->Append(MENU_TOOL_RESAMPLE, _T("&Resample Tool"));
   winMenu->Append(MENU_TOOL_POLYLINE, _T("&Polyline Tool"));
+  winMenu->Append(MENU_TOOL_THRESHOLD, _T("&Threshold Tool"));
+  winMenu->Append(MENU_TOOL_MOVESCALE, _T("&Move/Scale Tool"));
+  winMenu->Append(MENU_TOOL_MEASUREMENT, _T("Measurement Tool"));
+
+  winMenu->AppendSeparator();
+  // Speedlines tools
+  winMenu->Append(MENU_FILTER_S_T_P_I_N_F, _T("&Speedline Iterate Neighborhood"));
+  winMenu->Append(MENU_FILTER_S_T_P_G_D_F, _T("&Speedline Gradient Descent"));
+  winMenu->Append(MENU_FILTER_S_T_P_R_S_G_D_F, _T("&Speedline Regular Step"));
+
   menuBar->Append(winMenu, _T("&Tools"));
 
   // ITK menu dialog
@@ -373,6 +398,7 @@ Seg3DFrame::Init()
   winMenu->Append(MENU_FILTER_MEDIAN_FILTER, _T("&Median Filter"));
   winMenu->Append(MENU_FILTER_DISCRETE_GAUSSIAN_FILTER, _T("&Discrete Gaussian Filter"));
   winMenu->Append(MENU_FILTER_G_M_F, _T("&Gradient Magnitude Filter"));
+  winMenu->Append(MENU_FILTER_INHOMO_CORRECTION, _T("&Intensity Correction Filter"));
   winMenu->Append(MENU_FILTER_HISTO_EQ, _T("&Histogram Equalization"));
   winMenu->Append(MENU_FILTER_MASK_DATA, _T("Mask Data"));
 
@@ -382,7 +408,6 @@ Seg3DFrame::Init()
   winMenu->Append(MENU_FILTER_C_C_F, _T("&Confidence Connected Filter"));
   winMenu->Append(MENU_FILTER_N_C_F, _T("&Neighborhood Connected Filter"));
   winMenu->Append(MENU_FILTER_OTSU_T_F, _T("&Otsu Threshold Filter"));
-  winMenu->Append(MENU_FILTER_THRESHOLD_FILTER, _T("Threshold Filter"));
   winMenu->Append(MENU_FILTER_T_S_L_S_F, _T("&Threshold Segmentation Level Set Filter"));
 
   winMenu->AppendSeparator();
@@ -391,9 +416,11 @@ Seg3DFrame::Init()
   winMenu->Append(MENU_FILTER_LABEL_EXTRACT, _T("Copy Label Filter"));
   winMenu->Append(MENU_FILTER_LABEL_INVERT_FILTER, _T("&Label Invert Filter"));
   winMenu->Append(MENU_FILTER_MASK_AND, _T("Combine Labels with Logical And"));
+  winMenu->Append(MENU_FILTER_MASK_REMOVE, _T("Combine Labels with Logical Remove"));
   winMenu->Append(MENU_FILTER_MASK_OR, _T("Combine Labels with Logical Or"));
+  winMenu->Append(MENU_FILTER_MASK_XOR, _T("Combine Labels with Logical Xor"));
   winMenu->Append(MENU_FILTER_B_D_E_F, _T("&Binary Dilate -> Erode Filter"));
-  winMenu->Append(MENU_FILTER_FLOOD_FILL_COPY, _T("Flood Fill Copy Filter"));
+  winMenu->Append(MENU_FILTER_FLOOD_FILL_COPY, _T("Connected Component Filter"));
   winMenu->Append(MENU_FILTER_FILL_HOLE, _T("&Fill Holes Filter"));
 
   menuBar->Append(winMenu, _T("F&ilters"));
@@ -462,7 +489,7 @@ Seg3DFrame::OnStatusBarTextChange(wxCommandEvent &event)
 void
 Seg3DFrame::OnColourPicker(wxCommandEvent &event)
 {
-  colour_picker_data *cpd = (colour_picker_data *)event.GetClientData();
+  colour_picker_data_t *cpd = (colour_picker_data_t *)event.GetClientData();
   const unsigned char r = (unsigned char)(cpd->r * 255.0);
   const unsigned char g = (unsigned char)(cpd->g * 255.0);
   const unsigned char b = (unsigned char)(cpd->b * 255.0);
@@ -508,7 +535,7 @@ Seg3DFrame::OnLayerDeleteDialog(wxCommandEvent &event)
   // Verify the deletion with the user.
   wxMessageDialog dialog(Painter::global_seg3dframe_pointer_,
                          event.GetString(),
-                         _T("Delete layer"),
+                         _T("Delete volume"),
                          wxYES_NO | wxICON_ERROR);
   if (dialog.ShowModal() == wxID_YES)
   {
@@ -621,13 +648,47 @@ Seg3DFrame::FileLoadSession( wxCommandEvent& WXUNUSED(event) )
   }
 }
 
+
+static string
+generate_long_filename(const string &stuff)
+{
+  string result;
+  for (size_t i = 0; i < stuff.size(); i++)
+  {
+    if (isalnum(stuff[i])) result.push_back(stuff[i]);
+  }
+  return result;
+}
+
+static string
+generate_short_filename(const string &stuff)
+{
+  string result;
+  for (size_t i = 0; i < stuff.size(); i++)
+  {
+    if (stuff[i] == ' ') break;
+    result.push_back(stuff[i]);
+  }
+  return result;
+}
+
+
 void
 Seg3DFrame::FileSaveVolume( wxCommandEvent& WXUNUSED(event) )
 {
-  static const wxChar *formats = _T("");
+  static const wxChar *formats = _T("All files(*.*)|*");
+  
+  static string last_filename = "";
+  string default_filename = last_filename;
+  if (default_filename == "")
+  {
+    default_filename =
+      generate_long_filename(SCIRun::Painter::get_current_layer_name())
+      + ".nrrd";
+  }
 
   wxFileDialog dialog(this, _T("Save Volume"), CurrentDocPath,
-                      _T("sample_volume.nrrd"), 
+                      std2wx(default_filename),
                       formats, wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 
   dialog.SetFilterIndex(1);
@@ -644,9 +705,6 @@ Seg3DFrame::FileSaveVolume( wxCommandEvent& WXUNUSED(event) )
     tsse->add_var("Painter::SaveVolume::filename", filename);
     SCIRun::Painter::ThrowSkinnerSignal(tsse);
 
-    // TODO Filters broken on Unicode
-    //wxLogMessage(_T("%s, filter %d"), filename.c_str(),
-    //dialog.GetFilterIndex());
     CurrentDocPath = wxFileName::FileName(dialog.GetPath()).GetPath();
   }
   else
@@ -667,6 +725,7 @@ Seg3DFrame::FileSaveSession( wxCommandEvent& WXUNUSED(event) )
   if (dialog.ShowModal() == wxID_OK)
   {
     const string filename = wx2std(dialog.GetPath(), &wxConvFile);
+    last_filename = filename;
 
     SetStatusText(std2wx("Saving " + filename));
     wxBusyCursor cursor; // Busy cursor until this leaves scope.
@@ -676,9 +735,6 @@ Seg3DFrame::FileSaveSession( wxCommandEvent& WXUNUSED(event) )
     tsse->add_var("Painter::SaveSession::filename", filename);
     SCIRun::Painter::ThrowSkinnerSignal(tsse);
 
-    // TODO Filters broken on Unicode
-    //wxLogMessage(_T("%s, filter %d"), filename.c_str(),
-    //dialog.GetFilterIndex());
     CurrentDocPath = wxFileName::FileName(dialog.GetPath()).GetPath();
   }
   else
@@ -735,23 +791,63 @@ Seg3DFrame::FileImportSegmentation( wxCommandEvent& WXUNUSED(event) )
 void
 Seg3DFrame::FileExportSegmentation( wxCommandEvent& WXUNUSED(event) )
 {
-  static const wxChar *formats = _T("");
+  SCIRun::Painter::ThrowSkinnerSignal("Painter::ExportSegmentation1");
+}
+
+
+void
+Seg3DFrame::OnExportLabelSelection( wxCommandEvent& event )
+{
+  export_label_selection_data_t *data =
+    (export_label_selection_data_t *)event.GetClientData();
+  
+  const size_t nselections =
+    wxGetMultipleChoices(data->selections_,
+                         _T("Select which labels to export."),
+                         _T("Segmentation export picker"),
+                         data->nchoices_, data->choices_,
+                         this);
+
+  delete [] data->choices_;
+  data->choices_ = NULL;
+
+  // Check for positive count.
+  if (nselections == 0)
+  {
+    wxMessageDialog dialog(this, _T("No labels were selected for export."),
+                           _T("Seg3D error message"),
+                           wxOK | wxICON_ERROR);
+    dialog.ShowModal();
+    return;
+  }
+
+  static const wxChar *formats = _T("All files(*.*)|*");
+
+  static string last_filename = "";
+  string default_filename = last_filename;
+  if (default_filename == "")
+  {
+    default_filename =
+      generate_short_filename(SCIRun::Painter::get_current_layer_name())
+      + "-seg.nrrd";
+  }
 
   wxFileDialog dialog(this, _T("Export Segmentation"), CurrentDocPath,
-                      _T("segmentation.nrrd"), 
+                      std2wx(default_filename),
                       formats, wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
-
+  
   dialog.SetFilterIndex(1);
 
   if (dialog.ShowModal() == wxID_OK)
   {
     const string filename = wx2std(dialog.GetPath(), &wxConvFile);
+    last_filename = filename;
 
     SetStatusText(std2wx("Exporting " + filename));
     wxBusyCursor cursor; // Busy cursor until this leaves scope.
 
     SCIRun::ThrowSkinnerSignalEvent *tsse =
-      new SCIRun::ThrowSkinnerSignalEvent("Painter::ExportSegmentation");
+      new SCIRun::ThrowSkinnerSignalEvent("Painter::ExportSegmentation2");
     tsse->add_var("Painter::ExportSegmentation::filename", filename);
     SCIRun::Painter::ThrowSkinnerSignal(tsse);
 
@@ -868,7 +964,7 @@ Seg3DFrame::ToolIsosurfaceOne( wxCommandEvent& WXUNUSED(event) )
 }
 
 void
-Seg3DFrame::ToolIsosurfaceAll( wxCommandEvent& WXUNUSED(event) )
+Seg3DFrame::EditIsosurfaceAll( wxCommandEvent& WXUNUSED(event) )
 {
   SetStatusText(wxT("Computing all label isosurfaces."));
   wxBusyCursor cursor; // Busy cursor until this leaves scope.
@@ -876,7 +972,7 @@ Seg3DFrame::ToolIsosurfaceAll( wxCommandEvent& WXUNUSED(event) )
 }
 
 void
-Seg3DFrame::ToolSetVRTarget( wxCommandEvent& WXUNUSED(event) )
+Seg3DFrame::EditSetVRTarget( wxCommandEvent& WXUNUSED(event) )
 {
   SetStatusText(wxT("Setting new volume rendering target."));
   wxBusyCursor(); // Busy cursor until this leaves scope.
@@ -1009,6 +1105,15 @@ Seg3DFrame::Filter_GMF( wxCommandEvent& WXUNUSED(event) )
 
 
 void
+Seg3DFrame::Filter_InhomoCorrection( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(intensitycorrectionfilterpanel_,
+           "Painter::InhomogeneityCorrectionFilter",
+           "Intensity Correction", "Filter");
+}
+
+
+void
 Seg3DFrame::Filter_LabelInvertFilter( wxCommandEvent& WXUNUSED(event) )
 {
   ShowTool(optionless_, "", "Label Invert Filter");
@@ -1036,7 +1141,7 @@ Seg3DFrame::Filter_FillHole( wxCommandEvent& WXUNUSED(event) )
 void
 Seg3DFrame::Filter_FloodFillCopy( wxCommandEvent& WXUNUSED(event) )
 {
-  ShowTool(itk_NCF_, "Painter::FloodFillCopyFilter", "Flood Fill Copy Filter");
+  ShowTool(itk_NCF_, "Painter::FloodFillCopyFilter", "Connected Component", "Filter");
   itk_NCF_->SetShowProgress(true);
 }
 
@@ -1047,11 +1152,6 @@ Seg3DFrame::Filter_MedianFilter( wxCommandEvent& WXUNUSED(event) )
   ShowTool(medianFilterTool_, "", "Median Filter");
 }
 
-void
-Seg3DFrame::Filter_ThresholdFilter( wxCommandEvent& WXUNUSED(event) )
-{
-  ShowTool(itk_thresholdfilter_, "Painter::start_ITKThresholdImageFilterTool", "Threshold Filter");
-}
 
 void
 Seg3DFrame::Filter_DiscreteGaussianFilter( wxCommandEvent& WXUNUSED(event) )
@@ -1090,12 +1190,44 @@ Seg3DFrame::Filter_MaskAnd( wxCommandEvent& WXUNUSED(event) )
 }
 
 void
+Seg3DFrame::Filter_MaskRemove( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(maskfilter_, "", "Combine Labels with", "Logical Remove");
+  maskfilter_->SetSkinnerCallback("Painter::CombineMaskRemove");
+}
+
+void
 Seg3DFrame::Filter_MaskOr( wxCommandEvent& WXUNUSED(event) )
 {
   ShowTool(maskfilter_, "", "Combine Labels with", "Logical Or");
   maskfilter_->SetSkinnerCallback("Painter::CombineMaskOr");
 }
 
+void
+Seg3DFrame::Filter_MaskXor( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(maskfilter_, "", "Combine Labels with", "Logical Xor");
+  maskfilter_->SetSkinnerCallback("Painter::CombineMaskXor");
+}
+
+void
+Seg3DFrame::Filter_SpeedToPathGradientDescent( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(itk_STPGDF_, "Painter::start_ITKSpeedToPathGradientDescentImageFilterTool", "Speedline", "Gradient Descent");
+}
+
+void
+Seg3DFrame::Filter_SpeedToPathRegularStepGradientDescent( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(itk_STPRSGDF_, "Painter::start_ITKSpeedToPathRegularStepGradientDescentImageFilterTool", "Speedline", "Regular Step");
+}
+
+
+void
+Seg3DFrame::Filter_SpeedToPathIterateNeighborhood( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(itk_STPINF_, "Painter::start_ITKSpeedToPathIterateNeighborhoodImageFilterTool", "Speedline", "Iterate Neighborhood");
+}
 
 void
 Seg3DFrame::ShowTool(wxPanel* tool, const char* event_name,
@@ -1157,10 +1289,12 @@ Seg3DFrame::About( wxCommandEvent& WXUNUSED(event) )
 
   info.AddDeveloper(_T("J.R. Blackham"));
   info.AddDeveloper(_T("David Brayford"));
+  info.AddDeveloper(_T("Jason Callahan"));
   info.AddDeveloper(_T("Michael Callahan"));
   info.AddDeveloper(_T("Joshua Cates"));
   info.AddDeveloper(_T("Marty Cole"));
   info.AddDeveloper(_T("McKay Davis"));
+  info.AddDeveloper(_T("Elizabeth Jurrus"));
   info.AddDeveloper(_T("Rob MacLeod"));
   info.AddDeveloper(_T("Jeroen Stinstra"));
   info.AddDeveloper(_T("Chems Touati"));
@@ -1208,6 +1342,91 @@ Seg3DFrame::PainterShowVisibleItem(const string &id, const string &group)
   tsse->add_var("Painter::ShowVisibleItem::id", id);
   tsse->add_var("Painter::ShowVisibleItem::group", group);
   SCIRun::Painter::ThrowSkinnerSignal(tsse);
+}
+
+class VolumeInfoDialog : public wxDialog
+{
+public:
+  VolumeInfoDialog(wxWindow *parent, VolumeInfoPanelStruct *info)
+    : wxDialog(parent, wxID_ANY, _T("Volume Information"),
+               wxDefaultPosition, wxSize(PANEL_WIDTH, PANEL_WIDTH*2))
+  {
+    std::ostringstream ostrm;
+    if (info->is_label)
+    {
+      ostrm << "This is a label volume.\n";
+    }
+    else
+    {
+      ostrm << "This is a data volume.\n";
+    }
+    ostrm << "Origin: " <<
+      info->origin_x << " " <<
+      info->origin_y << " " <<
+      info->origin_z << "\n";
+    ostrm << "Spacing: " <<
+      info->spacing_x << " " <<
+      info->spacing_y << " " <<
+      info->spacing_z << "\n";
+    ostrm << "Size: " <<
+      info->size_x << " " <<
+      info->size_y << " " <<
+      info->size_z << "\n";
+    ostrm << "Volume: " << info->volume << "\n";
+    if (info->is_label)
+    {
+      ostrm << "Label Count: " << info->labelcount << "\n";
+      ostrm << "Label Volume: " << info->labelvolume << "\n";
+      ostrm << "Label Volume Percentage: " << info->labelvolume * 100.0 / info->volume << "\n";
+      if (info->is_mask)
+      {
+        ostrm << "Mask Count: " << info->maskcount << "\n";
+        ostrm << "Mask Volume: " << info->maskvolume << "\n";
+        ostrm << "Percentage of Mask Volume: " << info->labelvolume * 100.0 / info->maskvolume << "\n";
+      }
+    }
+    else
+    {
+      ostrm << "Min/Max: " << info->datamin << " " << info->datamax << "\n";
+    }
+
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *stext0 =
+      new wxStaticText(this, wxID_ANY, std2wx(info->name));
+    wxFont font = stext0->GetFont();
+    font.SetWeight(wxBOLD);
+    stext0->SetFont(font);
+    wxStaticText *stext1 =
+      new wxStaticText(this, wxID_ANY, std2wx(ostrm.str()));
+    wxButton *button = new wxButton(this, VOLUME_INFO_OK_BUTTON, _T("OK"));
+    sizer->Add(stext0, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(stext1, 1, wxEXPAND | wxALL, 5);
+    sizer->Add(button, 0, wxALIGN_RIGHT | wxALL, 5);
+    SetSizer(sizer);
+    sizer->SetSizeHints(this);
+    sizer->Fit(this);
+
+    delete info;
+  }
+  
+  void OnOK(wxCommandEvent &event)
+  {
+    Close();
+  }
+private:
+  DECLARE_EVENT_TABLE()
+};
+
+BEGIN_EVENT_TABLE(VolumeInfoDialog, wxDialog)
+  EVT_BUTTON(VOLUME_INFO_OK_BUTTON, VolumeInfoDialog::OnOK)
+END_EVENT_TABLE()
+
+void
+Seg3DFrame::OnVolumeInfoPanel( wxCommandEvent& event )
+{
+  VolumeInfoPanelStruct *info = (VolumeInfoPanelStruct *)event.GetClientData();
+  VolumeInfoDialog *dialog = new VolumeInfoDialog(this, info);
+  dialog->Show(true);
 }
 
 

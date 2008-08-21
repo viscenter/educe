@@ -45,11 +45,12 @@
 
 #include <Core/Util/Assert.h>
 #include <Core/Util/ProgressReporter.h>
-#include <Core/Geom/ColorMap.h>
+#include <Core/Datatypes/ColorMap.h>
 
-#include <sgi_stl_warnings_off.h>
+
+
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/ImportExport/share.h>
 

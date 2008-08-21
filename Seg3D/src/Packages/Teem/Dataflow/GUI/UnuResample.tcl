@@ -47,63 +47,63 @@ itcl_class Teem_UnuNtoZ_UnuResample {
     }
     method set_defaults {} {
         global $this-filtertype
-	global $this-sigma
-	global $this-extent
-	global $this-dim
-	global $this-uis
-	global $this-resampAxis0
-	global $this-resampAxis1
-	global $this-resampAxis2
-	global $this-resampAxis3
+        global $this-sigma
+        global $this-extent
+        global $this-dim
+        global $this-uis
+        global $this-resampAxis0
+        global $this-resampAxis1
+        global $this-resampAxis2
+        global $this-resampAxis3
 
         set $this-filtertype gaussian
-	set $this-sigma 1
-	set $this-extent 6
-	set $this-dim 0
-	set $this-uis 4
-	set $this-resampAxis0 "x1"
-	set $this-resampAxis1 "x1"
-	set $this-resampAxis2 "x1"
-	set $this-resampAxis3 "x1"
+        set $this-sigma 1
+        set $this-extent 6
+        set $this-dim 0
+        set $this-uis 4
+        set $this-resampAxis0 "x1"
+        set $this-resampAxis1 "x1"
+        set $this-resampAxis2 "x1"
+        set $this-resampAxis3 "x1"
     }
 
     method make_min_max {i} {
-	set w .ui[modname]
-        if {[winfo exists $w]} {
- 	    if {[winfo exists $w.f.f.axesf.t]} {
-		destroy $w.f.f.axesf.t
-	    }
-	    if {! [winfo exists $w.f.f.axesf.a$i]} {
-		if {![info exists $this-resampAxis$i]} {
-		    set $this-resampAxis$i "x1"
-		}
-		make_entry $w.f.f.axesf.a$i "Axis$i :" $this-resampAxis$i
-		pack $w.f.f.axesf.a$i -side top -expand 1 -fill x
-	    }
-	}
+        set w .ui[modname]
+              if {[winfo exists $w]} {
+            if {[winfo exists $w.f.f.axesf.t]} {
+          destroy $w.f.f.axesf.t
+            }
+            if {! [winfo exists $w.f.f.axesf.a$i]} {
+          if {![info exists $this-resampAxis$i]} {
+              set $this-resampAxis$i "x1"
+          }
+          make_entry $w.f.f.axesf.a$i "Axis$i :" $this-resampAxis$i
+          pack $w.f.f.axesf.a$i -side top -expand 1 -fill x
+            }
+        }
     }
     
      method clear_axis {i} {
- 	set w .ui[modname]
+          set w .ui[modname]
          if {[winfo exists $w]} {
 	    
- 	    if {[winfo exists $w.f.f.axesf.t]} {
- 		destroy $w.f.f.axesf.t
- 	    }
-	    if {[winfo exists $w.f.f.axesf.a$i]} {
-		destroy $w.f.f.axesf.a$i
-	    }
+            if {[winfo exists $w.f.f.axesf.t]} {
+          destroy $w.f.f.axesf.t
+              }
+            if {[winfo exists $w.f.f.axesf.a$i]} {
+          destroy $w.f.f.axesf.a$i
+            }
 
-	    unset $this-resampAxis$i
- 	}
+            unset $this-resampAxis$i
+        }
      }
 
     method make_entry {w text v} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
         global $v
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         pack $w.e -side right
     }
 
@@ -113,49 +113,48 @@ itcl_class Teem_UnuNtoZ_UnuResample {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 200 80
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
-	global $this-filtertype
-	make_labeled_radio $w.f.t "Filter Type:" "" \
-		top 1 $this-filtertype \
-		{{"Box" box} \
-		{"Tent" tent} \
-		{"Cubic (Catmull-Rom)" cubicCR} \
-		{"Cubic (B-spline)" cubicBS} \
-		{"Quartic" quartic} \
-		{"Gaussian" gaussian}}
-	global $this-sigma
-	make_entry $w.f.s "   Guassian sigma:" $this-sigma 
-	global $this-extent
-	make_entry $w.f.e "   Guassian extent (in sigmas):" $this-extent 
-	frame $w.f.f
-	label $w.f.f.l -text "Number of samples (e.g. `128')\nor, if preceded by an x,\nthe resampling ratio\n(e.g. `x0.5' -> half as many samples)"
+        global $this-filtertype
+        make_labeled_radio $w.f.t "Filter Type:" "" \
+          top 1 $this-filtertype \
+          {{"Box" box} \
+          {"Tent" tent} \
+          {"Cubic (Catmull-Rom)" cubicCR} \
+          {"Cubic (B-spline)" cubicBS} \
+          {"Quartic" quartic} \
+          {"Gaussian" gaussian}}
+        global $this-sigma
+        make_entry $w.f.s "   Guassian sigma:" $this-sigma 
+        global $this-extent
+        make_entry $w.f.e "   Guassian extent (in sigmas):" $this-extent 
+        sci_frame $w.f.f
+        sci_label $w.f.f.l -text "Number of samples (e.g. `128')\nor, if preceded by an x,\nthe resampling ratio\n(e.g. `x0.5' -> half as many samples)"
 
-	frame $w.f.f.axesf
+        sci_frame $w.f.f.axesf
 
-	# Add resample axes
-	for {set i 0} {$i < [set $this-uis]} {incr i} {
-	    make_min_max $i
-	}
+        # Add resample axes
+        for {set i 0} {$i < [set $this-uis]} {incr i} {
+          make_min_max $i
+        }
 
-	pack $w.f.f.l $w.f.f.axesf -side top -expand 1 -fill x
+        pack $w.f.f.l $w.f.f.axesf -side top -expand 1 -fill x
 
-	pack $w.f.t $w.f.s $w.f.e $w.f.f -side top -expand 1 -fill x
+        pack $w.f.t $w.f.s $w.f.e $w.f.f -side top -expand 1 -fill x
 
-	# add buttons to increment/decrement resample axes
-	frame $w.f.buttons
-	pack $w.f.buttons -side top -anchor n
+        # add buttons to increment/decrement resample axes
+        sci_frame $w.f.buttons
+        pack $w.f.buttons -side top -anchor n
 
-	button $w.f.buttons.add -text "Add Resample Axis" -command "$this-c add_axis"
-	button $w.f.buttons.remove -text "Remove Resample Axis" -command "$this-c remove_axis"
-	
-	pack $w.f.buttons.add $w.f.buttons.remove -side left -anchor nw -padx 5 -pady 5
+        sci_button $w.f.buttons.add -text "Add Resample Axis" -command "$this-c add_axis"
+        sci_button $w.f.buttons.remove -text "Remove Resample Axis" -command "$this-c remove_axis"
+        
+        pack $w.f.buttons.add $w.f.buttons.remove -side left -anchor nw -padx 5 -pady 5
+        pack $w.f -expand 1 -fill x
 
-	pack $w.f -expand 1 -fill x
-
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }

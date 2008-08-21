@@ -44,10 +44,10 @@ itcl_class SCIRun_Math_ReportMatrixRowMeasure {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
         wm minsize $w 170 20
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
         make_labeled_radio $w.f.r "Matrix Column Operations:" "" \
                 top 1 $this-method \

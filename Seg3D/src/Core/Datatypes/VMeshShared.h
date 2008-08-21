@@ -97,6 +97,8 @@ public:
     //! Number of gradients per node for cubic interpolation model
     num_gradients_per_node_ = basis_->num_hderivs();
     
+    element_size_ = basis_->domain_size();
+    
     generation_ = mesh_->generation;
 
     unit_vertices_.resize(num_nodes_per_elem_);
@@ -132,6 +134,7 @@ public:
   
   virtual bool synchronize(unsigned int sync);
   virtual bool unsynchronize(unsigned int sync);
+  virtual bool clear_synchronization();
   
   virtual BBox get_bounding_box() const;
   virtual void transform(const Transform &t);  
@@ -147,9 +150,11 @@ public:
                            int basis_order) const; 
   
   virtual void get_gaussian_scheme(vector<VMesh::coords_type>& coords, 
-                                   vector<double>& weights, int order);
+                                   vector<double>& weights, int order) const;
   virtual void get_regular_scheme(vector<VMesh::coords_type>& coords, 
-                                  vector<double>& weights, int order);
+                                  vector<double>& weights, int order) const;
+
+  virtual void get_canonical_transform(Transform &t);
 
 protected:
   MESH*                           mesh_;
@@ -170,6 +175,13 @@ VMesh*
 VMeshShared<MESH>::vmesh()
 {
   return (this);
+}
+
+template<class MESH>
+void 
+VMeshShared<MESH>::get_canonical_transform(Transform &t)
+{
+  mesh_->get_canonical_transform(t);
 }
 
 template<class MESH>
@@ -264,9 +276,16 @@ VMeshShared<MESH>::unsynchronize(unsigned int sync)
 }
 
 template<class MESH>
+bool
+VMeshShared<MESH>::clear_synchronization()
+{
+  return(mesh_->clear_synchronization());
+}
+
+template<class MESH>
 void 
 VMeshShared<MESH>::get_gaussian_scheme(vector<coords_type>& coords, 
-                                       vector<double>& weights, int order)
+                                       vector<double>& weights, int order) const
 {
   basis_->get_gaussian_scheme(coords,weights,order);
 }
@@ -274,7 +293,7 @@ VMeshShared<MESH>::get_gaussian_scheme(vector<coords_type>& coords,
 template<class MESH>
 void 
 VMeshShared<MESH>::get_regular_scheme(vector<coords_type>& coords, 
-                                      vector<double>& weights, int order)
+                                      vector<double>& weights, int order) const
 {
   basis_->get_regular_scheme(coords,weights,order);
 }

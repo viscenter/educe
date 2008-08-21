@@ -43,7 +43,7 @@
 #include <Core/Geom/GeomQMesh.h>
 
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/NotFinished.h>
 #include <iostream>
 using std::ostream;
@@ -52,7 +52,7 @@ namespace SCIRun {
 
 Persistent* make_GeomQMesh()
 {
-    return scinew GeomQMesh(0,0);
+    return new GeomQMesh(0,0);
 }
 
 PersistentTypeID GeomQMesh::type_id("GeomQMesh", "GeomObj", make_GeomQMesh);
@@ -100,7 +100,7 @@ void GeomQMesh::get_bounds(BBox& bb)
 
 GeomObj* GeomQMesh::clone()
 {
-    return scinew GeomQMesh(*this);
+    return new GeomQMesh(*this);
 }
 
 #define GeomQMesh_VERSION 2

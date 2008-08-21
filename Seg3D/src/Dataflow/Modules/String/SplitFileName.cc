@@ -36,7 +36,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/String.h>
 #include <Dataflow/Network/Ports/StringPort.h>
 
@@ -110,16 +110,16 @@ SplitFileName::execute()
 
   fnext = fn+ext;
 
-  StringHandle pnH(scinew String(pn));
+  StringHandle pnH(new String(pn));
   send_output_handle("Pathname", pnH);
 
-  StringHandle fnH(scinew String(fn));
+  StringHandle fnH(new String(fn));
   send_output_handle("Filename Base", fnH);
 
-  StringHandle extH(scinew String(ext));
+  StringHandle extH(new String(ext));
   send_output_handle("Extension", extH);
 
-  StringHandle fnextH(scinew String(fnext));
+  StringHandle fnextH(new String(fnext));
   send_output_handle("Filename", fnextH);
 }
 

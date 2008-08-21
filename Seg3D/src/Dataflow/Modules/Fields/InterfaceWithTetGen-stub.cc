@@ -33,33 +33,28 @@
 
 namespace SCIRun {
 
-  class InterfaceWithTetGen : public Module
-  {
+class InterfaceWithTetGen : public Module
+{
   public:
     InterfaceWithTetGen(GuiContext* ctx);
-    virtual ~InterfaceWithTetGen();
+    virtual ~InterfaceWithTetGen() {}
 
     virtual void execute();
-  };
+};
 
-  DECLARE_MAKER(InterfaceWithTetGen)
+DECLARE_MAKER(InterfaceWithTetGen)
 
-  InterfaceWithTetGen::InterfaceWithTetGen(GuiContext* ctx) :
-  Module("InterfaceWithTetGen", ctx, Filter, "NewField", "SCIRun")
-  {
-  }
-
-
-  InterfaceWithTetGen::~InterfaceWithTetGen()
-  {
-  }
+InterfaceWithTetGen::InterfaceWithTetGen(GuiContext* ctx) :
+Module("InterfaceWithTetGen", ctx, Filter, "NewField", "SCIRun")
+{
+}
 
 
-  void
-  InterfaceWithTetGen::execute()
-  {
-    error("This module is disabled, because the necessary supporting libraries were not found at build time.");
-  }
+void
+InterfaceWithTetGen::execute()
+{
+  error("This module is disabled, because the necessary supporting libraries were not found at build time.");
+}
 
 } // end namespace SCIRun
 

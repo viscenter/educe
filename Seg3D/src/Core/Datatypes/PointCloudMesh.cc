@@ -59,6 +59,9 @@ public:
   virtual void get_center(Point &point, VMesh::Node::index_type i) const;
   virtual void get_center(Point &point, VMesh::Elem::index_type i) const;
   
+  virtual void get_centers(Point* points, VMesh::Node::array_type& array) const;
+  virtual void get_centers(Point* points, VMesh::Elem::array_type& array) const;
+    
   virtual double get_size(VMesh::Node::index_type i) const;
   virtual double get_size(VMesh::Elem::index_type i) const;
   
@@ -77,6 +80,8 @@ public:
                                 FieldRNG &rng) const;
 
   virtual void set_point(const Point &point, VMesh::Node::index_type i);
+  
+  virtual Point* get_points_pointer() const;
 
   virtual void add_node(const Point &point,VMesh::Node::index_type &i);
   virtual void add_elem(const VMesh::Node::array_type &nodes, 
@@ -111,7 +116,57 @@ public:
   virtual void resize_nodes(size_t size);
   virtual void resize_elems(size_t size);
 
-  virtual double find_closest_elem(Point& result, VMesh::Elem::index_type &i, const Point &point) const;
+  virtual bool find_closest_node(double& pdist, Point& result, 
+                                 VMesh::Node::index_type &i, 
+                                 const Point &point) const;
+
+  virtual bool find_closest_elem(double& pdist, Point& result,
+                                 VMesh::coords_type& coords,
+                                 VMesh::Elem::index_type &i, 
+                                 const Point &point) const;
+  
+  virtual bool find_closest_elems(double& pdist, Point& result, 
+                                  VMesh::Elem::array_type &i, 
+                                  const Point &point) const;
+
+  virtual void get_interpolate_weights(const Point& point, 
+                                       VMesh::ElemInterpolate& ei,
+                                       int basis_order) const;
+  
+  virtual void get_interpolate_weights(const VMesh::coords_type& coords, 
+                                       VMesh::Elem::index_type elem, 
+                                       VMesh::ElemInterpolate& ei,
+                                       int basis_order) const;
+
+  virtual void get_minterpolate_weights(const vector<Point>& point, 
+                                        VMesh::MultiElemInterpolate& ei,
+                                        int basis_order) const;
+  
+  virtual void get_minterpolate_weights(const vector<VMesh::coords_type>& coords, 
+                                        VMesh::Elem::index_type elem, 
+                                        VMesh::MultiElemInterpolate& ei,
+                                        int basis_order) const;
+
+  virtual void get_gradient_weights(const Point& point, 
+                                    VMesh::ElemGradient& eg,
+                                    int basis_order) const;
+                                       
+  virtual void get_gradient_weights(const VMesh::coords_type& coords, 
+                                    VMesh::Elem::index_type elem, 
+                                    VMesh::ElemGradient& eg,
+                                    int basis_order) const;
+
+  virtual void get_mgradient_weights(const vector<Point>& point, 
+                                     VMesh::MultiElemGradient& eg,
+                                     int basis_order) const;
+                                       
+  virtual void get_mgradient_weights(const vector<VMesh::coords_type>& coords, 
+                                     VMesh::Elem::index_type elem, 
+                                     VMesh::MultiElemGradient& eg,
+                                     int basis_order) const;
+
+  virtual VMesh::index_type* get_elems_pointer() const;
+
 };
 
 //! Functions for creating the virtual interface for specific mesh types
@@ -122,7 +177,7 @@ public:
 
 VMesh* CreateVPointCloudMesh(PointCloudMesh<ConstantBasis<Point> >* mesh)
 {
-  return scinew VPointCloudMesh<PointCloudMesh<ConstantBasis<Point> > >(mesh);
+  return new VPointCloudMesh<PointCloudMesh<ConstantBasis<Point> > >(mesh);
 }
 
 //! Register class maker, so we can instantiate it
@@ -183,6 +238,32 @@ VPointCloudMesh<MESH>::get_center(Point &p, VMesh::Elem::index_type idx) const
 {
   p = this->mesh_->points_[idx]; 
 }
+
+
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_centers(Point* points, 
+            VMesh::Node::array_type& array) const
+{
+  for (size_t j=0; j <array.size(); j++)
+  {
+    this->mesh_->get_center(points[j],typename MESH::Node::index_type(array[j]));
+  }
+}                                     
+ 
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_centers(Point* points, 
+            VMesh::Elem::array_type& array) const
+{
+  for (size_t j=0; j <array.size(); j++)
+  {
+    this->mesh_->get_center(points[j],typename MESH::Node::index_type(array[j]));
+  }
+} 
+
 
 
 template <class MESH>
@@ -296,6 +377,14 @@ VPointCloudMesh<MESH>::set_point(const Point &point, VMesh::Node::index_type i)
 }
 
 template <class MESH>
+Point*
+VPointCloudMesh<MESH>::get_points_pointer() const
+{
+  return(&(this->mesh_->points_[0]));
+}
+
+
+template <class MESH>
 void 
 VPointCloudMesh<MESH>::add_node(const Point &point, VMesh::Node::index_type &vi)
 {
@@ -396,14 +485,220 @@ VPointCloudMesh<MESH>::resize_elems(size_t size)
 }
 
 template <class MESH>
-double 
-VPointCloudMesh<MESH>::find_closest_elem(Point& result,
-                                      VMesh::Elem::index_type &i, 
-                                      const Point &point) const
+bool
+VPointCloudMesh<MESH>::find_closest_node(double& pdist, Point& result,
+                      VMesh::Node::index_type &i, const Point &point) const
 {
   
-  return(this->mesh_->find_closest_elem(result,i,point));
+  return(this->mesh_->find_closest_node(pdist,result,i,point));
 } 
+
+template <class MESH>
+bool
+VPointCloudMesh<MESH>::find_closest_elem(double& pdist, Point& result,
+                                         VMesh::coords_type& coords,
+                                         VMesh::Elem::index_type &i, 
+                                         const Point &point) const
+{
+  
+  return(this->mesh_->find_closest_elem(pdist,result,coords,i,point));
+} 
+
+template <class MESH>
+bool
+VPointCloudMesh<MESH>::find_closest_elems(double& pdist, Point& result,
+                      VMesh::Elem::array_type &i, const Point &point) const
+{
+  
+  return(this->mesh_->find_closest_elems(pdist,result,i,point));
+} 
+
+
+
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_interpolate_weights(const Point& point, 
+                        VMesh::ElemInterpolate& ei,
+                        int basis_order) const
+{
+  typename MESH::Elem::index_type elem;
+  
+  if(this->mesh_->locate(elem,point))
+  {
+    ei.basis_order = basis_order;
+    ei.elem_index = elem;
+  }
+  else
+  {
+    ei.elem_index  = -1;  
+    return;
+  }
+  
+  StackVector<double,3> coords;
+  this->mesh_->get_coords(coords,point,elem);
+  
+  if (basis_order == 0) return;
+
+  ASSERTFAIL("Interpolation of unknown order requested");
+}
+
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_interpolate_weights(const VMesh::coords_type& coords, 
+                        VMesh::Elem::index_type elem, 
+                        VMesh::ElemInterpolate& ei,
+                        int basis_order) const
+{
+  ei.basis_order = basis_order;
+  ei.elem_index = elem;
+  
+  if (basis_order == 0) return;
+  
+  ASSERTFAIL("Interpolation of unknown order requested");
+}
+                                                     
+
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_minterpolate_weights(const vector<Point>& point, 
+                         VMesh::MultiElemInterpolate& ei,
+                         int basis_order) const
+{
+  ei.resize(point.size());
+  
+  if (basis_order == 0)
+  {
+    for (size_t i=0; i<ei.size();i++)
+    {
+      typename MESH::Elem::index_type elem;
+      if(this->mesh_->locate(elem,point[i]))
+      {
+        ei[i].basis_order = basis_order;
+        ei[i].elem_index = elem;
+      }
+      else
+      {
+        ei[i].elem_index  = -1;  
+      }      
+    }
+    return;
+  }
+  ASSERTFAIL("Interpolation of unknown order requested");
+}
+
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_minterpolate_weights(const vector<VMesh::coords_type>& coords, 
+                         VMesh::Elem::index_type elem, 
+                         VMesh::MultiElemInterpolate& ei,
+                         int basis_order) const
+{
+  ei.resize(coords.size());
+  
+  for (size_t i=0; i<coords.size(); i++)
+  {
+    ei[i].basis_order = basis_order;
+    ei[i].elem_index = elem;
+  }
+  
+  if (basis_order == 0) return;
+
+  ASSERTFAIL("Interpolation of unknown order requested");
+}
+
+
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_gradient_weights(const VMesh::coords_type& coords, 
+                     VMesh::Elem::index_type elem, 
+                     VMesh::ElemGradient& eg,
+                     int basis_order) const
+{
+  eg.basis_order = basis_order;
+  eg.elem_index = elem;
+    
+  if (basis_order == 0) return;
+  
+  ASSERTFAIL("Gradient of unknown order requested");
+}
+
+
+
+
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_gradient_weights(const Point& point, 
+                     VMesh::ElemGradient& eg,
+                     int basis_order) const
+{
+  typename MESH::Elem::index_type elem;
+  StackVector<double,3> coords;
+
+  if(!(this->mesh_->locate(elem,point)))
+  {
+    eg.basis_order = basis_order;
+    eg.elem_index = -1;
+    return;
+  }
+  
+  this->mesh_->get_coords(coords,point,elem);
+  eg.basis_order = basis_order;
+  eg.elem_index = elem;
+   
+  if (basis_order == 0) return;
+  
+  ASSERTFAIL("Gradient of unknown order requested");
+}
+
+
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_mgradient_weights(const vector<Point>& point, 
+                      VMesh::MultiElemGradient& eg,
+                      int basis_order) const
+{
+  eg.resize(point.size());
+  if(basis_order==0) return;
+  
+  ASSERTFAIL("Gradient of unknown order requested");
+}
+
+
+
+template <class MESH>
+void
+VPointCloudMesh<MESH>::
+get_mgradient_weights(const vector<VMesh::coords_type>& coords, 
+                      VMesh::Elem::index_type elem, 
+                      VMesh::MultiElemGradient& eg,
+                      int basis_order) const
+{
+  eg.resize(coords.size());
+  for (size_t i=0; i< coords.size(); i++)
+  {
+    eg[i].basis_order = basis_order;
+    eg[i].elem_index =  elem;
+  }
+  
+  if(basis_order == 0) return;
+  ASSERTFAIL("Gradient of unknown order requested");
+}
+
+template <class MESH>
+VMesh::index_type*
+VPointCloudMesh<MESH>::
+get_elems_pointer() const
+{
+  return (0);
+}
+
 
 } // namespace SCIRun
 

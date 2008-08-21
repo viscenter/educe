@@ -79,7 +79,7 @@ bool MatricesToDipoleFieldAlgo::MatricesToDipoleField(ProgressReporter* pr, Matr
   double *strdata = str->get_data_pointer();
   Matrix::size_type m = loc->ncols();
   
-  LockingHandle<PointCloudMesh<ConstantBasis<Point> > > omesh = scinew PointCloudMesh<ConstantBasis<Point> >();
+  LockingHandle<PointCloudMesh<ConstantBasis<Point> > > omesh = new PointCloudMesh<ConstantBasis<Point> >();
   
   if (omesh.get_rep() == 0)
   {
@@ -94,7 +94,7 @@ bool MatricesToDipoleFieldAlgo::MatricesToDipoleField(ProgressReporter* pr, Matr
     k+=3;
   }
   
-  GenericField<PointCloudMesh<ConstantBasis<Point> >,ConstantBasis<Vector>, std::vector<Vector> > *ofield = scinew GenericField<PointCloudMesh<ConstantBasis<Point> >,ConstantBasis<Vector>, std::vector<Vector> >(omesh);
+  GenericField<PointCloudMesh<ConstantBasis<Point> >,ConstantBasis<Vector>, std::vector<Vector> > *ofield = new GenericField<PointCloudMesh<ConstantBasis<Point> >,ConstantBasis<Vector>, std::vector<Vector> >(omesh);
   Dipoles = dynamic_cast<Field*>(ofield);
   
   if (Dipoles.get_rep() == 0)

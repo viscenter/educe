@@ -41,7 +41,6 @@
 #include <Dataflow/Network/Module.h>
 #include <Core/Datatypes/Field.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Datatypes/FieldInterface.h>
 #include <Dataflow/Modules/Fields/InsertHexVolSheetAlongSurface.h>
 #include <Core/Containers/StringUtil.h>
 #include <iostream>
@@ -50,19 +49,20 @@ namespace SCIRun {
 
 class InsertHexVolSheetAlongSurface : public Module
 {
-private:
-  GuiString add_to_side_;
-  GuiString add_layer_;
-  int       last_field_generation_;
+  public:
+    InsertHexVolSheetAlongSurface(GuiContext* ctx);
+    virtual ~InsertHexVolSheetAlongSurface() {}
 
-  string last_add_to_side_;
-  string last_add_layer_;
+    virtual void execute();
   
-public:
-  InsertHexVolSheetAlongSurface(GuiContext* ctx);
-  virtual ~InsertHexVolSheetAlongSurface();
+  private:
+    GuiString add_to_side_;
+    GuiString add_layer_;
+    int       last_field_generation_;
 
-  virtual void execute();
+    string last_add_to_side_;
+    string last_add_layer_;
+
 };
 
 
@@ -74,11 +74,6 @@ InsertHexVolSheetAlongSurface::InsertHexVolSheetAlongSurface(GuiContext* ctx)
           add_to_side_(get_ctx()->subVar("side"), "side1" ),
           add_layer_(get_ctx()->subVar("addlayer"), "On" ),
           last_field_generation_(0)
-{
-}
-
-
-InsertHexVolSheetAlongSurface::~InsertHexVolSheetAlongSurface()
 {
 }
 
@@ -174,7 +169,7 @@ InsertHexVolSheetAlongSurfaceAlgo::get_compile_info(const TypeDescription *fsrc,
   static const string base_class_name("InsertHexVolSheetAlongSurfaceAlgo");
 
   CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
+    new CompileInfo(template_class_name + "." +
 		       fsrc->get_filename() + ".",
                        base_class_name, 
                        template_class_name, 

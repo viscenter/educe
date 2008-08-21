@@ -54,35 +54,35 @@ itcl_class SCIRun_MiscField_CollectPointClouds {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-###### Save the num_fields because the iwidget resets it
-	global $this-num_fields
-	set quantity [set $this-num_fields]
+        ###### Save the num_fields because the iwidget resets it
+        global $this-num_fields
+        set quantity [set $this-num_fields]
 
-	iwidgets::spinint $w.values \
-	    -labeltext "Number of Fields to Collect: " \
-	    -range {2 999} -step 1 \
-	    -textvariable $this-num_fields \
-	    -width 10 -fixed 10 -justify right
-	
-	$w.values delete 0 end
-	$w.values insert 0 $quantity
+        iwidgets::spinint $w.values \
+            -labeltext "Number of Fields to Collect: " \
+            -range {2 999} -step 1 \
+            -textvariable $this-num_fields \
+            -width 10 -fixed 10 -justify right
+        
+        $w.values delete 0 end
+        $w.values insert 0 $quantity
 
 
-	frame $w.misc
+        sci_frame $w.misc
 
-	label $w.misc.label -text "Count:"
-	entry $w.misc.count -width 5 -textvariable $this-count -state disabled
-	
-	button $w.misc.clear -text " Clear Data " \
-	    -command "$this-c clear"
+        sci_label $w.misc.label -text "Count:"
+        sci_entry $w.misc.count -width 5 -textvariable $this-count -state disabled
+        
+        sci_button $w.misc.clear -text " Clear Data " \
+            -command "$this-c clear"
 
-	pack $w.misc.label $w.misc.count $w.misc.clear -padx 5 -side left
+        pack $w.misc.label $w.misc.count $w.misc.clear -padx 5 -side left
 
-	pack $w.values $w.misc -pady 5 -side top
+        pack $w.values $w.misc -pady 5 -side top
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }

@@ -53,7 +53,7 @@
 #include <Core/Containers/FData.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 
@@ -156,7 +156,7 @@ main(int argc, char **argv) {
   cerr << "done adding points.\n";
   typedef NoDataBasis<double>                DatBasis;
   typedef GenericField<SQSMesh, DatBasis, FData2d<double, SQSMesh> > SQSField;
-  SQSField *qsf = scinew SQSField(qsm);
+  SQSField *qsf = new SQSField(qsm);
   FieldHandle qsH(qsf);
   
   if (binOutput) {

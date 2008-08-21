@@ -43,10 +43,8 @@ TARGET_LINK_LIBRARIES(Core_Algorithms_Regression
   Core_Basis 
   Core_Geom 
   Core_Util 
-  Core_Bundle 
   Core_Geometry 
   Core_Algorithms_DataIO 
-  Core_OS
   ${DL_LIBRARY} 
   ${THREAD_LIBRARY}
 )

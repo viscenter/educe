@@ -72,7 +72,7 @@ SliceRenderer::SliceRenderer(Texture* tex,
   draw_level_outline_(false),
   draw_level_(20)
 {
-  lighting_ = 1;
+  lighting_ = true;
   mode_ = MODE_SLICE;
   outline_colors_.resize(20);
   for(int i = 0; i < 20; i++){
@@ -95,7 +95,7 @@ SliceRenderer::SliceRenderer(const SliceRenderer& copy) :
   draw_level_outline_(copy.draw_level_outline_),
   draw_level_(copy.draw_level_)
 {
-  lighting_ = 1;
+  lighting_ = true;
 }
 
 SliceRenderer::~SliceRenderer()

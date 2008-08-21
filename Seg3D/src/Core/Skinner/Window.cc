@@ -103,7 +103,7 @@ GLWindow::create_window(void *data)
 
 #if defined(_WIN32)
   Win32GLContextRunnable* cr =
-    scinew Win32GLContextRunnable(get_id(), 0, posx_, posy_,
+    new Win32GLContextRunnable(get_id(), 0, posx_, posy_,
                                   (unsigned)width_,(unsigned)height_,
                                   border_);
   spawner_runnable_ = cr;

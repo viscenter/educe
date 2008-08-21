@@ -35,7 +35,7 @@
  *
  */
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Thread/CrowdMonitor.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Module.h>
@@ -59,38 +59,35 @@ namespace SCIRun {
 static string control_name("Control Widget");
 
 class CreateLightForViewer : public Module {
-public:
-  CreateLightForViewer(GuiContext*);
+  public:
+    CreateLightForViewer(GuiContext*);
+    virtual ~CreateLightForViewer() {}
+    virtual void widget_moved(bool last, BaseWidget*);
+    virtual void execute();
 
-  virtual ~CreateLightForViewer();
+    virtual void tcl_command(GuiArgs&, void*);
 
-  virtual void widget_moved(bool last, BaseWidget*);
-
-  virtual void execute();
-
-  virtual void tcl_command(GuiArgs&, void*);
-
-private:
-  CrowdMonitor     control_lock_;
-  LightWidget      *light_widget_;
-  LightHandle      l;
-  GeomID           control_id_;
-  LightID          light_id_;
-  bool             widget_init;
-  GuiInt           control_pos_saved_;
-  GuiDouble        control_x_;
-  GuiDouble        control_y_;
-  GuiDouble        control_z_;
-  GuiDouble        at_x_;
-  GuiDouble        at_y_;
-  GuiDouble        at_z_;
-  GuiDouble        cone_x_;
-  GuiDouble        cone_y_;
-  GuiDouble        cone_z_;
-  GuiDouble        rad_;
-  GuiDouble        rat_;
-  GuiInt           light_type_;
-  GuiInt           light_on_;
+  private:
+    CrowdMonitor     control_lock_;
+    LightWidget      *light_widget_;
+    LightHandle      l;
+    GeomID           control_id_;
+    LightID          light_id_;
+    bool             widget_init;
+    GuiInt           control_pos_saved_;
+    GuiDouble        control_x_;
+    GuiDouble        control_y_;
+    GuiDouble        control_z_;
+    GuiDouble        at_x_;
+    GuiDouble        at_y_;
+    GuiDouble        at_z_;
+    GuiDouble        cone_x_;
+    GuiDouble        cone_y_;
+    GuiDouble        cone_z_;
+    GuiDouble        rad_;
+    GuiDouble        rat_;
+    GuiInt           light_type_;
+    GuiInt           light_on_;
 };
 
 } // End namespace SCIRun
@@ -124,10 +121,6 @@ CreateLightForViewer::CreateLightForViewer(GuiContext* ctx)
 {
 }
 
-CreateLightForViewer::~CreateLightForViewer()
-{
-}
-
 void
 CreateLightForViewer::execute()
 {
@@ -138,7 +131,7 @@ CreateLightForViewer::execute()
   if(!light_widget_){
     
     if( control_pos_saved_.get() == 1 ) {
-      light_widget_=scinew LightWidget(this, &control_lock_, 0.2,
+      light_widget_=new LightWidget(this, &control_lock_, 0.2,
 				       Point(control_x_.get(),
 					     control_y_.get(),
 					     control_z_.get()),
@@ -165,7 +158,7 @@ CreateLightForViewer::execute()
       lt = (LightType)light_type_.get();
       light_widget_->SetLightType( lt );
     } else {
-      light_widget_=scinew LightWidget(this, &control_lock_, 0.2);
+      light_widget_=new LightWidget(this, &control_lock_, 0.2);
     }
     
     light_widget_->Connect(ogeom_);

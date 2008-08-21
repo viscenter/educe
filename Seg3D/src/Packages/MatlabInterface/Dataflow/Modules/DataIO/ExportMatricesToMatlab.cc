@@ -33,23 +33,23 @@
  * DATE: 30 MAR 2004
  */ 
 
-#include <sgi_stl_warnings_off.h>
+
 #include <sstream>
 #include <string>
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Datatypes/Matrix.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Matlab/matlabfile.h>
 #include <Core/Matlab/matlabarray.h>
 #include <Core/Matlab/matlabconverter.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Core/Datatypes/String.h>
-#include <Core/OS/FullFileName.h>
+#include <Core/Util/FullFileName.h>
 
 namespace MatlabIO {
 

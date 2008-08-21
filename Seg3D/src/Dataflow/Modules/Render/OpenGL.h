@@ -53,7 +53,7 @@
 #include <map>
 #include <vector>
 
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Modules/Render/ViewWindow.h>
 #include <Dataflow/Modules/Render/ViewScene.h>
 #include <Dataflow/Modules/Render/Ball.h>
@@ -84,10 +84,6 @@
 #ifdef HAVE_MPEG
 #  include <mpege.h>
 #endif // HAVE_MPEG
-
-#ifdef __sgi
-#  include <X11/extensions/SGIStereo.h>
-#endif // __sgi
 
 namespace SCIRun {
 
@@ -381,6 +377,7 @@ private:
 #endif // HAVE_MPEG
 
   GLuint                 render_buffer_id_;
+  GLuint                 render_buffer_depth_id_;
   GLuint                 frame_buffer_id_;
 
   vector<RenderWindowMsgHandle> reply_;

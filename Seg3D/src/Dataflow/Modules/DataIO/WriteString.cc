@@ -26,19 +26,8 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-/*
- *  WriteString.cc:
- *
- *  Written by:
- *   jeroen
- *   TODAY'S DATE HERE
- *
- */
-
-#include <sgi_stl_warnings_off.h>
 #include <fstream>
 #include <string>
-#include <sgi_stl_warnings_on.h>
 
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Dataflow/Modules/DataIO/GenericWriter.h>
@@ -48,18 +37,18 @@ namespace SCIRun {
 using namespace SCIRun;
 
 class WriteString : public GenericWriter<StringHandle> {
-public:
-  WriteString(GuiContext*);
-  virtual ~WriteString();
-  virtual void execute();
-  
-protected:
-  GuiString gui_types_;
-  GuiString gui_exporttype_;
-  GuiInt gui_increment_;
-  GuiInt gui_current_;
+  public:
+    WriteString(GuiContext*);
+    virtual ~WriteString() {}
+    virtual void execute();
+    
+  protected:
+    GuiString gui_types_;
+    GuiString gui_exporttype_;
+    GuiInt gui_increment_;
+    GuiInt gui_current_;
 
-  virtual bool call_exporter(const string &filename);  
+    virtual bool call_exporter(const string &filename);  
 };
 
 
@@ -74,12 +63,6 @@ WriteString::WriteString(GuiContext* ctx)
 {
   gui_types_.set("{ {{textfile} {.txt .asc .doc}} {{all files} {.*}} }");
 }
-
-
-WriteString::~WriteString()
-{
-}
-
 
 bool
 WriteString::call_exporter(const string &filename)
@@ -107,13 +90,14 @@ WriteString::execute()
   //get the current file name
   const string oldfilename=filename_.get();
   
-//determine if we should increment an index in the file name
-  if (gui_increment_.get()) {
-
+  //determine if we should increment an index in the file name
+  if (gui_increment_.get()) 
+  {
     //warn the user if they try to use 'Increment' incorrectly	
     const string::size_type loc2 = oldfilename.find("%d");
-    if(loc2 == string::npos) {
-    remark("To use the increment function, there must be a '%d' in the file name.");
+    if(loc2 == string::npos) 
+    {
+      remark("To use the increment function, there must be a '%d' in the file name.");
     }
     
     // ugly code, potential buffer overflow problem
@@ -130,7 +114,6 @@ WriteString::execute()
   if (gui_increment_.get())
   filename_.set(oldfilename);
 }
-
 
 } // End namespace SCIRun
 

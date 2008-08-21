@@ -37,33 +37,32 @@ itcl_class SCIRun_FieldsCreate_RefineTetVol {
     }
 
     method ui {} {
-        set w .ui[modname]
-        if {[winfo exists $w]} {
-            raise $w
-            return
-        }
-        toplevel $w
+      set w .ui[modname]
+      if {[winfo exists $w]} {
+          raise $w
+          return
+      }
+      sci_toplevel $w
 
-	frame $w.f
+      sci_frame $w.f
 
-	make_labeled_radio $w.f.rb \
-	    "Execution mode" "" top 1 \
-	    $this-execution_mode \
-	    {{"Subdivide to level:" sub_all} {"Subdivide cell index:" sub_one}}
+      make_labeled_radio $w.f.rb \
+          "Execution mode" "" top 1 \
+          $this-execution_mode \
+          {{"Subdivide to level:" sub_all} {"Subdivide cell index:" sub_one}}
 
 
-	label $w.f.lab -text "Enter cell index or level"
-	entry $w.f.cell_index -width 40 -textvariable $this-cell_index
+      sci_label $w.f.lab -text "Enter cell index or level"
+      sci_entry $w.f.cell_index -width 40 -textvariable $this-cell_index
 
      	pack $w.f.rb $w.f.lab $w.f.cell_index -side top -anchor w
 	
-
-	frame $w.controls
-	button $w.controls.exc -text "Execute" -command "$this-c needexecute"
-	button $w.controls.cancel -text "Cancel" -command "destroy $w"
-	pack $w.controls.exc $w.controls.cancel -side left -fill both
-	
-	pack $w.f $w.controls -side top -expand yes -fill both -padx 5 -pady 5
+      sci_frame $w.controls
+      sci_button $w.controls.exc -text "Execute" -command "$this-c needexecute"
+      sci_button $w.controls.cancel -text "Cancel" -command "destroy $w"
+      pack $w.controls.exc $w.controls.cancel -side left -fill both
+      
+      pack $w.f $w.controls -side top -expand yes -fill both -padx 5 -pady 5
     }
 }
 

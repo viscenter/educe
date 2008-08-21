@@ -52,41 +52,41 @@ itcl_class SCIRun_NewField_ClipVolumeByIsovalue {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-	frame       $w.function
-	radiobutton $w.function.lte -text "Less Than"    -value 1 -variable $this-lte
-	radiobutton $w.function.gte -text "Greater Than" -value 0 -variable $this-lte
+        sci_frame       $w.function
+        sci_radiobutton $w.function.lte -text "Less Than"    -value 1 -variable $this-lte
+        sci_radiobutton $w.function.gte -text "Greater Than" -value 0 -variable $this-lte
 
-	pack $w.function.lte $w.function.gte -side left -padx 4
+        pack $w.function.lte $w.function.gte -side left -padx 4
 
-	pack $w.function -side top
+        pack $w.function -side top
 
-	frame $w.isoslider
+        sci_frame $w.isoslider
 
-	scaleEntry2 $w.isoslider.isoval \
-	    [set $this-isoval-min] [set $this-isoval-max] \
-	     4c $this-isoval $this-isoval-typed
+        scaleEntry2 $w.isoslider.isoval \
+            [set $this-isoval-min] [set $this-isoval-max] \
+             4c $this-isoval $this-isoval-typed
 
-	iwidgets::labeledframe $w.isoslider.opt -labelpos nw -labeltext "Options"
-	set opt [$w.isoslider.opt childsite]
+        sci_labeledframe $w.isoslider.opt -labelpos nw -labeltext "Options"
+        set opt [$w.isoslider.opt childsite]
 
-	iwidgets::optionmenu $opt.update -labeltext "Update:" \
-		-labelpos w -command "$this set_update_type $opt.update"
-	$opt.update insert end "On Release" Manual Auto
-	$opt.update select [set $this-update_type]
+        sci_optionmenu $opt.update -labeltext "Update:" \
+          -labelpos w -command "$this set_update_type $opt.update"
+        $opt.update insert end "On Release" Manual Auto
+        $opt.update select [set $this-update_type]
 
-	global $this-update
-	set $this-update $opt.update
+        global $this-update
+        set $this-update $opt.update
 
-	pack $opt.update -side top -anchor w -pady 25
+        pack $opt.update -side top -anchor w -pady 25
 
-	pack $w.isoslider.isoval $w.isoslider.opt -side top -anchor w -fill x
+        pack $w.isoslider.isoval $w.isoslider.opt -side top -anchor w -fill x
 
-	pack $w.isoslider -side top -pady 4
+        pack $w.isoslider -side top -pady 4
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 
     method update_type_callback { name1 name2 op } {
@@ -159,84 +159,84 @@ itcl_class SCIRun_NewField_ClipVolumeByIsovalue {
     }
 
     method scaleEntry2 { win start stop length var_slider var_typed } {
-	frame $win 
+        sci_frame $win 
 
-	frame $win.l
-	frame $win.r
+        sci_frame $win.l
+        sci_frame $win.r
 	
         if { $start == $stop } { 
             set stop [expr $start + 1]
         }
 
-	set lg [expr floor( log10($stop-$start) ) ]
-	set range [expr pow(10.0, $lg )]
+        set lg [expr floor( log10($stop-$start) ) ]
+        set range [expr pow(10.0, $lg )]
 
-	set scale 1.0
+        set scale 1.0
 
- 	if { $lg > 5.0 } {
-	    set scale [expr pow(10.0, $lg-5 )]
-	}
+        if { $lg > 5.0 } {
+            set scale [expr pow(10.0, $lg-5 )]
+        }
 
-	scale $win.l.s \
-	    -from $start -to $stop \
-	    -length $length \
-	    -variable $var_slider -orient horizontal -showvalue false \
-	    -command "$this updateSliderEntry $var_slider $var_typed" \
-	    -resolution [expr $range/(1.0e4*$scale)] \
-	    -tickinterval [expr ($stop - $start)]
+        sci_scale $win.l.s \
+          -from $start -to $stop \
+          -length $length \
+          -variable $var_slider -orient horizontal -showvalue false \
+          -command "$this updateSliderEntry $var_slider $var_typed" \
+          -resolution [expr $range/(1.0e4*$scale)] \
+          -tickinterval [expr ($stop - $start)]
 
-	entry $win.r.e -width 7 -text $var_typed
+        sci_entry $win.r.e -width 7 -text $var_typed
 
-	bind $win.l.s <ButtonRelease> "$this set_isoval"
+        bind $win.l.s <ButtonRelease> "$this set_isoval"
 
-	bind $win.r.e <Return> "$this manualSliderEntryReturn \
-             $start $stop $var_slider $var_typed"
-	bind $win.r.e <KeyRelease> "$this manualSliderEntry \
-             $start $stop $var_slider $var_typed"
+        bind $win.r.e <Return> "$this manualSliderEntryReturn \
+                   $start $stop $var_slider $var_typed"
+        bind $win.r.e <KeyRelease> "$this manualSliderEntry \
+                   $start $stop $var_slider $var_typed"
 
-	pack $win.l.s -side top -expand 1 -fill x -padx 5
-	pack $win.r.e -side top -padx 5 -pady 3
-	pack $win.l -side left -expand 1 -fill x
-	pack $win.r -side right -fill y
+        pack $win.l.s -side top -expand 1 -fill x -padx 5
+        pack $win.r.e -side top -padx 5 -pady 3
+        pack $win.l -side left -expand 1 -fill x
+        pack $win.r -side right -fill y
     }
 
     method updateSliderEntry {var_slider var_typed someUknownVar} {
-	global $this-continuous
-        global $var_slider
-        global $var_typed
-	set $var_typed [set $var_slider]
+      global $this-continuous
+            global $var_slider
+            global $var_typed
+      set $var_typed [set $var_slider]
 
-	if { [set $this-continuous] == 1.0 } {
-	    eval "$this-c needexecute"
-	} elseif { [set $this-update_type] == "Auto" } {
-	    set $this-continuous 1
-	}
+      if { [set $this-continuous] == 1.0 } {
+          eval "$this-c needexecute"
+      } elseif { [set $this-update_type] == "Auto" } {
+          set $this-continuous 1
+      }
     }
 
     method manualSliderEntryReturn { start stop var_slider var_typed } {
-	# Since the user has typed in a value and hit return, we know
-	# they are done and if their value is not valid or within range,
-	# we can change it to be either the old value, or the min or max
-	# depending on what is appropriate.
-  	if { ![string is double [set $var_typed]] } {
-  	    set $var_typed [set $var_slider] 
-  	}
+      # Since the user has typed in a value and hit return, we know
+      # they are done and if their value is not valid or within range,
+      # we can change it to be either the old value, or the min or max
+      # depending on what is appropriate.
+        if { ![string is double [set $var_typed]] } {
+            set $var_typed [set $var_slider] 
+        }
 
-	if {[set $var_typed] < $start} {
-	    set $var_typed $start
-	} elseif {[set $var_typed] > $stop} {
-	    set $var_typed $stop
-	}
+      if {[set $var_typed] < $start} {
+          set $var_typed $start
+      } elseif {[set $var_typed] > $stop} {
+          set $var_typed $stop
+      }
 
-	# Force the update to be manual
-	global $this-continuous
-	set continuous [set $this-continuous]
-	
-	set $this-continuous 0
-	
-	set $var_slider [set $var_typed]
-	
-	set $this-continuous $continuous
+      # Force the update to be manual
+      global $this-continuous
+      set continuous [set $this-continuous]
+      
+      set $this-continuous 0
+      
+      set $var_slider [set $var_typed]
+      
+      set $this-continuous $continuous
     }
     
     method manualSliderEntry { start stop var_slider var_typed } {

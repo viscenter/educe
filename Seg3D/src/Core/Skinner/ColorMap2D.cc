@@ -31,10 +31,10 @@
 //    Author : McKay Davis (Skinner Drawable conversion)
 //    Date   : Thu Jul  8 01:50:58 2004
 
+#include <slivr/ShaderProgramARB.h>
+
 #include <Core/Skinner/ColorMap2D.h>
 #include <Core/Containers/StringUtil.h>
-#include <slivr/ShaderProgramARB.h>
-#include <Core/Geom/ColorMap.h>
 
 #include <sci_gl.h>
 
@@ -243,7 +243,7 @@ ColorMap2D::save_file(bool save_ppm)
 
   // Open ostream
   Piostream* stream;
-  stream = scinew BinaryPiostream(filename, Piostream::Write);
+  stream = new BinaryPiostream(filename, Piostream::Write);
   if (stream->error())
     error("Could not open file for writing" + filename);
   else {
@@ -285,7 +285,7 @@ ColorMap2D::load_file()
     return;
   }
   // read the file.
-  ColorMap2Handle icmap = scinew ColorMap2();
+  ColorMap2Handle icmap = new ColorMap2();
   try {
     Pio(*stream, icmap);
   } catch (...) {
@@ -677,7 +677,7 @@ ColorMap2D::redraw(event_handle_t &)
   glEnd();
 
   if (save_ppm) {
-    unsigned int* FrameBuffer = scinew unsigned int[width_*height_];
+    unsigned int* FrameBuffer = new unsigned int[width_*height_];
     glFlush();
     glReadBuffer(GL_BACK);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 8);

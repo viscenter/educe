@@ -51,7 +51,7 @@ MapFieldDataFromElemToNodeT(MapFieldDataFromElemToNodeAlgo* algo,
   
   VField *ifield = input->vfield();
   VField *ofield = output->vfield();
-  
+    
   //! Make sure that the data vector has the same length
   ofield->resize_fdata();
   
@@ -225,7 +225,7 @@ MapFieldDataFromElemToNodeT(MapFieldDataFromElemToNodeAlgo* algo,
 
 bool 
 MapFieldDataFromElemToNodeAlgo::
-run(FieldHandle input, FieldHandle& output)
+run(FieldHandle& input, FieldHandle& output)
 { 
   algo_start("MapFieldData",true);
   

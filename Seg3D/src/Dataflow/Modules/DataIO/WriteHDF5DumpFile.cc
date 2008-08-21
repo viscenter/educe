@@ -129,20 +129,32 @@ namespace SCIRun {
 using namespace std;
 
 herr_t
-hdf5_attr_iter(hid_t group_id, const char *name, void *op_data) {
+hdf5_attr_iter(hid_t attr_id, const char *name,
+	       const H5A_info_t *ainfo, void *op_data) {
 
   WriteHDF5DumpFile *hdf = (WriteHDF5DumpFile*) op_data;
 
-  return hdf->attr( group_id, name );
+  return hdf->attr( attr_id, name );
 }
 
 herr_t
-hdf5_group_iter(hid_t group_id, const char *name, void *op_data) {
+hdf5_group_iter(hid_t group_id, const char *name,
+		void *op_data) {
 
   WriteHDF5DumpFile *hdf = (WriteHDF5DumpFile*) op_data;
 
   return hdf->all( group_id, name );
 }
+
+herr_t
+hdf5_link_iter(hid_t link_id, const char *name,
+	       const H5L_info_t *linfo, void *op_data) {
+
+  WriteHDF5DumpFile *hdf = (WriteHDF5DumpFile*) op_data;
+
+  return hdf->link( link_id, name );
+}
+
 
 WriteHDF5DumpFile::WriteHDF5DumpFile( ostream *iostr ) :
   indent_(0)
@@ -171,9 +183,22 @@ WriteHDF5DumpFile::file(const string fname) {
     status = -1;
   }
 
-  *iostr_ << "HDF5 \"" << fname << "\" {" << endl;
+  string path = fname;
+  string::size_type i = path.find_last_of("/");
+  path.erase(i,path.size()-i);
 
-  hid_t group_id = H5Gopen(file_id, "/");
+  // The inital or absolute path
+  if( path_.size() == 1 || path.find("/") == 0 )
+    path_.push_back( path );
+  // Relative path
+  else 
+    path_.push_back( path_[path.size()-1] + string("/") + path );
+
+  tab();
+  *iostr_ << "HDF5 \"" << fname << "\" {" << endl;
+  indent_++;
+
+  hid_t group_id = H5Gopen(file_id, "/", H5P_DEFAULT);
 
   if (group_id < 0) {
     error_msg_ = string("Unable to open root group");
@@ -183,8 +208,6 @@ WriteHDF5DumpFile::file(const string fname) {
     status = -1;
   }
   
-  *iostr_ << "}" << endl;
-
   if (H5Gclose(group_id) < 0) {
     error_msg_ = "Unable to close root group";
     status = -1;
@@ -195,6 +218,12 @@ WriteHDF5DumpFile::file(const string fname) {
     status = -1;
   }
 
+  indent_--;
+  tab();
+  *iostr_ << "}" << endl;
+
+  path_.pop_back();
+
   return status;
 }
 
@@ -204,7 +233,7 @@ WriteHDF5DumpFile::group(hid_t group_id, const char *name ) {
 
   herr_t status = 0;
 
-  H5G_stat_t  statbuf;
+  H5G_stat_t statbuf;
 
   H5Gget_objinfo(group_id, ".", 1, &statbuf);
 
@@ -223,9 +252,14 @@ WriteHDF5DumpFile::group(hid_t group_id, const char *name ) {
     *iostr_ << "GROUP \"" << name << "\" {" << endl;
     indent_++;
     
-    H5Aiterate(group_id,      NULL, hdf5_attr_iter,  this);
-    H5Giterate(group_id, ".", NULL, hdf5_group_iter, this);
+    H5Aiterate(group_id, H5_INDEX_NAME, H5_ITER_INC, 0,
+	       hdf5_attr_iter, this);
+
+    H5Giterate(group_id, ".", 0, hdf5_group_iter, this);
     
+    H5Literate(group_id, H5_INDEX_NAME, H5_ITER_INC, 0,
+	       hdf5_link_iter, this);
+
     indent_--;
     tab();
     *iostr_ << "}" << endl;
@@ -240,7 +274,7 @@ WriteHDF5DumpFile::all(hid_t obj_id, const char *name) {
 
   herr_t status = 0;
 
-  H5G_stat_t  statbuf;
+  H5G_stat_t statbuf;
   hid_t group_id;
   hid_t dataset_id;
 
@@ -248,7 +282,7 @@ WriteHDF5DumpFile::all(hid_t obj_id, const char *name) {
   
   switch (statbuf.type) {
   case H5G_GROUP:
-    if ((group_id = H5Gopen(obj_id, name)) < 0) {
+    if ((group_id = H5Gopen(obj_id, name, H5P_DEFAULT)) < 0) {
       error_msg_ = string("Unable to open group \"") + name + "\"";
       status = -1;
     } else if( group(group_id, name) < 0 ) {
@@ -261,7 +295,7 @@ WriteHDF5DumpFile::all(hid_t obj_id, const char *name) {
 
     break;
   case H5G_DATASET:
-    if ((dataset_id = H5Dopen(obj_id, name)) < 0) {
+    if ((dataset_id = H5Dopen(obj_id, name, H5P_DEFAULT)) < 0) {
       error_msg_ = string("Unable to open dataset \"") + name + "\"";
       status = -1;
     } else if( dataset(dataset_id, name) < 0) {
@@ -275,7 +309,67 @@ WriteHDF5DumpFile::all(hid_t obj_id, const char *name) {
     break;
 
   default:
+//    cerr << name << "  " << statbuf.type << endl;
     break;
+  }
+
+  return status;
+}
+
+
+herr_t
+WriteHDF5DumpFile::link(hid_t link_id, const char *name) {
+
+  herr_t status = 0;
+
+  H5L_info_t linfo;
+      
+  if( H5Lget_info( link_id, name, &linfo, H5P_DEFAULT ) < 0 ) {
+    error_msg_ = string("Unable to get link info \"") + name + "\"";
+    status = -1;
+  } else {
+
+    if(linfo.type == H5L_TYPE_EXTERNAL) {
+
+      char *targbuf = (char*) malloc( linfo.u.val_size );
+
+      if(H5Lget_val(link_id, name, targbuf, linfo.u.val_size,
+		    H5P_DEFAULT) < 0) {
+	error_msg_ = string("Unable to get external link value \"") + name + "\"";
+	status = -1;
+      } else {
+	const char *filename;
+	const char *targname;
+
+	if(H5Lunpack_elink_val(targbuf, linfo.u.val_size, 0,
+			       &filename, &targname) < 0) {
+	  error_msg_ = string("Unable to get external link values\"") + name + "\"";
+	  status = -1;
+	} else {
+	  tab();
+	  *iostr_ << "EXTERNAL \"" << name << "\" {" << endl;
+	  indent_++;
+
+	  // Absolute path
+	  if( filename[0] == '/')
+	    file(filename);
+	  
+	  // Relative path so attach the parent path to it.
+	  else if( filename[0] == '.' && filename[1] == '/')
+	    file(path_[path_.size()-1] + string("/") + string(&(filename[2])));
+
+	  // Relative path so attach the parent path to it.
+	  else
+	    file(path_[path_.size()-1] + string("/") + string(filename));
+
+	  indent_--;
+	  tab();
+	  *iostr_ << "}" << endl;
+	}
+      }
+
+      free(targbuf);
+    }
   }
 
   return status;
@@ -345,7 +439,8 @@ WriteHDF5DumpFile::dataset(hid_t dataset_id, const char *name) {
 
   // Dataset can have hardlinks - if more than one link and previously
   // found report it as a hard link.
-  if (statbuf.nlink > 1 && find( dataset_ids, dataset_id ) != dataset_ids.end() ) {
+  if (statbuf.nlink > 1 &&
+      find( dataset_ids, dataset_id ) != dataset_ids.end() ) {
     tab();
     *iostr_ << "HARDLINK \"" << name << "\" {" << endl;
     tab();
@@ -372,6 +467,7 @@ WriteHDF5DumpFile::dataset(hid_t dataset_id, const char *name) {
       status = -1;
     } else {
       H5Sclose(file_space_id);
+
       /*    
 	    if( data(dataset_id, H5G_DATASET, iostr_) < 0 ) {
 	    error_msg_ = "Unable to dump dataset data \"" + name + "\"";
@@ -380,7 +476,8 @@ WriteHDF5DumpFile::dataset(hid_t dataset_id, const char *name) {
       */
     }
 
-    H5Aiterate(dataset_id, NULL, hdf5_attr_iter, this);
+    H5Aiterate(dataset_id, H5_INDEX_NAME, H5_ITER_NATIVE, 0,
+	       hdf5_attr_iter, this);
 
     indent_--;
     tab();
@@ -642,8 +739,9 @@ WriteHDF5DumpFile::data(hid_t obj_id, hid_t type) {
     else if (mem_type_id == H5T_STD_REF_OBJ) {
 
       // Find out the type of the object the reference points to.
-      hid_t ref_type =
-	H5Rget_obj_type(obj_id, H5R_OBJECT, data+ic*element_size);
+      H5O_type_t ref_type;
+
+      H5Rget_obj_type(obj_id, H5R_OBJECT, data+ic*element_size, &ref_type);
       // Dereference the reference points to.
       hid_t ref_obj_id =
 	H5Rdereference(obj_id, H5R_OBJECT, data+ic*element_size);
@@ -657,20 +755,23 @@ WriteHDF5DumpFile::data(hid_t obj_id, hid_t type) {
 
       /* Print object type and close object */
       switch (ref_type) {
-      case H5G_GROUP:
+      case H5O_TYPE_GROUP:
 	*iostr_ << "GROUPNAME ";
 	H5Gclose(ref_obj_id);
 	break;
-      case H5G_DATASET:
+      case H5O_TYPE_DATASET:
 	*iostr_ << "DATASET ";
 	H5Dclose(ref_obj_id);
 	break;
-      case H5G_TYPE:
+      case H5O_TYPE_NAMED_DATATYPE:
 	*iostr_ << "DATATYPE ";
 	H5Tclose(ref_obj_id);
 	break;
-      case H5G_LINK:
-	*iostr_  << "LINK ";
+      case H5O_TYPE_NTYPES:
+	*iostr_  << "NTYPES ";
+	break;
+      case H5O_TYPE_UNKNOWN:
+	*iostr_  << "UNKNOWN ";
 	break;
       }
 

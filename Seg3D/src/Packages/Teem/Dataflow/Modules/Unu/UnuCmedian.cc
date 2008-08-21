@@ -31,7 +31,7 @@
 //    Date   : Mon Aug 25 10:13:16 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -202,7 +202,7 @@ UnuCmedian::execute()
       out.push_back(nout_filtered);
     }
     // Join the filtered nrrds along the first axis
-    NrrdData *nrrd_joined = scinew NrrdData;
+    NrrdData *nrrd_joined = new NrrdData;
     if (nrrdJoin(nrrd_joined->nrrd_, &out[0], out.size(), 0, 1)) {
       char *err = biffGetDone(NRRD);
       error(string("Join Error: ") +  err);
@@ -221,7 +221,7 @@ UnuCmedian::execute()
       error("Error filtering, returning");
       return;
     }
-    NrrdDataHandle ntmp(scinew NrrdData(nout_filtered));
+    NrrdDataHandle ntmp(new NrrdData(nout_filtered));
     send_output_handle("nout", ntmp);
   }
 }

@@ -267,7 +267,7 @@ CreateAndEditColorMap2D::CreateAndEditColorMap2D(GuiContext* ctx) :
   tm_("CAECM2 tool manager"),
   wid_mutex_("CreateAndEditColorMap2D widget mutex")
 {
-  widgets_.push_back(scinew RectangleCM2Widget());
+  widgets_.push_back(new RectangleCM2Widget());
   select_widget(widgets_.size()-1, 1);
 
   // Set initial var state for widget storage
@@ -292,7 +292,7 @@ CreateAndEditColorMap2D::CreateAndEditColorMap2D(GuiContext* ctx) :
 
   // launch the event handler.
   string tid = "EventHandler_" + get_ctx()->getfullname();
-  Thread *vt = scinew Thread(new EventHandler(this), tid.c_str());
+  Thread *vt = new Thread(new EventHandler(this), tid.c_str());
   vt->detach(); // runs until thread exits.
 }
 
@@ -417,11 +417,11 @@ CreateAndEditColorMap2D::tcl_command(GuiArgs& args, void* userdata)
   } else if (args[1] == "setgl") {
     ASSERT(args.count() == 3);
     if (! cm2view_) {
-      TkOpenGLContext *glctx = scinew TkOpenGLContext(args[2], 0, 512, 256);
+      TkOpenGLContext *glctx = new TkOpenGLContext(args[2], 0, 512, 256);
       cm2view_ = new CM2View(glctx, get_ctx()->getfullname(), cm2_target_); 
       cm2view_->set_timer_interval(6);
       string tid = "CM2View Thread";
-      Thread *vt = scinew Thread(cm2view_, tid.c_str());
+      Thread *vt = new Thread(cm2view_, tid.c_str());
       vt->detach(); // runs until thread exits.
       Thread::yield();
       if (widgets_.size()) {
@@ -504,7 +504,7 @@ CreateAndEditColorMap2D::save_file(bool save_ppm)
   cerr << "added save event and saving cmap2" << endl;
   // Open ostream
   Piostream* stream;
-  stream = scinew BinaryPiostream(filename, Piostream::Write);
+  stream = new BinaryPiostream(filename, Piostream::Write);
   if (stream->error())
     error("Could not open file for writing" + filename);
   else {
@@ -544,7 +544,7 @@ CreateAndEditColorMap2D::load_file()
       return;
     }  
     // read the file.
-    ColorMap2Handle icmap = scinew ColorMap2();
+    ColorMap2Handle icmap = new ColorMap2();
     try {
       Pio(*stream, icmap);
     } catch (...) {
@@ -648,7 +648,7 @@ CreateAndEditColorMap2D::resize_gui(int n)
     delete end_marker_;
   // Second: Create a new marker that marks the end of the variables
   if (i != 0) 
-    end_marker_ = scinew GuiString(get_ctx()->subVar("marker"), "end");
+    end_marker_ = new GuiString(get_ctx()->subVar("marker"), "end");
 }
 
 
@@ -723,24 +723,24 @@ CreateAndEditColorMap2D::tcl_unpickle()
     gui_wstate_[i]->reset();
     if (gui_wstate_[i]->get()[0] == 't')
     {
-      widgets_.push_back(scinew TriangleCM2Widget());
+      widgets_.push_back(new TriangleCM2Widget());
       widgets_[widgets_.size()-1]->tcl_unpickle(gui_wstate_[i]->get());
     }
     else if (gui_wstate_[i]->get()[0] == 'r')
     {
-      widgets_.push_back(scinew RectangleCM2Widget());
+      widgets_.push_back(new RectangleCM2Widget());
       widgets_[widgets_.size()-1]->tcl_unpickle(gui_wstate_[i]->get());
     }
     else if (gui_wstate_[i]->get()[0] == 'i') {
-      widgets_.push_back(scinew ImageCM2Widget());
+      widgets_.push_back(new ImageCM2Widget());
       widgets_[widgets_.size()-1]->tcl_unpickle(gui_wstate_[i]->get());
     }
     else if (gui_wstate_[i]->get()[0] == 'e') {
-      widgets_.push_back(scinew EllipsoidCM2Widget());
+      widgets_.push_back(new EllipsoidCM2Widget());
       widgets_[widgets_.size()-1]->tcl_unpickle(gui_wstate_[i]->get());
     }
     else if (gui_wstate_[i]->get()[0] == 'p') {
-      widgets_.push_back(scinew ParaboloidCM2Widget());
+      widgets_.push_back(new ParaboloidCM2Widget());
       widgets_[widgets_.size()-1]->tcl_unpickle(gui_wstate_[i]->get());
     }
   }
@@ -796,11 +796,13 @@ CreateAndEditColorMap2D::execute()
   
   if (get_input_handle("Histogram", h, false)) 
   {
-    if (h.get_rep() && h->generation != hist_generation_) {
+    if (h.get_rep() && h->generation != hist_generation_) 
+    {
       hist_generation_ = h->generation;
-      if(h->nrrd_->dim != 2 && h->nrrd_->dim != 3) {
-	error("Invalid input histogram dimension.");
-	return;
+      if(h->nrrd_->dim != 2 && h->nrrd_->dim != 3) 
+      {
+        error("Invalid input histogram dimension.");
+        return;
       }
       // keep reference to the nrrd.
       histo_ = h; // get_input_handle clears rep to 0 each call.
@@ -811,7 +813,9 @@ CreateAndEditColorMap2D::execute()
 					       cm2_target_);
       EventManager::add_event(event);
     }
-  } else {
+  } 
+  else 
+  {
     hist_generation_ = -1;
     event_handle_t event = new SetHistoEvent(0, gui_histo_.get(),
 					     cm2_target_);

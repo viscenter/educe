@@ -85,7 +85,7 @@ bool  FileTransferClient::open(IComAddress address, std::string servicename, int
 
 bool FileTransferClient::create_remote_tempdir(std::string pattern,std::string &tempdir)
 {
-    IComPacketHandle packet = scinew IComPacket;
+    IComPacketHandle packet = new IComPacket;
     if (packet.get_rep() == 0)
     {
         seterror("Could not create IComPacket");
@@ -219,7 +219,7 @@ bool FileTransferClient::get_file(std::string remotefilename,std::string localfi
         return(false);
     }
     
-    IComPacketHandle packet = scinew IComPacket;
+    IComPacketHandle packet = new IComPacket;
     if (packet.get_rep() == 0)
     {
         ::fclose(localfile);
@@ -322,7 +322,7 @@ bool FileTransferClient::put_file(std::string localfilename,std::string remotefi
         return(false);
     }
     
-    IComPacketHandle packet = scinew IComPacket;
+    IComPacketHandle packet = new IComPacket;
     if (packet.get_rep() == 0)
     {
         seterror("Could not create IComPacket");

@@ -39,25 +39,25 @@ itcl_class SCIRun_NewField_FairMesh {
     method ui {} {
 	
         global $this-iterations
-	global $this-method
+        global $this-method
 
         set w .ui[modname]
         if {[winfo exists $w]} {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.f     
+        sci_frame $w.f     
         pack $w.f -expand yes -fill both
 
-	make_labeled_radio $w.f.rb \
-	    "Weighting Method" "" top 1 \
-	    $this-method \
-	    { {"Fast (equal weights)" fast} {"Desbrun (curvature normal)" desbrun} }
+        make_labeled_radio $w.f.rb \
+          "Weighting Method" "" top 1 \
+          $this-method \
+          { {"Fast (equal weights)" fast} {"Desbrun (curvature normal)" desbrun} }
 
-        iwidgets::Entryfield $w.f.e -validate numeric -width 5 \
-	    -labeltext "Iterations:" -textvariable $this-iterations
+        sci_entryfield $w.f.e -validate numeric -width 5 \
+          -labeltext "Iterations:" -textvariable $this-iterations
 
         pack $w.f.rb $w.f.e -fill both
 

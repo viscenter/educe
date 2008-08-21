@@ -44,7 +44,7 @@
 #include <Core/Geom/GeomSave.h>
 #include <Core/Geom/GeomTri.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Persistent/PersistentSTL.h>
 #include <iostream>
 #include <functional>
@@ -66,7 +66,7 @@ pair_less(const pair<double, unsigned int> &a,
 
 Persistent* make_GeomTranspQuads()
 {
-    return scinew GeomTranspQuads;
+    return new GeomTranspQuads;
 }
 
 PersistentTypeID GeomTranspQuads::type_id("GeomTranspQuads", "GeomFastQuads", make_GeomTranspQuads);
@@ -74,7 +74,7 @@ PersistentTypeID GeomTranspQuads::type_id("GeomTranspQuads", "GeomFastQuads", ma
 
 Persistent* make_GeomFastQuads()
 {
-    return scinew GeomFastQuads;
+    return new GeomFastQuads;
 }
 
 PersistentTypeID GeomFastQuads::type_id("GeomFastQuads", "GeomObj", make_GeomFastQuads);
@@ -101,7 +101,7 @@ GeomFastQuads::~GeomFastQuads()
 GeomObj*
 GeomFastQuads::clone()
 {
-  return scinew GeomFastQuads(*this);
+  return new GeomFastQuads(*this);
 }
 
 
@@ -411,7 +411,7 @@ GeomTranspQuads::~GeomTranspQuads()
 
 GeomObj* GeomTranspQuads::clone()
 {
-    return scinew GeomTranspQuads(*this);
+    return new GeomTranspQuads(*this);
 }
 
 void
@@ -493,7 +493,7 @@ void GeomTranspQuads::io(Piostream& stream)
 
 Persistent* make_GeomFastQuadsTwoSided()
 {
-    return scinew GeomFastQuadsTwoSided;
+    return new GeomFastQuadsTwoSided;
 }
 
 PersistentTypeID GeomFastQuadsTwoSided::type_id("GeomFastQuadsTwoSided", "GeomObj", make_GeomFastQuadsTwoSided);
@@ -501,7 +501,7 @@ PersistentTypeID GeomFastQuadsTwoSided::type_id("GeomFastQuadsTwoSided", "GeomOb
 
 Persistent* make_GeomTranspQuadsTwoSided()
 {
-    return scinew GeomTranspQuadsTwoSided;
+    return new GeomTranspQuadsTwoSided;
 }
 
 PersistentTypeID GeomTranspQuadsTwoSided::type_id("GeomTranspQuadsTwoSided", "GeomObj", make_GeomTranspQuadsTwoSided);
@@ -530,7 +530,7 @@ GeomFastQuadsTwoSided::~GeomFastQuadsTwoSided()
 GeomObj*
 GeomFastQuadsTwoSided::clone()
 {
-  return scinew GeomFastQuadsTwoSided(*this);
+  return new GeomFastQuadsTwoSided(*this);
 }
 
 
@@ -792,7 +792,7 @@ GeomTranspQuadsTwoSided::~GeomTranspQuadsTwoSided()
 
 GeomObj* GeomTranspQuadsTwoSided::clone()
 {
-    return scinew GeomTranspQuadsTwoSided(*this);
+    return new GeomTranspQuadsTwoSided(*this);
 }
 
 void

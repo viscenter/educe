@@ -44,7 +44,7 @@
 #include <Core/Containers/String.h>
 #include <Core/Datatypes/Surface.h>
 #include <Core/Geometry/Transform.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <iostream>
 using std::cerr;
@@ -54,7 +54,7 @@ using std::endl;
 
 namespace DaveW {
 static Persistent* make_ContourSet(){
-    return scinew ContourSet;
+    return new ContourSet;
 }
 
 PersistentTypeID ContourSet::type_id("ContourSet", "Datatype", make_ContourSet);
@@ -165,7 +165,7 @@ using namespace SCIRun;
 
 ContourSet* ContourSet::clone()
 {
-    return scinew ContourSet(*this);
+    return new ContourSet(*this);
 } // End namespace DaveW
 }
 

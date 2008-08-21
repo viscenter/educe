@@ -50,7 +50,7 @@ using std::queue;
 #include <Core/Util/NotFinished.h>
 #include <Core/Containers/TrivialAllocator.h>
 #include <Packages/DaveW/Core/Datatypes/General/TopoSurfTree.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <math.h>
 
 namespace DaveW {
@@ -58,7 +58,7 @@ using SCIRun::Pio;
 
 static Persistent* make_TopoSurfTree()
 {
-  return scinew TopoSurfTree;
+  return new TopoSurfTree;
 }
 
 PersistentTypeID TopoSurfTree::type_id("TopoSurfTree", "Surface", make_TopoSurfTree);
@@ -79,7 +79,7 @@ TopoSurfTree::~TopoSurfTree() {
 
 Surface* TopoSurfTree::clone()
 {
-  return scinew TopoSurfTree(*this);
+  return new TopoSurfTree(*this);
 }
 
 void TopoSurfTree::BldTopoInfo() {

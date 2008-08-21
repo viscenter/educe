@@ -39,37 +39,37 @@ itcl_class SCIRun_MiscField_ReportFieldGeometryMeasures {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	frame $w.which -relief groove -borderwidth 2
-	label $w.which.l -text "Measure Locations"
-	radiobutton $w.which.node -text "Nodes" \
-		-var $this-simplexString -value Node
-	radiobutton $w.which.edge -text "Edges" \
-		-var $this-simplexString -value Edge
-	radiobutton $w.which.face -text "Faces" \
-		-var $this-simplexString -value Face
-	radiobutton $w.which.cell -text "Cells" \
-		-var $this-simplexString -value Cell
-	radiobutton $w.which.elem -text "Elements" \
-		-var $this-simplexString -value Elem
-	pack $w.which.l -side top
-	pack $w.which.elem $w.which.node $w.which.edge $w.which.face $w.which.cell -anchor nw
+        sci_frame $w.which -relief groove -borderwidth 2
+        sci_label $w.which.l -text "Measure Locations"
+        sci_radiobutton $w.which.node -text "Nodes" \
+          -var $this-simplexString -value Node
+        sci_radiobutton $w.which.edge -text "Edges" \
+          -var $this-simplexString -value Edge
+        sci_radiobutton $w.which.face -text "Faces" \
+          -var $this-simplexString -value Face
+        sci_radiobutton $w.which.cell -text "Cells" \
+          -var $this-simplexString -value Cell
+        sci_radiobutton $w.which.elem -text "Elements" \
+          -var $this-simplexString -value Elem
+        pack $w.which.l -side top
+        pack $w.which.elem $w.which.node $w.which.edge $w.which.face $w.which.cell -anchor nw
 
-	frame $w.general -relief groove -borderwidth 2
-	label $w.general.l -text "Measures"
-	checkbutton $w.general.x -text "X position" -variable $this-xFlag
-	checkbutton $w.general.y -text "Y position" -variable $this-yFlag
-	checkbutton $w.general.z -text "Z position" -variable $this-zFlag
-	checkbutton $w.general.idx -text "Index" -variable $this-idxFlag
-	checkbutton $w.general.size -text "Size (Length, Area, or Volume)" -variable $this-sizeFlag
-	checkbutton $w.general.norm -text "Normals (Nodes and Faces only)" -variable $this-normalsFlag
-	pack $w.general.l -side top
-	pack $w.general.x $w.general.y $w.general.z $w.general.idx $w.general.size $w.general.norm -anchor nw
+        sci_frame $w.general -relief groove -borderwidth 2
+        sci_label $w.general.l -text "Measures"
+        sci_checkbutton $w.general.x -text "X position" -variable $this-xFlag
+        sci_checkbutton $w.general.y -text "Y position" -variable $this-yFlag
+        sci_checkbutton $w.general.z -text "Z position" -variable $this-zFlag
+        sci_checkbutton $w.general.idx -text "Index" -variable $this-idxFlag
+        sci_checkbutton $w.general.size -text "Size (Length, Area, or Volume)" -variable $this-sizeFlag
+        sci_checkbutton $w.general.norm -text "Normals (Nodes and Faces only)" -variable $this-normalsFlag
+        pack $w.general.l -side top
+        pack $w.general.x $w.general.y $w.general.z $w.general.idx $w.general.size $w.general.norm -anchor nw
 
-	pack $w.which $w.general -side top -fill x -expand 1
+        pack $w.which $w.general -side top -fill x -expand 1
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }

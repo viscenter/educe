@@ -27,9 +27,9 @@
 */
 
 
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/Tensor.h>
@@ -280,8 +280,8 @@ bool NrrdToFieldAlgoT::NrrdToField(ProgressReporter* pr,NrrdDataHandle input, Fi
     
     if (datalocation == "Node")
     {
-      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = scinew ScanlineMesh<CrvLinearLgn<Point> >(size[0],Point(min[0],0.0,0.0),Point(max[0],0.0,0.0));
-      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<T>, vector<T> >* field = scinew GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<T>,  vector<T> >(mesh_handle);
+      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = new ScanlineMesh<CrvLinearLgn<Point> >(size[0],Point(min[0],0.0,0.0),Point(max[0],0.0,0.0));
+      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<T>, vector<T> >* field = new GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<T>,  vector<T> >(mesh_handle);
       output = dynamic_cast<Field *>(field);
       ScanlineMesh<CrvLinearLgn<Point> >::Node::iterator it, it_end;
       mesh_handle->begin(it);
@@ -301,8 +301,8 @@ bool NrrdToFieldAlgoT::NrrdToField(ProgressReporter* pr,NrrdDataHandle input, Fi
     }
     else if (datalocation == "Element")
     {
-      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = scinew ScanlineMesh<CrvLinearLgn<Point> >(size[0]+1,Point(min[0],0.0,0.0),Point(max[0],0.0,0.0));
-      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<T>, vector<T> >* field = scinew GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<T>, vector<T> >(mesh_handle);
+      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = new ScanlineMesh<CrvLinearLgn<Point> >(size[0]+1,Point(min[0],0.0,0.0),Point(max[0],0.0,0.0));
+      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<T>, vector<T> >* field = new GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<T>, vector<T> >(mesh_handle);
       output = dynamic_cast<Field *>(field);
       ScanlineMesh<CrvLinearLgn<Point> >::Elem::iterator it, it_end;
       mesh_handle->begin(it);
@@ -331,8 +331,8 @@ bool NrrdToFieldAlgoT::NrrdToField(ProgressReporter* pr,NrrdDataHandle input, Fi
     
     if (datalocation == "Node")
     {
-      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = scinew ImageMesh<QuadBilinearLgn<Point> >(size[0],size[1],Point(min[0],min[1],0.0),Point(max[0],max[1],0.0));
-      GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<T>, FData2d<T, ImageMesh<QuadBilinearLgn<Point> > > >* field = scinew GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<T>, FData2d<T, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
+      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = new ImageMesh<QuadBilinearLgn<Point> >(size[0],size[1],Point(min[0],min[1],0.0),Point(max[0],max[1],0.0));
+      GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<T>, FData2d<T, ImageMesh<QuadBilinearLgn<Point> > > >* field = new GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<T>, FData2d<T, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
       ImageMesh<QuadBilinearLgn<Point> >::Node::iterator it, it_end;
       mesh_handle->begin(it);
@@ -352,8 +352,8 @@ bool NrrdToFieldAlgoT::NrrdToField(ProgressReporter* pr,NrrdDataHandle input, Fi
     }
     else if (datalocation == "Element")
     {
-      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = scinew ImageMesh<QuadBilinearLgn<Point> >(size[0]+1,size[1]+1,Point(min[0],min[1],0.0),Point(max[0],max[1],0.0));
-      GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<T>, FData2d<T, ImageMesh<QuadBilinearLgn<Point> > > >* field = scinew GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<T>, FData2d<T, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
+      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = new ImageMesh<QuadBilinearLgn<Point> >(size[0]+1,size[1]+1,Point(min[0],min[1],0.0),Point(max[0],max[1],0.0));
+      GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<T>, FData2d<T, ImageMesh<QuadBilinearLgn<Point> > > >* field = new GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<T>, FData2d<T, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
       ImageMesh<QuadBilinearLgn<Point> >::Elem::iterator it, it_end;
       mesh_handle->begin(it);
@@ -382,8 +382,8 @@ bool NrrdToFieldAlgoT::NrrdToField(ProgressReporter* pr,NrrdDataHandle input, Fi
     
     if (datalocation == "Node")
     {
-      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = scinew LatVolMesh<HexTrilinearLgn<Point> >(size[0],size[1],size[2],Point(min[0],min[1],min[2]),Point(max[0],max[1],max[2]));
-      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<T>, FData3d<T, LatVolMesh<HexTrilinearLgn<Point> > > >* field = scinew GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<T>, FData3d<T, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
+      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = new LatVolMesh<HexTrilinearLgn<Point> >(size[0],size[1],size[2],Point(min[0],min[1],min[2]),Point(max[0],max[1],max[2]));
+      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<T>, FData3d<T, LatVolMesh<HexTrilinearLgn<Point> > > >* field = new GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<T>, FData3d<T, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
       LatVolMesh<HexTrilinearLgn<Point> >::Node::iterator it, it_end;
       mesh_handle->begin(it);
@@ -402,8 +402,8 @@ bool NrrdToFieldAlgoT::NrrdToField(ProgressReporter* pr,NrrdDataHandle input, Fi
     }
     else if (datalocation == "Element")
     {
-      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = scinew LatVolMesh<HexTrilinearLgn<Point> >(size[0]+1,size[1]+1,size[2]+1,Point(min[0],min[1],min[2]),Point(max[0],max[1],max[2]));
-      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<T>, FData3d<T, LatVolMesh<HexTrilinearLgn<Point> > > >* field = scinew GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<T>, FData3d<T, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
+      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = new LatVolMesh<HexTrilinearLgn<Point> >(size[0]+1,size[1]+1,size[2]+1,Point(min[0],min[1],min[2]),Point(max[0],max[1],max[2]));
+      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<T>, FData3d<T, LatVolMesh<HexTrilinearLgn<Point> > > >* field = new GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<T>, FData3d<T, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
       LatVolMesh<HexTrilinearLgn<Point> >::Elem::iterator it, it_end;
       mesh_handle->begin(it);
@@ -709,8 +709,8 @@ bool NrrdToFieldAlgoT::NrrdToVectorField(ProgressReporter* pr,NrrdDataHandle inp
   {
     if (datalocation == "Node")
     {
-      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = scinew ScanlineMesh<CrvLinearLgn<Point> >(rsize[0],Point(rmin[0],0.0,0.0),Point(rmax[0],0.0,0.0));
-      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<Vector>, vector<Vector> >* field = scinew GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<Vector>, vector<Vector> >(mesh_handle);
+      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = new ScanlineMesh<CrvLinearLgn<Point> >(rsize[0],Point(rmin[0],0.0,0.0),Point(rmax[0],0.0,0.0));
+      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<Vector>, vector<Vector> >* field = new GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<Vector>, vector<Vector> >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
       ScanlineMesh<CrvLinearLgn<Point> >::Node::iterator it;
@@ -734,8 +734,8 @@ bool NrrdToFieldAlgoT::NrrdToVectorField(ProgressReporter* pr,NrrdDataHandle inp
     }
     else if (datalocation == "Element")
     {
-      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = scinew ScanlineMesh<CrvLinearLgn<Point> >(rsize[0]+1,Point(rmin[0],0.0,0.0),Point(rmax[0],0.0,0.0));
-      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<Vector>, vector<Vector> >* field = scinew GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<Vector>, vector<Vector> >(mesh_handle);
+      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = new ScanlineMesh<CrvLinearLgn<Point> >(rsize[0]+1,Point(rmin[0],0.0,0.0),Point(rmax[0],0.0,0.0));
+      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<Vector>, vector<Vector> >* field = new GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<Vector>, vector<Vector> >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
       ScanlineMesh<CrvLinearLgn<Point> >::Elem::iterator it;
@@ -768,8 +768,8 @@ bool NrrdToFieldAlgoT::NrrdToVectorField(ProgressReporter* pr,NrrdDataHandle inp
   {
     if (datalocation == "Node")
     {
-      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = scinew ImageMesh<QuadBilinearLgn<Point> >(rsize[0],rsize[1],Point(rmin[0],rmin[1],0.0),Point(rmax[0],rmax[1],0.0));
-      GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<Vector>, FData2d<Vector, ImageMesh<QuadBilinearLgn<Point> > > >* field = scinew GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<Vector>, FData2d<Vector, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
+      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = new ImageMesh<QuadBilinearLgn<Point> >(rsize[0],rsize[1],Point(rmin[0],rmin[1],0.0),Point(rmax[0],rmax[1],0.0));
+      GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<Vector>, FData2d<Vector, ImageMesh<QuadBilinearLgn<Point> > > >* field = new GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<Vector>, FData2d<Vector, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
       ImageMesh<QuadBilinearLgn<Point> >::Node::iterator it;
@@ -797,8 +797,8 @@ bool NrrdToFieldAlgoT::NrrdToVectorField(ProgressReporter* pr,NrrdDataHandle inp
     }
     else if (datalocation == "Element")
     {
-      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = scinew ImageMesh<QuadBilinearLgn<Point> >(rsize[0]+1,rsize[1]+1,Point(rmin[0],rmin[1],0.0),Point(rmax[0],rmax[1],0.0));
-      GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<Vector>, FData2d<Vector, ImageMesh<QuadBilinearLgn<Point> > > >* field = scinew GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<Vector>, FData2d<Vector, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
+      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = new ImageMesh<QuadBilinearLgn<Point> >(rsize[0]+1,rsize[1]+1,Point(rmin[0],rmin[1],0.0),Point(rmax[0],rmax[1],0.0));
+      GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<Vector>, FData2d<Vector, ImageMesh<QuadBilinearLgn<Point> > > >* field = new GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<Vector>, FData2d<Vector, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
       ImageMesh<QuadBilinearLgn<Point> >::Elem::iterator it;
@@ -834,8 +834,8 @@ bool NrrdToFieldAlgoT::NrrdToVectorField(ProgressReporter* pr,NrrdDataHandle inp
   {
     if (datalocation == "Node")
     {
-      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = scinew LatVolMesh<HexTrilinearLgn<Point> >(rsize[0],rsize[1],rsize[2],Point(rmin[0],rmin[1],rmin[2]),Point(rmax[0],rmax[1],rmax[2]));
-      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<Vector>, FData3d<Vector, LatVolMesh<HexTrilinearLgn<Point> > > >* field = scinew GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<Vector>, FData3d<Vector, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
+      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = new LatVolMesh<HexTrilinearLgn<Point> >(rsize[0],rsize[1],rsize[2],Point(rmin[0],rmin[1],rmin[2]),Point(rmax[0],rmax[1],rmax[2]));
+      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<Vector>, FData3d<Vector, LatVolMesh<HexTrilinearLgn<Point> > > >* field = new GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<Vector>, FData3d<Vector, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
       
       LatVolMesh<HexTrilinearLgn<Point> >::Node::iterator it;
@@ -866,8 +866,8 @@ bool NrrdToFieldAlgoT::NrrdToVectorField(ProgressReporter* pr,NrrdDataHandle inp
     }
     else if (datalocation == "Element")
     {
-      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = scinew LatVolMesh<HexTrilinearLgn<Point> >(rsize[0]+1,rsize[1]+1,rsize[2]+1,Point(rmin[0],rmin[1],rmin[2]),Point(rmax[0],rmax[1],rmax[2]));
-      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<Vector>, FData3d<Vector, LatVolMesh<HexTrilinearLgn<Point> > > >* field = scinew GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<Vector>, FData3d<Vector, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
+      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = new LatVolMesh<HexTrilinearLgn<Point> >(rsize[0]+1,rsize[1]+1,rsize[2]+1,Point(rmin[0],rmin[1],rmin[2]),Point(rmax[0],rmax[1],rmax[2]));
+      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<Vector>, FData3d<Vector, LatVolMesh<HexTrilinearLgn<Point> > > >* field = new GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<Vector>, FData3d<Vector, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
 
@@ -1236,8 +1236,8 @@ bool NrrdToFieldAlgoT::NrrdToTensorField(ProgressReporter* pr,NrrdDataHandle inp
   {
     if (datalocation == "Node")
     {
-      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = scinew ScanlineMesh<CrvLinearLgn<Point> >(rsize[0],Point(rmin[0],0.0,0.0),Point(rmax[0],0.0,0.0));
-      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<Tensor>, vector<Tensor> >* field = scinew GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<Tensor>, vector<Tensor> >(mesh_handle);
+      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = new ScanlineMesh<CrvLinearLgn<Point> >(rsize[0],Point(rmin[0],0.0,0.0),Point(rmax[0],0.0,0.0));
+      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<Tensor>, vector<Tensor> >* field = new GenericField<ScanlineMesh<CrvLinearLgn<Point> >,CrvLinearLgn<Tensor>, vector<Tensor> >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
       ScanlineMesh<CrvLinearLgn<Point> >::Node::iterator it;
@@ -1277,8 +1277,8 @@ bool NrrdToFieldAlgoT::NrrdToTensorField(ProgressReporter* pr,NrrdDataHandle inp
     }
     else if (datalocation == "Element")
     {
-      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = scinew ScanlineMesh<CrvLinearLgn<Point> >(rsize[0]+1,Point(rmin[0],0.0,0.0),Point(rmax[0],0.0,0.0));
-      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<Tensor>, vector<Tensor> >* field = scinew GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<Tensor>, vector<Tensor> >(mesh_handle);
+      ScanlineMesh<CrvLinearLgn<Point> >::handle_type mesh_handle = new ScanlineMesh<CrvLinearLgn<Point> >(rsize[0]+1,Point(rmin[0],0.0,0.0),Point(rmax[0],0.0,0.0));
+      GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<Tensor>, vector<Tensor> >* field = new GenericField<ScanlineMesh<CrvLinearLgn<Point> >,ConstantBasis<Tensor>, vector<Tensor> >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
       ScanlineMesh<CrvLinearLgn<Point> >::Elem::iterator it;
@@ -1325,8 +1325,8 @@ bool NrrdToFieldAlgoT::NrrdToTensorField(ProgressReporter* pr,NrrdDataHandle inp
   {    
     if (datalocation == "Node")
     {
-      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = scinew ImageMesh<QuadBilinearLgn<Point> >(rsize[0],rsize[1],Point(rmin[0],rmin[1],0.0),Point(rmax[0],rmax[1],0.0));
-      GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<Tensor>, FData2d<Tensor, ImageMesh<QuadBilinearLgn<Point> > > >* field = scinew GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<Tensor>, FData2d<Tensor, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
+      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = new ImageMesh<QuadBilinearLgn<Point> >(rsize[0],rsize[1],Point(rmin[0],rmin[1],0.0),Point(rmax[0],rmax[1],0.0));
+      GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<Tensor>, FData2d<Tensor, ImageMesh<QuadBilinearLgn<Point> > > >* field = new GenericField<ImageMesh<QuadBilinearLgn<Point> >,QuadBilinearLgn<Tensor>, FData2d<Tensor, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
       ImageMesh<QuadBilinearLgn<Point> >::Node::iterator it;
@@ -1369,8 +1369,8 @@ bool NrrdToFieldAlgoT::NrrdToTensorField(ProgressReporter* pr,NrrdDataHandle inp
     }
     else if (datalocation == "Element")
     {
-      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = scinew ImageMesh<QuadBilinearLgn<Point> >(rsize[0]+1,rsize[1]+1,Point(rmin[0],rmin[1],0.0),Point(rmax[0],rmax[1],0.0));
-      GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<Tensor>, FData2d<Tensor, ImageMesh<QuadBilinearLgn<Point> > > >* field = scinew GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<Tensor>, FData2d<Tensor, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
+      ImageMesh<QuadBilinearLgn<Point> >::handle_type mesh_handle = new ImageMesh<QuadBilinearLgn<Point> >(rsize[0]+1,rsize[1]+1,Point(rmin[0],rmin[1],0.0),Point(rmax[0],rmax[1],0.0));
+      GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<Tensor>, FData2d<Tensor, ImageMesh<QuadBilinearLgn<Point> > > >* field = new GenericField<ImageMesh<QuadBilinearLgn<Point> >,ConstantBasis<Tensor>, FData2d<Tensor, ImageMesh<QuadBilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
       ImageMesh<QuadBilinearLgn<Point> >::Elem::iterator it;
@@ -1421,8 +1421,8 @@ bool NrrdToFieldAlgoT::NrrdToTensorField(ProgressReporter* pr,NrrdDataHandle inp
   {
     if (datalocation == "Node")
     {
-      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = scinew LatVolMesh<HexTrilinearLgn<Point> >(rsize[0],rsize[1],rsize[2],Point(rmin[0],rmin[1],rmin[2]),Point(rmax[0],rmax[1],rmax[2]));
-      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<Tensor>, FData3d<Tensor, LatVolMesh<HexTrilinearLgn<Point> > > >* field = scinew GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<Tensor>, FData3d<Tensor, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
+      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = new LatVolMesh<HexTrilinearLgn<Point> >(rsize[0],rsize[1],rsize[2],Point(rmin[0],rmin[1],rmin[2]),Point(rmax[0],rmax[1],rmax[2]));
+      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<Tensor>, FData3d<Tensor, LatVolMesh<HexTrilinearLgn<Point> > > >* field = new GenericField<LatVolMesh<HexTrilinearLgn<Point> >,HexTrilinearLgn<Tensor>, FData3d<Tensor, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
       
       LatVolMesh<HexTrilinearLgn<Point> >::Node::iterator it;
@@ -1468,8 +1468,8 @@ bool NrrdToFieldAlgoT::NrrdToTensorField(ProgressReporter* pr,NrrdDataHandle inp
     }
     else if (datalocation == "Element")
     {
-      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = scinew LatVolMesh<HexTrilinearLgn<Point> >(rsize[0]+1,rsize[1]+1,rsize[2]+1,Point(rmin[0],rmin[1],rmin[2]),Point(rmax[0],rmax[1],rmax[2]));
-      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<Tensor>, FData3d<Tensor, LatVolMesh<HexTrilinearLgn<Point> > > >* field = scinew GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<Tensor>, FData3d<Tensor, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
+      LatVolMesh<HexTrilinearLgn<Point> >::handle_type mesh_handle = new LatVolMesh<HexTrilinearLgn<Point> >(rsize[0]+1,rsize[1]+1,rsize[2]+1,Point(rmin[0],rmin[1],rmin[2]),Point(rmax[0],rmax[1],rmax[2]));
+      GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<Tensor>, FData3d<Tensor, LatVolMesh<HexTrilinearLgn<Point> > > >* field = new GenericField<LatVolMesh<HexTrilinearLgn<Point> >,ConstantBasis<Tensor>, FData3d<Tensor, LatVolMesh<HexTrilinearLgn<Point> > > >(mesh_handle);
       output = dynamic_cast<Field *>(field);
 
 

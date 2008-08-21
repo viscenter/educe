@@ -175,7 +175,7 @@ main(int argc, char **argv) {
 
 
 
-  CField *field = scinew CField(mesh);
+  CField *field = new CField(mesh);
 
   CMesh::Edge::iterator bi, ei;
   mesh->begin(bi); mesh->end(ei);

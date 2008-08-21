@@ -164,7 +164,7 @@ Port::set_which_port(int wp)
 void
 IPort::update_light()
 {
-    char* color;
+    const char* color;
     switch(portstate){
     case Resetting:
 	color="blue";
@@ -188,7 +188,7 @@ IPort::update_light()
 void
 OPort::update_light()
 {
-    char* color;
+    const char* color;
     switch(portstate){
     case Resetting:
 	color="blue";

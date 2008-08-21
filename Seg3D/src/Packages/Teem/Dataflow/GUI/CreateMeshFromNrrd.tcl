@@ -53,92 +53,92 @@ itcl_class Teem_Converters_CreateMeshFromNrrd {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	iwidgets::labeledframe $w.f.options.quadtet \
-	    -labelpos nw -labeltext "Unstructured Cell Type when\nPoints per Connection = 4:"
-	pack $w.f.options.quadtet -side top -expand yes -fill x
+        sci_labeledframe $w.f.options.quadtet \
+            -labelpos nw -labeltext "Unstructured Cell Type when\nPoints per Connection = 4:"
+        pack $w.f.options.quadtet -side top -expand yes -fill x
 
-	set quadtet [$w.f.options.quadtet childsite]
+        set quadtet [$w.f.options.quadtet childsite]
 
-	radiobutton $quadtet.auto -text "Auto" \
-	    -variable $this-quad-or-tet -value "Auto"
-	radiobutton $quadtet.tet -text "Tet" \
-	    -variable $this-quad-or-tet -value "Tet"
-	radiobutton $quadtet.quad -text "Quad" \
-	    -variable $this-quad-or-tet -value "Quad"
+        sci_radiobutton $quadtet.auto -text "Auto" \
+            -variable $this-quad-or-tet -value "Auto"
+        sci_radiobutton $quadtet.tet -text "Tet" \
+            -variable $this-quad-or-tet -value "Tet"
+        sci_radiobutton $quadtet.quad -text "Quad" \
+            -variable $this-quad-or-tet -value "Quad"
 
-	pack $quadtet.auto $quadtet.tet $quadtet.quad \
-	    -side left -anchor nw -padx 3
+        pack $quadtet.auto $quadtet.tet $quadtet.quad \
+            -side left -anchor nw -padx 3
 
 
-	iwidgets::labeledframe $w.f.options.pccurve \
-	    -labelpos nw -labeltext "Structured/Unstructured Ambiguity:"
-	pack $w.f.options.pccurve -side top -expand yes -fill x
-	set pccurve [$w.f.options.pccurve childsite]
+        sci_labeledframe $w.f.options.pccurve \
+            -labelpos nw -labeltext "Structured/Unstructured Ambiguity:"
+        pack $w.f.options.pccurve -side top -expand yes -fill x
+        set pccurve [$w.f.options.pccurve childsite]
 
-	radiobutton $pccurve.auto -text "Auto" \
-	    -variable $this-struct-or-unstruct -value "Auto"
-	radiobutton $pccurve.pc -text "Point Cloud" \
-	    -variable $this-struct-or-unstruct -value "PointCloud"
-	radiobutton $pccurve.curve -text "Struct Curve" \
-	    -variable $this-struct-or-unstruct -value "StructCurve"
-	pack $pccurve.auto $pccurve.pc $pccurve.curve \
-	    -side left -anchor nw -padx 3
+        sci_radiobutton $pccurve.auto -text "Auto" \
+            -variable $this-struct-or-unstruct -value "Auto"
+        sci_radiobutton $pccurve.pc -text "Point Cloud" \
+            -variable $this-struct-or-unstruct -value "PointCloud"
+        sci_radiobutton $pccurve.curve -text "Struct Curve" \
+            -variable $this-struct-or-unstruct -value "StructCurve"
+        pack $pccurve.auto $pccurve.pc $pccurve.curve \
+            -side left -anchor nw -padx 3
 
-	# Input Dataset
-	label $w.f.options.datasetslab -text "Datasets:"
-	pack $w.f.options.datasetslab -side top -anchor nw -pady 3
+        # Input Dataset
+        sci_label $w.f.options.datasetslab -text "Datasets:"
+        pack $w.f.options.datasetslab -side top -anchor nw -pady 3
 
-	frame $w.f.options.datasets
-	pack $w.f.options.datasets -side top -anchor nw -pady 5
+        sci_frame $w.f.options.datasets
+        pack $w.f.options.datasets -side top -anchor nw -pady 5
 
-	global $this-datasets
-	set_names [set $this-datasets]
+        global $this-datasets
+        set_names [set $this-datasets]
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 
     method set_names {datasets} {
 
-	global $this-datasets
-	set $this-datasets $datasets
+        global $this-datasets
+        set $this-datasets $datasets
 
-        set w .ui[modname]
+              set w .ui[modname]
 
-	if [ expr [winfo exists $w.f.options] ] {
+        if [ expr [winfo exists $w.f.options] ] {
 
-	    for {set i 0} {$i < 2} {incr i 1} {
-		if [ expr [winfo exists $w.f.options.datasets.$i] ] {
-		    pack forget $w.f.options.datasets.$i
-		}
-	    }
+            for {set i 0} {$i < 2} {incr i 1} {
+          if [ expr [winfo exists $w.f.options.datasets.$i] ] {
+              pack forget $w.f.options.datasets.$i
+          }
+            }
 
-	    set i 0
+            set i 0
 
-	    foreach dataset $datasets {
-		if [ expr [winfo exists $w.f.options.datasets.$i] ] {
-		    $w.f.options.datasets.$i configure -text $dataset
-		} else {
-		    set len [expr [string length $dataset] + 5 ]
-		    label $w.f.options.datasets.$i -text $dataset \
-			-anchor w -just left -fore darkred 
-		}
+            foreach dataset $datasets {
+          if [ expr [winfo exists $w.f.options.datasets.$i] ] {
+              $w.f.options.datasets.$i configure -text $dataset
+          } else {
+              set len [expr [string length $dataset] + 5 ]
+              label $w.f.options.datasets.$i -text $dataset \
+            -anchor w -just left -fore darkred 
+          }
 
-		pack $w.f.options.datasets.$i -side top -anchor nw -fill x
+          pack $w.f.options.datasets.$i -side top -anchor nw -fill x
 
-		incr i 1
-	    }
-	}
+          incr i 1
+            }
+        }
     }
 }
 

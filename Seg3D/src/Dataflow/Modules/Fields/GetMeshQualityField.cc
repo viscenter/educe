@@ -36,13 +36,12 @@ namespace SCIRun {
 using namespace SCIRun;
 
 class GetMeshQualityField : public Module {
-public:
-  GetMeshQualityField(GuiContext*);
-
-  virtual void execute();
-
-private:
-  GuiString guimethod_;
+  public:
+    GetMeshQualityField(GuiContext*);
+    virtual ~GetMeshQualityField() {}
+    virtual void execute();
+  private:
+    GuiString guimethod_;
 };
 
 

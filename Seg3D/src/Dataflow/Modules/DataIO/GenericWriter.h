@@ -45,11 +45,11 @@
  */
 
 #include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Module.h>
 #include <Core/Persistent/Pstreams.h>
 #include <Core/Datatypes/String.h>
-#include <Core/OS/FullFileName.h>
+#include <Core/Util/FullFileName.h>
 #include <Dataflow/Network/Ports/StringPort.h>
 
 namespace SCIRun {
@@ -71,7 +71,7 @@ protected:
 public:
   GenericWriter(const string &name, GuiContext* ctx,
 		const string &category, const string &package);
-  virtual ~GenericWriter();
+  virtual ~GenericWriter() {}
 
   virtual void execute();
 };
@@ -86,12 +86,6 @@ GenericWriter<HType>::GenericWriter(const string &name, GuiContext* ctx,
     confirm_(get_ctx()->subVar("confirm"), sci_getenv_p("SCIRUN_CONFIRM_OVERWRITE")),
 		confirm_once_(get_ctx()->subVar("confirm-once"),0),
     exporting_(false)
-{
-}
-
-
-template <class HType>
-GenericWriter<HType>::~GenericWriter()
 {
 }
 
@@ -125,7 +119,7 @@ template <class HType>
 void
 GenericWriter<HType>::execute()
 {
-  if (!(get_input_handle(0,handle_,true))) return;
+  get_input_handle(0,handle_,true);
   
   StringHandle filename;
   if (get_input_handle("Filename",filename,false)) 
@@ -138,7 +132,7 @@ GenericWriter<HType>::execute()
 			error("Could not create path to filename");
 			return;
 		}
-		filename = scinew String(ffn.get_abs_filename());
+		filename = new String(ffn.get_abs_filename());
 
     filename_.set(filename->get());
     get_ctx()->reset();
@@ -153,6 +147,7 @@ GenericWriter<HType>::execute()
     return;
   }
 
+  update_state(Executing);
   remark("saving file " +fn);
 
   if (!overwrite()) return;

@@ -27,21 +27,23 @@
 //  
  
 #include <Core/Datatypes/String.h>
+
 #include <Dataflow/Network/Ports/StringPort.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
+
+#include <vector>
 
 namespace SCIRun {
 
 using namespace SCIRun;
 
 class JoinStrings : public Module {
-public:
-  JoinStrings(GuiContext*);
+  public:
+    JoinStrings(GuiContext*);
+    virtual ~JoinStrings() {}
 
-  virtual ~JoinStrings();
-
-  virtual void execute();
+    virtual void execute();
 };
 
 
@@ -52,38 +54,23 @@ JoinStrings::JoinStrings(GuiContext* ctx)
 }
 
 
-JoinStrings::~JoinStrings()
-{
-}
-
-
 void
 JoinStrings::execute()
 {
-  StringHandle input;
-  
-  std::string str = "";
-    
-  int p = 0;
-  StringIPort *iport;
-  while(p < num_input_ports())
-  {
-      iport = dynamic_cast<StringIPort *>(get_iport(p));
-      if (iport)
-      {
-        iport->get(input);
-        if (input.get_rep())
-        {
-          str += input->get();
-          input = 0;
-        }
+  vector<StringHandle> strings;
 
-      }
-      p++;
-  }
+  get_dynamic_input_handles("Input",strings,true);
   
-  StringHandle output(scinew String(str));
-  send_output_handle("Output", output);
+  if (strings.size())
+  {
+    std::string ostr = "";
+    for (size_t i=0; i<strings.size(); i++)
+    {
+      ostr += strings[i]->get();
+    }
+    StringHandle output(new String(ostr));
+    send_output_handle("Output", output);
+  }
 }
 
 } // End namespace SCIRun

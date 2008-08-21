@@ -46,7 +46,6 @@
 #include <Core/Datatypes/DenseMatrix.h>
 #include <Core/Geometry/Point.h>
 #include <Core/Geometry/Vector.h>
-#include <Core/Math/Expon.h>
 #include <Core/Math/MinMax.h>
 #include <Core/Math/MiscMath.h>
 #include <iostream>

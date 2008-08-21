@@ -34,11 +34,11 @@
 #include <Core/Util/FileUtils.h>
 
 #include <Core/Services/ServiceNode.h>
-#include <Core/OS/Dir.h>
+#include <Core/Util/Dir.h>
 #include <Core/Containers/StringUtil.h>
 #include <Core/Util/Environment.h>
 #include <Core/Util/sci_system.h>
-#include <Core/OS/Dir.h>
+#include <Core/Util/Dir.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -215,7 +215,7 @@ ServiceDB::loadpackages()
           xmldir = pathelt+"/"+packageelt+"/Services";
         }
       map<int,char*>* files;
-      files = GetFilenamesEndingWith((char*)xmldir.c_str(),".xml");
+      files = GetFilenamesEndingWith((const char*)xmldir.c_str(),".xml");
 
       if (!files) 
         {
@@ -230,7 +230,7 @@ ServiceDB::loadpackages()
 
           if (node.servicename == "") continue;
 		
-          ServiceInfo* new_service = scinew ServiceInfo;
+          ServiceInfo* new_service = new ServiceInfo;
 		
           // zero the non object entries
           new_service->activated = false;
@@ -549,7 +549,7 @@ ServiceDB::getserviceinfo(const string servicename)
 ServiceDB*
 ServiceDB::clone()
 {
-  ServiceDB* newptr = scinew ServiceDB();
+  ServiceDB* newptr = new ServiceDB();
 	
   if (newptr == 0)
     {
@@ -561,7 +561,7 @@ ServiceDB::clone()
   for (pi = servicedb_.begin(); pi!=servicedb_.end(); pi++) 
     {
 	
-      ServiceInfo *info = scinew ServiceInfo;
+      ServiceInfo *info = new ServiceInfo;
       *info = *((*pi).second);
       newptr->servicedb_[info->servicename] = info;
     } 

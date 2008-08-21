@@ -45,37 +45,37 @@ itcl_class Teem_Tend_TendNorm {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-        iwidgets::entryfield $w.f.options.major -labeltext "Major weight:" \
-	    -textvariable $this-major-weight
+        sci_entryfield $w.f.options.major -labeltext "Major weight:" \
+          -textvariable $this-major-weight
         pack $w.f.options.major -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.medium -labeltext "Medium weight:" \
-	    -textvariable $this-medium-weight
+        sci_entryfield $w.f.options.medium -labeltext "Medium weight:" \
+          -textvariable $this-medium-weight
         pack $w.f.options.medium -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.minor -labeltext "Minor weight:" \
-	    -textvariable $this-minor-weight
+        sci_entryfield $w.f.options.minor -labeltext "Minor weight:" \
+          -textvariable $this-minor-weight
         pack $w.f.options.minor -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.amount -labeltext "Amount:" \
-	    -textvariable $this-amount
-	pack $w.f.options.amount -side top -expand yes -fill x
+        sci_entryfield $w.f.options.amount -labeltext "Amount:" \
+          -textvariable $this-amount
+        pack $w.f.options.amount -side top -expand yes -fill x
 
-        iwidgets::entryfield $w.f.options.target -labeltext "Target:" \
-	    -textvariable $this-target
+        sci_entryfield $w.f.options.target -labeltext "Target:" \
+          -textvariable $this-target
         pack $w.f.options.target -side top -expand yes -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

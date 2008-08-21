@@ -28,15 +28,11 @@
 
 
 // Include all code for the dynamic engine
-#include <Core/Algorithms/ArrayMath/ArrayObject.h>
-#include <Core/Algorithms/ArrayMath/ArrayEngine.h>
-#include <Core/Algorithms/ArrayMath/ArrayEngineHelp.h>
-#include <Core/Algorithms/ArrayMath/ArrayEngineMath.h>
-#include <Core/Algorithms/Fields/FieldsAlgo.h>
-
-#include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/String.h>
+#include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/Field.h>
+#include <Core/Parser/ArrayMathEngine.h>
+
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
@@ -44,11 +40,15 @@
 
 namespace SCIRun {
 
-class CalculateMeshNodes : public Module {
+class CalculateMeshNodes : public Module 
+{
   public:
     CalculateMeshNodes(GuiContext*);
+    virtual ~CalculateMeshNodes() {}
     virtual void execute();
+
     virtual void tcl_command(GuiArgs&, void*);
+    virtual void presave();
 
   private:
     GuiString guifunction_;     // function code
@@ -70,8 +70,15 @@ void CalculateMeshNodes::execute()
   std::vector<MatrixHandle> matrices;
 
   // Get the new input data:  
-  if (!(get_input_handle("Field",field,true))) return;
-  get_input_handle("Function",func,false);
+  get_input_handle("Field",field,true);
+  if (get_input_handle("Function",func,false))
+  {
+    if (func.get_rep())
+    {
+      guifunction_.set(func->get());
+      get_ctx()->reset();  
+    }
+  }
   get_dynamic_input_handles("Array",matrices,false);
 
   get_gui()->lock();
@@ -81,59 +88,35 @@ void CalculateMeshNodes::execute()
 
   if (inputs_changed_ || guifunction_.changed() || !oport_cached("Field"))
   {
-    if (func.get_rep())
-    {
-      guifunction_.set(func->get());
-      get_ctx()->reset();  
-    }
-    
     // Get number of matrix ports with data (the last one is always empty)
     size_t numinputs = matrices.size();
-    size_t mstart = 3;
-  
     if (numinputs > 23)
     {
-      error("This module cannot handle more than 23 input matrices");
+      error("This module cannot handle more than 23 input matrices.");
       return;
     }
  
-    if (field->basis_order() != 1) mstart--;
-  
-    SCIRunAlgo::ArrayObjectList inputlist(numinputs+mstart,SCIRunAlgo::ArrayObject(this));
-    SCIRunAlgo::ArrayObjectList outputlist(1,SCIRunAlgo::ArrayObject(this));
-  
-    
-    int k = 0;
-    
-    // Create the DATA object for the function
-    // DATA is the data on the field
-    if (field->basis_order() == 1)
+    NewArrayMathEngine engine;
+    engine.set_progress_reporter(this);
+ 
+    if (field->vfield()->basis_order() == 1)
     {
-      if(!(inputlist[k++].create_input_data(field,"DATA")))
-      {
-        error("Failed to read field data");
-        return;
-      }
-    }
-    else
-    {
-      warning("DATA is not available because there is no data or it is located at the elements");
+      // Create the DATA object for the function
+      // DATA is the data on the field
+      if(!(engine.add_input_fielddata("DATA",field))) return; 
     }
     
     // Create the POS, X,Y,Z, data location objects.  
-    if(!(inputlist[k++].create_input_location(field,"POS","X","Y","Z","Node")))
-    {
-      error("Failed to read node/element location data");
-      return;
-    }
 
-    // Add an object for getting the index and size of the array.
-    if(!(inputlist[k++].create_input_index("INDEX","SIZE")))
-    {
-      error("Internal error in module");
-      return;
-    }
+    if(!(engine.add_input_fieldnodes("POS",field))) return;
+    if(!(engine.add_input_fieldnodes_coordinates("X","Y","Z",field))) return;
 
+    // Create the ELEMENT object describing element properties
+    if (field->vfield()->basis_order() == 1)
+    {
+      if(!(engine.add_input_fielddata_element("ELEMENT",field,field->vfield()->basis_order()))) return;
+    }
+    
     // Loop through all matrices and add them to the engine as well
     char mname = 'A';
     std::string matrixname("A");
@@ -142,63 +125,36 @@ void CalculateMeshNodes::execute()
     {
       if (matrices[p].get_rep() == 0)
       {
-        error("No matrix was found on input port");
+        error("No matrix was found on input port.");
         return;      
       }
 
-      matrixname[0] = mname++;    
-      if (!(inputlist[k++].create_input_data(matrices[p],matrixname)))
-      {
-        std::ostringstream oss;
-        oss << "Input matrix " << p+1 << "is not a valid ScalarArray, VectorArray, or TensorArray";
-        error(oss.str());
-        return;
-      }
-    }
+      matrixname[0] = mname++;
+      if (!(engine.add_input_matrix(matrixname,matrices[p]))) return;
+    }    
 
-    // Check the validity of the input
-    int n = 1;
-    for (size_t r=0; r<inputlist.size();r++)
-    {
-      if (n == 1) n = inputlist[r].size();
-      if ((inputlist[r].size() != n)&&(inputlist[r].size() != 1))
-      {
-        if (r < 4)
-        {
-          error("Number of data entries does not seem to match number of elements/nodes");
-          return;
-        }
-        else
-        {
-          std::ostringstream oss;
-          oss << "The number of rows in matrix " << r-2 << "does not seem to match the number of datapoints in the field";
-          error(oss.str());
-        }
-      }
-    }
-
-    // Create the engine to compute new data
-    SCIRunAlgo::ArrayEngine engine(this);
-      
-    // Add as well the output object
-    FieldHandle ofield;
     
-    if(!(outputlist[0].create_output_location(field,"NEWPOS",ofield)))
-    {
-      return;
-    }
-      
+    if(!(engine.add_output_fieldnodes("NEWPOS",field))) return;
+
+    // Add an object for getting the index and size of the array.
+
+    if(!(engine.add_index("INDEX"))) return;
+    if(!(engine.add_size("SIZE"))) return;
+
     std::string function = guifunction_.get();
-    
+    if(!(engine.add_expressions(function))) return;
+
     // Actual engine call, which does the dynamic compilation, the creation of the
     // code for all the objects, as well as inserting the function and looping 
     // over every data point
-    if (!engine.engine(inputlist,outputlist,function))
-    {
-      error("An error occured while executing function");
-      return;
-    }
-    
+
+    if (!(engine.run())) return;
+
+    // Get the result from the engine
+    FieldHandle ofield;    
+    engine.get_field("NEWPOS",ofield);
+
+    // send new output if there is any: 
     send_output_handle("Field", ofield);
   }
 }
@@ -215,17 +171,24 @@ CalculateMeshNodes::tcl_command(GuiArgs& args, void* userdata)
 
   if( args[1] == "gethelp" )
   {
-    DataArrayMath::ArrayEngineHelp Help;
-    get_gui()->lock();
-    get_gui()->eval("global " + get_id() +"-help");
-    get_gui()->eval("set " + get_id() + "-help {" + Help.gethelp(true) +"}");
-    get_gui()->unlock();
+//    DataArrayMath::ArrayEngineHelp Help;
+//    get_gui()->lock();
+//    get_gui()->eval("global " + get_id() +"-help");
+//    get_gui()->eval("set " + get_id() + "-help {" + Help.gethelp(true) +"}");
+//    get_gui()->unlock();
     return;
   }
   else
   {
     Module::tcl_command(args, userdata);
   }
+}
+
+void
+CalculateMeshNodes::presave()
+{
+  // update gui_function_ before saving.
+  get_gui()->execute(get_id() + " update_text");
 }
 
 } // End namespace SCIRun

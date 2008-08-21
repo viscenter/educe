@@ -42,7 +42,7 @@
 
 #include <Core/Geom/GeomTexRectangle.h>
 #include <Core/Util/NotFinished.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Geometry/BBox.h>
 
 using std::ostream;
@@ -50,7 +50,7 @@ using std::ostream;
 namespace SCIRun {
 
 Persistent *make_GeomTexRectangle() {
-  return scinew GeomTexRectangle();
+  return new GeomTexRectangle();
 }
 
 PersistentTypeID GeomTexRectangle::type_id("GeomTexRectangle", "GeomObj", make_GeomTexRectangle);
@@ -119,7 +119,7 @@ GeomTexRectangle::set_alpha_cutoff(double alpha) {
 
 
 GeomObj* GeomTexRectangle::clone() {
-  return scinew GeomTexRectangle( *this );
+  return new GeomTexRectangle( *this );
 }
 
 void GeomTexRectangle::get_bounds( BBox& bb ) {

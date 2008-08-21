@@ -42,7 +42,7 @@
 
 #include <Core/Geom/GeomPoint.h>
 #include <Core/Geometry/BBox.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/NotFinished.h>
 #include <Core/Persistent/PersistentSTL.h>
 
@@ -58,7 +58,7 @@ namespace SCIRun {
 
 Persistent* make_GeomPoints()
 {
-  return scinew GeomPoints();
+  return new GeomPoints();
 }
 
 PersistentTypeID GeomPoints::type_id("GeomPoints", "GeomObj", make_GeomPoints);
@@ -66,14 +66,14 @@ PersistentTypeID GeomPoints::type_id("GeomPoints", "GeomObj", make_GeomPoints);
 
 Persistent* make_GeomTranspPoints()
 {
-  return scinew GeomTranspPoints();
+  return new GeomTranspPoints();
 }
 
 PersistentTypeID GeomTranspPoints::type_id("GeomTranspPoints", "GeomPoints", make_GeomTranspPoints);
 
 Persistent* make_GeomTimedParticles()
 {
-  return scinew GeomTimedParticles(0);
+  return new GeomTimedParticles(0);
 }
 
 PersistentTypeID GeomTimedParticles::type_id("GeomTimedParticles", 
@@ -96,7 +96,7 @@ GeomPoints::~GeomPoints()
 
 GeomObj* GeomPoints::clone()
 {
-  return scinew GeomPoints(*this);
+  return new GeomPoints(*this);
 }
 
 static unsigned char
@@ -199,7 +199,7 @@ GeomTranspPoints::~GeomTranspPoints()
 GeomObj*
 GeomTranspPoints::clone()
 {
-  return scinew GeomTranspPoints(*this);
+  return new GeomTranspPoints(*this);
 }
 
 
@@ -353,7 +353,7 @@ GeomTimedParticles::GeomTimedParticles(char *fname)
 
 //      cout << "cur_part = " << cur_part << endl;
       particles[cur_part].nslots = ps.size();
-      particles[cur_part].pos = scinew InstTimedParticle[ps.size()];
+      particles[cur_part].pos = new InstTimedParticle[ps.size()];
 
       for(int i=0;i<ps.size();i++) {
 	particles[cur_part].pos[i] = ps[i]; // copy it over...
@@ -420,7 +420,7 @@ GeomTimedParticles::~GeomTimedParticles()
 
 GeomObj* GeomTimedParticles::clone()
 {
-    return scinew GeomTimedParticles(*this);
+    return new GeomTimedParticles(*this);
 }
 
 void GeomTimedParticles::get_bounds(BBox& bb)

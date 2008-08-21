@@ -52,14 +52,14 @@
 #include <math.h>
 #include <sys/stat.h>
 #include <sys/types.h> 
-#include <Core/OS/Dir.h> // for LSTAT, MKDIR
+#include <Core/Util/Dir.h> // for LSTAT, MKDIR
 #include <Core/Thread/Time.h>
 #include <Core/Util/FileUtils.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <iostream>
 #include <fstream>
-#include <sgi_stl_warnings_on.h> 
+ 
  
 using namespace SCIRun;
 using namespace std;

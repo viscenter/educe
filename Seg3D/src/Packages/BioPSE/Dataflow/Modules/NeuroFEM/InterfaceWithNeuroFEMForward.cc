@@ -54,7 +54,7 @@
 #include <Core/Datatypes/PointCloudMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Datatypes/DenseMatrix.h>
-#include <Core/OS/Dir.h> // for MKDIR
+#include <Core/Util/Dir.h> // for MKDIR
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -591,7 +591,7 @@ write_dip_file(ProgressReporter *pr, MatrixHandle mh1, MatrixHandle mh2, const c
 
 
 static bool
-send_result_file(ProgressReporter *pr, MatrixOPort *result_port,
+send_result_file(ProgressReporter *pr, Module *module,
 		 string filename)
 {
   string extfilename = filename + ".msr"; 
@@ -615,7 +615,7 @@ send_result_file(ProgressReporter *pr, MatrixOPort *result_port,
     getline(matstream, tmp);
    }
 
-  MatrixHandle dm = scinew DenseMatrix(nr, nc);
+  MatrixHandle dm = new DenseMatrix(nr, nc);
 
   // Write number of row & column.
   //dm->put(0, 0, nr);
@@ -635,8 +635,7 @@ send_result_file(ProgressReporter *pr, MatrixOPort *result_port,
   }
   pr->remark("Done building output matrix.");
   
-  result_port->send_and_dereference(dm);
-
+  module->send_output_handle("Forward Potential",dm,true);
   return true;
 }
 
@@ -880,7 +879,7 @@ InterfaceWithNeuroFEMForward::execute()
     error("CondMesh must contain a TVMesh or HVMesh.");
     return;
   }
-  if (condmesh->query_tensor_interface(this) == 0)
+  if (!(condmesh->vfield()->is_tensor()))
   {
     error("CondMesh must be a tensor field.");
     return;
@@ -973,9 +972,7 @@ InterfaceWithNeuroFEMForward::execute()
     msg_stream_flush();
 
     // Read in the results and send them along.
-    MatrixOPort *pot_oport = (MatrixOPort *)get_oport("Forward Potential");
-
-    if (!send_result_file(this, pot_oport, resultfile))
+    if (!send_result_file(this, this, resultfile))
     {
       error("Unable to send output matrix.");
       throw false;

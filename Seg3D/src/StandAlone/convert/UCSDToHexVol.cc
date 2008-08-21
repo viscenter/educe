@@ -48,7 +48,7 @@
 #include <Core/Datatypes/HexVolMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <Core/Init/init.h>
 #include <StandAlone/convert/FileUtils.h>
 
@@ -630,19 +630,19 @@ main(int argc, char **argv) {
   FieldHandle hvH;  
   if (cols == 13 || cols == 5 || cols == 25) { 
     cerr << "loading in strain data" << endl;
-    HVField *hv = scinew HVField(hvm);
+    HVField *hv = new HVField(hvm);
     hv->resize_fdata();
     hv->fdata() = data_vals_scalar;
     hvH = hv;
   } else if (cols == 52 || cols == 37) {
     cerr << "loading in no data" << endl;
-    HVField *hv = scinew HVField(hvm);
+    HVField *hv = new HVField(hvm);
     hv->resize_fdata();
     //hv->fdata() = data_vals;
     hvH = hv;
   } else {
     cerr << "loading in vector data" << endl;
-    HVFieldV *hv = scinew HVFieldV(hvm);
+    HVFieldV *hv = new HVFieldV(hvm);
     hv->resize_fdata();
     hv->fdata() = data_vals;
     hvH = hv;

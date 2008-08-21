@@ -40,7 +40,7 @@
  */
 
 #include <Core/Geom/GeomColorMap.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <iostream>
 using std::cerr;
 using std::ostream;
@@ -49,7 +49,7 @@ namespace SCIRun {
 
 Persistent* make_GeomColorMap()
 {
-  return scinew GeomColorMap(0, 0);
+  return new GeomColorMap(0, 0);
 }
 
 PersistentTypeID GeomColorMap::type_id("GeomColorMap", "GeomContainer",
@@ -70,7 +70,7 @@ GeomColorMap::GeomColorMap(const GeomColorMap &copy)
 GeomObj*
 GeomColorMap::clone()
 {
-  return scinew GeomColorMap(*this);
+  return new GeomColorMap(*this);
 }
 
 

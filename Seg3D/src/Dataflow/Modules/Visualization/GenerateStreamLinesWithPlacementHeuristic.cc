@@ -37,15 +37,13 @@ namespace SCIRun {
                                                const TypeDescription *fsp
                                                )
   {
-    //cerr << "GenerateStreamLinesWithPlacementHeuristicAlgo::get_compile_info started\n";
- 
     // Use cc_to_h if this is in the .cc file, otherwise just __FILE__
     static const string include_path(TypeDescription::cc_to_h(__FILE__));
     static const string template_class_name("GenerateStreamLinesWithPlacementHeuristicAlgoT");
     static const string base_class_name("GenerateStreamLinesWithPlacementHeuristicAlgo");
     
     CompileInfo *rval = 
-      scinew CompileInfo(template_class_name + "." +
+      new CompileInfo(template_class_name + "." +
                          fsrc->get_filename() + "." +
 			 fvec->get_filename() + "." +
                          fsp->get_filename() + ".",
@@ -64,8 +62,6 @@ namespace SCIRun {
     fsp->fill_compile_info(rval);
     rval->add_mesh_include(include_path);
   
-    //cerr << "GenerateStreamLinesWithPlacementHeuristicAlgo::get_compile_info finished\n";
-
     return rval;
   }
   

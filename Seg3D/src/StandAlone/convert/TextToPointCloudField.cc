@@ -51,7 +51,7 @@
 #include <Core/Datatypes/PointCloudMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <StandAlone/convert/FileUtils.h>
 #include <Core/Init/init.h>
 #include <iostream>
@@ -145,7 +145,7 @@ main(int argc, char **argv) {
   typedef GenericField<PCMesh, DatBasis, vector<double> > PCField;   
 
 
-  PCField *pc = scinew PCField(pcm);
+  PCField *pc = new PCField(pcm);
   FieldHandle pcH(pc);
   
   if (binOutput) {

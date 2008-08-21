@@ -40,17 +40,18 @@
  *  Copyright (C) 2001 SCI Group
  */
 
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Clipper.h>
+#include <Core/Containers/StringUtil.h>
+
 #include <Core/Util/DynamicCompilation.h>
+#include <Core/Thread/CrowdMonitor.h>
+
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/GeometryPort.h>
-#include <Core/Thread/CrowdMonitor.h>
 #include <Dataflow/Widgets/BoxWidget.h>
-#include <Core/Datatypes/Field.h>
-#include <Core/Datatypes/FieldInterface.h>
-#include <Core/Datatypes/Clipper.h>
-#include <Dataflow/Modules/Fields/ClipFieldToFieldOrWidget.h>
-#include <Core/Containers/StringUtil.h>
+
 #include <iostream>
 #include <stack>
 
@@ -60,46 +61,46 @@ using std::stack;
 
 class ClipFieldToFieldOrWidget : public Module
 {
-private:
-  BoxWidget *box_;
-  CrowdMonitor widget_lock_;
-  BBox last_bounds_;
-  GuiString clip_location_;
-  GuiString clip_mode_;
-  GuiInt    autoexec_;
-  GuiInt    autoinvert_;
-  GuiString exec_mode_;
-  GuiDouble center_x_;
-  GuiDouble center_y_;
-  GuiDouble center_z_;
-  GuiDouble right_x_;
-  GuiDouble right_y_;
-  GuiDouble right_z_;
-  GuiDouble down_x_;
-  GuiDouble down_y_;
-  GuiDouble down_z_;
-  GuiDouble in_x_;
-  GuiDouble in_y_;
-  GuiDouble in_z_;
-  GuiDouble scale_;
-  bool      first_pass_;
-  int  last_input_generation_;
-  int  last_clip_generation_;
-  ClipperHandle clipper_;
-  stack<ClipperHandle> undo_stack_;
-  int widgetid_;
-  FieldHandle ofield_;
+  private:
+    BoxWidget *box_;
+    CrowdMonitor widget_lock_;
+    BBox last_bounds_;
+    GuiString clip_location_;
+    GuiString clip_mode_;
+    GuiInt    autoexec_;
+    GuiInt    autoinvert_;
+    GuiString exec_mode_;
+    GuiDouble center_x_;
+    GuiDouble center_y_;
+    GuiDouble center_z_;
+    GuiDouble right_x_;
+    GuiDouble right_y_;
+    GuiDouble right_z_;
+    GuiDouble down_x_;
+    GuiDouble down_y_;
+    GuiDouble down_z_;
+    GuiDouble in_x_;
+    GuiDouble in_y_;
+    GuiDouble in_z_;
+    GuiDouble scale_;
+    bool      first_pass_;
+    int  last_input_generation_;
+    int  last_clip_generation_;
+    ClipperHandle clipper_;
+    stack<ClipperHandle> undo_stack_;
+    int widgetid_;
+    FieldHandle ofield_;
 
-  bool bbox_similar_to(const BBox &a, const BBox &b);
-  // check to see if any of the Points are not the default of -1
-  bool points_differ();
+    bool bbox_similar_to(const BBox &a, const BBox &b);
+    // check to see if any of the Points are not the default of -1
+    bool points_differ();
 
-public:
-  ClipFieldToFieldOrWidget(GuiContext* ctx);
-  virtual ~ClipFieldToFieldOrWidget();
+  public:
+    ClipFieldToFieldOrWidget(GuiContext* ctx);
+    virtual ~ClipFieldToFieldOrWidget();
 
-  virtual void execute();
-  virtual void widget_moved(bool, BaseWidget*);
+    virtual void execute();
+    virtual void widget_moved(bool, BaseWidget*);
 };
 
 
@@ -132,8 +133,10 @@ ClipFieldToFieldOrWidget::ClipFieldToFieldOrWidget(GuiContext* ctx)
     widgetid_(0),
     ofield_(0)
 {
-  box_ = scinew BoxWidget(this, &widget_lock_, 1.0, false, false);
-  box_->Connect((GeometryOPort *)get_oport("Selection Widget"));
+  box_ = new BoxWidget(this, &widget_lock_, 1.0, false, false);
+  GeometryOPortHandle ogport;
+  get_oport_handle("Selection Widget",ogport);
+  box_->Connect(ogport.get_rep());
 }
 
 
@@ -198,7 +201,8 @@ ClipFieldToFieldOrWidget::execute()
 {
   // Get input field.
   FieldHandle ifieldhandle;
-  if (!get_input_handle("Input Field", ifieldhandle)) return;
+  get_input_handle("Input Field", ifieldhandle,true);
+  
   if (!ifieldhandle->mesh()->is_editable())
   {
     error("Not an editable mesh type (try passing Field through an Unstructure module first).");
@@ -212,13 +216,7 @@ ClipFieldToFieldOrWidget::execute()
       cfieldhandle->generation != last_clip_generation_)
   {
     last_clip_generation_ = cfieldhandle->generation;
-
-    const TypeDescription *ftd = cfieldhandle->mesh()->get_type_description();
-    CompileInfoHandle ci = ClipFieldToFieldOrWidgetMeshAlgo::get_compile_info(ftd);
-    Handle<ClipFieldToFieldOrWidgetMeshAlgo> algo;
-    if (!DynamicCompilation::compile(ci, algo, this)) return;
-
-    clipper_ = algo->execute(cfieldhandle->mesh());
+    clipper_ = new MeshClipper(cfieldhandle->vmesh());
     do_clip_p = true;
   }
 
@@ -234,11 +232,11 @@ ClipFieldToFieldOrWidget::execute()
     box_->SetScale(scale_.get());
     box_->SetPosition(center, right, down, in);
 
-    GeomGroup *widget_group = scinew GeomGroup;
+    GeomGroup *widget_group = new GeomGroup;
     widget_group->add(box_->GetWidget());
 
-    GeometryOPort *ogport=0;
-    ogport = (GeometryOPort*)get_oport("Selection Widget");
+    GeometryOPortHandle ogport;
+    get_oport_handle("Selection Widget",ogport);
     widgetid_ = ogport->addObj(widget_group, "ClipFieldToFieldOrWidget Selection Widget",
 			       &widget_lock_);
     ogport->flushViews();
@@ -281,11 +279,11 @@ ClipFieldToFieldOrWidget::execute()
     box_->SetScale(l2norm * 0.015);
     box_->SetPosition(center, right, down, in);
 
-    GeomGroup *widget_group = scinew GeomGroup;
+    GeomGroup *widget_group = new GeomGroup;
     widget_group->add(box_->GetWidget());
 
-    GeometryOPort *ogport=0;
-    ogport = (GeometryOPort*)get_oport("Selection Widget");
+    GeometryOPortHandle ogport;
+    get_oport_handle("Selection Widget",ogport);
     widgetid_ = ogport->addObj(widget_group, "ClipFieldToFieldOrWidget Selection Widget",
 			       &widget_lock_);
     ogport->flushViews();
@@ -307,16 +305,16 @@ ClipFieldToFieldOrWidget::execute()
     ClipperHandle ctmp = box_->get_clipper();
     if (clip_mode_.get() == "intersect")
     {
-      clipper_ = scinew IntersectionClipper(ctmp, clipper_);
+      clipper_ = new IntersectionClipper(ctmp, clipper_);
     }
     else if (clip_mode_.get() == "union")
     {
-      clipper_ = scinew UnionClipper(ctmp, clipper_);
+      clipper_ = new UnionClipper(ctmp, clipper_);
     }
     else if (clip_mode_.get() == "remove")
     {
-      ctmp = scinew InvertClipper(ctmp);
-      clipper_ = scinew IntersectionClipper(ctmp, clipper_);
+      ctmp = new InvertClipper(ctmp);
+      clipper_ = new IntersectionClipper(ctmp, clipper_);
     }
     else
     {
@@ -327,7 +325,7 @@ ClipFieldToFieldOrWidget::execute()
   else if (exec_mode_.get() == "invert")
   {
     undo_stack_.push(clipper_);
-    clipper_ = scinew InvertClipper(clipper_);
+    clipper_ = new InvertClipper(clipper_);
     do_clip_p = true;
   }
   else if (exec_mode_.get() == "undo")
@@ -350,31 +348,186 @@ ClipFieldToFieldOrWidget::execute()
     last_input_generation_ = ifieldhandle->generation;
     exec_mode_.set("");
 
-    const TypeDescription *ftd = ifieldhandle->get_type_description();
-    CompileInfoHandle ci = ClipFieldToFieldOrWidgetAlgo::get_compile_info(ftd);
-    Handle<ClipFieldToFieldOrWidgetAlgo> algo;
-    if (!DynamicCompilation::compile(ci, algo, this)) return;
-
     // Maybe invert the clipper again.
     ClipperHandle clipper(clipper_);
     if (autoinvert_.get())
     {
-      clipper = scinew InvertClipper(clipper_);
+      clipper = new InvertClipper(clipper_);
     }
 
     // Do the clip, dispatch based on which clip location test we are using.
-    ofield_ = 0;
-    if (clip_location_.get() == "nodeone")
+    FieldInformation fi(ifieldhandle);
+    ofield_ = CreateField(fi);
+
+    VMesh* mesh =    ifieldhandle->vmesh();
+    VMesh* clipped = ofield_->vmesh();
+    VField* ofield = ofield_->vfield();
+    VField* ifield = ifieldhandle->vfield();
+    ofield->copy_properties(ifield);
+ 
+     #ifdef HAVE_HASH_MAP
+    # if defined(__ECC) || defined(_MSC_VER)
+      typedef hash_map<VMesh::index_type, VMesh::index_type> hash_type;
+    # else
+      typedef hash_map<VMesh::index_type,VMesh::index_type,
+        hash<unsigned int>,
+        equal_to<unsigned int> > hash_type;
+    # endif
+    #else
+      typedef map<VMesh::index_type,VMesh::Node::index_type,
+        less<unsigned int> > hash_type;
+    #endif
+
+    hash_type nodemap;
+    vector<VMesh::Elem::index_type> elemmap;     
+    VMesh::Elem::size_type num_elems = mesh->num_elems(); 
+             
+    if ((clip_location_.get() == "nodeone")||(clip_location_.get() == "nodeall"))
     {
-      ofield_ = algo->execute_node(this, ifieldhandle, clipper, true);
-    }
-    else if (clip_location_.get() == "nodeall")
-    {
-      ofield_ = algo->execute_node(this, ifieldhandle, clipper, false);
+      bool any_inside_p = (clip_location_.get() == "nodeone");
+      
+      int cnt = 0;
+      for(VMesh::Elem::index_type idx=0; idx< num_elems; idx++)
+      {
+        cnt++; if (cnt == 100) {cnt = 0; update_progress(idx,num_elems); }
+
+        VMesh::Node::array_type onodes;
+        mesh->get_nodes(onodes, idx);
+
+        bool inside_p;
+        size_t i;
+        if (any_inside_p)
+        {
+          inside_p = false;
+          for (i = 0; i < onodes.size(); i++)
+          {
+            Point p;
+            mesh->get_center(p, onodes[i]);
+            if (clipper->inside_p(p)) { inside_p = true; break; }
+          }
+        }
+        else
+        {
+          inside_p = true;
+          for (i = 0; i < onodes.size(); i++)
+          {
+            Point p;
+            mesh->get_center(p, onodes[i]);
+            if (!clipper->inside_p(p)) { inside_p = false; break; }
+          }
+        }
+
+        if (inside_p)
+        {
+          // Add this element to the new mesh.
+          VMesh::Node::array_type nnodes(onodes.size());
+
+          for (size_t i = 0; i<onodes.size(); i++)
+          {
+            if (nodemap.find(onodes[i]) == nodemap.end())
+            {
+              Point np;
+              mesh->get_center(np, onodes[i]);
+              VMesh::Node::index_type nodeindex = clipped->add_point(np);
+              nodemap[onodes[i]] = nodeindex;
+              nnodes[i] = nodeindex;
+            }
+            else
+            {
+              nnodes[i] = nodemap[onodes[i]];
+            }
+          }
+
+          clipped->add_elem(nnodes);
+          elemmap.push_back(idx); // Assumes elements always added to end.
+        }
+      }
+      
+      ofield->resize_values();
+
+      if (ifield->basis_order() == 1)
+      {
+        hash_type::iterator hitr = nodemap.begin();
+
+        while (hitr != nodemap.end())
+        {
+          ofield->copy_value(ifield,(*hitr).first,(*hitr).second);
+          ++hitr;
+        }
+      }
+      else if (ifield->basis_order() == ofield->basis_order())
+      {
+        for (size_t i=0; i < elemmap.size(); i++)
+        {
+          ofield->copy_value(ifield,elemmap[i],i);
+        }
+      }
+      else
+      {
+       warning("Unable to copy data at this field data location.");
+      }
     }
     else // 'cell' and default
     {
-      ofield_ = algo->execute_cell(this, ifieldhandle, clipper);
+      int cnt = 0;
+      for(VMesh::Elem::index_type idx=0; idx< num_elems; idx++)
+      {
+        cnt++; if (cnt == 100) {cnt = 0; update_progress(idx,num_elems); }
+
+        Point p;
+        mesh->get_center(p, idx);
+        if (clipper->inside_p(p))
+        {
+          // Add this element to the new mesh.
+          VMesh::Node::array_type onodes;
+          mesh->get_nodes(onodes, idx);
+          VMesh::Node::array_type nnodes(onodes.size());
+
+          for (size_t i=0; i<onodes.size(); i++)
+          {
+            if (nodemap.find(onodes[i]) == nodemap.end())
+            {
+              Point np;
+              mesh->get_center(np, onodes[i]);
+              const VMesh::Node::index_type nodeindex =
+                clipped->add_point(np);
+              nodemap[onodes[i]] = nodeindex;
+              nnodes[i] = nodeindex;
+            }
+            else
+            {
+              nnodes[i] = nodemap[onodes[i]];
+            }
+          }
+
+          clipped->add_elem(nnodes);
+          elemmap.push_back(idx); // Assumes elements always added to end.
+        }
+      }
+
+      ofield->resize_values();
+
+      if (ifield->basis_order() == 1)
+      {
+        hash_type::iterator hitr = nodemap.begin();
+
+        while (hitr != nodemap.end())
+        {
+          ofield->copy_value(ifield,(*hitr).first,(*hitr).second);
+          ++hitr;
+        }
+      }
+      else if (ifield->basis_order() == ofield->basis_order())
+      {
+        for (size_t i=0; i < elemmap.size(); i++)
+        {
+          ofield->copy_value(ifield,elemmap[i],i);
+        }
+      }
+      else
+      {
+        warning("Unable to copy data at this field data location.");
+      }    
     }
   }
 
@@ -387,7 +540,8 @@ ClipFieldToFieldOrWidget::widget_moved(bool last, BaseWidget*)
 {
   if (last)
   {
-    if (!first_pass_) {
+    if (!first_pass_) 
+    {
       Point center, right, down, in;
       box_->GetPosition(center, right, down, in);
       center_x_.set(center.x());
@@ -412,53 +566,6 @@ ClipFieldToFieldOrWidget::widget_moved(bool last, BaseWidget*)
     }
   } 
 }
-
-
-
-CompileInfoHandle
-ClipFieldToFieldOrWidgetAlgo::get_compile_info(const TypeDescription *fsrc)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("ClipFieldToFieldOrWidgetAlgoT");
-  static const string base_class_name("ClipFieldToFieldOrWidgetAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       fsrc->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       fsrc->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  fsrc->fill_compile_info(rval);
-  return rval;
-}
-
-
-CompileInfoHandle
-ClipFieldToFieldOrWidgetMeshAlgo::get_compile_info(const TypeDescription *fsrc)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("ClipFieldToFieldOrWidgetMeshAlgoT");
-  static const string base_class_name("ClipFieldToFieldOrWidgetMeshAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       fsrc->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       fsrc->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  fsrc->fill_compile_info(rval);
-  return rval;
-}
-
-
 
 } // End namespace SCIRun
 

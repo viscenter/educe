@@ -49,20 +49,168 @@ proc update_vars {v2 v1 vtmp op} {
 }
 
 
+proc sci_toplevel args {
+  global Color
+  set command "toplevel $args -background $Color(UIBackGround)"
+  eval $command
+}
+
+proc sci_frame args {
+  global Color
+  set command "frame $args -background $Color(UIBackGround)"
+  eval $command
+}
+
+proc sci_label args {
+  global Color
+  set command "label $args -background $Color(UIBackGround) -foreground $Color(UIForeGround)"
+  eval $command
+}
+
+proc sci_checkbutton args {
+  global Color
+  set command "checkbutton $args -background $Color(UIBackGround) -foreground $Color(UIForeGround) -bd $Color(BorderWidth) -activebackground $Color(MenuSelectBackGround)  -activeforeground $Color(MenuSelectForeGround)"
+  eval $command
+}
+
+proc sci_radiobutton args {
+  global Color
+  set command "radiobutton $args -background $Color(UIBackGround) -foreground $Color(UIForeGround) -bd $Color(BorderWidth) -activebackground $Color(MenuSelectBackGround)  -activeforeground $Color(MenuSelectForeGround)"
+  eval $command
+}
+
+proc sci_button args {
+  global Color
+  set command "button $args -background $Color(ButtonBackGround) -foreground $Color(ButtonForeGround) -bd $Color(BorderWidth) -activebackground $Color(MenuSelectBackGround)  -activeforeground $Color(MenuSelectForeGround)"
+  eval $command
+}
+
+proc sci_entry args {
+  global Color
+  set command "entry $args -background $Color(EditBackGround) -foreground $Color(EditForeGround) -bd $Color(BorderWidth)"
+  eval $command
+}
+
+proc sci_text args {
+  global Color
+  set command "text $args -background $Color(EditBackGround) -foreground $Color(EditForeGround) -bd $Color(BorderWidth)"
+  eval $command
+}
+
+proc sci_scale args {
+  global Color
+  set command "scale $args -background $Color(UIBackGround) -bd $Color(BorderWidth) "
+  eval $command
+}
+
+proc sci_scrollbar args {
+  global Color
+  set command "scrollbar $args -troughcolor $Color(UIBackDrop) -borderwidth 1 -background $Color(UIBackGround) -elementborderwidth 1"
+  eval $command
+}
+
+proc sci_labeledframe args {
+  global Color
+  set command "iwidgets::labeledframe $args -background $Color(UIBackGround)"
+  eval $command
+}
+
+proc sci_scrolledlistbox args {
+  global Color
+  set command "iwidgets::scrolledlistbox $args -background $Color(EditBackGround) -foreground $Color(EditForeGround) -elementborderwidth 1 -troughcolor $Color(EditBackGround) -borderwidth 0"
+  eval $command
+  set arg [lindex $args 0]
+  $arg component vertsb configure   -troughcolor $Color(UIBackDrop) -borderwidth 1 -background $Color(UIBackGround) -elementborderwidth 1 -width 10
+  $arg component horizsb configure   -troughcolor $Color(UIBackDrop) -borderwidth 1 -background $Color(UIBackGround) -elementborderwidth 1 -width 10
+  $arg component listbox configure -background $Color(EditBackGround)
+}
+
+proc sci_scrolledtext args {
+  global Color
+  set command "iwidgets::scrolledtext $args -background $Color(EditBackGround) -foreground $Color(EditForeGround) -elementborderwidth 1 -troughcolor $Color(ButtonBackGround) -borderwidth 0"
+  eval $command
+  set arg [lindex $args 0]
+  $arg component vertsb configure   -troughcolor $Color(UIBackDrop) -borderwidth 1 -background $Color(UIBackGround) -elementborderwidth 1 -width 10
+  $arg component horizsb configure   -troughcolor $Color(UIBackDrop) -borderwidth 1 -background $Color(UIBackGround) -elementborderwidth 1 -width 10
+  $arg component text configure -background $Color(EditBackGround)
+}
+
+proc sci_scrolledhtml args {
+  global Color
+  set command "iwidgets::scrolledhtml $args -background $Color(EditBackGround) -foreground $Color(EditForeGround) -elementborderwidth 1 -troughcolor $Color(ButtonBackGround) -borderwidth 0"
+  eval $command
+  set arg [lindex $args 0]
+  $arg component vertsb configure   -troughcolor $Color(UIBackDrop) -borderwidth 1 -background $Color(UIBackGround) -elementborderwidth 1 -width 10
+  $arg component horizsb configure   -troughcolor $Color(UIBackDrop) -borderwidth 1 -background $Color(UIBackGround) -elementborderwidth 1 -width 10
+  $arg component text configure -background $Color(EditBackGround)
+}
+
+proc sci_tabnotebook args {
+  global Color
+  set command "iwidgets::tabnotebook $args -background $Color(UIBackGround) -foreground $Color(UIForeGround) -backdrop $Color(UIBackDrop) -tabbackground $Color(UIBackDrop) -bevelamount 0 -gap 0 -borderwidth 0 -equaltabs fal"
+  eval $command
+}
+
+proc sci_menubutton args {
+  global Color
+  set command "menubutton $args -background $Color(ButtonBackGround) -highlightcolor $Color(UIBackGround) -foreground $Color(ButtonForeGround) -activebackground $Color(MenuSelectBackGround)  -activeforeground $Color(MenuSelectForeGround) -borderwidth $Color(BorderWidth) -highlightthickness 1"
+  eval $command
+}
+
+proc sci_optionmenu args {
+  global Color
+  set command "iwidgets::optionmenu $args -background $Color(ButtonBackGround) -highlightcolor $Color(UIBackGround) -foreground $Color(ButtonForeGround) -activebackground $Color(MenuSelectBackGround)  -activeforeground $Color(MenuSelectForeGround) -borderwidth $Color(BorderWidth) -highlightthickness 1"
+  eval $command
+  set arg [lindex $args 0]
+  $arg component menuBtn configure -bd 1 -indicatoron 1 -highlightthickness 0 -highlightcolor $Color(UIBackGround) -takefocus 1 
+  $arg component label configure -background $Color(UIBackGround) -foreground $Color(UIForeGround)
+  $arg component hull configure -background $Color(UIBackGround)
+}
+
+proc sci_entryfield args {
+  global Color
+  set command "iwidgets::entryfield $args -background $Color(UIBackGround) -foreground $Color(EditForeGround) -borderwidth $Color(BorderWidth) -textbackground $Color(EditBackGround)"
+  eval $command
+}
+
+proc sci_spinint args {
+  global Color
+  set command "iwidgets::spinint $args -background $Color(UIBackGround) -foreground $Color(EditForeGround) -borderwidth $Color(BorderWidth) -textbackground $Color(EditBackGround)"
+  eval $command
+}
+
+proc sci_spinner args {
+  global Color
+  set command "iwidgets::spinner $args -background $Color(UIBackGround) -foreground $Color(EditForeGround) -borderwidth $Color(BorderWidth) -textbackground $Color(EditBackGround)"
+  eval $command
+}
+
+
+
+proc sci_scrolledframe args {
+  global Color
+  set command "iwidgets::scrolledframe $args -background $Color(UIBackGround) -borderwidth 0"
+  eval $command
+  set arg [lindex $args 0]
+  $arg component vertsb configure   -troughcolor $Color(UIBackDrop) -borderwidth 1 -background $Color(UIBackGround) -elementborderwidth 1 -width 10
+  $arg component horizsb configure   -troughcolor $Color(UIBackDrop) -borderwidth 1 -background $Color(UIBackGround) -elementborderwidth 1 -width 10
+}
+
+
 # Convenience routine for making radiobuttons
 
 proc make_labeled_radio {root labeltext command packside numColumns variable list} {
-    frame $root
-    frame $root.label
-    frame $root.columns
+    sci_frame $root
+    sci_frame $root.label
+    sci_frame $root.columns
     pack $root.label $root.columns -side $packside -expand yes -fill both
 
-    label $root.label.radiolabel -text $labeltext
+    sci_label $root.label.radiolabel -text $labeltext
     pack $root.label.radiolabel -side left
 
     for {set i 0} {$i < $numColumns } {incr i } {
-	frame $root.columns.$i
-	pack $root.columns.$i -side left -expand yes -fill both
+      sci_frame $root.columns.$i
+      pack $root.columns.$i -side left -expand yes -fill both
     }
 
     set w $root.col-0
@@ -71,28 +219,27 @@ proc make_labeled_radio {root labeltext command packside numColumns variable lis
 
     set i 0
     foreach t $list {
+      set column [expr $i % $numColumns]
+      set w $root.columns.$column
 
-	set column [expr $i % $numColumns]
-	set w $root.columns.$column
-
-	set name [lindex $t 0]
-	set value $name
-	if {[llength $t] == 2} {
-	    set value [lindex $t 1]
-	}
-	radiobutton $w.$i -text "$name" -variable $variable \
-		-value $value -command $command
-	pack $w.$i -side top -anchor nw
-	incr i
+      set name [lindex $t 0]
+      set value $name
+      if {[llength $t] == 2} {
+          set value [lindex $t 1]
+      }
+      sci_radiobutton $w.$i -text "$name" -variable $variable \
+        -value $value -command $command
+      pack $w.$i -side top -anchor nw
+      incr i
     }
 }
 
 proc change_radio_var {root newvar} {
     foreach t [winfo children $root] {
-	set name [winfo name $t]
-	if {$name != "radiolabel"} {
-	    $t config -variable $newvar
-	}
+      set name [winfo name $t]
+      if {$name != "radiolabel"} {
+          $t config -variable $newvar
+      }
     }
 }
 
@@ -103,8 +250,8 @@ itcl_class expscale {
     protected decimalplaces
 
     method modname { c } {
-	set n [string range $c [expr [string last "::" $c] + 2] end]
-	return $n
+      set n [string range $c [expr [string last "::" $c] + 2] end]
+      return $n
     }
 
     constructor {config} {
@@ -123,7 +270,7 @@ itcl_class expscale {
 	    set w [modname $this]
 	}
 
-	frame $w -class $class -borderwidth 2 -relief groove
+	sci_frame $w -class $class -relief groove
 
 	# This tells the expscale to delete itself when its
 	# window is destroyed.  That way, when the expscale
@@ -147,25 +294,25 @@ itcl_class expscale {
 
 	set resolution [getResolution ]
 	set built 1
-	scale $w.scale -label $label -orient $orient \
+	sci_scale $w.scale -label $label -orient $orient \
 		-from -1.0e-17 -to 1.0e17 -resolution $resolution \
 		-variable $variable -command $command
 	pack $w.scale -fill x -side left -expand yes
 
-	frame $w.e
+	sci_frame $w.e
 	pack $w.e -fill y -padx 2 -anchor se
 
-	label $w.e.e -text "E"
+	sci_label $w.e.e -text "E"
 	pack $w.e.e -side left
 
-	button $w.e.upexp -text "+" -pady 0 -command "$this upexp"
-	button $w.e.signchange -text "S" -pady 0 -command "$this chngsign"
-	button $w.e.downexp -text "-" -pady 0 -command "$this downexp"
+	sci_button $w.e.upexp -text "+" -pady 0 -command "$this upexp"
+	sci_button $w.e.signchange -text "S" -pady 0 -command "$this chngsign"
+	sci_button $w.e.downexp -text "-" -pady 0 -command "$this downexp"
 	pack $w.e.upexp -side top -fill x
 	pack $w.e.signchange -side bottom -fill x
 	pack $w.e.downexp -side bottom -fill x
 
-	entry $w.e.exp -width 3 -selectborderwidth 0 -highlightthickness 0 \
+	sci_entry $w.e.exp -width 3 -selectborderwidth 0 -highlightthickness 0 \
 		-insertborderwidth 0
 	pack $w.e.exp
 
@@ -328,9 +475,9 @@ itcl_class expscale {
 # care of the raise.
 proc SciRaise { window } {
     if { [winfo ismapped $window] == 1} {
-	raise $window
+      raise $window
     } else {
-	wm deiconify $window
+      wm deiconify $window
     }
 }
 
@@ -358,15 +505,15 @@ proc centerWindow { w1 { w2 "" } } {
     update
 
     if { [winfo exists $w2] } {
-	set w [winfo width $w2]
-	set h [winfo height $w2]
-	set x [winfo x $w2]
-	set y [winfo y $w2]
-    } else {
-	set w 0
-	set h 0
-	set x 0
-	set y 0
+      set w [winfo width $w2]
+      set h [winfo height $w2]
+      set x [winfo x $w2]
+      set y [winfo y $w2]
+        } else {
+      set w 0
+      set h 0
+      set x 0
+      set y 0
     }
 
     if {$h < 2} { set h [winfo screenheight .] }    
@@ -392,9 +539,9 @@ proc centerWindow { w1 { w2 "" } } {
 
     if { [winfo ismapped $w1] } {
         if { $OnWindows } { update }
-	raise $w1
+      raise $w1
     } else {
-	wm deiconify $w1
+      wm deiconify $w1
     }
 }
 
@@ -419,12 +566,12 @@ proc centerWindow { w1 { w2 "" } } {
 #
 
 proc label_pair { f text_label text_var {first_width 12} } {
-    frame $f 
+    sci_frame $f 
 
-    label $f.l1 -text $text_label -width $first_width -anchor w -just left
+    sci_label $f.l1 -text $text_label -width $first_width -anchor w -just left
 
-    label $f.colon  -text ":" -width 2 -anchor w -just left 
+    sci_label $f.colon  -text ":" -width 2 -anchor w -just left 
 
-    label $f.l2 -textvar $text_var -width 40 -anchor w -just left -fore darkred -borderwidth 0
+    sci_label $f.l2 -textvar $text_var -width 40 -anchor w -just left -fore darkred -borderwidth 0
     pack $f.l1 $f.colon $f.l2 -side left
 } 

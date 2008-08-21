@@ -26,22 +26,9 @@
    DEALINGS IN THE SOFTWARE.
 */
 
- 
-/*
- *  IComVirtualSocket.cc 
- *
- *  Written by:
- *  Jeroen Stinstra
- *
- */
- 
 #include <Core/ICom/IComVirtualSocket.h>
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 3201
-#endif
- 
- namespace SCIRun {
+namespace SCIRun {
  
 IComVirtualSocket::IComVirtualSocket() :
     lock("virtual_socket_lock"),
@@ -123,7 +110,3 @@ bool	IComVirtualSocket::isconnected(IComSocketError &err)
 
  
 } // namespace
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 3201
-#endif

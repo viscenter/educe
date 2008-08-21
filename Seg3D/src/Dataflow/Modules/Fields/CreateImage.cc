@@ -64,7 +64,7 @@ class CreateImage : public Module
 {
 public:
   CreateImage(GuiContext* ctx);
-  virtual ~CreateImage();
+  virtual ~CreateImage() {}
 
   virtual void execute();
 
@@ -103,12 +103,6 @@ CreateImage::CreateImage(GuiContext* ctx) :
   update_type_(get_ctx()->subVar("update_type"), "On Release"),
   custom_origin_(get_ctx()->subVar("corigin"), Point(0.0, 0.0, 0.0)),
   custom_normal_(get_ctx()->subVar("cnormal"), Vector(1.0, 1.0, 1.0))
-{
-}
-
-
-
-CreateImage::~CreateImage()
 {
 }
 
@@ -256,7 +250,7 @@ CreateImage::execute()
     }
 
     // Compute Transform.
-    BBox box = ifieldhandle->mesh()->get_bounding_box();
+    BBox box = ifieldhandle->vmesh()->get_bounding_box();
 
     Vector diag(box.diagonal());
     trans.pre_scale(diag);
@@ -307,7 +301,7 @@ CreateImage::execute()
   maxb += diag;
   
   typedef ImageMesh<QuadBilinearLgn<Point> > IMesh;
-  IMesh::handle_type imagemesh = scinew IMesh(sizex, sizey, minb, maxb);
+  IMesh::handle_type imagemesh = new IMesh(sizex, sizey, minb, maxb);
 
   int basis_order;
   if (data_at_.get() == "Nodes") basis_order = 1;
@@ -328,15 +322,15 @@ CreateImage::execute()
 
     if (basis_order == -1) {
       typedef GenericField<IMesh, NBasis, FData2d<Vector, IMesh> > IField;
-      IField *lvf = scinew IField(imagemesh);
+      IField *lvf = new IField(imagemesh);
       ofh = lvf;
     } else if (basis_order == 0) {
       typedef GenericField<IMesh, CBasis, FData2d<Vector, IMesh> > IField;
-      IField *lvf = scinew IField(imagemesh);
+      IField *lvf = new IField(imagemesh);
       ofh = lvf;
     } else {
       typedef GenericField<IMesh, LBasis, FData2d<Vector, IMesh> > IField;
-      IField *lvf = scinew IField(imagemesh);
+      IField *lvf = new IField(imagemesh);
       ofh = lvf;
     }
   }
@@ -348,15 +342,15 @@ CreateImage::execute()
 
     if (basis_order == -1) {
       typedef GenericField<IMesh, NBasis, FData2d<Tensor, IMesh> > IField;
-      IField *lvf = scinew IField(imagemesh);
+      IField *lvf = new IField(imagemesh);
       ofh = lvf;
     } else if (basis_order == 0) {
       typedef GenericField<IMesh, CBasis, FData2d<Tensor, IMesh> > IField;
-      IField *lvf = scinew IField(imagemesh);
+      IField *lvf = new IField(imagemesh);
       ofh = lvf;
     } else {
       typedef GenericField<IMesh, LBasis, FData2d<Tensor, IMesh> > IField;
-      IField *lvf = scinew IField(imagemesh);
+      IField *lvf = new IField(imagemesh);
       ofh = lvf;
     }
   }
@@ -368,15 +362,15 @@ CreateImage::execute()
 
     if (basis_order == -1) {
       typedef GenericField<IMesh, NBasis, FData2d<double, IMesh> > IField;
-      IField *lvf = scinew IField(imagemesh);
+      IField *lvf = new IField(imagemesh);
       ofh = lvf;
     } else if (basis_order == 0) {
       typedef GenericField<IMesh, CBasis, FData2d<double, IMesh> > IField;
-      IField *lvf = scinew IField(imagemesh);
+      IField *lvf = new IField(imagemesh);
       ofh = lvf;
     } else {
       typedef GenericField<IMesh, LBasis, FData2d<double, IMesh> > IField;
-      IField *lvf = scinew IField(imagemesh);
+      IField *lvf = new IField(imagemesh);
       ofh = lvf;
     }
   }

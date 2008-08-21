@@ -116,15 +116,6 @@ Exec_execute_command(ProgressReporter *pr,
 
   FILE *pipe = 0;
   bool result = true;
-#ifdef __sgi
-  string command = icommand + " 2>&1";
-  pipe = popen(command.c_str(), "r");
-  if (pipe == NULL)
-  {
-    pr->error("ExecConverter syscal error, command was: '" + command + ".");
-    result = false;
-  }
-#else
   string command = icommand + " > " + tmpfilename + ".log 2>&1";
   const int status = sci_system(command.c_str());
   if (status != 0)
@@ -134,7 +125,6 @@ Exec_execute_command(ProgressReporter *pr,
     result = false;
   }
   pipe = fopen((tmpfilename + ".log").c_str(), "r");
-#endif
 
   char buffer[256];
   while (pipe && fgets(buffer, 256, pipe) != NULL)
@@ -142,15 +132,11 @@ Exec_execute_command(ProgressReporter *pr,
     pr->add_raw_message(buffer);
   }
 
-#ifdef __sgi
-  if (pipe) { pclose(pipe); }
-#else
   if (pipe)
   {
     fclose(pipe);
     unlink((tmpfilename + ".log").c_str());
   }
-#endif
 
   return result;
 }

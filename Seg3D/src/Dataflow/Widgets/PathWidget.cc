@@ -46,7 +46,7 @@
 #include <Core/Geom/GeomCone.h>
 #include <Core/Geom/GeomCylinder.h>
 #include <Core/Geom/GeomSphere.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Module.h>
 #include <iostream>
 using std::cerr;
@@ -134,9 +134,9 @@ PathPoint::PathPoint( PathWidget* w, const Index i, const Point& p )
     OrientHeadMatl((GeomObj*)&GeomOrientHead, w->DefaultSpecialMaterial),
     UpShaftMatl((GeomObj*)&GeomUpShaft, w->DefaultSpecialMaterial),
     UpHeadMatl((GeomObj*)&GeomUpHead, w->DefaultSpecialMaterial),
-    tangent(scinew GeomGroup()),
-    orient(scinew GeomGroup()),
-    up(scinew GeomGroup()),
+    tangent(new GeomGroup()),
+    orient(new GeomGroup()),
+    up(new GeomGroup()),
     PickPoint(&PointMatl, w->module_, w, i),
     PickTangent(tangent, w->module_, w, i+10000),
     PickOrient(orient, w->module_, w, i+20000),
@@ -317,27 +317,27 @@ PathWidget::PathWidget( Module* module, CrowdMonitor* lock, double widget_scale,
   : BaseWidget(module, lock, "PathWidget", NumVars, NumCons, 0, 0, 0, NumMdes, NumSwtchs, widget_scale),
     points(num_points)
 {
-  dist = variables[0] = scinew RealVariable("Dist", solve, Scheme3, widget_scale_*5.0);
-  hypo = variables[1] = scinew RealVariable("hypo", solve, Scheme3, sqrt(2.0)*widget_scale_*5.0);
-  variables[2] = scinew RealVariable("sqrt2", solve, Scheme3, sqrt(2.0));
+  dist = variables[0] = new RealVariable("Dist", solve, Scheme3, widget_scale_*5.0);
+  hypo = variables[1] = new RealVariable("hypo", solve, Scheme3, sqrt(2.0)*widget_scale_*5.0);
+  variables[2] = new RealVariable("sqrt2", solve, Scheme3, sqrt(2.0));
 
-  constraints[0] = scinew RatioConstraint("ConstSqrt2", 3, hypo, dist, variables[2]);
+  constraints[0] = new RatioConstraint("ConstSqrt2", 3, hypo, dist, variables[2]);
   constraints[0]->VarChoices(Scheme1, 0, 0, 0);
   constraints[0]->VarChoices(Scheme2, 0, 0, 0);
   constraints[0]->VarChoices(Scheme3, 0, 0, 0);
   constraints[0]->Priorities(P_Highest, P_Highest, P_Highest);
 
-  splinegroup = scinew GeomGroup;
-  GeomPick* sp = scinew GeomPick(splinegroup, module, this, -1);
+  splinegroup = new GeomGroup;
+  GeomPick* sp = new GeomPick(splinegroup, module, this, -1);
   sp->set_highlight(DefaultHighlightMaterial);
   CreateModeSwitch(0, sp);
-  pointgroup = scinew GeomGroup();
+  pointgroup = new GeomGroup();
   CreateModeSwitch(1, pointgroup);
-  tangentgroup = scinew GeomGroup();
+  tangentgroup = new GeomGroup();
   CreateModeSwitch(2, tangentgroup);
-  orientgroup = scinew GeomGroup();
+  orientgroup = new GeomGroup();
   CreateModeSwitch(3, orientgroup);
-  upgroup = scinew GeomGroup();
+  upgroup = new GeomGroup();
   CreateModeSwitch(4, upgroup);
 
   SetMode(Mode0, Switch0|Switch1|Switch2|Switch3|Switch4);
@@ -349,7 +349,7 @@ PathWidget::PathWidget( Module* module, CrowdMonitor* lock, double widget_scale,
   double xoffset(2.0*widget_scale_*num_points/2.0);
   for (Index i=0; i<num_points; i++)
   {
-    scinew PathPoint(this, i, Point(2.0*widget_scale_*i-xoffset, 0, 0));
+    new PathPoint(this, i, Point(2.0*widget_scale_*i-xoffset, 0, 0));
   }
 
   FinishWidget();
@@ -403,7 +403,7 @@ PathWidget::GenerateSpline()
   splinegroup->remove_all();
   for (Index i=1; i<points.size(); i++)
   {
-    splinegroup->add(scinew GeomCylinder(points[i-1]->ReferencePoint(),
+    splinegroup->add(new GeomCylinder(points[i-1]->ReferencePoint(),
 					 points[i]->ReferencePoint(),
 					 0.33*widget_scale_));
   }

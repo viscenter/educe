@@ -111,6 +111,7 @@ typedef LockingHandle<NrrdData> NrrdDataHandle;
 
 
 SCISHARE int string_to_nrrd_type(const string &str);
+SCISHARE string nrrd_type_to_string(unsigned int ntype);
 
 template <class T>
 int get_nrrd_type();
@@ -152,8 +153,8 @@ int get_nrrd_type()
 }
 
 SCISHARE void get_nrrd_compile_type( const unsigned int type,
-			    string & typeStr,
-			    string & typeName );
+				     string & typeStr,
+				     string & typeName );
 
 SCISHARE double get_nrrd_value( Nrrd* nrrd,
 				unsigned int p );

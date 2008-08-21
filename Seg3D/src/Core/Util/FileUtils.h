@@ -64,7 +64,8 @@ SCISHARE void InsertStringInFile(char* filename, const char* match, const char* 
 // all the files with extension "ext" inside
 // the directory named "dir"
 
-SCISHARE std::map<int,char*>* GetFilenamesEndingWith(char* dir, char* ext);
+SCISHARE std::map<int,char*>* GetFilenamesEndingWith(const char* dir,
+                                                     const char* ext);
 
 SCISHARE vector<string> GetFilenamesStartingWith(const string & dir,
                                                  const string & prefix);
@@ -82,7 +83,7 @@ SCISHARE std::string findFileInPath(const std::string &filename,
 
 SCISHARE bool getInfo( const string & filename );  // prints out size, type, timestamp, etc about the file. Returns false if file does not exist.
 SCISHARE bool validFile( const std::string & filename );
-SCISHARE bool validDir( const std::string & filename );
+SCISHARE bool validDir( const std::string & dirname );
 SCISHARE bool isSymLink( std::string filename );
 
 // Creates a temp file (in directoryPath), writes to it, checks the resulting files size, and then deletes it...

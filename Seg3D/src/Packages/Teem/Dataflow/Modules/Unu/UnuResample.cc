@@ -41,7 +41,7 @@
 
 #include <sci_defs/bits_defs.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 #include <Core/Containers/StringUtil.h>
@@ -278,7 +278,7 @@ UnuResample::execute()
 
   last_generation_ = nrrdH->generation;
 
-  NrrdData *nrrd = scinew NrrdData;
+  NrrdData *nrrd = new NrrdData;
   if (nrrdSpatialResample(nrrd->nrrd_, nin, info)) {
     char *err = biffGetDone(NRRD);
     error(string("Trouble resampling: ") +  err);

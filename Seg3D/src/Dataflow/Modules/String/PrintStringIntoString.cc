@@ -37,7 +37,7 @@
 
 #include <stdio.h>
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Datatypes/String.h>
 #include <Dataflow/Network/Ports/StringPort.h>
 
@@ -214,7 +214,7 @@ PrintStringIntoString::execute()
     }
   }
 
-  StringHandle handle(scinew String(output));
+  StringHandle handle(new String(output));
   send_output_handle("Output", handle);
 }
 

@@ -52,7 +52,6 @@
 
 #include <Core/Geom/GeomText.h>
 #include <Core/Geom/GeomArrows.h>
-//#include <Core/Geom/BBoxCache.h>
 #include <Core/Geom/DirectionalLight.h>
 #include <Core/Geom/GeomBillboard.h>
 #include <Core/Geom/GeomBox.h>
@@ -62,18 +61,16 @@
 #include <Core/Geom/GeomCylinder.h>
 #include <Core/Geom/GeomDisk.h>
 #include <Core/Geom/GeomObj.h>
-#include <Core/Geom/GeomColormapInterface.h>
 #include <Core/Geom/GeomGrid.h>
 #include <Core/Geom/GeomQMesh.h>
 #include <Core/Geom/tGrid.h>
-#include <Core/Geom/TimeGrid.h>
 #include <Core/Geom/GeomGroup.h>
 #include <Core/Geom/GeomTimeGroup.h>
 #include <Core/Geom/HeadLight.h>
 #include <Core/Geom/IndexedGroup.h>
 #include <Core/Geom/Light.h>
 #include <Core/Geom/GeomLine.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/GeomPick.h>
 #include <Core/Geom/PointLight.h>
 #include <Core/Geom/SpotLight.h>
@@ -105,18 +102,12 @@
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/Trig.h>
 #include <Core/Math/TrigTable.h>
-//#include <Core/Geometry/Plane.h>
 #include <Core/Geom/FontManager.h>
 
 #include <iostream>
 #include <algorithm>
 using std::cerr;
 using std::endl;
-
-
-#if !defined(__linux) && !defined(_WIN32) && !defined(__digital__) && !defined(_AIX) && !defined(__APPLE__)
-#include <GL/gls.h>
-#endif
 
 #ifndef _WIN32
 #  include <X11/X.h>
@@ -1523,139 +1514,6 @@ TexGeomGrid::draw(DrawInfoOpenGL* di, Material* matl, double)
   post_draw(di);
 }
 
-
-void
-TimeGrid::draw(DrawInfoOpenGL* di, Material* matl, double t)
-{
-  if (!pre_draw(di, matl, 0)) return;
-  di->polycount_ += 2;
-
-  // First find which ones need to be drawn.
-
-  int i;
-  for (i=0;i<time.size() && (time[i] <= t);i++)
-    ;
-
-  int start,end;
-  double dt;
-  int last_frame=0;
-
-  last_frame = (t >= time[time.size()-1]); // 1 if last time step.
-
-  if (i) { i--; } // If it was zero, just keep it.
-
-  start = i;
-  end = i+1;
-
-  if (last_frame)
-  {
-    start = time.size()-1; // just go to end.
-    end = start;
-  }
-
-  dt = (t-time[start])/(time[1]-time[0]);
-  cerr << time[start] << " " << t << " " << start << " ";
-  cerr << dt << " Trying to do texture draw...\n";
-
-  if (dt < 0.0) dt = 0.0;
-  if (dt > 1.0) dt = 1.0;
-
-  switch(di->get_drawtype())
-  {
-  case DrawInfoOpenGL::WireFrame:
-    break;
-  case DrawInfoOpenGL::Flat:
-  case DrawInfoOpenGL::Gouraud:
-    {
-      // First blend two images together.
-
-      float *startM=tmap[start],*endM=tmap[end];
-      double bval = dt;
-      double cdenom = 1.0/(map->getMax()-map->getMin()); // index
-
-      if (last_frame)
-      {
-        for (int j=0;j<dimV;j++)
-        {
-          int bindex = j*tmap_size*3; // use RGB?
-          int sindex = j*tmap_size;
-        
-          for (int i=0;i<dimU;i++)
-          {
-            float nval = startM[sindex + i];
-
-            double rmapval = (nval-map->getMin())*cdenom;
-            MaterialHandle hand = map->lookup2(rmapval);
-
-            bmap[bindex + i*3 + 0] = hand->diffuse.r();
-            bmap[bindex + i*3 + 1] = hand->diffuse.g();
-            bmap[bindex + i*3 + 2] = hand->diffuse.b();
-          }
-        }
-      }
-      else
-      {
-        for (int j=0;j<dimV;j++)
-        {
-          int bindex = j*tmap_size*3; // use RGB?
-          int sindex = j*tmap_size;
-        
-          for (int i=0;i<dimU;i++)
-          {
-            float nval = startM[sindex + i] +
-              bval*(endM[sindex+i]-startM[sindex + i]);
-            // now look this up in the color map.
-        
-            double rmapval = (nval-map->getMin())*cdenom;
-            MaterialHandle hand = map->lookup2(rmapval);
-
-            bmap[bindex + i*3 + 0] = hand->diffuse.r();
-            bmap[bindex + i*3 + 1] = hand->diffuse.g();
-            bmap[bindex + i*3 + 2] = hand->diffuse.b();
-          }
-        }
-      }
-      // now bmap contains the blended texture.
-      glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,
-                GL_MODULATE);
-      glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,
-                      GL_LINEAR);
-      glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,
-                      GL_LINEAR);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      glTexImage2D(GL_TEXTURE_2D,0,3,tmap_size,tmap_size,
-                   0,GL_RGB,GL_FLOAT,bmap);
-
-      glColor4f(1.0,1.0,1.0,1.0);
-
-      glEnable(GL_TEXTURE_2D);
-
-      glBegin(GL_QUADS);
-      glTexCoord2f(0.0,0.0);
-      glVertex3d(corner.x(),corner.y(),corner.z());
-
-      glTexCoord2f(dimU/(1.0*tmap_size),0.0);
-      glVertex3d(corner.x()+u.x(),corner.y()+u.y(),corner.z()+u.z());
-
-      glTexCoord2f(dimU/(1.0*tmap_size),
-                   dimV/(1.0*tmap_size));
-      glVertex3d(corner.x()+v.x()+u.x(),
-                 corner.y()+v.y()+u.y(),
-                 corner.z()+v.z()+u.z());
-
-      glTexCoord2f(0.0,dimV/(1.0*tmap_size));
-      glVertex3d(corner.x()+v.x(),corner.y()+v.y(),corner.z()+v.z());
-
-      glEnd();
-
-      glDisable(GL_TEXTURE_2D);
-      break;
-    }
-  }
-  post_draw(di);
-}
-
-
 // WARNING doesn't respond to lighting correctly yet!
 #ifdef BROKEN_BUT_FAST
 void
@@ -2742,7 +2600,7 @@ TexGeomLines::draw(DrawInfoOpenGL* di, Material* matl, double)
 void
 GeomMaterial::draw(DrawInfoOpenGL* di, Material* /* old_matl */, double time)
 {
-  child_->draw(di, matl.get_rep(), time);
+  child_->draw(di, material_.get_rep(), time);
 }
 
 

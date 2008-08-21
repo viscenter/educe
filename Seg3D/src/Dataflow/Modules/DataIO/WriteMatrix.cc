@@ -48,18 +48,18 @@ namespace SCIRun {
 template class GenericWriter<MatrixHandle>;
 
 class WriteMatrix : public GenericWriter<MatrixHandle> {
-protected:
-  GuiString gui_types_;
-  GuiString gui_exporttype_;
-  GuiInt split_;
+  protected:
+    GuiString gui_types_;
+    GuiString gui_exporttype_;
+    GuiInt split_;
 
-  virtual bool call_exporter(const string &filename);
+    virtual bool call_exporter(const string &filename);
 
-public:
-  WriteMatrix(GuiContext* ctx);
-  virtual ~WriteMatrix();
+  public:
+    WriteMatrix(GuiContext* ctx);
+    virtual ~WriteMatrix() {}
 
-  virtual void execute();
+    virtual void execute();
 };
 
 
@@ -96,12 +96,6 @@ WriteMatrix::WriteMatrix(GuiContext* ctx)
 
   gui_types_.set(exporttypes);
 }
-
-
-WriteMatrix::~WriteMatrix()
-{
-}
-
 
 bool
 WriteMatrix::call_exporter(const string &filename)
@@ -140,7 +134,7 @@ WriteMatrix::execute()
 			error("Could not create path to filename");
 			return;
 		}
-		filename = scinew String(ffn.get_abs_filename());
+		filename = new String(ffn.get_abs_filename());
 
     filename_.set(filename->get());
     get_ctx()->reset();

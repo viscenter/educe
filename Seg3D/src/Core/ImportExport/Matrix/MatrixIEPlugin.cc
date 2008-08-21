@@ -42,9 +42,9 @@
 #include <Core/ImportExport/Matrix/MatrixIEPlugin.h>
 #include <Core/Containers/StringUtil.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <map>
-#include <sgi_stl_warnings_on.h>
+
 
 using namespace std;
 
@@ -83,7 +83,7 @@ MatrixIEPlugin::MatrixIEPlugin(const string& pname,
 
   if (!matrix_plugin_table)
   {
-    matrix_plugin_table = scinew map<string, MatrixIEPlugin *>();
+    matrix_plugin_table = new map<string, MatrixIEPlugin *>();
   }
 
   string tmppname = pluginname_;

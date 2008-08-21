@@ -38,46 +38,46 @@ itcl_class BioPSE_NeuroFEM_InterfaceWithNeuroFEMForward {
     }
 
     method set_defaults {} {
-	global $this-ipm_pathTCL
-	global $this-associativityTCL
-	global $this-eps_matTCL
-	set $this-ipm_pathTCL "ipm_linux_dbx"
-	set $this-associativityTCL 1
-	set $this-eps_matTCL 1e-2
+        global $this-ipm_pathTCL
+        global $this-associativityTCL
+        global $this-eps_matTCL
+        set $this-ipm_pathTCL "ipm_linux_dbx"
+        set $this-associativityTCL 1
+        set $this-eps_matTCL 1e-2
     }
 
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
 
     method ui {} {
-	global $this-ipm_pathTCL
-	global $this-associativityTCL
-	global $this-eps_matTCL
+        global $this-ipm_pathTCL
+        global $this-associativityTCL
+        global $this-eps_matTCL
 
         set w .ui[modname]
         if {[winfo exists $w]} {
             raise $w
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-	make_entry $w.ipm_path "Path to NeuroFEM execution file: " $this-ipm_pathTCL "$this-c needexecute"
-	make_entry $w.associativity "Lead Field Basis(yes=1, no=0): " $this-associativityTCL "$this-c needexecute"
-	make_entry $w.eps_mat "Pebbles Solver EPS_MAT: " $this-eps_matTCL "$this-c needexecute"
+        make_entry $w.ipm_path "Path to NeuroFEM execution file: " $this-ipm_pathTCL "$this-c needexecute"
+        make_entry $w.associativity "Lead Field Basis(yes=1, no=0): " $this-associativityTCL "$this-c needexecute"
+        make_entry $w.eps_mat "Pebbles Solver EPS_MAT: " $this-eps_matTCL "$this-c needexecute"
 
-#	bind $w.associativity <Return> "$this-c needexecute"
-	pack $w.ipm_path -side top -fill x
-	pack $w.associativity -side top -fill x
-	pack $w.eps_mat -side top -fill x
+      #	bind $w.associativity <Return> "$this-c needexecute"
+        pack $w.ipm_path -side top -fill x
+        pack $w.associativity -side top -fill x
+        pack $w.eps_mat -side top -fill x
 
-	makeSciButtonPanel $w $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this
+        moveToCursor $w
     }
 }
 

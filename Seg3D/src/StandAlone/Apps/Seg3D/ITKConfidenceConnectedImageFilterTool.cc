@@ -37,6 +37,9 @@
 
 namespace SCIRun {
 
+SeedTool::seeds_t ITKConfidenceConnectedImageFilterTool::seed_cache_;
+
+
 ITKConfidenceConnectedImageFilterTool::
 ITKConfidenceConnectedImageFilterTool(Painter *painter) :
   SeedTool("ITKConfidenceConnectedImageFilterTool", painter),
@@ -47,6 +50,14 @@ ITKConfidenceConnectedImageFilterTool(Painter *painter) :
   initialNeighborhoodRadius_(painter_->get_vars(), 
                              prefix_+"initialNeighborhoodRadius")
 {
+  seeds_ = seed_cache_;
+  painter_->redraw_all();
+}
+
+
+ITKConfidenceConnectedImageFilterTool::~ITKConfidenceConnectedImageFilterTool()
+{
+  seed_cache_ = seeds_;
 }
 
 
@@ -82,7 +93,7 @@ ITKConfidenceConnectedImageFilterTool::run_filter()
     VolumeOps::create_clear_nrrd(painter_->current_volume_->nrrd_handle_,
                                  LabelNrrdType);
   const string name =
-    painter_->unique_layer_name(painter_->current_volume_->name_ + " Confidence Connected Label");
+    painter_->unique_layer_name(painter_->current_volume_->name_ + " Confidence Connected");
   painter_->volumes_.push_back(new NrrdVolume(painter_, name, nrrdh, 1));
   painter_->current_volume_ = painter_->volumes_.back();
   painter_->rebuild_layer_buttons();
@@ -115,6 +126,11 @@ ITKConfidenceConnectedImageFilterTool::run_filter()
   painter_->start_progress();
   filter_.start(source_volume->nrrd_handle_);
   painter_->finish_progress();
+
+  UndoHandle undo =
+    new UndoReplaceLayer(painter_, "Undo Confidence Connected",
+                         0, painter_->current_volume_, 0);
+  painter_->push_undo(undo);
 
   painter_->extract_all_window_slices();
   painter_->redraw_all();

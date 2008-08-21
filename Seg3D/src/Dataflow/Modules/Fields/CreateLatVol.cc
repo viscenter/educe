@@ -61,50 +61,50 @@ namespace SCIRun {
 
 class CreateLatVol : public Module
 {
-public:
-  typedef LatVolMesh<HexTrilinearLgn<Point> > LVMesh;
-  typedef NoDataBasis<Tensor>             NDTBasis;
-  typedef NoDataBasis<Vector>             NDVBasis;
-  typedef NoDataBasis<double>             NDDBasis;
-  typedef ConstantBasis<Tensor>             CBTBasis;
-  typedef ConstantBasis<Vector>             CBVBasis;
-  typedef ConstantBasis<double>             CBDBasis;
-  typedef HexTrilinearLgn<Tensor>             LBTBasis;
-  typedef HexTrilinearLgn<Vector>             LBVBasis;
-  typedef HexTrilinearLgn<double>             LBDBasis;
-  typedef GenericField<LVMesh, NDTBasis,  
-		       FData3d<Tensor, LVMesh> > LVFieldNDT;
-  typedef GenericField<LVMesh, NDVBasis,  
-		       FData3d<Vector, LVMesh> > LVFieldNDV;
-  typedef GenericField<LVMesh, NDDBasis,  
-		       FData3d<double, LVMesh> > LVFieldNDD;
-  typedef GenericField<LVMesh, CBTBasis,  
-		       FData3d<Tensor, LVMesh> > LVFieldCBT;
-  typedef GenericField<LVMesh, CBVBasis,  
-		       FData3d<Vector, LVMesh> > LVFieldCBV;
-  typedef GenericField<LVMesh, CBDBasis,  
-		       FData3d<double, LVMesh> > LVFieldCBD;
-  typedef GenericField<LVMesh, LBTBasis,  
-		       FData3d<Tensor, LVMesh> > LVFieldT;
-  typedef GenericField<LVMesh, LBVBasis,  
-		       FData3d<Vector, LVMesh> > LVFieldV;
-  typedef GenericField<LVMesh, LBDBasis,  
-		       FData3d<double, LVMesh> > LVField;
+  public:
+    typedef LatVolMesh<HexTrilinearLgn<Point> > LVMesh;
+    typedef NoDataBasis<Tensor>             NDTBasis;
+    typedef NoDataBasis<Vector>             NDVBasis;
+    typedef NoDataBasis<double>             NDDBasis;
+    typedef ConstantBasis<Tensor>             CBTBasis;
+    typedef ConstantBasis<Vector>             CBVBasis;
+    typedef ConstantBasis<double>             CBDBasis;
+    typedef HexTrilinearLgn<Tensor>             LBTBasis;
+    typedef HexTrilinearLgn<Vector>             LBVBasis;
+    typedef HexTrilinearLgn<double>             LBDBasis;
+    typedef GenericField<LVMesh, NDTBasis,  
+             FData3d<Tensor, LVMesh> > LVFieldNDT;
+    typedef GenericField<LVMesh, NDVBasis,  
+             FData3d<Vector, LVMesh> > LVFieldNDV;
+    typedef GenericField<LVMesh, NDDBasis,  
+             FData3d<double, LVMesh> > LVFieldNDD;
+    typedef GenericField<LVMesh, CBTBasis,  
+             FData3d<Tensor, LVMesh> > LVFieldCBT;
+    typedef GenericField<LVMesh, CBVBasis,  
+             FData3d<Vector, LVMesh> > LVFieldCBV;
+    typedef GenericField<LVMesh, CBDBasis,  
+             FData3d<double, LVMesh> > LVFieldCBD;
+    typedef GenericField<LVMesh, LBTBasis,  
+             FData3d<Tensor, LVMesh> > LVFieldT;
+    typedef GenericField<LVMesh, LBVBasis,  
+             FData3d<Vector, LVMesh> > LVFieldV;
+    typedef GenericField<LVMesh, LBDBasis,  
+             FData3d<double, LVMesh> > LVField;
 
-  CreateLatVol(GuiContext* ctx);
-  virtual ~CreateLatVol();
+    CreateLatVol(GuiContext* ctx);
+    virtual ~CreateLatVol() {}
 
-  virtual void execute();
+    virtual void execute();
 
-private:
-  GuiInt size_x_;
-  GuiInt size_y_;
-  GuiInt size_z_;
-  GuiDouble padpercent_;
-  GuiString data_at_;
-	GuiString element_size_;
+  private:
+    GuiInt size_x_;
+    GuiInt size_y_;
+    GuiInt size_z_;
+    GuiDouble padpercent_;
+    GuiString data_at_;
+    GuiString element_size_;
 
-  enum DataTypeEnum { SCALAR, VECTOR, TENSOR };
+    enum DataTypeEnum { SCALAR, VECTOR, TENSOR };
 };
 
 
@@ -118,12 +118,6 @@ CreateLatVol::CreateLatVol(GuiContext* ctx)
     padpercent_(get_ctx()->subVar("padpercent"), 0.0),
     data_at_(get_ctx()->subVar("data-at"), "Nodes"),
     element_size_(get_ctx()->subVar("element-size"),"Mesh")
-{
-}
-
-
-
-CreateLatVol::~CreateLatVol()
 {
 }
 
@@ -214,7 +208,7 @@ CreateLatVol::execute()
     minb -= diag;
     maxb += diag;
 
-    LVMesh::handle_type mesh = scinew LVMesh(sizex, sizey, sizez, minb, maxb);
+    LVMesh::handle_type mesh = new LVMesh(sizex, sizey, sizez, minb, maxb);
 
     int basis_order;
     if (data_at_.get() == "Nodes") basis_order = 1;
@@ -231,12 +225,12 @@ CreateLatVol::execute()
     {
       if (basis_order == -1) 
       {
-        LVFieldNDD *lvf = scinew LVFieldNDD(mesh);
+        LVFieldNDD *lvf = new LVFieldNDD(mesh);
         ofh = lvf;
       } 
       else if (basis_order == 0) 
       {
-        LVFieldCBD *lvf = scinew LVFieldCBD(mesh);
+        LVFieldCBD *lvf = new LVFieldCBD(mesh);
         LVFieldCBD::fdata_type::iterator itr = lvf->fdata().begin();
         while (itr != lvf->fdata().end())
         {
@@ -247,7 +241,7 @@ CreateLatVol::execute()
       } 
       else 
       {
-        LVField *lvf = scinew LVField(mesh);
+        LVField *lvf = new LVField(mesh);
         LVField::fdata_type::iterator itr = lvf->fdata().begin();
         while (itr != lvf->fdata().end())
         {
@@ -262,12 +256,12 @@ CreateLatVol::execute()
     {
       if (basis_order == -1) 
       {
-        LVFieldNDV *lvf = scinew LVFieldNDV(mesh);
+        LVFieldNDV *lvf = new LVFieldNDV(mesh);
         ofh = lvf;
       } 
       else if (basis_order == 0) 
       {
-        LVFieldCBV *lvf = scinew LVFieldCBV(mesh);
+        LVFieldCBV *lvf = new LVFieldCBV(mesh);
         LVFieldCBV::fdata_type::iterator itr = lvf->fdata().begin();
         while (itr != lvf->fdata().end())
         {
@@ -278,7 +272,7 @@ CreateLatVol::execute()
       } 
       else 
       {
-        LVFieldV *lvf = scinew LVFieldV(mesh);
+        LVFieldV *lvf = new LVFieldV(mesh);
         LVFieldV::fdata_type::iterator itr = lvf->fdata().begin();
         while (itr != lvf->fdata().end())
         {
@@ -292,12 +286,12 @@ CreateLatVol::execute()
     {	
       if (basis_order == -1) 
       {
-        LVFieldNDT *lvf = scinew LVFieldNDT(mesh);
+        LVFieldNDT *lvf = new LVFieldNDT(mesh);
         ofh = lvf;
       } 
       else if (basis_order == 0) 
       {
-        LVFieldCBT *lvf = scinew LVFieldCBT(mesh);
+        LVFieldCBT *lvf = new LVFieldCBT(mesh);
         LVFieldCBT::fdata_type::iterator itr = lvf->fdata().begin();
         while (itr != lvf->fdata().end())
         {
@@ -308,7 +302,7 @@ CreateLatVol::execute()
       } 
       else 
       {
-        LVFieldT *lvf = scinew LVFieldT(mesh);
+        LVFieldT *lvf = new LVFieldT(mesh);
         LVFieldT::fdata_type::iterator itr = lvf->fdata().begin();
         while (itr != lvf->fdata().end())
         {

@@ -31,7 +31,6 @@
 //    Date   : Mon Sep  8 09:46:49 2003
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
 #include <Dataflow/GuiInterface/GuiVar.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
@@ -46,10 +45,6 @@ public:
   virtual void execute();
 
 private:
-  NrrdIPort*      inrrd1_;
-  NrrdIPort*      inrrd2_;
-  NrrdIPort*      inrrd3_;
-
   GuiString    operator_;
   GuiDouble    float1_;
   GuiDouble    float2_;
@@ -93,31 +88,9 @@ Unu3op::execute()
 
   update_state(NeedData);
 
-  inrrd1_ = (NrrdIPort *)get_iport("InputNrrd1");
-  inrrd2_ = (NrrdIPort *)get_iport("InputNrrd2");
-  inrrd3_ = (NrrdIPort *)get_iport("InputNrrd3");
-
-  if (!inrrd1_->get(nrrd_handle1)) 
-    first_nrrd_ = false;
-  if (!inrrd2_->get(nrrd_handle2)) 
-    second_nrrd_ = false;
-  if (!inrrd3_->get(nrrd_handle3)) 
-    third_nrrd_ = false;
-  
-  if (first_nrrd_ && !nrrd_handle1.get_rep()) {
-    error("Empty InputNrrd1.");
-    return;
-  }
-
-  if (second_nrrd_ && !nrrd_handle2.get_rep()) {
-    error("Empty InputNrrd2.");
-    return;
-  }
-
-  if (third_nrrd_ && !nrrd_handle3.get_rep()) {
-    error("Empty InputNrrd3.");
-    return;
-  }
+  first_nrrd_ = get_input_handle("InputNrrd1",nrrd_handle1,false);
+  second_nrrd_ = get_input_handle("InputNrrd2",nrrd_handle2,false);
+  third_nrrd_ = get_input_handle("InputNrrd3",nrrd_handle3,false);
 
   Nrrd *nin1 = 0;
   Nrrd *nin2 = 0;
@@ -219,7 +192,7 @@ Unu3op::execute()
     free(err);
   }
 
-  NrrdDataHandle out(scinew NrrdData(nout));
+  NrrdDataHandle out(new NrrdData(nout));
   send_output_handle("OutputNrrd", out);
 }
 

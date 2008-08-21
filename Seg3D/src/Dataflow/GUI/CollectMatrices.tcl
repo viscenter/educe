@@ -35,11 +35,11 @@ itcl_class SCIRun_Math_CollectMatrices {
     }
 
     method make_entry {w text v c} {
-        frame $w
-        label $w.l -text "$text"
+        sci_frame $w
+        sci_label $w.l -text "$text"
         pack $w.l -side left
         global $v
-        entry $w.e -textvariable $v
+        sci_entry $w.e -textvariable $v
         bind $w.e <Return> $c
         pack $w.e -side right
     }
@@ -50,28 +50,28 @@ itcl_class SCIRun_Math_CollectMatrices {
             return
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 150 20
-        frame $w.f
+        sci_frame $w.f
         pack $w.f -padx 2 -pady 2 -side top -expand yes
         global $this-row
         make_labeled_radio $w.f.r "Rows/Columns" "" \
                 top 1 $this-row \
-		{{"Row" 1} \
+                {{"Row" 1} \
                 {"Column" 0}}
         global $this-append
         make_labeled_radio $w.f.a "Append/Replace" "" \
                 top 1 $this-append \
-		{{"Append" 1} \
+                {{"Append" 1} \
                 {"Replace" 0}}
         global $this-front
         make_labeled_radio $w.f.f "Prepend/Postpend" "" \
                 top 1 $this-front \
-		{{"Prepend" 1} \
+                {{"Prepend" 1} \
                 {"Postpend" 0}}
-	pack $w.f.r $w.f.a $w.f.f -side left -expand 1 -fill x
+        pack $w.f.r $w.f.a $w.f.f -side left -expand 1 -fill x
 
-	makeSciButtonPanel $w $w $this "\"Clear Output\" \"$this-c clear\" \"\""
-	moveToCursor $w
+        makeSciButtonPanel $w $w $this "\"Clear Output\" \"$this-c clear\" \"\""
+        moveToCursor $w
     }
 }

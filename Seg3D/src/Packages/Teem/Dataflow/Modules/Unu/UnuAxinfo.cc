@@ -198,7 +198,7 @@ UnuAxinfo::execute()
     nout->axis[axis].max = calc_max;
   }
 
-  NrrdDataHandle out(scinew NrrdData(nout));
+  NrrdDataHandle out(new NrrdData(nout));
   
   // Copy the properties.
   out->copy_properties(nh.get_rep());

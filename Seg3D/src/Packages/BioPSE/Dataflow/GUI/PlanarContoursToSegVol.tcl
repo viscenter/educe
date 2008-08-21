@@ -49,10 +49,10 @@ itcl_class DaveW_FEM_PlanarContoursToSegVol {
         set_defaults
     }
     method set_defaults {} {
-	global $this-nxTCL
-	set $this-nxTCL "16"
-	global $this-nyTCL
-	set $this-nyTCL "16"
+        global $this-nxTCL
+        set $this-nxTCL "16"
+        global $this-nyTCL
+        set $this-nyTCL "16"
     }
     method ui {} {
         set w .ui[modname]
@@ -61,21 +61,21 @@ itcl_class DaveW_FEM_PlanarContoursToSegVol {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 100 30
-        frame $w.f
+        sci_frame $w.f
         set n "$this-c needexecute "
-	global $this-nxTCL
-	global $this-nyTCL
-	frame $w.f.nx
-	label $w.f.nx.l -text "NX: "
-	entry $w.f.nx.e -relief sunken -width 4 -textvariable $this-nxTCL
-	pack $w.f.nx.l $w.f.nx.e -side left
-	frame $w.f.ny
-	label $w.f.ny.l -text "NY: "
-	entry $w.f.ny.e -relief sunken -width 4 -textvariable $this-nyTCL
-	pack $w.f.ny.l $w.f.ny.e -side left
-	pack $w.f.nx $w.f.ny -side top
+        global $this-nxTCL
+        global $this-nyTCL
+        sci_frame $w.f.nx
+        sci_label $w.f.nx.l -text "NX: "
+        sci_entry $w.f.nx.e -relief sunken -width 4 -textvariable $this-nxTCL
+        pack $w.f.nx.l $w.f.nx.e -side left
+        sci_frame $w.f.ny
+        sci_label $w.f.ny.l -text "NY: "
+        sci_entry $w.f.ny.e -relief sunken -width 4 -textvariable $this-nyTCL
+        pack $w.f.ny.l $w.f.ny.e -side left
+        pack $w.f.nx $w.f.ny -side top
         pack $w.f -side top -expand yes
     }
 }

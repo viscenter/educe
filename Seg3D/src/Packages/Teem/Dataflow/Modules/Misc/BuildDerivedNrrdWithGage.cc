@@ -16,7 +16,7 @@
 #include <teem/nrrd.h>
 
 #include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <Dataflow/Network/Module.h>
 #include <Dataflow/Network/Ports/NrrdPort.h>
@@ -346,7 +346,7 @@ BuildDerivedNrrdWithGage::execute()
   }
   
   //send the nrrd to the output
-  NrrdDataHandle ntmp(scinew NrrdData(nout));
+  NrrdDataHandle ntmp(new NrrdData(nout));
   send_output_handle("nout", ntmp);
 }
 

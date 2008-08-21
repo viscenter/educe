@@ -27,7 +27,7 @@
 #
 
 
-# GUI for IsoValueController module
+# GUI for StreamlineAnalyzer module
 # by Allen R. Sanderson
 # SCI Institute
 # University of Utah

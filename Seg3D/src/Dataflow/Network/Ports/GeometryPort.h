@@ -40,15 +40,18 @@
  *  Copyright (C) 1994 SCI Group
  */
 
-#ifndef SCI_project_GeometryPort_h
-#define SCI_project_GeometryPort_h 1
+#ifndef DATAFLOW_NETWORK_PORTS_GEOMETRYPORT_H
+#define DATAFLOW_NETWORK_PORTS_GEOMETRYPORT_H 1
 
-#include <Dataflow/Network/Ports/Port.h>
-#include <Dataflow/Comm/MessageBase.h>
 #include <Core/Thread/Mailbox.h>
 #include <Core/Geom/GeomObj.h>
 #include <Core/Geom/Light.h>
 #include <Core/Geometry/BBox.h>
+#include <Core/Containers/LockingHandle.h>
+
+#include <Dataflow/Network/Ports/Port.h>
+#include <Dataflow/Comm/MessageBase.h>
+
 #include <string>
 #include <vector>
 #include <list>
@@ -159,6 +162,10 @@ public:
   GeometryData* getData(int which_viewer, int which_viewwindow, int mask);
   void setView(int which_viewer, int which_viewwindow, View view);
 };
+
+typedef LockingHandle<GeometryIPort> GeometryIPortHandle;
+typedef LockingHandle<GeometryOPort> GeometryOPortHandle;
+
 
 } // End namespace SCIRun
 

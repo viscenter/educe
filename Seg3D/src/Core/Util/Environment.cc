@@ -27,18 +27,20 @@
 */
 
 // Core SCIRun Includes
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Util/RWS.h>
 #include <Core/Util/Assert.h>
 #include <Core/Util/FileUtils.h>
 #include <Core/Util/sci_system.h>
 
 // STL Includes
-#include <sgi_stl_warnings_off.h>
+
 #include <Core/Util/Environment.h> // includes <string>
 #include <iostream>
+#include <fstream>
 #include <map>
-#include <sgi_stl_warnings_on.h>
+#include <list>
+
 
 #define SCI_OK_TO_INCLUDE_SCI_ENVIRONMENT_DEFS_H
 #include <sci_defs/environment_defs.h>
@@ -51,6 +53,7 @@
 #  define MAXPATHLEN 256
 #  include <direct.h>
 #  include <windows.h>
+#  include <Core/Util/Dir.h>
 #endif
 
 
@@ -150,11 +153,14 @@ SCIRun::get_sci_environment()
 
 
 #ifdef _WIN32
-void getWin32RegistryValues(string& obj, string& src, string& thirdparty, string& packages)
+void getWin32RegistryValues(string& obj, string& src, string& appdata, string& thirdparty, string& packages)
 {
   // on an installed version of SCIRun, query these values from the registry, overwriting the compiled version
   // if not an installed version, return the compiled values unchanged
-  HKEY software, company, scirun, pack;
+  HKEY software, company, scirun, pack, volatileEnvironment;
+  const unsigned int PATH_SIZE = 512;
+  const unsigned int NAME_SIZE = 128;
+
   if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE", 0, KEY_READ, &software) == ERROR_SUCCESS) {
     if (RegOpenKeyEx(software, "SCI Institute", 0, KEY_READ, &company) == ERROR_SUCCESS) {
       if (RegOpenKeyEx(company, "SCIRun", 0, KEY_READ, &scirun) == ERROR_SUCCESS) {
@@ -176,8 +182,8 @@ void getWin32RegistryValues(string& obj, string& src, string& thirdparty, string
         if (RegOpenKeyEx(scirun, "Packages", 0, KEY_READ|KEY_ENUMERATE_SUB_KEYS, &pack) == ERROR_SUCCESS) {
           packages = "";
           int code = ERROR_SUCCESS;
-          char name[128];
-          DWORD nameSize = 128;
+          char name[NAME_SIZE];
+          DWORD nameSize = NAME_SIZE;
           FILETIME filetime;
           int index = 0;
           for (; code == ERROR_SUCCESS; index++) {
@@ -199,6 +205,20 @@ void getWin32RegistryValues(string& obj, string& src, string& thirdparty, string
     RegCloseKey(software);
   }
 
+  if (RegOpenKeyEx(HKEY_CURRENT_USER, "Volatile Environment", 0, KEY_READ, &volatileEnvironment) == ERROR_SUCCESS) {
+    char data[PATH_SIZE];
+    DWORD size = PATH_SIZE;
+    DWORD type;
+    int code = RegQueryValueEx(volatileEnvironment, "APPDATA", 0, &type, (LPBYTE) data, &size);
+    if (type == REG_SZ && code == ERROR_SUCCESS) {
+      string userAppdata = data;
+      convertToUnixPath(userAppdata);
+      if (userAppdata[userAppdata.length() - 1] == '/')
+        userAppdata = userAppdata.substr(0, userAppdata.length() - 1);
+      appdata = userAppdata + "/SCIRun";
+    }
+    RegCloseKey(volatileEnvironment);
+  }
 }
 #endif
 // get_existing_env() will fill up the SCIRun::existing_env string set
@@ -223,6 +243,7 @@ SCIRun::create_sci_environment(char **env, char *execname)
   string thirdpartydir = SCIRUN_THIRDPARTY_DIR;
   string packages = LOAD_PACKAGE;
   string iwidgets = ITCL_WIDGETS;
+  string appdata;
 
 #if defined(SCIRUN_PACKAGE_SRC_PATH)
   string pkg_src_path = SCIRUN_PACKAGE_SRC_PATH;
@@ -232,9 +253,21 @@ SCIRun::create_sci_environment(char **env, char *execname)
 #endif
 
 #ifdef _WIN32
-  getWin32RegistryValues(objdir, srcdir, thirdpartydir, packages);
+  getWin32RegistryValues(objdir, srcdir, appdata, thirdpartydir, packages);
   if (thirdpartydir != SCIRUN_THIRDPARTY_DIR) {
     iwidgets = thirdpartydir + "/lib/iwidgets/scripts";
+  }
+
+  if (!validDir(appdata)) {
+    Dir d = Dir::create(appdata);
+    if (!d.exists()) {
+      std::cerr << "The following directory could not be created " << appdata << "\n";
+    }
+    else {
+      if (!validDir(appdata)) {
+        std::cerr << "The following directory does not exist " << appdata << "\n";
+      }
+    }
   }
 #endif
   if (!sci_getenv("SCIRUN_OBJDIR")) 
@@ -264,7 +297,7 @@ SCIRun::create_sci_environment(char **env, char *execname)
         executable_name = objdir.substr(pos+1, objdir.size()-pos-1);;
         objdir.erase(objdir.begin()+pos+1, objdir.end());
 
-        sci_putenv("SCIRUN_OBJDIR", objdir);
+        sci_putenv("SCIRUN_OBJDIR",  objdir);
       }
     }
 
@@ -290,25 +323,10 @@ SCIRun::create_sci_environment(char **env, char *execname)
     sci_putenv("SCIRUN_TMP_DIR", "/tmp/");
 
   // native windows doesn't have "HOME"
-  // point to OBJTOP instead
   if (!sci_getenv("HOME")) {
-    sci_putenv("HOME", sci_getenv("SCIRUN_OBJDIR"));
+    // Use appropriate AppData directory (VISTA permissions) instead of OBJTOP (previous versions did this)
+    sci_putenv("HOME", appdata);
   }
-
-#ifdef _WIN32
-  // Check to make sure that srcdir, objdir, or thirdparty doesn't
-  // have any spaces.
-  if (srcdir.find(' ') != string::npos || 
-      objdir.find(' ') != string::npos || 
-      thirdpartydir.find(' ') != string::npos) {
-    cout << "\nError: SCIRun installed in a directory with spaces.\n";
-    cout << "SCIRun source dir: " << srcdir << endl;
-    cout << "SCIRun binary dir: " << objdir << endl;
-    cout << "SCIRun thirdparty dir: " << thirdpartydir << endl;
-    cout << "One of the above directories has spaces in its name.\nSCIRun will not function properly.\n" 
-         << "(Other applications might.)  Please reinstall in a location without spaces\n\n\n";
-  }
-#endif
 
   sci_putenv("SCIRUN_ITCL_WIDGETS", 
              MacroSubstitute(sci_getenv("SCIRUN_ITCL_WIDGETS")));
@@ -361,10 +379,17 @@ SCIRun::parse_rcfile( const string &rcfile )
     if( !fgets( line, 1023, filein ) ) break;
 
     int length = (int)strlen(line);
-    if( line[length-1] == '\n' ) {
+    if( line[length-1] == '\n' || line[length-1] == '\r' ) 
+    {
       // Replace CR with EOL.
       line[length-1] = 0;
     }
+    if( line[length-2] == '\n' || line[length-2] == '\r' ) 
+    {
+      // Replace CR with EOL.
+      line[length-2] = 0;
+    }
+
       
     // Skip commented out lines or blank lines
     if( emptyOrComment( line ) ) continue;
@@ -393,6 +418,8 @@ SCIRun::parse_rcfile( const string &rcfile )
   }
   fclose(filein);
   sci_putenv("SCIRUN_RC_PARSED","1");
+  sci_putenv("SCIRUN_RCFILE",rcfile);
+  
   return true;
 }
 
@@ -434,6 +461,82 @@ SCIRun::find_and_parse_rcfile(const string &rcfile)
 }
 
 
+bool
+SCIRun::update_rcfile(std::string key, std::string value)
+{
+  std::string filename = sci_getenv("SCIRUN_RCFILE");
+  if (filename.size() == 0) return (false);
+  
+   std::ifstream file;
+
+  try
+  {
+    file.open(filename.c_str());
+  }
+  catch(...)
+  {
+    return (false);
+  }
+
+  std::string line;
+  std::list<std::string> lines;
+  
+  bool found = false;
+        
+  while(!file.eof())
+  { 
+    std::getline(file,line);
+    size_t startloc = 0;
+    while (startloc < line.size() && ((line[startloc] == ' ')||(line[startloc] == '\t'))) startloc++;
+    size_t equalloc = line.find("=");
+    if (equalloc != std::string::npos)
+    {
+      std::string keyname = line.substr(startloc,equalloc-startloc);
+      size_t endloc = equalloc-startloc-1;
+      while (endloc >= 0 && ((keyname[endloc] == ' ')||(keyname[endloc] == '\t')) ) endloc--;
+      keyname = keyname.substr(0,endloc+1);
+      if ((keyname == key) || (keyname == ("# "+key)))
+      {
+        line = key + " = " + value;
+        found = true;
+      }
+    }
+    line += "\n";
+    lines.push_back(line);
+  }
+  file.close();
+  
+  if (found == false)
+  {
+    line = key + "=" + value + "\n";
+    lines.push_back(line);
+  }
+  
+  std::ofstream nfile;
+  
+  try
+  {
+    nfile.open(filename.c_str());
+  }
+  catch(...)
+  {
+    return (false);
+  }
+
+  std::list<std::string>::iterator it, it_end;
+  it = lines.begin();
+  it_end = lines.end();
+  
+  while(it != it_end)
+  {
+    nfile << (*it); ++it;
+  }
+
+  nfile.close();
+  return (true);
+}
+
+
 void
 SCIRun::copy_and_parse_scirunrc()
 {
@@ -458,7 +561,8 @@ SCIRun::copy_and_parse_scirunrc()
   }
 
   std::cout << "Copying " << srcRc << " to " << homerc << "\n";
-  if (copyFile(srcRc, homerc) == 0) {
+  if (copyFile(srcRc, homerc) == 0) 
+  {
     // If the scirunrc file was copied, then parse it.
     parse_rcfile(homerc);
   }

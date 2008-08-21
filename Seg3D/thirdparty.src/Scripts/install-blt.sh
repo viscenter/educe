@@ -118,15 +118,29 @@ if test "$BITS" = "64" && test "$OSNAME" = "Darwin"; then
     echo
 
     mv $DIR/src/blt/src/Makefile $DIR/src/blt/src/Makefile.old
-    sed -e 's:cc:cc -m64:g' $DIR/src/blt/src/Makefile.old >$DIR/src/blt/src/Makefile
+    sed -e 's:cc:cc -m64 -arch ppc64 -arch x86_64:g' $DIR/src/blt/src/Makefile.old >$DIR/src/blt/src/Makefile
     mv $DIR/src/blt/src/Makefile $DIR/src/blt/src/Makefile.old
-    sed -e 's:gcc -m64-:gcc-:g' $DIR/src/blt/src/Makefile.old >$DIR/src/blt/src/Makefile
+    sed -e 's:gcc -m64 -arch ppc64 -arch x86_64-:gcc-:g' $DIR/src/blt/src/Makefile.old >$DIR/src/blt/src/Makefile
     mv $DIR/src/blt/src/shared/Makefile $DIR/src/blt/src/shared/Makefile.old
-    sed -e 's:cc:cc -m64:g' $DIR/src/blt/src/shared/Makefile.old >$DIR/src/blt/src/shared/Makefile
+    sed -e 's:cc:cc -m64 -arch ppc64 -arch x86_64:g' $DIR/src/blt/src/shared/Makefile.old >$DIR/src/blt/src/shared/Makefile
     mv $DIR/src/blt/src/shared/Makefile $DIR/src/blt/src/shared/Makefile.old
-    sed -e 's:gcc -m64-:gcc-:g' $DIR/src/blt/src/shared/Makefile.old >$DIR/src/blt/src/shared/Makefile
+    sed -e 's:gcc -m64 -arch ppc64 -arch x86_64-:gcc-:g' $DIR/src/blt/src/shared/Makefile.old >$DIR/src/blt/src/shared/Makefile
 fi
 
+if test "$BITS" = "32" && test "$OSNAME" = "Darwin"; then 
+    echo
+    echo "#### FIXING MAKEFILE FOR 32bit DARWIN BUILD ####"
+    echo
+
+    mv $DIR/src/blt/src/Makefile $DIR/src/blt/src/Makefile.old
+    sed -e 's:cc:cc -arch ppc -arch i386:g' $DIR/src/blt/src/Makefile.old >$DIR/src/blt/src/Makefile
+    mv $DIR/src/blt/src/Makefile $DIR/src/blt/src/Makefile.old
+    sed -e 's:gcc -arch ppc -arch i386-:gcc-:g' $DIR/src/blt/src/Makefile.old >$DIR/src/blt/src/Makefile
+    mv $DIR/src/blt/src/shared/Makefile $DIR/src/blt/src/shared/Makefile.old
+    sed -e 's:cc:cc -arch ppc -arch i386:g' $DIR/src/blt/src/shared/Makefile.old >$DIR/src/blt/src/shared/Makefile
+    mv $DIR/src/blt/src/shared/Makefile $DIR/src/blt/src/shared/Makefile.old
+    sed -e 's:gcc -arch ppc -arch i386-:gcc-:g' $DIR/src/blt/src/shared/Makefile.old >$DIR/src/blt/src/shared/Makefile
+fi
 
 
 if test "$OSNAME" = "Darwin"; then

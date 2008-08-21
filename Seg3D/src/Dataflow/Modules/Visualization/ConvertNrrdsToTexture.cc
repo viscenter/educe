@@ -29,18 +29,58 @@
 //    Author : Milan Ikits
 //    Date   : Fri Jul 16 03:28:21 2004
 
-#include <Dataflow/Modules/Visualization/ConvertNrrdsToTexture.h>
-#include <Core/Containers/StringUtil.h>
-#include <Core/Malloc/Allocator.h>
 
-#include <Dataflow/Network/Ports/NrrdPort.h>
-
-#include <slivr/VideoCardInfo.h>
 #include <slivr/ShaderProgramARB.h>
+#include <slivr/VideoCardInfo.h>
+
+#include <Core/Containers/StringUtil.h>
+
+#include <Dataflow/Network/Module.h>
+#include <Dataflow/Network/Ports/NrrdPort.h>
+#include <Dataflow/Network/Ports/TexturePort.h>
+
+#include <Dataflow/Modules/Visualization/share.h>
 
 namespace SCIRun {
 
 using namespace SLIVR;
+
+class SCISHARE ConvertNrrdsToTexture : public Module
+{
+  public:
+    ConvertNrrdsToTexture(GuiContext* ctx, const std::string& name = "ConvertNrrdsToTexture",
+                          SchedClass sc = Source, const string& cat = "Visualization", 
+                          const string& pack = "SCIRun");
+    virtual ~ConvertNrrdsToTexture() {}
+    virtual void execute();
+
+  protected:
+    TextureHandle tHandle_;
+
+    GuiDouble gui_vminval_;
+    GuiDouble gui_vmaxval_;
+    GuiDouble gui_gminval_;
+    GuiDouble gui_gmaxval_;
+    GuiDouble gui_mminval_;
+    GuiDouble gui_mmaxval_;
+
+    GuiInt gui_fixed_;
+    GuiInt gui_card_mem_;
+    GuiInt gui_card_mem_auto_;
+    GuiInt gui_uchar_;
+
+    GuiInt gui_histogram_;    
+    GuiDouble gui_gamma_;
+
+    int card_mem_;
+    int is_uchar_;
+    int vnrrd_last_generation_;
+    int gnrrd_last_generation_;
+    int mnrrd_last_generation_;
+    double vminval_, vmaxval_;
+    double gminval_, gmaxval_;
+    double mminval_, mmaxval_;
+};
 
 DECLARE_MAKER(ConvertNrrdsToTexture)
   
@@ -102,29 +142,33 @@ ConvertNrrdsToTexture::execute()
   NrrdDataHandle gHandle;
   NrrdDataHandle mHandle;
   
-  if (!get_input_handle("Value Nrrd", vHandle)) return;
+  get_input_handle("Value Nrrd", vHandle,true);
 
   Nrrd* nv_nrrd = vHandle->nrrd_;
 
-  if (nv_nrrd->dim != 3 && nv_nrrd->dim != 4) {
+  if (nv_nrrd->dim != 3 && nv_nrrd->dim != 4) 
+  {
     error("Invalid dimension for input value nrrd.");
     return;
   }
 
   size_t axis_size[4];
   nrrdAxisInfoGet_nva(nv_nrrd, nrrdAxisInfoSize, axis_size);
-  if (nv_nrrd->dim == 4 && axis_size[0] != 1 && axis_size[0] != 4) {
+  if (nv_nrrd->dim == 4 && axis_size[0] != 1 && axis_size[0] != 4) 
+  {
     error("Invalid axis size for Normal/Value nrrd.");
     return;
   }
 
   // The input nrrd type must be unsigned char.
-  if (gui_uchar_.get() && vHandle->nrrd_->type != nrrdTypeUChar) {
+  if (gui_uchar_.get() && vHandle->nrrd_->type != nrrdTypeUChar) 
+  {
     error("Normal/Value input nrrd type must be unsigned char.");
     return;
   }
 
-  if( !gui_fixed_.get() ){
+  if( !gui_fixed_.get() )
+  {
     // set vmin/vmax
     NrrdRange *range = nrrdRangeNewSet(vHandle->nrrd_, nrrdBlind8BitRangeFalse);
 
@@ -145,12 +189,13 @@ ConvertNrrdsToTexture::execute()
     vmaxval_ = gui_vmaxval_.get();
 
     update = true;
-    if (tHandle_.get_rep() == 0) { tHandle_ = scinew Texture(); }
+    if (tHandle_.get_rep() == 0) { tHandle_ = new Texture(); }
   }
 
   // The gradient nrrd input is optional.
   if (get_input_handle("Gradient Magnitude Nrrd", gHandle, false))
   {
+    update_state(Executing);
     if (!ShaderProgramARB::shaders_supported()) 
     {
       // TODO: Runtime check, change message to reflect that.
@@ -220,77 +265,7 @@ ConvertNrrdsToTexture::execute()
     gnrrd_last_generation_ = -1;
   }
 
-/*
-  // The mask nrrd input is optional.
-  if (get_input_handle("Mask Nrrd", mHandle, false))
-  {
-    if (!ShaderProgramARB::shaders_supported()) 
-    {
-      // TODO: Runtime check, change message to reflect that.
-      warning("This machine does not support advanced volume rendering. The mask nrrd will be ignored.");
-      if( mnrrd_last_generation_ != -1 ) update = true;
-      mHandle = 0;
-      mnrrd_last_generation_ = -1;
 
-    } 
-    else 
-    {
-      Nrrd* mask_nrrd = mHandle->nrrd_;
-
-      if (mask_nrrd->dim != 3 && mask_nrrd->dim != 4) 
-      {
-        error("Invalid dimension for input mask nrrd.");
-        return;
-      }
-      
-      if( mask_nrrd->dim == 4 ) 
-      {
-        nrrdAxisInfoGet_nva(mask_nrrd, nrrdAxisInfoSize, axis_size);
-        if (axis_size[0] != 1) 
-        {
-          error("Invalid axis size for mask nrrd.");
-          return;
-        }
-      }
-
-      // The input nrrd type must be unsigned char.
-      if (gui_uchar_.get() && mHandle->nrrd_->type != nrrdTypeUChar) 
-      {
-        error("Mask input nrrd type must be unsigned char.");
-        return;
-      }
-
-      if( !gui_fixed_.get() )
-      {
-        // set mmin/mmax
-        NrrdRange *range =
-          nrrdRangeNewSet(mHandle->nrrd_, nrrdBlind8BitRangeFalse);
-
-        gui_mminval_.set(range->min);
-        gui_mmaxval_.set(range->max);
-      }
-	
-      // Check to see if the input gradient nrrd has changed.
-      if( mnrrd_last_generation_ != mHandle->generation  ||
-          (gui_mminval_.get() != mminval_) || 
-          (gui_mmaxval_.get() != mmaxval_) ) 
-      {
-        mnrrd_last_generation_ = mHandle->generation;
-          
-        mminval_ = gui_mminval_.get();
-        mmaxval_ = gui_mmaxval_.get();
-          
-        update = true;
-      }
-    }
-  } 
-  else 
-  {
-    if( mnrrd_last_generation_ != -1 ) update = true;
-
-    mnrrd_last_generation_ = -1;
-  }
-*/
   if( gui_uchar_.get() != is_uchar_ ) 
   {
     is_uchar_ = gui_uchar_.get();
@@ -298,11 +273,13 @@ ConvertNrrdsToTexture::execute()
     update = true;
   }
 
+  update_state(Executing);
+
   if (update) 
   {   
     Nrrd *v = 0;
     Nrrd *g = 0;
-    tHandle_ = scinew Texture;
+    tHandle_ = new Texture;
     if (vHandle.get_rep()) v = vHandle->nrrd_;
     if (gHandle.get_rep()) g = gHandle->nrrd_;
     tHandle_->build(v, g, vminval_, vmaxval_, 
@@ -317,7 +294,7 @@ ConvertNrrdsToTexture::execute()
   // Generate a reasonable histogram
   if (gHandle.get_rep() && gui_histogram_.get())
   {
-    NrrdDataHandle HistoGramNrrd = scinew NrrdData;
+    NrrdDataHandle HistoGramNrrd = new NrrdData;
 
     // build joint histogram
     size_t sx = 256;
@@ -404,7 +381,6 @@ ConvertNrrdsToTexture::execute()
 
     send_output_handle("JointHistoGram",HistoGramNrrd,true);
   }
-
 }
 
 } // namespace SCIRun

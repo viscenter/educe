@@ -26,12 +26,13 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+#include <Core/Algorithms/Math/LinearSystem/AddKnownsToLinearSystem.h>
+#include <Core/Algorithms/Fields/FieldData/GetFieldData.h>
 
 #include <Core/Datatypes/Field.h>
-#include <Core/Datatypes/Matrix.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
 #include <Dataflow/Network/Ports/MatrixPort.h>
-#include <Core/Algorithms/Math/MathAlgo.h>
+
 #include <Core/Algorithms/Fields/FieldsAlgo.h>
 #include <Dataflow/Network/Module.h>
 
@@ -40,9 +41,13 @@ namespace ModelCreation {
 using namespace SCIRun;
 
 class CreateFEDirichletBC : public Module {
-public:
-  CreateFEDirichletBC(GuiContext*);
-  virtual void execute();
+  public:
+    CreateFEDirichletBC(GuiContext*);
+    virtual void execute();
+
+  private:
+    SCIRunAlgo::AddKnownsToLinearSystemAlgo add_knowns_algo_;
+    SCIRunAlgo::GetFieldDataAlgo set_fielddata_algo_;
 };
 
 
@@ -50,6 +55,8 @@ DECLARE_MAKER(CreateFEDirichletBC)
 CreateFEDirichletBC::CreateFEDirichletBC(GuiContext* ctx)
   : Module("CreateFEDirichletBC", ctx, Source, "FiniteElements", "ModelCreation")
 {
+  add_knowns_algo_.set_progress_reporter(this);
+  set_fielddata_algo_.set_progress_reporter(this);
 }
 
 void CreateFEDirichletBC::execute()
@@ -62,12 +69,9 @@ void CreateFEDirichletBC::execute()
   get_input_handle("RHS",RHSin,false);
   
   if (inputs_changed_ || !oport_cached("FEMatrix") || !oport_cached("RHS"))
-  {
-    SCIRunAlgo::FieldsAlgo falgo(this);
-    SCIRunAlgo::MathAlgo malgo(this);
-    
-    if (!(falgo.GetFieldData(BCfield,BC))) return;
-    if (!(malgo.CreateFEDirichletBC(FEin,RHSin,BC,FEout,RHSout))) return;
+  {    
+    if (!(set_fielddata_algo_.run(BCfield,BC))) return;
+    if (!(add_knowns_algo_.run(FEin,RHSin,BC,FEout,RHSout))) return;
       
     send_output_handle("FEMatrix",FEout,false);
     send_output_handle("RHS",RHSout,false);

@@ -41,47 +41,47 @@ itcl_class Teem_Tend_TendSlice {
         if {[winfo exists $w]} {
             return
         }
-        toplevel $w
+        sci_toplevel $w
 
-        frame $w.f
-	pack $w.f -padx 2 -pady 2 -side top -expand yes
-	
-	frame $w.f.options
-	pack $w.f.options -side top -expand yes
+        sci_frame $w.f
+        pack $w.f -padx 2 -pady 2 -side top -expand yes
+        
+        sci_frame $w.f.options
+        pack $w.f.options -side top -expand yes
 
-	iwidgets::entryfield $w.f.options.axis \
-	    -labeltext "Axis:" \
-	    -textvariable $this-axis
+        sci_entryfield $w.f.options.axis \
+            -labeltext "Axis:" \
+            -textvariable $this-axis
         pack $w.f.options.axis -side top -expand yes -fill x
 	
 
-        iwidgets::entryfield $w.f.options.position \
-	    -labeltext "Position:" \
-	    -textvariable $this-position
+        sci_entryfield $w.f.options.position \
+          -labeltext "Position:" \
+          -textvariable $this-position
         pack $w.f.options.position -side top -expand yes -fill x
 
-	iwidgets::labeledframe $w.f.options.dimension \
-	    -labeltext "Dimension" \
-	    -labelpos nw
-	pack $w.f.options.dimension -side top -expand yes -fill x
-	
-	set dimension [$w.f.options.dimension childsite]
-	radiobutton $dimension.1 \
-	    -text "2 dimensional" \
-	    -variable $this-dimension \
-	    -value 2
+        sci_labeledframe $w.f.options.dimension \
+          -labeltext "Dimension" \
+          -labelpos nw
+        pack $w.f.options.dimension -side top -expand yes -fill x
+        
+        set dimension [$w.f.options.dimension childsite]
+        sci_radiobutton $dimension.1 \
+            -text "2 dimensional" \
+            -variable $this-dimension \
+            -value 2
 
-	radiobutton $dimension.2 \
-	    -text "3 dimensional" \
-	    -variable $this-dimension \
-	    -value 3
+        sci_radiobutton $dimension.2 \
+            -text "3 dimensional" \
+            -variable $this-dimension \
+            -value 3
 
-	pack $dimension.1 $dimension.2 \
-	    -side top -anchor nw -padx 3 -pady 3
+        pack $dimension.1 $dimension.2 \
+            -side top -anchor nw -padx 3 -pady 3
 
-	makeSciButtonPanel $w.f $w $this
-	moveToCursor $w
+        makeSciButtonPanel $w.f $w $this
+        moveToCursor $w
 
-	pack $w.f -expand 1 -fill x
+        pack $w.f -expand 1 -fill x
     }
 }

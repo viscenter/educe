@@ -114,13 +114,13 @@ itcl_class SCIRun_Visualization_ShowField {
 	 set ig [expr int([set $color-g] * 65535)]
 	 set ib [expr int([set $color-b] * 65535)]
 	 
-	 frame $frame.colorFrame
-	 frame $frame.colorFrame.col -relief ridge -borderwidth \
+	 sci_frame $frame.colorFrame
+	 sci_frame $frame.colorFrame.col -relief ridge -borderwidth \
 		 4 -height 0.8c -width 1.0c \
 		 -background [format #%04x%04x%04x $ir $ig $ib]
 	 
 	 set cmmd "$this raiseColor $frame.colorFrame.col $color $colMsg"
-	 button $frame.colorFrame.set_color \
+	 sci_button $frame.colorFrame.set_color \
 		 -text $text -command $cmmd
 	 
 	 #pack the node color frame
@@ -153,11 +153,11 @@ itcl_class SCIRun_Visualization_ShowField {
 			  -command "$this set_active_tab \"Nodes\""]
 	}
 	
-	checkbutton $node.show \
+	sci_checkbutton $node.show \
 		-text "Show Nodes" \
 		-command "$this-c toggle_display_nodes" \
 		-variable $this-nodes_on
-	checkbutton $node.transparency \
+	sci_checkbutton $node.transparency \
 		-text "Enable Transparency" \
 		-command "$this-c rerender_nodes" \
 		-variable $this-nodes_transparency
@@ -190,12 +190,12 @@ itcl_class SCIRun_Visualization_ShowField {
 	bind $node.slide.scale <ButtonRelease> \
 	    "$this-c nodes_scale; set $this-use_default_size 0"
 
-	iwidgets::labeledframe $node.resolution \
+	sci_labeledframe $node.resolution \
 	    -labelpos nw -labeltext "Resolution"
 	pack $node.resolution -side top -fill x -expand 1
 
 	set res [$node.resolution childsite]
-	scale $res.scale -orient horizontal -variable $this-nodes_resolution \
+	sci_scale $res.scale -orient horizontal -variable $this-nodes_resolution \
 	    -from 3 -to 20 -showvalue true -resolution 1
 	bind $res.scale <ButtonRelease> "$this-c rerender_nodes"
 	pack $res.scale -side top -fill both -expand 1
@@ -207,11 +207,11 @@ itcl_class SCIRun_Visualization_ShowField {
 	set edge [$dof.tabs add -label "Edges" \
 		-command "$this set_active_tab \"Edges\""]
 
-	checkbutton $edge.show \
+	sci_checkbutton $edge.show \
 		-text "Show Edges" \
 		-command "$this-c toggle_display_edges" \
 		-variable $this-edges_on
-	checkbutton $edge.transparency \
+	sci_checkbutton $edge.transparency \
 		-text "Enable Transparency" \
 		-command "$this-c rerender_edges" \
 		-variable $this-edges_transparency
@@ -239,12 +239,12 @@ itcl_class SCIRun_Visualization_ShowField {
 	bind $edge.slide.scale <ButtonRelease> \
 	    "$this-c edges_scale; set $this-use_default_size 0"
 
-	iwidgets::labeledframe $edge.resolution \
+	sci_labeledframe $edge.resolution \
 	    -labelpos nw -labeltext "Resolution"
 	pack $edge.resolution -side top -fill x -expand 1
 
 	set res [$edge.resolution childsite]
-	scale $res.scale -orient horizontal -variable $this-edges_resolution \
+	sci_scale $res.scale -orient horizontal -variable $this-edges_resolution \
 	    -from 3 -to 20 -showvalue true -resolution 1
 	bind $res.scale <ButtonRelease> "$this-c rerender_edges"
 	pack $res.scale -side top -fill both -expand 1
@@ -254,11 +254,11 @@ itcl_class SCIRun_Visualization_ShowField {
     method add_faces_tab {dof} {
 	set face [$dof.tabs add -label "Faces" \
 		-command "$this set_active_tab \"Faces\""]
-	checkbutton $face.show \
+	sci_checkbutton $face.show \
 		-text "Show Faces" \
 		-command "$this-c toggle_display_faces" \
 		-variable $this-faces_on
-	checkbutton $face.transparency \
+	sci_checkbutton $face.transparency \
 		-text "Enable Transparency" \
 		-command "$this-c rerender_faces" \
 		-variable $this-faces_transparency
@@ -270,13 +270,13 @@ itcl_class SCIRun_Visualization_ShowField {
 	    { {Default 0} {"Colormap Lookup" 1} \
 		  {"Conversion to RGB" 2} }
 
-	label $face.blank -text "  "
+	sci_label $face.blank -text "  "
 
-	checkbutton $face.normals \
+	sci_checkbutton $face.normals \
 		-text "Use Face Normals" \
 		-command "$this-c rerender_faces" \
 		-variable $this-faces_normals
- 	checkbutton $face.texture \
+ 	sci_checkbutton $face.texture \
  	        -text "Render Images as a texture (Colormap Only)" \
  	        -command "$this-c rerender_faces" \
  	        -variable $this-faces_usetexture
@@ -290,46 +290,46 @@ itcl_class SCIRun_Visualization_ShowField {
     method add_text_tab {dof} {
 	set text [$dof.tabs add -label "Text" \
 		-command "$this set_active_tab \"Text\""]
-	checkbutton $text.show_text \
+	sci_checkbutton $text.show_text \
 		-text "Show Text" \
 		-command "$this-c toggle_display_text" \
 		-variable $this-text_on
 
-	frame $text.def_col -borderwidth 2
+	sci_frame $text.def_col -borderwidth 2
 
-	checkbutton $text.backfacecull \
+	sci_checkbutton $text.backfacecull \
 	    -text "Cull backfacing text if possible" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_backface_cull
 
-	checkbutton $text.alwaysvisible \
+	sci_checkbutton $text.alwaysvisible \
 	    -text "Text always visible (not hidden by faces)" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_always_visible
 
-	checkbutton $text.locations \
+	sci_checkbutton $text.locations \
 	    -text "Render indices as locations" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_render_locations
 
-	frame $text.show 
-	checkbutton $text.show.data \
+	sci_frame $text.show 
+	sci_checkbutton $text.show.data \
 	    -text "Show data values" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_data
-	checkbutton $text.show.nodes \
+	sci_checkbutton $text.show.nodes \
 	    -text "Show node indices" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_nodes
-	checkbutton $text.show.edges \
+	sci_checkbutton $text.show.edges \
 	    -text "Show edge indices" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_edges
-	checkbutton $text.show.faces \
+	sci_checkbutton $text.show.faces \
 	    -text "Show face indices" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_faces
-	checkbutton $text.show.cells \
+	sci_checkbutton $text.show.cells \
 	    -text "Show cell indices" \
 	    -command "$this-c rerender_text" \
 	    -variable $this-text_show_cells
@@ -353,9 +353,9 @@ itcl_class SCIRun_Visualization_ShowField {
 	addColorSelection $text.def_col "Text Color" $this-text_color \
 	    "text_color_change"
 
-	frame $text.precision
-	label $text.precision.label -text "Text Precision  "
-	scale $text.precision.scale -orient horizontal \
+	sci_frame $text.precision
+	sci_label $text.precision.label -text "Text Precision  "
+	sci_scale $text.precision.scale -orient horizontal \
 	    -variable $this-text_precision -from 1 -to 16 \
 	    -showvalue true -resolution 1
 	bind $text.precision.scale <ButtonRelease> "$this-c rerender_text"
@@ -373,23 +373,23 @@ itcl_class SCIRun_Visualization_ShowField {
 	if {[winfo exists $window]} {
 	    return
 	}
-	toplevel $window
+	sci_toplevel $window
 	#wm minsize $window 380 548
 
-	#frame for all options to live
-	frame $window.options
+	#sci_frame for all options to live
+	sci_frame $window.options
  
-	# node frame holds ui related to vert display (left side)
-	frame $window.options.disp -borderwidth 2
+	# node sci_frame holds ui related to vert display (left side)
+	sci_frame $window.options.disp -borderwidth 2
 	pack $window.options.disp -padx 2 -pady 2 -side left \
 		-fill both -expand 1
 
 	# Display Options
-	iwidgets::labeledframe $window.options.disp.frame_title \
+	sci_labeledframe $window.options.disp.frame_title \
 		-labelpos nw -labeltext "Display Options"
 	set dof [$window.options.disp.frame_title childsite]
 
-	iwidgets::tabnotebook  $dof.tabs -height 420 -width 275 \
+	sci_tabnotebook  $dof.tabs -height 420 -width 275 \
 	    -raiseselect true 
 	#label $window.options.disp.frame_title -text "Display Options"
 
@@ -411,27 +411,27 @@ itcl_class SCIRun_Visualization_ShowField {
 	#pack notebook frame
 	pack $window.options.disp.frame_title -side top -expand yes -fill x
 	
-	#add bottom frame for execute and dismiss buttons
-	frame $window.control -relief groove -borderwidth 2 -width 500
-	frame $window.def
-	frame $window.def.vals
-	frame $window.def.col
-	frame $window.def.col.f
-	frame $window.def.col.le
+	#add bottom sci_frame for execute and dismiss buttons
+	sci_frame $window.control -relief groove -borderwidth 2 -width 500
+	sci_frame $window.def
+	sci_frame $window.def.vals
+	sci_frame $window.def.col
+	sci_frame $window.def.col.f
+	sci_frame $window.def.col.le
 
 	pack $window.def.col $window.def.vals -side left -padx 10
-	label $window.def.col.le.approxl -text "PWL Approx Div:"
-	entry $window.def.col.le.approx -textvar $this-approx_div -width 4
+	sci_label $window.def.col.le.approxl -text "PWL Approx Div:"
+	sci_entry $window.def.col.le.approx -textvar $this-approx_div -width 4
 
 	bind $window.def.col.le.approx <KeyRelease> "$this-c approx"
 
 	addColorSelection $window.def.col.f "Default Color" \
 	    $this-def_color "default_color_change"
 
-	checkbutton $window.def.vals.use_defaults \
+	sci_checkbutton $window.def.vals.use_defaults \
 		-text "Use Default Size" \
 		-variable $this-use_default_size
-	button $window.def.vals.calcdefs -text "Calculate Default Size" \
+	sci_button $window.def.vals.calcdefs -text "Calculate Default Size" \
 		-command "$this-c calcdefs; set $this-use_default_size 1"
 
 	pack $window.def.col.f $window.def.col.le -side top -pady 2 -anchor w
@@ -439,10 +439,10 @@ itcl_class SCIRun_Visualization_ShowField {
 	pack $window.def.vals.use_defaults $window.def.vals.calcdefs \
 	    -side top -pady 2
 
-	frame $window.fname -borderwidth 2
-	label $window.fname.label -text "Field Name"
-	entry $window.fname.entry -textvar $this-field_name
-	checkbutton $window.fname.override \
+	sci_frame $window.fname -borderwidth 2
+	sci_label $window.fname.label -text "Field Name"
+	sci_entry $window.fname.entry -textvar $this-field_name
+	sci_checkbutton $window.fname.override \
 	    -text "Override" \
 	    -command "$this-c rerender_all" \
 	    -variable $this-field_name_override
@@ -481,12 +481,13 @@ itcl_class SCIRun_Visualization_ShowField {
 
 	pack $window.control.exc_policy -side top -fill both
 
-	frame $window.control.excdis -borderwidth 2
+	sci_frame $window.control.excdis -borderwidth 2
 	pack $window.control.excdis -padx 4 -pady 4 -side top -fill both
 
-	makeSciButtonPanel $window.control.excdis $window $this
+	pack $window.control -padx 4 -pady 4 -side top -fill both
+
+	makeSciButtonPanel $window $window $this
 	moveToCursor $window
 
-	pack $window.control -padx 4 -pady 4 -side top -fill both
     }
 }

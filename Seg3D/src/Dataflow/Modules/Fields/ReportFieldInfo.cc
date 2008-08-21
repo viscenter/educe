@@ -43,42 +43,43 @@ namespace ModelCreation {
 using namespace SCIRun;
 
 class ReportFieldInfo : public Module {
-private:
-  GuiString gui_fldname_;
-  GuiString gui_generation_;
-  GuiString gui_typename_;
-  GuiString gui_datamin_;
-  GuiString gui_datamax_;
-  GuiString gui_numnodes_;
-  GuiString gui_numelems_;
-  GuiString gui_numdata_;
-  GuiString gui_dataat_;
-  GuiString gui_cx_;
-  GuiString gui_cy_;
-  GuiString gui_cz_;
-  GuiString gui_sizex_;
-  GuiString gui_sizey_;
-  GuiString gui_sizez_;
-  GuiString gui_nodesx_;
-  GuiString gui_nodesy_;
-  GuiString gui_nodesz_;
-  
+  public:
+    ReportFieldInfo(GuiContext* ctx);
+    virtual ~ReportFieldInfo() {}
+    
+    virtual void execute();
+  private:
+    GuiString gui_fldname_;
+    GuiString gui_generation_;
+    GuiString gui_typename_;
+    GuiString gui_datamin_;
+    GuiString gui_datamax_;
+    GuiString gui_numnodes_;
+    GuiString gui_numelems_;
+    GuiString gui_numdata_;
+    GuiString gui_dataat_;
+    GuiString gui_cx_;
+    GuiString gui_cy_;
+    GuiString gui_cz_;
+    GuiString gui_sizex_;
+    GuiString gui_sizey_;
+    GuiString gui_sizez_;
+    GuiString gui_nodesx_;
+    GuiString gui_nodesy_;
+    GuiString gui_nodesz_;
+    
 
-  double min_;
-  double max_;
-  Point  center_;
-  Vector size_;
-  Vector dimensions_;
-  int    numelems_;
-  int    numnodes_;
-  int    numdata_;
-  
-  void clear_vals();
-  void update_input_attributes(FieldHandle);
-
-public:
-  ReportFieldInfo(GuiContext* ctx);
-  virtual void execute();
+    double min_;
+    double max_;
+    Point  center_;
+    Vector size_;
+    Vector dimensions_;
+    int    numelems_;
+    int    numnodes_;
+    int    numdata_;
+    
+    void clear_vals();
+    void update_input_attributes(FieldHandle);
 };
 
 
@@ -238,17 +239,14 @@ ReportFieldInfo::update_input_attributes(FieldHandle f)
     gui_numelems_.set(to_string(numelems_));
     gui_numdata_.set(to_string(numdata_));
 
-    if (vmesh->is_structuredmesh()||vmesh->is_regularmesh())
-    {
-      VMesh::dimension_type dim;
-      vmesh->get_dimensions(dim);
-      dimensions_ = Vector(1.0,1.0,1.0);
-      for (size_t p=0;p<dim.size();p++) dimensions_[p] = static_cast<double>(dim[p]);
+    VMesh::dimension_type dim;
+    vmesh->get_dimensions(dim);
+    dimensions_ = Vector(1.0,1.0,1.0);
+    for (size_t p=0;p<dim.size();p++) dimensions_[p] = static_cast<double>(dim[p]);
 
-      gui_nodesx_.set(to_string(dimensions_.x()));
-      if (dim.size()>1) gui_nodesy_.set(to_string(dimensions_.y())); else gui_nodesy_.set("-- N/A --");
-      if (dim.size()>2) gui_nodesz_.set(to_string(dimensions_.z())); else gui_nodesz_.set("-- N/A --");      
-    }
+    gui_nodesx_.set(to_string(dimensions_.x()));
+    if (dim.size()>1) gui_nodesy_.set(to_string(dimensions_.y())); else gui_nodesy_.set("-- N/A --");
+    if (dim.size()>2) gui_nodesz_.set(to_string(dimensions_.z())); else gui_nodesz_.set("-- N/A --");      
 
   }
 }

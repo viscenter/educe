@@ -101,6 +101,22 @@ public:
     }
   }
 
+  //! Extend the bounding box on all sides by a margin
+  //! For example to expand it by a certain epsilon to make
+  //! sure that a lookup will be inside the bounding box
+  inline void extend(double val)
+  {
+    if (is_valid_)
+    {
+      cmin_.x(cmin_.x()-val); 
+      cmin_.y(cmin_.y()-val); 
+      cmin_.z(cmin_.z()-val); 
+      cmax_.x(cmax_.x()+val); 
+      cmax_.y(cmax_.y()+val); 
+      cmax_.z(cmax_.z()+val);     
+    }
+  }
+
   //! Expand the bounding box to include a sphere of radius radius
   //! and centered at point p
   inline void extend(const Point& p, double radius)
@@ -136,14 +152,14 @@ public:
   inline Point center() const  
     { assert(is_valid_); Vector d = diagonal(); return cmin_ + (d * 0.5); }
   
-  inline double longest_edge()
+  inline double longest_edge() const
   {
     assert(is_valid_);
     Vector diagonal(cmax_-cmin_);
     return Max(diagonal.x(), diagonal.y(), diagonal.z());
   }
 
-  inline double shortest_edge()
+  inline double shortest_edge() const
   {
     assert(is_valid_);
     Vector diagonal(cmax_-cmin_);
@@ -157,10 +173,10 @@ public:
   void scale(double s, const Vector &o);
 
   inline Point min() const
-    { assert(is_valid_); return cmin_; }
+    { return cmin_; }
   
   inline Point max() const
-    { assert(is_valid_); return cmax_; }
+    { return cmax_; }
 
   inline Vector diagonal() const
     { assert(is_valid_); return cmax_-cmin_; }

@@ -477,14 +477,14 @@ public:
  
   //! get area
   template <class ElemData>
-    double get_area(const unsigned face, const ElemData &cd) const  
+  double get_area(const unsigned face, const ElemData &cd) const  
   {
     return get_area3<QuadGaussian3<double> >(this, face, cd);
   }
   
   //! get volume
   template <class ElemData>
-    double get_volume(const ElemData & cd) const  
+  double get_volume(const ElemData & cd) const  
   {
     return get_volume3(this, cd);
   }
@@ -501,9 +501,9 @@ get_type_description(HexTrilinearLgn<T> *)
   static TypeDescription* td = 0;
   if(!td){
     const TypeDescription *sub = get_type_description((T*)0);
-    TypeDescription::td_vec *subs = scinew TypeDescription::td_vec(1);
+    TypeDescription::td_vec *subs = new TypeDescription::td_vec(1);
     (*subs)[0] = sub;
-    td = scinew TypeDescription("HexTrilinearLgn", subs, 
+    td = new TypeDescription("HexTrilinearLgn", subs, 
 				std::string(__FILE__),
 				"SCIRun", 
 				TypeDescription::BASIS_E);

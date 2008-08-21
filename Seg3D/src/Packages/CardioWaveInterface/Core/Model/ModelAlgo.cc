@@ -34,7 +34,19 @@
 #include <Core/Algorithms/Converter/ConverterAlgo.h>
 #include <Core/Algorithms/Regression/RegressionAlgo.h>
 #include <Core/Datatypes/MatrixOperations.h>
+
 #include <Core/Algorithms/Math/MathAlgo.h>
+
+#include <Core/Algorithms/Math/SortMatrix/SortMatrix.h>
+#include <Core/Algorithms/Math/ReorderMatrix/ReorderMatrix.h>
+#include <Core/Algorithms/Math/SelectMatrix/SelectMatrix.h>
+#include <Core/Algorithms/Math/FindMatrix/FindMatrix.h>
+#include <Core/Algorithms/Math/AppendMatrix/AppendMatrix.h>
+#include <Core/Algorithms/Math/MappingMatrix/ConvertMappingMatrixIntoMappingOrder.h>
+#include <Core/Algorithms/Math/MappingMatrix/ConvertMappingOrderIntoMappingMatrix.h>
+#include <Core/Algorithms/FiniteElements/Mapping/BuildFEGridMapping.h>
+#include <Core/Algorithms/FiniteElements/BuildMatrix/BuildFEMatrix.h>
+
 #include <fstream>
 
 namespace CardioWaveInterface {
@@ -68,17 +80,28 @@ bool ModelAlgo::DMDOptimizeByCoordinate(std::string optim_coord, FieldHandle Ele
 {
   remark("DMDBuildSimulation: Optimize by coordinate");
   FieldsAlgo falgo(pr_);
-  MathAlgo   malgo(pr_);
   DataIOAlgo dalgo(pr_);
  
+  SCIRunAlgo::ConvertMappingMatrixIntoMappingOrderAlgo mapping_algo_;
+  mapping_algo_.set_progress_reporter(pr_);
+  SCIRunAlgo::ConvertMappingOrderIntoMappingMatrixAlgo imapping_algo_;
+  imapping_algo_.set_progress_reporter(pr_);  
+  SCIRunAlgo::SelectMatrixAlgo select_algo_;
+  select_algo_.set_progress_reporter(pr_);
+  SCIRunAlgo::AppendMatrixAlgo append_algo_;
+  append_algo_.set_progress_reporter(pr_);
+  SCIRunAlgo::SortMatrixAlgo sort_algo_;
+  sort_algo_.set_progress_reporter(pr_);  
+  
   MatrixHandle Coords;
   if(!(falgo.GetFieldNodes(ElementType,Coords))) return (false);
 
   if (CompToGeom.get_rep())
   {
     std::vector<Matrix::index_type> order;
-    if(!(malgo.ConvertMappingMatrixIntoMappingOrder(CompToGeom,order))) return (false);
-    if(!(malgo.SelectMatrixRows(Coords,Coords,order))) return (false);
+    if(!(mapping_algo_.run(CompToGeom,order))) return (false);
+    select_algo_.set_option("method","select_rows");
+    if(!(select_algo_.run(Coords,Coords,order))) return (false);
   }
   
   for (size_t p=0; p<Membranes.size();p++)
@@ -93,10 +116,12 @@ bool ModelAlgo::DMDOptimizeByCoordinate(std::string optim_coord, FieldHandle Ele
     {
       nodesused.push_back(MembraneTables[p][q].node0);
     }
-    if(!(malgo.SelectMatrixRows(MCoords,MCoords,nodesused))) return (false);
     
-    std::vector<Matrix::index_type> dummy;
-    if(!(malgo.MatrixAppendRows(Coords,Coords,MCoords,dummy))) return (false);
+    select_algo_.set_option("method","select_rows");
+    if(!(select_algo_.run(MCoords,MCoords,nodesused))) return (false);
+    
+    append_algo_.set_option("method","append_rows");
+    if(!(append_algo_.run(Coords,Coords,MCoords))) return (false);
   }
 
   MatrixHandle S;
@@ -108,12 +133,14 @@ bool ModelAlgo::DMDOptimizeByCoordinate(std::string optim_coord, FieldHandle Ele
 */
   std::vector<Matrix::index_type> sel(1); sel[0] = 2; 
   
-  if(!(malgo.MatrixSelectColumns(Coords,Coords,sel))) return (false);
+  select_algo_.set_option("method","select_columns");
+  if(!(select_algo_.run(Coords,Coords,sel))) return (false);
 
+  sort_algo_.set_option("method","sort_rows");
   std::vector<Matrix::index_type> order;
-  if(!(malgo.GetSortOrderMatrixRows(Coords,order))) return (false);  
+  if(!(sort_algo_.run(Coords,order))) return (false);  
 
-  if(!(malgo.ConvertMappingOrderIntoMappingMatrix(order,Reorder))) return (false);
+  if(!(imapping_algo_.run(order,Reorder))) return (false);
   
   remark("DMDBuildSimulation: Optimize by coordinate done");
   
@@ -121,22 +148,31 @@ bool ModelAlgo::DMDOptimizeByCoordinate(std::string optim_coord, FieldHandle Ele
 }
 
 
-bool ModelAlgo::DMDBuildMembraneMatrix(std::vector<MembraneTable>& membranetable, std::vector<double>& nodetypes, Matrix::index_type num_volumenodes, Matrix::index_type num_synnodes, MatrixHandle& NodeType, MatrixHandle& Volume, MatrixHandle& MembraneMatrix)
+bool ModelAlgo::DMDBuildMembraneMatrix(std::vector<MembraneTable>& membranetable, std::vector<double>& nodetypes, std::vector<double>& cmvalues, Matrix::index_type num_volumenodes, Matrix::index_type num_synnodes, MatrixHandle& NodeType, MatrixHandle& Volume, MatrixHandle& Capacitance,MatrixHandle& MembraneMatrix)
 {
   SCIRunAlgo::MathAlgo mathalgo(pr_);
   Matrix::index_type num_totalnodes = num_volumenodes + num_synnodes;
   
   // Build a vector for the surface areas
-  Volume = dynamic_cast<Matrix*>(scinew DenseMatrix(num_totalnodes,1));
+  Volume = dynamic_cast<Matrix*>(new DenseMatrix(num_totalnodes,1));
   if (Volume.get_rep() == 0)
   {
     error("DMDBuildSimulation: Could not allocate Volume Vector Matrix");
     return (false);
   }
   double* volumeptr = Volume->get_data_pointer();
+
+
+  Capacitance = dynamic_cast<Matrix*>(new DenseMatrix(num_totalnodes,1));
+  if ( Capacitance.get_rep() == 0)
+  {
+    error("DMDBuildSimulation: Could not allocate Capacitance Vector Matrix");
+    return (false);
+  }
+  double* capacitanceptr = Capacitance->get_data_pointer();
   
   // Build a vector for the node types
-  NodeType = dynamic_cast<Matrix*>(scinew DenseMatrix(num_totalnodes,1));
+  NodeType = dynamic_cast<Matrix*>(new DenseMatrix(num_totalnodes,1));
   if (NodeType.get_rep() == 0)
   {
     error("DMDBuildSimulation: Could not allocate Volume Vector Matrix");
@@ -146,6 +182,7 @@ bool ModelAlgo::DMDBuildMembraneMatrix(std::vector<MembraneTable>& membranetable
   
   for (Matrix::index_type p=0; p<num_totalnodes;p++) nodetypeptr[p] = 0.0;
   for (Matrix::index_type p=0; p<num_totalnodes;p++) volumeptr[p] = 0.0;
+  for (Matrix::index_type p=0; p<num_totalnodes;p++) capacitanceptr[p] = 0.0;
   
   // Build the Membrane connections
 
@@ -162,6 +199,7 @@ bool ModelAlgo::DMDBuildMembraneMatrix(std::vector<MembraneTable>& membranetable
       sev[k].col = synnum;
       sev[k].val = 1.0;
       volumeptr[synnum] = membranetable[p][q].surface;
+      capacitanceptr[synnum] = cmvalues[p];
       nodetypeptr[synnum] = nodetypes[p];
       k++;  
       sev[k].row = membranetable[p][q].node1;
@@ -227,7 +265,7 @@ bool ModelAlgo::DMDBuildReferenceTable(FieldHandle ElementType, FieldHandle Refe
 
 bool ModelAlgo::DMDReferenceTableToMatrix(ReferenceTable ReferenceTable,MatrixHandle& M)
 {
-  M = dynamic_cast<Matrix *>(scinew DenseMatrix(ReferenceTable.size(),2));
+  M = dynamic_cast<Matrix *>(new DenseMatrix(ReferenceTable.size(),2));
   if (M.get_rep() == 0) return(false);
   double *dataptr = M->get_data_pointer();
   
@@ -244,7 +282,7 @@ bool ModelAlgo::DMDReferenceTableToMatrix(ReferenceTable ReferenceTable,MatrixHa
 
 bool ModelAlgo::DMDStimulusTableToMatrix(StimulusTable StimulusTable,MatrixHandle& M)
 {
-  M = dynamic_cast<Matrix *>(scinew DenseMatrix(StimulusTable.size(),2));
+  M = dynamic_cast<Matrix *>(new DenseMatrix(StimulusTable.size(),2));
   if (M.get_rep() == 0) return(false);
   double *dataptr = M->get_data_pointer();
   
@@ -261,7 +299,7 @@ bool ModelAlgo::DMDStimulusTableToMatrix(StimulusTable StimulusTable,MatrixHandl
 
 bool ModelAlgo::DMDMembraneTableToMatrix(MembraneTable MembraneTable,MatrixHandle& M)
 {
-  M = dynamic_cast<Matrix *>(scinew DenseMatrix(MembraneTable.size(),4));
+  M = dynamic_cast<Matrix *>(new DenseMatrix(MembraneTable.size(),4));
   if (M.get_rep() == 0) return(false);
   double *dataptr = M->get_data_pointer();
   
@@ -329,6 +367,7 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
   std::string filename_nodetype;    // A vector with the nodetype for each node in the system
   std::string filename_potential0;  // A vector with the domaintype for each node in the system
   std::string filename_surface;     // Surface factors for the cell membrane
+  std::string filename_capacitance; // Capacitance factors for the cell membrane
   std::string filename_in;          // Parameter file
   std::string filename_script;      // The script to build simulation
   std::string filename_membrane;    // Membrane description (geometry)
@@ -359,6 +398,7 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
   filename_nodetype  = filenamebase + ".nt.bvec";
   filename_potential0= filenamebase + ".vm0.vec";
   filename_surface   = filenamebase + ".area.vec";
+  filename_capacitance= filenamebase + ".cap.vec";
   filename_in        = filenamebase + ".in";
   filename_script    = filenamebase + ".script.sh";
   filename_membrane  = filenamebase + ".mem.txt";
@@ -417,8 +457,9 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
     infile << "stimfile=" << rel_filename << "\n";
     rel_filename = filename_electrode; pos = 0; while (pos!=string::npos) { pos = rel_filename.find('/'); rel_filename = rel_filename.substr(pos+1); }
     infile << "electrodefile="<< rel_filename << "\n";
+    rel_filename = filename_capacitance; pos = 0; while (pos!=string::npos) { pos = rel_filename.find('/'); rel_filename = rel_filename.substr(pos+1); }
+    infile << "cmfile=" << rel_filename << "\n";
 
-    
     if (debug) infile << "debug=4" << "\n"; else infile << "debug=0" << "\n";
     
     remark("Created parameter file");
@@ -444,7 +485,7 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
     
     scriptfile << "perl nw_make.pl " << SourceFile->get() << "\n";    
     
-    Script = scinew String("perl nw_make.pl "+ string(SourceFile->get()));
+    Script = new String("perl nw_make.pl "+ string(SourceFile->get()));
 
     remark("Created script file");
   }
@@ -498,6 +539,7 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
 
   std::vector<FieldHandle> Membranes; // Collect all the Membrane Geometries in one vector
   std::vector<double>      nodetypes; // Get the corresponding nodetype as well
+  std::vector<double>      cmvalues; // Get the capacitance values
 
   std::vector<FieldHandle> References;      // Collect all the Geometries of the References in here
   std::vector<double>      referencevalues;
@@ -538,6 +580,7 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
     {
       BundleHandle MembraneBundle = SimulationBundle->getBundle(bundlename);
       FieldHandle Geometry = MembraneBundle->getField("Geometry");
+      MatrixHandle Capacitance = MembraneBundle->getMatrix("Capacitance");
       
       std::istringstream iss(bundlename.substr(9));
       double num;
@@ -561,6 +604,15 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
       else
       {
         warning("DMDBuildSimulation: One of the membrane fields misses a Geometry or a NodeType");
+      }
+      
+      if (Capacitance.get_rep())
+      {
+        cmvalues.push_back(Capacitance->get(0,0));  
+      }
+      else
+      {
+        cmvalues.push_back(1.0);
       }
     }
 
@@ -768,10 +820,13 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
   // Optional linkage of boundaries
   if (NodeLink.get_rep())
   {
-    if(!(fieldsalgo.CreateLinkBetweenMeshAndCompGridByDomain(ElementType,
-							     NodeLink,
-							     GeomToComp,
-							     CompToGeom)))
+    BuildFEGridMappingAlgo build_mapping_;
+    build_mapping_.set_progress_reporter(pr_);
+    MatrixHandle Dummy1, Dummy2;
+    
+    build_mapping_.set_bool("build_potential_geomtogrid",false);
+    build_mapping_.set_bool("build_current_gridtogeom",false);
+    if(!(build_mapping_.run(ElementType,NodeLink,Dummy1,CompToGeom,GeomToComp,Dummy2)))
     {
       error("DMDBuildSimulation: Could not build computational grid to geometrical mesh linkage matrices");
       return (false);  
@@ -959,11 +1014,17 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
   // them.
   MatrixHandle fematrix;
   MatrixHandle synmatrix;
-  if(!(mathalgo.BuildFEMatrix(Conductivity,fematrix,-1,ConductivityTable,GeomToComp,CompToGeom)))
+  
+  SCIRunAlgo::BuildFEMatrixAlgo femalgo;
+  femalgo.set_progress_reporter(pr_);
+  
+  if(!(femalgo.run(Conductivity,ConductivityTable,fematrix)))
   {
     error("DMDBuildSimulation: Could not build FE Matrix");
     return(false);
   }
+  
+  fematrix = GeomToComp*fematrix*CompToGeom;
   
   remark("Created the stiffness matrix");
   
@@ -981,6 +1042,7 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
   remark("Resized the stiffness matrix");
   
   MatrixHandle VolumeVec;
+  MatrixHandle CapacitanceVec;
   MatrixHandle NodeType;
   MatrixHandle Potential0;
 
@@ -1013,7 +1075,7 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
   }
 
   
-  if (!(DMDBuildMembraneMatrix(membranetable,nodetypes,num_volumenodes,num_synnodes,NodeType,VolumeVec,synmatrix)))
+  if (!(DMDBuildMembraneMatrix(membranetable,nodetypes,cmvalues,num_volumenodes,num_synnodes,NodeType,VolumeVec,CapacitanceVec,synmatrix)))
   {
     error("DMDBuildSimulation: Could not build Synapse matrix");
     return (false); 
@@ -1150,6 +1212,7 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
   // Reorder domain properties
   NodeType = mapping*NodeType;
   if (Potential0.get_rep()) Potential0 = mapping*Potential0;
+  CapacitanceVec = mapping*CapacitanceVec;
   VolumeVec = mapping*VolumeVec;
 
   if (!(dataioalgo.WriteMatrix(filename_mapping,mapping,"CardioWave Sparse Matrix")))
@@ -1163,7 +1226,14 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
     error("DMDBuildSimulation: Could not write system matrix");  
     return (false);
   }
+
   if (!(dataioalgo.WriteMatrix(filename_surface,VolumeVec,"CardioWave FP Vector")))
+  {
+    error("DMDBuildSimulation: Could not write volume vector");  
+    return (false);
+  }
+
+  if (!(dataioalgo.WriteMatrix(filename_capacitance,CapacitanceVec,"CardioWave FP Vector")))
   {
     error("DMDBuildSimulation: Could not write volume vector");  
     return (false);
@@ -1341,10 +1411,10 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
   remark("Renumbered membrane mapping matrices"); 
 
 
-  VisualizationBundle = scinew Bundle();
-  BundleHandle VolumeField = scinew Bundle();
-  BundleHandle ElementTypeField = scinew Bundle();
-  BundleHandle ConductivityField = scinew Bundle();
+  VisualizationBundle = new Bundle();
+  BundleHandle VolumeField = new Bundle();
+  BundleHandle ElementTypeField = new Bundle();
+  BundleHandle ConductivityField = new Bundle();
 
 
   VolumeField->setMatrix("Mapping",ElementMapping);
@@ -1360,7 +1430,7 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
     std::ostringstream oss;
     oss << "Membrane_" << p;
     
-    BundleHandle MembraneBundle = scinew Bundle;
+    BundleHandle MembraneBundle = new Bundle;
     if (MembraneBundle.get_rep() == 0)
     { 
       error("DMDBuildSimulation: Could not allocate new output bundle");
@@ -1376,6 +1446,10 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
   std::vector<Matrix::index_type> columnselection;
   std::vector<std::vector<Matrix::index_type> > indices(num_electrodes);   
 
+  SCIRunAlgo::SelectMatrixAlgo select_algo_;
+  select_algo_.set_progress_reporter(pr_);
+  SCIRunAlgo::AppendMatrixAlgo append_algo_;
+  
   for (size_t p=0; p < num_electrodes; p++)
   {
     MatrixHandle LocalMapping;
@@ -1391,13 +1465,15 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
         return (false);
       }
 
-      if(!(mathalgo.SelectMatrixRows(membranemapping[electrodemembrane[p]],LocalMapping,rowselection)))
+      select_algo_.set_option("method","select_rows");
+      if(!(select_algo_.run(membranemapping[electrodemembrane[p]],LocalMapping,rowselection)))
       {
         error("DMDBuildSimulation: Could not select rows from mapping matrix for electrodes of "+oss.str());
         return (false);
       }
 
-      if(!(mathalgo.MatrixAppendRows(Mapping,Mapping,LocalMapping,indices[p])))
+      append_algo_.set_option("method","append_rows");
+      if(!(append_algo_.run(Mapping,Mapping,LocalMapping,indices[p])))
       {
         error("DMDBuildSimulation: Could not append rows to mapping matrix for electrodes of "+oss.str());
         return (false);      
@@ -1411,13 +1487,15 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
         return (false);      
       }
 
-      if(!(mathalgo.SelectMatrixRows(ElementMapping,LocalMapping,rowselection)))
+      select_algo_.set_option("method","select_rows");
+      if(!(select_algo_.run(ElementMapping,LocalMapping,rowselection)))
       {
         error("DMDBuildSimulation: Could not select rows from mapping matrix for electrodes of "+oss.str());
         return (false);
       }      
 
-      if(!(mathalgo.MatrixAppendRows(Mapping,Mapping,LocalMapping,indices[p])))
+      append_algo_.set_option("method","append_rows");
+      if(!(append_algo_.run(Mapping,Mapping,LocalMapping,indices[p])))
       {
         error("DMDBuildSimulation: Could not append rows to mapping matrix for electrodes of "+oss.str());
         return (false);      
@@ -1426,15 +1504,20 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
     }
   }
 
+  SCIRunAlgo::FindMatrixAlgo find_algo_;
+  find_algo_.set_progress_reporter(pr_);
+  
   if (num_electrodes >0)
   {
-    if (!(mathalgo.FindNonZeroMatrixColumns(Mapping,columnselection)))
+    find_algo_.set_option("method","find_nonzerocolumns");
+    if (!(find_algo_.run(Mapping,columnselection)))
     {
       error("DMDBuildSimulation: Could not find non zero rows in mapping matrix");
       return (false);      
     }
     
-    if (!(mathalgo.SelectMatrixColumns(Mapping,Mapping,columnselection)))
+    select_algo_.set_option("method","select_columns");
+    if (!(select_algo_.run(Mapping,Mapping,columnselection)))
     {
       error("DMDBuildSimulation: Could not select non zero rows in mapping matrix");
       return (false);      
@@ -1462,9 +1545,10 @@ bool ModelAlgo::DMDBuildSimulation(BundleHandle SimulationBundle, StringHandle F
     oss << "Electrode_" << p;  
     
     MatrixHandle EMapping;
-    mathalgo.SelectMatrixRows(Mapping,EMapping,indices[p]);
+    select_algo_.set_option("method","select_rows");
+    select_algo_.run(Mapping,EMapping,indices[p]);
   
-    BundleHandle ElectrodeBundle = scinew Bundle;
+    BundleHandle ElectrodeBundle = new Bundle;
     ElectrodeBundle->setField("Field",Electrodes[p]);
     ElectrodeBundle->setMatrix("Mapping",EMapping);
     VisualizationBundle->setBundle(oss.str(),ElectrodeBundle);

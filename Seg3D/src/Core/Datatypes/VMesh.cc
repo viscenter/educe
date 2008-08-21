@@ -351,6 +351,40 @@ VMesh::get_delems(DElem::array_type& delems, DElem::index_type i) const
   delems[0] = i;
 }
 
+
+bool 
+VMesh::get_elem(Elem::index_type& elem, Node::array_type& nodes) const
+{
+  ASSERTFAIL("VMesh interface: get_elem(Elem::index_type,Node::array_type) has not been implemented");
+}
+
+bool 
+VMesh::get_delem(DElem::index_type& delem, Node::array_type& nodes) const
+{
+  ASSERTFAIL("VMesh interface: get_delem(DElem::index_type,Node::array_type) has not been implemented");
+}
+
+bool 
+VMesh::get_cell(Cell::index_type& cell, Node::array_type& nodes) const
+{
+  ASSERTFAIL("VMesh interface: get_elem(Cell::index_type,Node::array_type) has not been implemented");
+}
+
+bool 
+VMesh::get_face(Face::index_type& face, Node::array_type& nodes) const
+{
+  ASSERTFAIL("VMesh interface: get_elem(Face::index_type,Node::array_type) has not been implemented");
+}
+
+bool 
+VMesh::get_edge(Edge::index_type& edge, Node::array_type& nodes) const
+{
+  ASSERTFAIL("VMesh interface: get_elem(Edge::index_type,Node::array_type) has not been implemented");
+}
+
+
+
+
 void 
 VMesh::get_center(Point &point, Node::index_type i) const
 {
@@ -394,15 +428,15 @@ VMesh::get_center(Point &point, DElem::index_type i) const
 }
 
 void 
-VMesh::get_centers(points_type &points, Node::array_type& array) const
+VMesh::get_centers(Point* points, Node::array_type& array) const
 {
-  ASSERTFAIL("VMesh interface: get_centers(points_type,Node::array_type) has not been implemented");
+  ASSERTFAIL("VMesh interface: get_centers(Point*,Node::array_type) has not been implemented");
 }
 
 void 
-VMesh::get_centers(points_type &points, Elem::array_type& array) const
+VMesh::get_centers(Point* points, Elem::array_type& array) const
 {
-  ASSERTFAIL("VMesh interface: get_centers(points_type,Elem::array_type) has not been implemented");
+  ASSERTFAIL("VMesh interface: get_centers(Point*,Elem::array_type) has not been implemented");
 }
 
 double 
@@ -436,15 +470,22 @@ VMesh::get_size(VMesh::DElem::index_type i) const
 }
   
 bool 
-VMesh::locate(Node::index_type &i, const Point &point) const
+VMesh::locate(VMesh::Node::index_type &i, const Point &point) const
 {
   ASSERTFAIL("VMesh interface: locate(Node::index_type,Point) has not been implemented");
 }
 
 bool 
-VMesh::locate(Elem::index_type &i, const Point &point) const
+VMesh::locate(VMesh::Elem::index_type &i, const Point &point) const
 {
   ASSERTFAIL("VMesh interface: locate(Elem::index_type,Point) has not been implemented");
+}
+
+bool 
+VMesh::locate(VMesh::Elem::index_type &i, 
+              VMesh::coords_type &coords, const Point &point) const
+{
+  ASSERTFAIL("VMesh interface: locate(Elem::index_type,coords_type,Point) has not been implemented");
 }
 
 void 
@@ -460,20 +501,61 @@ VMesh::mlocate(vector<Elem::index_type> &i, const vector<Point> &point) const
 }
 
 
-double 
-VMesh::find_closest_elem(Point& result,
+bool
+VMesh::find_closest_node(double& dist,
+                         Point& result,
+                         VMesh::Node::index_type &i, 
+                         const Point &point) const
+{
+  ASSERTFAIL("VMesh interface: find_closest_node(dist,Point,Node::index_type,Point) has not been implemented");
+}
+
+bool
+VMesh::find_closest_node(double& dist,
+                         Point& result,
+                         VMesh::Node::index_type &i, 
+                         const Point &point,
+                         double maxdist) const
+{
+  ASSERTFAIL("VMesh interface: find_closest_node(dist,Point,Node::index_type,Point,maxdist) has not been implemented");
+}
+
+bool
+VMesh::find_closest_nodes(vector<VMesh::Node::index_type>& nodes,
+                          const Point& p, 
+                          double maxdist) const
+{
+  ASSERTFAIL("VMesh interface: find_closest_nodes(vector<Node::index_type>,Point,double) has not been implemented");
+}
+
+bool 
+VMesh::find_closest_elem(double& dist,
+                         Point& result,
+                         VMesh::coords_type& coords,
                          VMesh::Elem::index_type &i, 
                          const Point &point) const
 {
-  ASSERTFAIL("VMesh interface: find_closest_elem(Point,Elem::index_type,Point) has not been implemented");
+  ASSERTFAIL("VMesh interface: find_closest_elem(dist,Point,coords,Elem::index_type,Point) has not been implemented");
 }
 
-double 
-VMesh::find_closest_elems(Point& result,
+bool 
+VMesh::find_closest_elem(double& dist,
+                         Point& result,
+                         VMesh::coords_type& coords,
+                         VMesh::Elem::index_type &i, 
+                         const Point &point,
+                         double maxdist) const
+{
+  ASSERTFAIL("VMesh interface: find_closest_elem(dist,Point,coords,Elem::index_type,Point,maxdist) has not been implemented");
+}
+
+bool 
+VMesh::find_closest_elems(double& dist,
+                          Point& result,
                           VMesh::Elem::array_type &i, 
                           const Point &point) const
 {
-  ASSERTFAIL("VMesh interface: find_closest_elems(Point,Elem::array_type,Point) has not been implemented");
+  ASSERTFAIL("VMesh interface: find_closest_elems(dist,Point,Elem::array_type,Point) has not been implemented");
 }
 
   
@@ -505,7 +587,7 @@ VMesh::derivate(dpoints_type &p, const coords_type &coords, Elem::index_type i) 
 
 
 void 
-VMesh::get_normal(Vector &result, coords_type &coords, Elem::index_type eidx, unsigned int f) const
+VMesh::get_normal(Vector &result, coords_type &coords, Elem::index_type eidx, DElem::index_type fidx) const
 {
   ASSERTFAIL("VMesh interface: get_normal() has not been implemented");
 }  
@@ -528,6 +610,18 @@ VMesh::set_point(const Point &point, ENode::index_type i)
 {
   ASSERTFAIL("VMesh interface: set_point(Point,ENode::index_type) has not been implemented");
 }  
+
+Point*
+VMesh::get_points_pointer() const
+{
+  ASSERTFAIL("VMesh interface: get_points_pointer() has not been implemented");  
+}
+
+VMesh::index_type* 
+VMesh::get_elems_pointer() const
+{
+  ASSERTFAIL("VMesh interface: get_elems_pointer() has not been implemented");  
+}
 
 void 
 VMesh::node_reserve(size_t size)
@@ -571,6 +665,16 @@ VMesh::add_elem(const Node::array_type &nodes, Elem::index_type &i)
 {
   ASSERTFAIL("VMesh interface: this mesh cannot be edited (add_elem)");  
 }
+
+void 
+VMesh::insert_node_into_elem(Elem::array_type& newelems, 
+                                     Node::index_type& newnode,
+                                     Elem::index_type  elem,
+                                     Point& point)
+{
+  ASSERTFAIL("VMesh interface: insert_node_into_elem has not been implemented for this mesh type");
+}
+
 
 bool
 VMesh::get_neighbor(Elem::index_type &neighbor, Elem::index_type elem, DElem::index_type delem) const
@@ -681,6 +785,11 @@ VMesh::unsynchronize(unsigned int sync)
   ASSERTFAIL("VMesh interface: synchronize has not yet been implemented");  
 }
 
+bool
+VMesh::clear_synchronization()
+{
+  ASSERTFAIL("VMesh interface: clear_synchronization has not yet been implemented");  
+}
 
 void 
 VMesh::transform(const Transform &t)
@@ -693,6 +802,12 @@ VMesh::get_transform() const
 {
   ASSERTFAIL("VMesh interface: get_transform has not yet been implemented");  
 }
+
+void VMesh::set_transform(const Transform &t)
+{
+  ASSERTFAIL("VMesh interface: set_transform has not yet been implemented");  
+}
+ 
  
 void 
 VMesh::get_canonical_transform(Transform &t)
@@ -724,6 +839,8 @@ VMesh::get_interpolate_weights(const Point& p,
   ASSERTFAIL("VMesh interface: get_interpolate_weights has not yet been implemented");  
 }
         
+
+
 
 void 
 VMesh::get_minterpolate_weights(const vector<coords_type>& coords, 
@@ -841,7 +958,7 @@ VMesh::get_gaussian_scheme(vector<VMesh::coords_type>& coords,
                                    
 void 
 VMesh::get_regular_scheme(vector<VMesh::coords_type>& coords, 
-                                  vector<double>& weights, int order) const
+                          vector<double>& weights, int order) const
 {
   ASSERTFAIL("VMesh interface: get_regular_scheme has not yet been implemented");  
 }

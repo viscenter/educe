@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE component SYSTEM "component.dtd">
-<?xml-stylesheet href="component.xsl" type="text/xsl"?>
+<?xml-stylesheet href="../../../../../doc/package-component.xsl" type="text/xsl"?>
 <?cocoon-process type="xslt"?>
 
 <!--
@@ -32,71 +32,42 @@
 -->
 
 
-
-<component name="ClipFieldByFunction" category="NewField">
+<component name="ClipFieldByFunction" category="NewField" version="2.0">
   <overview>
     <authors>
-      <author>Michael Callahan</author>
+      <author>Jeroen Stinstra</author>
     </authors>
-    <summary>Select a subset of a field.</summary>
+    <summary>
+      This module can be used to clip of parts of a mesh, using a function which 
+      defines which parts are inside and which parts are outside of the clipping
+      range.
+    </summary>
   </overview>
   <io>
     <inputs lastportdynamic="yes">
       <port>
-	<name>Function</name>
-	<datatype>SCIRun::String</datatype>
+        <name>Field</name>
+        <datatype>SCIRun::Field</datatype>
       </port>
       <port>
-	<name>Input</name>
-	<datatype>SCIRun::Field</datatype>
+        <name>Function</name>
+        <datatype>SCIRun::String</datatype>
+      </port>
+      <port>
+        <name>Array</name>
+        <datatype>SCIRun::Matrix</datatype>
       </port>
     </inputs>
     <outputs>
       <port>
-	<name>Clipped</name>
-	<datatype>SCIRun::Field</datatype>
+        <name>Field</name>
+        <datatype>SCIRun::Field</datatype>
       </port>
       <port>
-	<name>Mapping</name>
-	<datatype>SCIRun::Matrix</datatype>
+        <name>Mapping</name>
+        <datatype>SCIRun::Matrix</datatype>
       </port>
-      <port>
-	<name>MaskVector</name>
-	<datatype>SCIRun::Nrrd</datatype>
-      </port>
-
     </outputs>
   </io>
-  <nets>
-    <net id="ClipFieldByFunction-byvalue">
-      <title>ClipFieldByFunction-byvalue Regression Test</title>
-
-      <p>This network demonstrates using the ClipFieldByFunction module to
-extract the lungs from the torso model.  The lungs are already
-classified in the torso model and have a particular conductivity table
-entry of 4, so we can extract all of the elements from the torso with
-conductivity of 4 and just get the lungs.</p>
-
-      <p>Note that alternatively we could use 'v != 4' to get a model
-with the lungs removed.  Or we could use the different values in the
-field to single out the ribs, heart, and others that were already
-classified.</p>
-
-      <p>This network can be found at
-src/nets/Modules/NewField/ClipFieldByFunction-byvalue.net.</p>
-
-    </net>
-
-    <net id="ClipFieldByFunction-positional">
-      <title>ClipFieldByFunction-positional Regression Test</title>
-
-      <p>This demonstrates using ClipFieldByFunction to chop out a wedge
-from a field so that we can more easily view the interior.  The
-original field is draw in a transparent wireframe for reference.</p>
-
-      <p>This network can be found at
-src/nets/Modules/NewField/ClipFieldByFunction-positional.net.</p>
-
-    </net>
-  </nets>
 </component>
+

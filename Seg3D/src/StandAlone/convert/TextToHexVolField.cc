@@ -54,7 +54,7 @@
 #include <Core/Datatypes/HexVolMesh.h>
 #include <Core/Datatypes/GenericField.h>
 #include <Core/Persistent/Pstreams.h>
-#include <Core/Containers/HashTable.h>
+
 #include <StandAlone/convert/FileUtils.h>
 #include <Core/Init/init.h>
 #include <iostream>
@@ -219,7 +219,7 @@ main(int argc, char **argv) {
   typedef NoDataBasis<double>                DatBasis;
   typedef GenericField<HVMesh, DatBasis, vector<double> > HVField;
     
-  HVField *hv = scinew HVField(hvm);
+  HVField *hv = new HVField(hvm);
   FieldHandle hvH(hv);
   
   if (binOutput) {

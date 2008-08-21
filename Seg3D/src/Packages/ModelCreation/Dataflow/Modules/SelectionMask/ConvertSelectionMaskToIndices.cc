@@ -37,7 +37,7 @@
  */
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Network/Ports/MatrixPort.h>
 #include <Packages/ModelCreation/Core/Fields/SelectionMask.h>
 
@@ -81,7 +81,7 @@ ConvertSelectionMaskToIndices::execute()
     return;
   }
   
-  SCIRun::MatrixHandle lenmat = scinew SCIRun::DenseMatrix(1, 1);
+  SCIRun::MatrixHandle lenmat = new SCIRun::DenseMatrix(1, 1);
   lenmat->put(0, 0, static_cast<double>(mask.size()));
   
   SCIRun::MatrixHandle idxmat;

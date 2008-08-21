@@ -42,7 +42,7 @@
 #include <Core/Datatypes/TriSurfMesh.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Geometry/Point.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <algorithm>
 #include <map>

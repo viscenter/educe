@@ -88,11 +88,38 @@ FieldInformation::FieldInformation(std::string meshtype,std::string meshbasis,st
   set_mesh_basis_type(meshbasis);
   set_data_basis_type(databasis);
 }
-    
+
+FieldInformation::FieldInformation(std::string meshtype,int meshbasis,int databasis, std::string datatype)
+{
+  set_field_type("GenericField");
+  set_point_type("Point");
+  set_container_type("vector");
+  set_data_type(datatype);
+  set_mesh_type(meshtype);
+  set_mesh_basis_type(meshbasis);
+  set_data_basis_type(databasis);
+}    
 
 FieldInformation::FieldInformation(std::string meshtype,std::string basis, std::string datatype)
 {
-  FieldInformation(meshtype,basis,basis,datatype);
+  set_field_type("GenericField");
+  set_point_type("Point");
+  set_container_type("vector");
+  set_data_type(datatype);
+  set_mesh_type(meshtype);
+  set_mesh_basis_type(basis);
+  set_data_basis_type(basis);
+}
+
+FieldInformation::FieldInformation(std::string meshtype,int basis, std::string datatype)
+{
+  set_field_type("GenericField");
+  set_point_type("Point");
+  set_container_type("vector");
+  set_data_type(datatype);
+  set_mesh_type(meshtype);
+  set_mesh_basis_type(basis);
+  set_data_basis_type(basis);
 }
 
 
@@ -435,6 +462,14 @@ FieldInformation::get_mesh_basis_type()
 }
 
 void
+FieldInformation::set_mesh_basis_type(int order)
+{
+  if (order == 1) set_mesh_basis_type("linear");
+  if (order == 2) set_mesh_basis_type("quadratic");
+  if (order == 3) set_mesh_basis_type("cubic");  
+}
+
+void
 FieldInformation::set_mesh_basis_type(std::string type)
 {
   if (type == "Linear" || type == "linear" || type == "linearmesh" || type == "LinearMesh" ) 
@@ -490,6 +525,17 @@ FieldInformation::get_basis_type()
 }
 
 void
+FieldInformation::set_basis_type(int order)
+{
+  if (order == -1) set_basis_type("nodata");
+  if (order == 0) set_basis_type("constant");
+  if (order == 1) set_basis_type("linear");
+  if (order == 2) set_basis_type("quadratic");
+  if (order == 3) set_basis_type("cubic");  
+}
+
+
+void
 FieldInformation::set_basis_type(std::string type)
 {
   if (type == "NoData" || type == "nodata" || type == "No" || type == "no") 
@@ -538,6 +584,9 @@ void
 FieldInformation::set_data_type(std::string type)
 {
   if (type == "nodata") type = "double";
+  if (type == "vector") type = "Vector";
+  if (type == "tensor") type = "Tensor";
+  
   data_type = type;
   data_type_h = "";
   if (type == "Vector") data_type_h = "Core/Geometry/Vector.h";
@@ -924,91 +973,91 @@ FieldTypeInformation::is_hex_element()
 }
 
 bool
-FieldTypeInformation::is_pointcloud()
+FieldTypeInformation::is_pointcloudmesh()
 {
   if (mesh_type == "PointCloudMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_scanline()
+FieldTypeInformation::is_scanlinemesh()
 {
   if (mesh_type == "ScanlineMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_image()
+FieldTypeInformation::is_imagemesh()
 {
   if (mesh_type == "ImageMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_latvol()
+FieldTypeInformation::is_latvolmesh()
 {
   if (mesh_type == "LatVolMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_curve()
+FieldTypeInformation::is_curvemesh()
 {
   if (mesh_type == "CurveMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_trisurf()
+FieldTypeInformation::is_trisurfmesh()
 {
   if (mesh_type == "TriSurfMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_quadsurf()
+FieldTypeInformation::is_quadsurfmesh()
 {
   if (mesh_type == "QuadSurfMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_tetvol()
+FieldTypeInformation::is_tetvolmesh()
 {
   if (mesh_type == "TetVolMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_prismvol()
+FieldTypeInformation::is_prismvolmesh()
 {
   if (mesh_type == "PrismVolMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_hexvol()
+FieldTypeInformation::is_hexvolmesh()
 {
   if (mesh_type == "HexVolMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_structcurve()
+FieldTypeInformation::is_structcurvemesh()
 {
   if (mesh_type == "StructCurveMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_structquadsurf()
+FieldTypeInformation::is_structquadsurfmesh()
 {
   if (mesh_type == "StructQuadSurfMesh") return (true);
   return false;
 }
 
 bool
-FieldTypeInformation::is_structhexvol()
+FieldTypeInformation::is_structhexvolmesh()
 {
   if (mesh_type == "StructHexVolMesh") return (true);
   return false;
@@ -1059,6 +1108,17 @@ FieldInformation::operator==(const FieldInformation& fi) const
        (container_type == fi.container_type) ) return (true);
   return (false);
 }
+
+
+bool        
+FieldInformation::operator!=(const FieldInformation& fi) const
+{
+  if ( (field_type != fi.field_type) || (mesh_type != fi.mesh_type) || (mesh_basis_type != fi.mesh_basis_type) ||
+       (point_type != fi.point_type) || (basis_type != fi.basis_type) || (data_type != fi.data_type) ||
+       (container_type != fi.container_type) ) return (true);
+  return (false);
+}
+
 
 bool
 FieldInformation::make_nodata()
@@ -1187,6 +1247,18 @@ FieldInformation::make_unstructuredmesh()
   return (false);
 }
 
+
+bool
+FieldInformation::make_irregularmesh()
+{
+  if (is_regularmesh())
+  {
+    if (is_crv_element()) return(make_structcurvemesh());
+    if (is_quad_element()) return(make_structquadsurfmesh());
+    if (is_hex_element()) return(make_structhexvolmesh());
+  }
+  return (false);
+}
 
 bool
 FieldInformation::make_linearmesh()

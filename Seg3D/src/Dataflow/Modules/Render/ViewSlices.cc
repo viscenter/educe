@@ -55,10 +55,10 @@
 #include <Core/Geom/GeomSwitch.h>
 #include <Core/Geom/GeomCull.h>
 #include <Core/Geom/GeomGroup.h>
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/OpenGLViewport.h>
 #include <Core/Geom/TexSquare.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/MinMax.h>
 #include <Core/Thread/Mutex.h>
@@ -824,8 +824,8 @@ ViewSlices::ViewSlices(GuiContext* ctx) :
     max_slice_[a] = -1;
   }
 
-  runner_ = scinew RealDrawer(this);
-  runner_thread_ = scinew Thread(runner_, string(get_id()+" OpenGL drawer").c_str());
+  runner_ = new RealDrawer(this);
+  runner_thread_ = new Thread(runner_, string(get_id()+" OpenGL drawer").c_str());
 
   initialize_fonts();
 }
@@ -1784,7 +1784,7 @@ ViewSlices::draw_label(SliceWindow &window, string text, int x, int y,
 
   unsigned int wid = Pow2(Ceil(bbox.max().x()));
   unsigned int hei = Pow2(Ceil(bbox.max().y()));
-  GLubyte *buf = scinew GLubyte[wid*hei];
+  GLubyte *buf = new GLubyte[wid*hei];
   memset(buf, 0, wid*hei);
   fttext.render(wid, hei, buf);
   
@@ -1881,7 +1881,7 @@ ViewSlices::apply_colormap(NrrdSlice &slice, float *data)
   const float *rgba;
   if (!colormap_.get_rep()) {
     ncolors = 256;
-    float *nrgba = scinew float[256*4];
+    float *nrgba = new float[256*4];
     for (int c = 0; c < 256*4; ++c) nrgba[c] = (c/4)/255.0;
     rgba = nrgba;
   } else {
@@ -2284,7 +2284,7 @@ ViewSlices::set_slice_coords(NrrdSlice &slice, bool origin) {
 int
 ViewSlices::extract_window_slices(SliceWindow &window) {
   for (unsigned int s = window.slices_.size(); s < volumes_.size(); ++s)
-    window.slices_.push_back(scinew NrrdSlice(volumes_[s], &window));
+    window.slices_.push_back(new NrrdSlice(volumes_[s], &window));
   for_each(&ViewSlices::update_slice_from_window);
   for_each(window, &ViewSlices::set_slice_nrrd_dirty);
 
@@ -2315,8 +2315,8 @@ ViewSlices::extract_slice(NrrdSlice &slice)
 
   int axis = slice.axis_;
   Nrrd *volume = slice.volume_->nrrd_handle_->nrrd_;
-  NrrdDataHandle tmp1 = scinew NrrdData;
-  NrrdDataHandle tmp2 = scinew NrrdData;
+  NrrdDataHandle tmp1 = new NrrdData;
+  NrrdDataHandle tmp2 = new NrrdData;
   if (slice.mode_ == mip_e || slice.mode_ == slab_e) {
     size_t min[3], max[3];
     for (int i = 0; i < 3; i++) {
@@ -2352,7 +2352,7 @@ ViewSlices::extract_mip_slices(NrrdVolume *volume)
   if (!volume || !volume->nrrd_handle_.get_rep()) { return 0; }
   for (int axis = 0; axis < 3; ++axis) {
     if (!mip_slices_[axis]) {
-      mip_slices_[axis] = scinew NrrdSlice(volume, 0);
+      mip_slices_[axis] = new NrrdSlice(volume, 0);
       mip_slices_[axis]->name_ = "MIP";
     }
       
@@ -2360,9 +2360,9 @@ ViewSlices::extract_mip_slices(NrrdVolume *volume)
     slice.do_lock();
     slice.volume_ = volume;
 
-    slice.nrrd_handle_ = scinew NrrdData;
+    slice.nrrd_handle_ = new NrrdData;
 
-    NrrdDataHandle temp1 = scinew NrrdData;
+    NrrdDataHandle temp1 = new NrrdData;
     
     int max[3];
     for (int i = 0; i < 3; i++) {
@@ -2414,7 +2414,7 @@ ViewSlices::send_mip_textures(SliceWindow &window)
 
     string name = "MIP Slice"+to_string(slice.axis_);
 
-    TexSquare *mintex = scinew TexSquare();
+    TexSquare *mintex = new TexSquare();
     tobjs_[name+"-min"] = mintex;
     slice.slice_num_ = 0;
     set_slice_coords(slice, false);
@@ -2423,11 +2423,11 @@ ViewSlices::send_mip_textures(SliceWindow &window)
     Vector normal(axis==0?1.0:0.0, axis==1?-1.0:0.0, axis==2?1.0:0.0);
     mintex->set_normal(normal);
 
-    Vector *minvec = scinew 
+    Vector *minvec = new 
       Vector(axis==0?1.0:0.0, axis==1?1.0:0.0, axis==2?1.0:0.0);
-    GeomCull *mincull = scinew GeomCull(mintex, minvec);
+    GeomCull *mincull = new GeomCull(mintex, minvec);
 
-    TexSquare *maxtex = scinew TexSquare();
+    TexSquare *maxtex = new TexSquare();
     tobjs_[name+"-max"] = maxtex;
     slice.slice_num_ = max_slice_[axis];
     set_slice_coords(slice, false);
@@ -2435,11 +2435,11 @@ ViewSlices::send_mip_textures(SliceWindow &window)
     maxtex->set_texname(slice.tex_name_);
     maxtex->set_normal(normal);
 
-    Vector *maxvec = scinew 
+    Vector *maxvec = new 
       Vector(axis==0?-1.0:0.0, axis==1?-1.0:0.0, axis==2?-1.0:0.0);
-    GeomCull *maxcull = scinew GeomCull(maxtex, maxvec);
+    GeomCull *maxcull = new GeomCull(maxtex, maxvec);
 
-    GeomGroup *group = scinew GeomGroup();
+    GeomGroup *group = new GeomGroup();
     group->add(mincull);
     group->add(maxcull);
     
@@ -2577,7 +2577,7 @@ ViewSlices::execute()
 
   if (painting_() == 2) {
     ASSERT(cm2_.get_rep());
-    cm2_=scinew ColorMap2(*cm2_.get_rep());
+    cm2_=new ColorMap2(*cm2_.get_rep());
     painting_ = 1;
   } 
   cmap2_oport_->send_intermediate(cm2_);
@@ -2624,7 +2624,7 @@ ViewSlices::execute()
     scale_[a] = airNaN();
   }
 
-  NrrdRange *range = scinew NrrdRange;
+  NrrdRange *range = new NrrdRange;
   for (n = 0; n < nrrds.size(); ++n) {
     NrrdDataHandle nrrdH = nrrds[n];
 
@@ -2670,7 +2670,7 @@ ViewSlices::execute()
 	delete volumes_[n];
 	volumes_[n] = 0;
       }
-      volumes_[n] = scinew NrrdVolume(get_ctx()->subVar("nrrd"+to_string(n), false));
+      volumes_[n] = new NrrdVolume(get_ctx()->subVar("nrrd"+to_string(n), false));
       volumes_[n]->nrrd_handle_ = nrrdH;
       if (n == 0) 
       	extract_mip_slices(volumes_[n]);	
@@ -2687,7 +2687,7 @@ ViewSlices::execute()
     Max(Pow2(max_slice_[0]+1), Pow2(max_slice_[1]+1), Pow2(max_slice_[2]+1));
   const int mid_dim = 
     Mid(Pow2(max_slice_[0]+1), Pow2(max_slice_[1]+1), Pow2(max_slice_[2]+1));
-  temp_tex_data_ = scinew float[max_dim*mid_dim*4];
+  temp_tex_data_ = new float[max_dim*mid_dim*4];
 
   // Mark all windows slices dirty
   if (re_extract) {
@@ -3018,7 +3018,7 @@ ViewSlices::tcl_command(GuiArgs& args, void* userdata) {
 #endif
     args[1] == "redraw" || args[1] == "resize" || args[1] == "redrawall" || 
     args[1] == "rebind" || args[1] == "texture_rebind" || args[1] == "startcrop" || args[1] == "updatecrop" ||args[1] == "setclut")) {
-    tclThreadMailbox_.send(scinew ViewSlicesMessage(args, userdata));
+    tclThreadMailbox_.send(new ViewSlicesMessage(args, userdata));
     return;
   }
 #endif
@@ -3040,10 +3040,10 @@ ViewSlices::tcl_command(GuiArgs& args, void* userdata) {
   else if (args[1] == "set_font_sizes") set_font_sizes(font_size_());
   else if(args[1] == "setgl") {
     TkOpenGLContext *context = \
-      scinew TkOpenGLContext(args[2], args.get_int(4), 512, 512);
+      new TkOpenGLContext(args[2], args.get_int(4), 512, 512);
     XSync(context->display_, 0);
     ASSERT(layouts_.find(args[2]) == layouts_.end());
-    layouts_[args[2]] = scinew WindowLayout(get_ctx()->subVar(args[3],0));
+    layouts_[args[2]] = new WindowLayout(get_ctx()->subVar(args[3],0));
     layouts_[args[2]]->opengl_ = context;
   } else if(args[1] == "destroygl") {
     WindowLayouts::iterator pos = layouts_.find(args[2]);
@@ -3053,10 +3053,10 @@ ViewSlices::tcl_command(GuiArgs& args, void* userdata) {
   } else if(args[1] == "add_viewport") {
     ASSERT(layouts_.find(args[2]) != layouts_.end());
     WindowLayout *layout = layouts_[args[2]];
-    SliceWindow *window = scinew SliceWindow(get_ctx()->subVar(args[3],0));
+    SliceWindow *window = new SliceWindow(get_ctx()->subVar(args[3],0));
     window->layout_ = layout;
     window->name_ = args[2];
-    window->viewport_ = scinew OpenGLViewport(layout->opengl_);
+    window->viewport_ = new OpenGLViewport(layout->opengl_);
     window->axis_ = (layouts_.size())%3;
     layout->windows_.push_back(window);
     autoview(*window);
@@ -3125,7 +3125,7 @@ ViewSlices::send_slice_textures(NrrdSlice &slice) {
   slice.do_lock();
   string name = "Slice"+to_string(slice.axis_);
   if (tobjs_[name] == 0) 
-    tobjs_[name] = scinew TexSquare();
+    tobjs_[name] = new TexSquare();
   tobjs_[name]->set_texname(slice.tex_name_);
   set_slice_coords(slice, false);
   tobjs_[name]->set_coords(slice.tex_coords_, slice.pos_coords_);
@@ -3154,7 +3154,7 @@ ViewSlices::set_slice_clipping(NrrdSlice &slice) {
   }
 
   while (clip.size() < 3) {
-    clip.push_back(scinew ClippingCM2Widget());
+    clip.push_back(new ClippingCM2Widget());
     cm2_->widgets().push_back(clip.back());
   }
   
@@ -3399,7 +3399,7 @@ void
 ViewSlices::initialize_fonts() {
   if (!freetype_lib_) {
     try {
-      freetype_lib_ = scinew FreeTypeLibrary();
+      freetype_lib_ = new FreeTypeLibrary();
     } catch (...) {
       freetype_lib_ = 0;
       error("Cannot Initialize FreeType Library.");
@@ -3494,7 +3494,7 @@ ViewSlices::setup_slice_nrrd(NrrdSlice &slice)
   update_slice_from_window(slice);
 
   if (!slice.nrrd_handle_.get_rep()) {
-    slice.nrrd_handle_ = scinew NrrdData;
+    slice.nrrd_handle_ = new NrrdData;
     size_t size[NRRD_DIM_MAX];
     size[0] = 4;
     size[1] = slice.tex_wid_;

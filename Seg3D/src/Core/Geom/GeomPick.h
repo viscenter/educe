@@ -43,12 +43,13 @@
 #ifndef SCI_Geom_Pick_h
 #define SCI_Geom_Pick_h 1
 
+#include <Core/Datatypes/Material.h>
+
 #include <Core/Geom/GeomContainer.h>
-#include <Core/Geom/Material.h>
 #include <Core/Geometry/Vector.h>
-#include <sgi_stl_warnings_off.h>
+
 #include <vector>
-#include <sgi_stl_warnings_on.h>
+
 
 #include <Core/Geom/share.h>
 
@@ -78,6 +79,7 @@ public:
 
   int nprincipal();
   const Vector &principal(int i);
+  void set_principal();
   void set_principal(const Vector&);
   void set_principal(const Vector&, const Vector&);
   void set_principal(const Vector&, const Vector&, const Vector&);

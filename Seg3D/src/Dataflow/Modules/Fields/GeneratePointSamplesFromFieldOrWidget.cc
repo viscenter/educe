@@ -38,23 +38,24 @@
  *  Copyright (C) 2000 SCI Group
  */
  
-#include <Dataflow/Modules/Fields/GeneratePointSamplesFromFieldOrWidget.h>
-#include <Dataflow/Network/Module.h>
-#include <Dataflow/Network/Ports/GeometryPort.h>
-#include <Dataflow/Network/Ports/FieldPort.h>
-#include <Core/Malloc/Allocator.h>
-#include <Core/Math/Trig.h>
-#include <Core/Geometry/Transform.h>
-#include <Dataflow/GuiInterface/GuiVar.h>
-#include <Core/Thread/CrowdMonitor.h>
+#include <Core/Algorithms/Fields/SampleField/GeneratePointSamplesFromField.h>
+
+#include <Core/Datatypes/Field.h>
+#include <Core/Datatypes/Mesh.h>
 #include <Core/Containers/StringUtil.h>
+#include <Core/Thread/CrowdMonitor.h>
+
 #include <Dataflow/Widgets/GaugeWidget.h>
 #include <Dataflow/Widgets/RingWidget.h>
 #include <Dataflow/Widgets/FrameWidget.h>
+
+#include <Dataflow/Network/Ports/GeometryPort.h>
+#include <Dataflow/Network/Ports/FieldPort.h>
+#include <Dataflow/Network/Module.h>
+
 #include <math.h>
 #include <set>
-
-#include <iostream>
+#include <vector>
 
 using std::set;
 using std::vector;
@@ -64,65 +65,59 @@ namespace SCIRun {
 
 class GeneratePointSamplesFromFieldOrWidget : public Module
 {
-public:
-  typedef PointCloudMesh<ConstantBasis<Point> > PCMesh;
-  typedef ConstantBasis<double>                DatBasis;
-  typedef GenericField<PCMesh, DatBasis, vector<double> > PCField;  
+  public:
+    GeneratePointSamplesFromFieldOrWidget(GuiContext* ctx);
+    virtual ~GeneratePointSamplesFromFieldOrWidget();
+    virtual void execute();
+    virtual void widget_moved(bool last, BaseWidget*);
 
+  private:
 
-  GeneratePointSamplesFromFieldOrWidget(GuiContext* ctx);
-  virtual ~GeneratePointSamplesFromFieldOrWidget();
-  virtual void execute();
-  virtual void widget_moved(bool last, BaseWidget*);
+    GuiString gui_wtype_;
+    GuiInt    gui_endpoints_;
+    GuiDouble gui_endpoint0x_;
+    GuiDouble gui_endpoint0y_;
+    GuiDouble gui_endpoint0z_;
+    GuiDouble gui_endpoint1x_;
+    GuiDouble gui_endpoint1y_;
+    GuiDouble gui_endpoint1z_;
+    GuiDouble gui_widgetscale_;
+    GuiString gui_ringstate_;
+    GuiString gui_framestate_;
 
-private:
-  GuiString gui_wtype_;
-  GuiInt    gui_endpoints_;
-  GuiDouble gui_endpoint0x_;
-  GuiDouble gui_endpoint0y_;
-  GuiDouble gui_endpoint0z_;
-  GuiDouble gui_endpoint1x_;
-  GuiDouble gui_endpoint1y_;
-  GuiDouble gui_endpoint1z_;
-  GuiDouble gui_widgetscale_;
-  GuiString gui_ringstate_;
-  GuiString gui_framestate_;
+    GuiDouble gui_maxSeeds_;
+    GuiInt gui_numSeeds_;
+    GuiInt gui_rngSeed_;
+    GuiInt gui_rngInc_;
+    GuiInt gui_clamp_;
+    GuiInt gui_autoexec_;
+    GuiString gui_randdist_;
+    GuiString gui_whichTab_;
+    GuiInt gui_force_rake_reset_;
 
-  GuiDouble gui_maxSeeds_;
-  GuiInt gui_numSeeds_;
-  GuiInt gui_rngSeed_;
-  GuiInt gui_rngInc_;
-  GuiInt gui_clamp_;
-  GuiInt gui_autoexec_;
-  GuiString gui_randdist_;
-  GuiString gui_whichTab_;
-  GuiInt gui_force_rake_reset_;
+    CrowdMonitor gui_widget_lock_;
 
-  CrowdMonitor gui_widget_lock_;
+    GaugeWidget *rake_;
+    RingWidget  *ring_;
+    FrameWidget *frame_;
 
-  GaugeWidget *rake_;
-  RingWidget  *ring_;
-  FrameWidget *frame_;
+    int widgetid_;
+    int wtype_;      // 0 random (none), 1 rake, 2 ring, 3 frame
 
-  int widgetid_;
-  int wtype_;      // 0 random (none), 1 rake, 2 ring, 3 frame
+    bool widget_change_;
 
-  bool widget_change_;
+    BBox  rake_bbox_;
+    BBox  ring_bbox_;
+    BBox  frame_bbox_;
+    Point endpoint0_;
+    Point endpoint1_;
 
-  BBox  rake_bbox_;
-  BBox  ring_bbox_;
-  BBox  frame_bbox_;
-  Point endpoint0_;
-  Point endpoint1_;
-
-  GeometryOPort  *ogport_;
-
-  void initialize_rake(FieldHandle ifield);
-  FieldHandle execute_rake(FieldHandle ifield);
-  FieldHandle execute_ring(FieldHandle ifield);
-  FieldHandle execute_frame(FieldHandle ifield);
-  FieldHandle execute_random(FieldHandle ifield);
-  bool bbox_similar_to(const BBox &a, const BBox &b);
+    void initialize_rake(FieldHandle ifield);
+    FieldHandle execute_rake(FieldHandle ifield);
+    FieldHandle execute_ring(FieldHandle ifield);
+    FieldHandle execute_frame(FieldHandle ifield);
+    FieldHandle execute_random(FieldHandle ifield);
+    bool bbox_similar_to(const BBox &a, const BBox &b);
 };
 
 
@@ -268,28 +263,30 @@ GeneratePointSamplesFromFieldOrWidget::initialize_rake(FieldHandle ifield)
 FieldHandle
 GeneratePointSamplesFromFieldOrWidget::execute_rake(FieldHandle ifield)
 {
-  const BBox ibox = ifield->mesh()->get_bounding_box();
+  GeometryOPortHandle ogport;
+  get_oport_handle("Sampling Widget",ogport);
+
+  const BBox ibox = ifield->vmesh()->get_bounding_box();
   bool reset = gui_force_rake_reset_.get();
   gui_force_rake_reset_.set(0);
   bool resize = rake_bbox_.valid() && !bbox_similar_to(rake_bbox_, ibox);
 
-  if (!rake_) {
-
-    if( !gui_endpoints_.get() )
-      initialize_rake(ifield);
+  if (!rake_) 
+  {
+    if(!gui_endpoints_.get()) initialize_rake(ifield);
 
     endpoint0_ = Point(gui_endpoint0x_.get(),
-		       gui_endpoint0y_.get(),
-		       gui_endpoint0z_.get());
+                       gui_endpoint0y_.get(),
+                       gui_endpoint0z_.get());
     
     endpoint1_ = Point(gui_endpoint1x_.get(),
-		       gui_endpoint1y_.get(),
-		       gui_endpoint1z_.get()); 
+                       gui_endpoint1y_.get(),
+                       gui_endpoint1z_.get()); 
 
-    rake_ = scinew GaugeWidget(this, &gui_widget_lock_,
-			       gui_widgetscale_.get(),
-			       true);
-    rake_->Connect(ogport_);
+    rake_ = new GaugeWidget(this, &gui_widget_lock_,
+                            gui_widgetscale_.get(), true);
+
+    rake_->Connect(ogport.get_rep());
     rake_->SetScale(gui_widgetscale_.get()); // do first, widget_moved resets
     rake_->SetEndpoints(endpoint0_,endpoint1_);
     rake_->SetRatio(1/16.0);
@@ -301,16 +298,15 @@ GeneratePointSamplesFromFieldOrWidget::execute_rake(FieldHandle ifield)
 
   if (reset || resize)
   {
-    if( reset )
-      initialize_rake(ifield);
+    if( reset ) initialize_rake(ifield);
 
     endpoint0_ = Point(gui_endpoint0x_.get(),
-		       gui_endpoint0y_.get(),
-		       gui_endpoint0z_.get()); 
+                       gui_endpoint0y_.get(),
+                       gui_endpoint0z_.get()); 
     
     endpoint1_ = Point(gui_endpoint1x_.get(),
-		       gui_endpoint1y_.get(),
-		       gui_endpoint1z_.get()); 
+                       gui_endpoint1y_.get(),
+                       gui_endpoint1z_.get()); 
 
     rake_->SetScale(gui_widgetscale_.get()); // do first, widget_moved resets
     rake_->SetEndpoints(endpoint0_, endpoint1_);
@@ -323,15 +319,22 @@ GeneratePointSamplesFromFieldOrWidget::execute_rake(FieldHandle ifield)
     rake_bbox_ = ibox;
   }
 
-  if (wtype_ != 1) {
-    if (widgetid_)  { ogport_->delObj(widgetid_); }
+
+  if (wtype_ != 1) 
+  {
+    if (widgetid_)  
+    { 
+      ogport->delObj(widgetid_); 
+    }
+    
     GeomHandle widget = rake_->GetWidget();
-    widgetid_ = ogport_->addObj(widget,
+    widgetid_ = ogport->addObj(widget,
 				"GeneratePointSamplesFromFieldOrWidget Rake",
 				&gui_widget_lock_);
-    ogport_->flushViews();
+    ogport->flushViews();
     wtype_ = 1;
   }
+
 
   Point min, max;
   rake_->GetEndpoints(min, max);
@@ -340,7 +343,8 @@ GeneratePointSamplesFromFieldOrWidget::execute_rake(FieldHandle ifield)
   double num_seeds = Max(0.0, gui_maxSeeds_.get());
   remark("num_seeds = " + to_string(num_seeds));
 
-  if (num_seeds > 1) {
+  if (num_seeds > 1) 
+  {
     const double ratio = 1.0/(num_seeds-1.0);
     rake_->SetRatio(ratio);
     dir *= ratio;
@@ -350,22 +354,24 @@ GeneratePointSamplesFromFieldOrWidget::execute_rake(FieldHandle ifield)
     widget_change_ = false;
   }
 
-  PCMesh* mesh = scinew PCMesh;
 
-  for (int loop=0; loop<=(num_seeds-0.99999); ++loop)
-    mesh->add_node(min+dir*loop);
+  FieldInformation fi("PointCloudMesh",0,"double");
+  FieldHandle seeds = CreateField(fi);
+  VMesh* mesh = seeds->vmesh();
+  VField* field = seeds->vfield();
 
-  mesh->freeze();
-  PCField *seeds = scinew PCField(mesh);
-  PCField::fdata_type &fdata = seeds->fdata();
+  int num = static_cast<int>(num_seeds-0.99999);
+  for (int loop=0; loop<=num; loop++)
+  {
+    mesh->add_point(min+dir*loop);
+  }
+
+  std::vector<double> values(num);
+  for (int loop=0;loop<num;loop++) values[loop]=loop;
+
+  field->resize_values();
+  field->set_values(values);
   
-  for (int loop=0;loop<(num_seeds-0.99999);++loop)
-    fdata[loop]=loop;
-
-  seeds->freeze();
-
-  update_state(Completed);
-
   return seeds;
 }
 
@@ -373,34 +379,41 @@ GeneratePointSamplesFromFieldOrWidget::execute_rake(FieldHandle ifield)
 FieldHandle
 GeneratePointSamplesFromFieldOrWidget::execute_ring(FieldHandle ifield)
 {
+  GeometryOPortHandle ogport;
+  get_oport_handle("Sampling Widget",ogport);
+
   const BBox ibox = ifield->mesh()->get_bounding_box();
   bool reset = gui_force_rake_reset_.get();
   gui_force_rake_reset_.set(0);
   bool resize = ring_bbox_.valid() && !bbox_similar_to(ring_bbox_, ibox);
 
-  if (!ring_) {
-    ring_ = scinew RingWidget(this,
-			      &gui_widget_lock_,
-			      gui_widgetscale_.get(),
-			      false);
-    ring_->Connect(ogport_);
+  if (!ring_) 
+  {
+    ring_ = new RingWidget(this, &gui_widget_lock_,
+                           gui_widgetscale_.get(),false);
+    ring_->Connect(ogport.get_rep());
 
-    if (gui_ringstate_.get() != "") {
+    if (gui_ringstate_.get() != "") 
+    {
       ring_->SetStateString(gui_ringstate_.get());
 
       // Check for state validity here.  If not valid then // reset = true;
-    } else {
+    }
+    else 
+    {
       reset = true;
     }
   }
 
-  if (reset || resize) {
+  if (reset || resize) 
+  {
     Point c, nc;
     Vector n, nn;
     double r, nr;
     double s, ns;
 
-    if (reset) {
+    if (reset) 
+    {
       const Vector xaxis(0.0, 0.0, 0.2);
       const Vector yaxis(0.2, 0.0, 0.0);
       c = Point (0.5, 0.0, 0.0);
@@ -411,7 +424,9 @@ GeneratePointSamplesFromFieldOrWidget::execute_ring(FieldHandle ifield)
       ring_bbox_.reset();
       ring_bbox_.extend(Point(-1.0, -1.0, -1.0));
       ring_bbox_.extend(Point(1.0, 1.0, 1.0));
-    } else {
+    } 
+    else 
+    {
       // Get the old coordinates.
       ring_->GetPosition(c, n, r);
       s = ring_->GetScale();
@@ -443,41 +458,51 @@ GeneratePointSamplesFromFieldOrWidget::execute_ring(FieldHandle ifield)
     ring_bbox_ = ibox;
   }
 
-  if (wtype_ != 2) {
-    if (widgetid_)  { ogport_->delObj(widgetid_); }
+  if (wtype_ != 2) 
+  {
+    if (widgetid_)  
+    { 
+      ogport->delObj(widgetid_); 
+    }
+    
     GeomHandle widget = ring_->GetWidget();
-    widgetid_ = ogport_->addObj(widget,
-				"GeneratePointSamplesFromFieldOrWidget Ring",
-				&gui_widget_lock_);
-    ogport_->flushViews();
+    widgetid_ = ogport->addObj(widget,
+                                "GeneratePointSamplesFromFieldOrWidget Ring",
+                                &gui_widget_lock_);
+    ogport->flushViews();
     wtype_ = 2;
   }
   
   double num_seeds = Max(0.0, gui_maxSeeds_.get());
   remark("num_seeds = " + to_string(num_seeds));
 
-  PCMesh* mesh = scinew PCMesh;
+  FieldInformation fi("PointCloudMesh",0,"double");
+  FieldHandle seeds = CreateField(fi);
+  
+  VMesh* mesh = seeds->vmesh();
+  VField* field = seeds->vfield();
 
   Point center;
   double r;
+  
   Vector normal, xaxis, yaxis;
   ring_->GetPosition(center, normal, r);
   ring_->GetPlane(xaxis, yaxis);
-  for (int i = 0; i < num_seeds; i++) {
+  
+  for (int i = 0; i < num_seeds; i++) 
+  {
     const double frac = 2.0 * M_PI * i / num_seeds;
-    mesh->add_node(center + xaxis * r * cos(frac) + yaxis * r * sin(frac));
+    mesh->add_point(center + xaxis * r * cos(frac) + yaxis * r * sin(frac));
   }
 
-  mesh->freeze();
-  PCField *seeds =  scinew PCField(mesh);
-  PCField::fdata_type &fdata = seeds->fdata();
-
-  for (int loop=0; loop<num_seeds; ++loop) {
-    fdata[loop]=loop;
+  std::vector<double> values(num_seeds);
+  for (int loop=0; loop<num_seeds; ++loop) 
+  {
+    values[loop]=loop;
   }
-  seeds->freeze();
 
-  update_state(Completed);
+  field->resize_values();
+  field->set_values(values);
 
   return seeds;
 }
@@ -486,31 +511,36 @@ GeneratePointSamplesFromFieldOrWidget::execute_ring(FieldHandle ifield)
 FieldHandle
 GeneratePointSamplesFromFieldOrWidget::execute_frame(FieldHandle ifield)
 {
+  GeometryOPortHandle ogport;
+  get_oport_handle("Sampling Widget",ogport);
+
   const BBox ibox = ifield->mesh()->get_bounding_box();
   bool reset = gui_force_rake_reset_.get();
   gui_force_rake_reset_.set(0);
   bool resize = frame_bbox_.valid() && !bbox_similar_to(frame_bbox_, ibox);
 
-  if (!frame_) {
-    frame_ = scinew FrameWidget(this,
-				&gui_widget_lock_,
-				gui_widgetscale_.get());
-    frame_->Connect(ogport_);
+  if (!frame_) 
+  {
+    frame_ = new FrameWidget(this,&gui_widget_lock_,gui_widgetscale_.get());
+    frame_->Connect(ogport.get_rep());
 
-    if (gui_framestate_.get() != "") {
+    if (gui_framestate_.get() != "") 
+    {
       frame_->SetStateString(gui_framestate_.get());
-
-      // Check for state validity here.  If not valid then // reset = true;
-    } else {
+    } 
+    else 
+    {
       reset = true;
     }
   }
 
-  if (reset || resize) {
+  if (reset || resize) 
+  {
     Point c, nc, r, nr, d, nd;
     double s, ns;
 
-    if (reset) {
+    if (reset) 
+    {
       c = Point(0.5, 0.0, 0.0);
       r = c + Vector(0.0, 0.0, 0.2);
       d = c + Vector(0.2, 0.0, 0.0);
@@ -519,7 +549,9 @@ GeneratePointSamplesFromFieldOrWidget::execute_frame(FieldHandle ifield)
       frame_bbox_.reset();
       frame_bbox_.extend(Point(-1.0, -1.0, -1.0));
       frame_bbox_.extend(Point(1.0, 1.0, 1.0));
-    } else {
+    } 
+    else 
+    {
       // Get the old coordinates.
       frame_->GetPosition(c, r, d);
       s = frame_->GetScale();
@@ -550,20 +582,28 @@ GeneratePointSamplesFromFieldOrWidget::execute_frame(FieldHandle ifield)
     widget_change_ = false;
   }
 
-  if (wtype_ != 3) {
-    if (widgetid_) { ogport_->delObj(widgetid_); }
+  if (wtype_ != 3) 
+  {
+    if (widgetid_) 
+    { 
+      ogport->delObj(widgetid_); 
+    }
     GeomHandle widget = frame_->GetWidget();
-    widgetid_ = ogport_->addObj(widget,
-				"GeneratePointSamplesFromFieldOrWidget Frame",
-				&gui_widget_lock_);
-    ogport_->flushViews();
+    widgetid_ = ogport->addObj(widget,
+                                "GeneratePointSamplesFromFieldOrWidget Frame",
+                                &gui_widget_lock_);
+    ogport->flushViews();
     wtype_ = 3;
   }
 
   double num_seeds = Max(0.0, gui_maxSeeds_.get());
   remark("num_seeds = " + to_string(num_seeds));
 
-  PCMesh* mesh = scinew PCMesh;
+  FieldInformation fi("PointCloudMesh",0,"double");
+  FieldHandle seeds = CreateField(fi);
+  
+  VMesh* mesh = seeds->vmesh();
+  VField* field = seeds->vfield();
 
   Point center, xloc, yloc;
   Point corner[4];
@@ -579,23 +619,20 @@ GeneratePointSamplesFromFieldOrWidget::execute_frame(FieldHandle ifield)
   edge[1] = corner[2] - corner[1];
   edge[2] = corner[3] - corner[2];
   edge[3] = corner[0] - corner[3];
-  for (int i = 0; i < num_seeds; i++) {
+  
+  for (int i = 0; i < num_seeds; i++) 
+  {
     const double frac =  4.0 * i / num_seeds;
     const int ei = (int)frac;
     const double eo = frac - ei;
-    mesh->add_node(corner[ei] + edge[ei] * eo);
+    mesh->add_point(corner[ei] + edge[ei] * eo);
   }
 
-  mesh->freeze();
-  PCField *seeds = scinew PCField(mesh);
-  PCField::fdata_type &fdata = seeds->fdata();
-  
-  for (int loop=0; loop<num_seeds; ++loop)
-    fdata[loop]=loop;
+  std::vector<double> values(num_seeds);
+  for (int loop=0; loop<num_seeds; ++loop) values[loop]=loop;
 
-  seeds->freeze();
-
-  update_state(Completed);
+  field->resize_values();
+  field->set_values(values);
 
   return seeds;
 }
@@ -604,117 +641,83 @@ GeneratePointSamplesFromFieldOrWidget::execute_frame(FieldHandle ifield)
 FieldHandle
 GeneratePointSamplesFromFieldOrWidget::execute_random(FieldHandle ifield)
 {
-  const TypeDescription *mtd = ifield->mesh()->get_type_description();
-  CompileInfoHandle ci =
-    GeneratePointSamplesFromFieldOrWidgetRandomAlgo::get_compile_info(mtd);
-  Handle<GeneratePointSamplesFromFieldOrWidgetRandomAlgo> algo;
-  if (!module_dynamic_compile(ci, algo)) return 0;
+  GeometryOPortHandle ogport;
+  get_oport_handle("Sampling Widget",ogport);
 
-  FieldHandle seedhandle(algo->execute(this, ifield,
-				       gui_numSeeds_.get(), gui_rngSeed_.get(),
-				       gui_randdist_.get(), gui_clamp_.get()));
-  if (gui_rngInc_.get())
-    gui_rngSeed_.set(gui_rngSeed_.get()+1);
+  SCIRunAlgo::GeneratePointSamplesFromFieldAlgo algo;
+  algo.set_progress_reporter(this);
+  algo.set_int("num_seed_points",gui_numSeeds_.get());
+  algo.set_int("rng_seed",gui_rngSeed_.get());
+  algo.set_option("seed_method",gui_randdist_.get());
+  algo.set_bool("clamp",gui_clamp_.get());
 
-  if (widgetid_) {
-    ogport_->delObj(widgetid_);
-    ogport_->flushViews();
+  FieldHandle seeds;
+  if(!(algo.run(ifield,seeds))) return 0;
+
+  if (gui_rngInc_.get()) gui_rngSeed_.set(gui_rngSeed_.get()+1);
+
+  if (widgetid_)
+  {
+    ogport->delObj(widgetid_);
+    ogport->flushViews();
     widgetid_ = 0;
     wtype_ = 0;
   }
 
-  update_state(Completed);
-
- return seedhandle;
+ return seeds;
 }
-
 
 void
 GeneratePointSamplesFromFieldOrWidget::execute()
 {
-  ogport_ = (GeometryOPort *) get_oport("Sampling Widget");
-
   //! Get the input field handle from the port.
   FieldHandle field_in_handle;
-  if (!get_input_handle("Field to Sample", field_in_handle, true)) return;
+  get_input_handle("Field to Sample", field_in_handle, true);
 
   // See if the tab has changed if so execute.
-  if( gui_whichTab_.changed( true ) )
-    inputs_changed_ = true;
+  if( gui_whichTab_.changed( true ) ) inputs_changed_ = true;
 
   if (ring_ ) { gui_ringstate_.set(ring_->GetStateString()); }
   if (frame_) { gui_framestate_.set(frame_->GetStateString()); }
 
   if (gui_whichTab_.get() == "Widget")
   {
-    if( inputs_changed_ ||
-
-	!oport_cached("Samples") ||
-
-	widget_change_ ||
-
-	gui_force_rake_reset_.changed( true ) ||
-	gui_wtype_.changed( true ) ||
-	gui_maxSeeds_.changed( true ) )
+    if( inputs_changed_ || !oport_cached("Samples") || widget_change_ ||
+        gui_force_rake_reset_.changed( true ) ||
+        gui_wtype_.changed( true ) ||
+        gui_maxSeeds_.changed( true ) )
     {
       widget_change_ = false;
-
       FieldHandle field_out_handle;
 
       if (gui_wtype_.get() == "rake")
-	field_out_handle = execute_rake(field_in_handle);
+      {
+        field_out_handle = execute_rake(field_in_handle);
+      }
       else if (gui_wtype_.get() == "ring")
-	field_out_handle = execute_ring(field_in_handle);
+      {
+        field_out_handle = execute_ring(field_in_handle);
+      }
       else if (gui_wtype_.get() == "frame")
-	field_out_handle = execute_frame(field_in_handle);
-
+      {
+        field_out_handle = execute_frame(field_in_handle);
+      }
+      
       send_output_handle("Samples", field_out_handle);
     }
   }
   else if (gui_whichTab_.get() == "Random")
   {
-    if( inputs_changed_ ||
-
-	!oport_cached("Samples") ||
-
-	gui_numSeeds_.changed(true) ||
-	gui_randdist_.changed(true) ||
-	gui_rngSeed_.changed(true)  ||
-	gui_rngInc_.changed(true)   ||
-	gui_clamp_.changed(true) )
+    if( inputs_changed_ || !oport_cached("Samples") ||
+        gui_numSeeds_.changed() || gui_randdist_.changed() ||
+        gui_rngSeed_.changed()  || gui_rngInc_.changed()   ||
+        gui_clamp_.changed() )
     {
       FieldHandle field_out_handle = execute_random(field_in_handle);
-
       send_output_handle("Samples", field_out_handle);
     }
   }
 }
-
-
-
-CompileInfoHandle
-GeneratePointSamplesFromFieldOrWidgetRandomAlgo::get_compile_info(const TypeDescription *mesh_td)
-{
-  // use cc_to_h if this is in the .cc file, otherwise just __FILE__
-  static const string include_path(TypeDescription::cc_to_h(__FILE__));
-  static const string template_class_name("GeneratePointSamplesFromFieldOrWidgetRandomAlgoT");
-  static const string base_class_name("GeneratePointSamplesFromFieldOrWidgetRandomAlgo");
-
-  CompileInfo *rval = 
-    scinew CompileInfo(template_class_name + "." +
-		       mesh_td->get_filename() + ".",
-                       base_class_name, 
-                       template_class_name, 
-                       mesh_td->get_name());
-
-  // Add in the include path to compile this obj
-  rval->add_include(include_path);
-  rval->add_basis_include("Core/Basis/Constant.h");
-  rval->add_mesh_include("Core/Datatypes/PointCloudMesh.h");
-  mesh_td->fill_compile_info(rval);
-  return rval;
-}
-
 
 } // End namespace SCIRun
 

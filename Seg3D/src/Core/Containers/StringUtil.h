@@ -40,8 +40,8 @@
  *  Copyright (C) 2001 SCI Group
  */
 
-#ifndef SCI_Core_StringUtil_h
-#define SCI_Core_StringUtil_h 1
+#ifndef CORE_CONTAINERS_STRINGUTIL_H
+#define CORE_CONTAINERS_STRINGUTIL_H 1
 
 #include <string>
 #include <vector>
@@ -56,9 +56,36 @@ namespace SCIRun {
   using std::vector;
 
 template <class T>
+bool multiple_from_string(const string &str, std::vector<T> &values)
+{
+  values.clear();
+  
+  string data = str;
+  for (size_t j=0; j<data.size(); j++) 
+    if ((data[j] == '\t')||(data[j] == '\r')||(data[j] == '\n')||(data[j]=='"')) data[j] = ' ';
+    
+  std::vector<std::string> nums;
+  for (size_t p=0;p<data.size();)
+  { 
+    while((data[p] == ' ')&&(p<data.size())) p++;
+    if (p >= data.size()) break;
+
+    std::string::size_type next_space = data.find(' ',p);
+    if (next_space == std::string::npos) next_space = data.size();
+    T value;
+    if(from_string(data.substr(p,next_space-p),value)) values.push_back(value);
+    p = next_space;
+
+    if (p >= data.size()) break;
+  }
+  if (values.size() > 0) return (true);
+  return (false);
+}
+
+template <class T>
 bool from_string(const string &str, T &value)
 {
-  std::istringstream iss(str+" ");
+  std::istringstream iss(str+"  ");
   iss.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
   try
   {
@@ -71,7 +98,18 @@ bool from_string(const string &str, T &value)
   }
 }
 
+SCISHARE bool from_string(const string &str, double &value);
+SCISHARE bool from_string(const string &str, float &value);
+SCISHARE bool from_string(const string &str, int &value);
+SCISHARE bool from_string(const string &str, unsigned int &value);
+SCISHARE bool from_string(const string &str, long &value);
+SCISHARE bool from_string(const string &str, unsigned long &value);
+SCISHARE bool from_string(const string &str, long long &value);
+SCISHARE bool from_string(const string &str, unsigned long long &value);
 
+
+inline bool string_to_bool(const string &str, bool &result) 
+{ return(from_string(str,result)); }
 inline bool string_to_int(const string &str, int &result) 
 { return(from_string(str,result)); }
 inline bool string_to_double(const string &str, double &result) 

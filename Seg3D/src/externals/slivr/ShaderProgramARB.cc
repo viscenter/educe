@@ -34,6 +34,7 @@
 #include <slivr/Utils.h>
 #include <assert.h>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 
 using std::cerr;
@@ -64,10 +65,9 @@ ShaderProgramARB::valid()
   return shaders_supported() ? glIsProgram(id_) : false;
 }
 
-void
-ShaderProgramARB::init_shaders_supported()
+bool
+ShaderProgramARB::init_shaders_supported(std::string& error)
 {
-  CHECK_OPENGL_ERROR();
   if (!init_)
   {
     glewInit();
@@ -75,24 +75,30 @@ ShaderProgramARB::init_shaders_supported()
 
     CHECK_OPENGL_ERROR();
 
-    if( glTexImage3D == NULL ) {
-      const GLubyte* glVersionString;
-      GLuint dot, major, minor;
-      glVersionString = glGetString(GL_VERSION);
-      
-      printf( "\n" );
-      printf( "Warning, glTexImage3D is null... SCIRun (using glew) thinks that your\n" );
-      printf( "Version of OpenGL is: %s.\n", glVersionString );
-      printf( "If this isn't at least 2.0, then you probably have a problem with your\n" );
-      printf( "OpenGL graphic card drivers and might want to update them.\n" );
-      printf( "\n" );
-      exit( 1 );
+    if( glTexImage3D == NULL ) 
+    {
+      const GLubyte* glVersionString = glGetString(GL_VERSION);
+    
+      // Removed exit() statement, a library should never call exit()
+      // Report an error and let the user of the slivr library decide what
+      // to do. 
+      error = "The OpenGL library's version is lower than 2.0.\n Please update your OpenGL graphic card drivers.\n"; 
+      return (false);
     }
 
     // TODO: Frame buffer objects are technically only required for 2D
     // transfer function generation and not 1D colormaps.  However the code
     // just blows up if you try to do a 2D colormap and they aren't supported.
     supported_ = GLEW_ARB_shading_language_100 && GLEW_EXT_framebuffer_object;
+
+    // Blacklist Intel chipsets everywhere.  The drivers claim that they
+    // support shaders but crash when you try to use them.  This
+    // covers the Intel integrated chipsets in most laptops.
+    const GLubyte* glRendererString = glGetString(GL_RENDERER);
+    if (strncmp((const char *)glRendererString, "Intel", 5) == 0)
+    {
+      supported_ = false;
+    }
 
 #ifndef __sgi
     // Supported used to mean just shader programs.  However the
@@ -112,13 +118,11 @@ ShaderProgramARB::init_shaders_supported()
           const GLubyte* glVersionString;
           glVersionString = glGetString(GL_VERSION);
 
-          printf( "\n" );
-          printf( "Warning, glTexImage3D is null... SCIRun (using glew) thinks that your\n" );
-          printf( "Version of OpenGL is: %s.\n", glVersionString );
-          printf( "If this isn't at least 2.0, then you probably have a problem with your\n" );
-          printf( "OpenGL graphic card drivers and might want to update them.\n" );
-          printf( "\n" );
-          exit( 1 );
+          // Removed exit() statement, a library should never call exit()
+          // Report an error and let the user of the slivr library decide what
+          // to do. 
+          error = "The OpenGL library's version is lower than 2.0.\n Please update your OpenGL graphic card drivers.\n"; 
+          return (false);
         }
         glTexImage3D(GL_PROXY_TEXTURE_3D, 0, GL_LUMINANCE, i, i, i, 0,
                      GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
@@ -135,7 +139,7 @@ ShaderProgramARB::init_shaders_supported()
           break;
         }
       }
-      max_texture_size_1_ = Max(i, 64);
+      max_texture_size_1_ = Clamp(i, 64, 256);
 
       // Clear the OpenGL errors before checking for proxy textures.
       CHECK_OPENGL_ERROR();
@@ -156,24 +160,27 @@ ShaderProgramARB::init_shaders_supported()
           break;
         }
       }
-      max_texture_size_4_ = Max(i, 64);
+      max_texture_size_4_ = Clamp(i, 64, 256);
     }
 #endif // !sgi
 
     // Check for non-power-of-two texture support.
+    // Apple seems to get this wrong, claims support and then crashes.
+#if defined(__APPLE__)
+    non_2_textures_ = false;
+#else
     non_2_textures_ = GLEW_ARB_texture_non_power_of_two;
+#endif
 
     init_ = true;
   }
-  CHECK_OPENGL_ERROR();
+  return (true);
 }
   
 
 bool
 ShaderProgramARB::shaders_supported()
 {
-  assert(init_);
-  //ASSERTMSG(init_, "shaders_supported called before init_shaders_supported.");
   return supported_;
 }
 
@@ -193,39 +200,34 @@ ShaderProgramARB::max_texture_size_4()
 bool
 ShaderProgramARB::texture_non_power_of_two()
 {
-  return false;
-#if 0
-#if defined(__APPLE__) && (defined(__i386__) || defined(__x86_64__))
-  return false;
-#else
   return non_2_textures_;
-#endif
-#endif
 }
 
 bool
-ShaderProgramARB::create()
+ShaderProgramARB::create(std::string& error)
 {
   CHECK_OPENGL_ERROR();
 
   if (shaders_supported())
   {
     GLuint shader;
-    switch(type_) {
-    case GL_VERTEX_PROGRAM_ARB:
-      shader = glCreateShader(GL_VERTEX_SHADER);
-      break;
-    case GL_FRAGMENT_PROGRAM_ARB:
-      shader = glCreateShader(GL_FRAGMENT_SHADER);
-      break;
-    default:
-      cerr << "Error assigning shader type" << endl;
-      return true;
+    switch(type_) 
+    {
+      case GL_VERTEX_PROGRAM_ARB:
+        shader = glCreateShader(GL_VERTEX_SHADER);
+        break;
+      case GL_FRAGMENT_PROGRAM_ARB:
+        shader = glCreateShader(GL_FRAGMENT_SHADER);
+        break;
+      default:
+        error = "Error assigning shader type.";
+        return (false);
     }
     
-    if (shader == 0) {
-      cerr << "Error creating shader handle" << endl;
-      return true;
+    if (shader == 0) 
+    {
+      error = "Error creating shader handle.";
+      return (false);
     }
 
     //    cerr << program_ << endl;
@@ -239,42 +241,49 @@ ShaderProgramARB::create()
     // check the compilation of the shader
     GLint shader_status[1];
     glGetShaderiv(shader, GL_COMPILE_STATUS, shader_status);
-    if (shader_status[0] == GL_FALSE) {
-      cerr << "Error compiling shader" << endl;
+    if (shader_status[0] == GL_FALSE) 
+    {
+      std::ostringstream oss;
+      oss << "Error compiling shader.\n";
       
       char shader_log[1000];
       GLint shader_length[1];
       glGetShaderInfoLog(shader, 1000, shader_length, shader_log);
       
-      cerr << shader_log << endl;
+      oss << shader_log << endl;
 
       int line = 1;
-      cerr << std::setw(3) << line++ << ":";
-      for (unsigned int i = 0; i < program_.length(); i++) {
-	if (program_[i] == '\n') {
-	  cerr << std::setw(3) << endl << line++ << ":";
-	}
-	else {
-	  cerr << program_[i];
-	}
+      oss << std::setw(3) << line++ << ":";
+      for (unsigned int i = 0; i < program_.length(); i++) 
+      {
+        if (program_[i] == '\n') 
+        {
+          oss << std::setw(3) << endl << line++ << ":";
+        }
+        else 
+        {
+          oss << program_[i];
+        }
       }
-      exit(EXIT_FAILURE);
       
-      return true;
+      // A library should never call exit() 
+      error = oss.str();
+      return (false);
     }
     
     // create the GLSL program and attach the shader
     id_ = glCreateProgram();
-    if (id_ == 0) {
-      cerr << "Error creating GLSL program" << endl;
-      return true;
+    if (id_ == 0) 
+    {
+      error = "Error creating GLSL program";
+      return (false);
     }
     glAttachShader(id_, shader);
-    return false;
+    return (true);
   }
   
   CHECK_OPENGL_ERROR();
-  return true;
+  return (false);
 }
 
 

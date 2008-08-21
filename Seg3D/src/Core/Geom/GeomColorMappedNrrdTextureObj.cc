@@ -31,7 +31,7 @@
 
 #include <Core/Geom/GeomColorMappedNrrdTextureObj.h>
 #include <Core/Geom/ColorMappedNrrdTextureObj.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Geometry/BBox.h>
 #include <Core/Geom/DrawInfoOpenGL.h>
 
@@ -42,7 +42,7 @@ using std::ostream;
 namespace SCIRun {
 
 Persistent *make_GeomColorMappedNrrdTextureObj() {
-  return scinew GeomColorMappedNrrdTextureObj();
+  return new GeomColorMappedNrrdTextureObj();
 }
 
 PersistentTypeID 
@@ -83,33 +83,39 @@ GeomColorMappedNrrdTextureObj::set_offset(double offset) {
 
 
 GeomObj* GeomColorMappedNrrdTextureObj::clone() {
-  return scinew GeomColorMappedNrrdTextureObj( *this );
+  return new GeomColorMappedNrrdTextureObj( *this );
 }
 
 void
 GeomColorMappedNrrdTextureObj::draw(DrawInfoOpenGL* di, 
                                     Material* matl, double)
 {
-  double old_ambient = di->ambient_scale_;
+  const double old_ambient = di->ambient_scale_;
   di->ambient_scale_ = 150;
+
   if (!pre_draw(di, matl, 1)) {
     di->ambient_scale_ = old_ambient;
     return;
   }
-  //  glColor4f(1.0, 1.0, 1.0, 1.0);
+
   glEnable(GL_ALPHA_TEST);  
   glAlphaFunc(GL_GREATER, 0.1);
   glEnable(GL_POLYGON_OFFSET_FILL);
 
-  Vector view(di->view_.lookat() - di->view_.eyep());
-  double d = 1.0/view.length() - 1.0;
-  // very scientific, don't change :-o
-  glPolygonOffset(d*offset_, offset_);
-  cmnto_->draw_quad();
+  // Very scientific, don't change :-o
+  const Vector view(di->view_.lookat() - di->view_.eyep());
+  const double d = 1.0 / view.length() - 1.0;
+  glPolygonOffset(d * offset_, offset_);
+
+  // Draw the quad with no alpha.
+  cmnto_->draw_quad(true);
+
   glPolygonOffset(0.0, 0.0);
   glDisable(GL_POLYGON_OFFSET_FILL);
   glDisable(GL_ALPHA_TEST);  
+
   di->ambient_scale_ = old_ambient;
+
   post_draw(di);
 }
 

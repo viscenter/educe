@@ -33,6 +33,7 @@
 #define Seg3D_VolumeSlice_h
 
 #include <slivr/Plane.h>
+#include <Core/Geom/GeomObj.h>
 #include <Core/Geom/ColorMappedNrrdTextureObj.h>
 #include <Core/Geom/NrrdBitmaskOutline.h>
 #include <map>
@@ -82,7 +83,8 @@ private:
   Plane                                 plane_;
   unsigned int                          label_;
   bool                                  tex_dirty_;
-  
+
+public:  
   Point                                 pos_;
   Vector                                xdir_;
   Vector                                ydir_;

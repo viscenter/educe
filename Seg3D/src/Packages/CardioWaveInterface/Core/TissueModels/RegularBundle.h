@@ -32,14 +32,14 @@
 
 #include <Core/Algorithms/Util/AlgoLibrary.h>
 
-#include <Core/Bundle/Bundle.h>
+#include <Core/Datatypes/Bundle.h>
 #include <Core/Datatypes/Matrix.h>
 #include <Core/Datatypes/Field.h>
 #include <Core/Datatypes/DenseMatrix.h>
 
-#include <sgi_stl_warnings_off.h>
+
 #include <string>
-#include <sgi_stl_warnings_on.h>
+
 
 namespace CardioWaveInterface {
 

@@ -42,7 +42,7 @@
 #include <Core/Persistent/Persistent.h>
 #include <Core/Persistent/Pstreams.h>
 #include <Core/Persistent/GZstream.h>
-#include <Core/Malloc/Allocator.h>
+
 #include <Core/Thread/Mutex.h>
 #include <Core/Containers/StringUtil.h>
 
@@ -55,7 +55,13 @@
 
 using namespace std;
 
-#define DEBUG 0
+// _DEBUG defined in Visual Studio debug builds
+#undef DEBUG
+#if defined (_DEBUG) || !defined (NDEBUG)
+# define DEBUG 1
+#else
+# define DEBUG 0
+#endif
 
 namespace SCIRun {
 
@@ -87,11 +93,11 @@ PersistentTypeID::PersistentTypeID(const string& typeName,
 #endif
 
   if (persistentTypeIDMutex == 0)
-    persistentTypeIDMutex = scinew Mutex("Persistent Type ID Table Lock");  
+    persistentTypeIDMutex = new Mutex("Persistent Type ID Table Lock");  
   persistentTypeIDMutex->lock();
   if (!table)
   {
-    table = scinew Piostream::MapStringPersistentTypeID;
+    table = new Piostream::MapStringPersistentTypeID;
 
 #if DEBUG
     printf( "created table:  %p\n", table);
@@ -110,8 +116,10 @@ PersistentTypeID::PersistentTypeID(const string& typeName,
   {
     if ((*dummy).second->maker != maker || ((*dummy).second->parent != parentName))
     {
-      //      printf( "WARNING: duplicate type in Persistent Object Type Database: %s\n",
-      //              type.c_str() );
+#if DEBUG
+      printf( "WARNING: duplicate type in Persistent Object Type Database: %s\n",
+        type.c_str() );
+#endif
       persistentTypeIDMutex->unlock();
       return;
     }
@@ -138,8 +146,10 @@ PersistentTypeID::~PersistentTypeID()
 
   if (table == NULL)
   {
+#if DEBUG
     printf( "WARNING: Persistent.cc: ~PersistentTypeID(): table is NULL\n" );
     printf( "         For: %s, %s\n", type.c_str(), parent.c_str() );
+#endif
     persistentTypeIDMutex->unlock();
 
     return;
@@ -148,8 +158,10 @@ PersistentTypeID::~PersistentTypeID()
   iter = table->find(type);
   if (iter == table->end())
   {
-    //printf( "WARNING: Could not remove type from Object type database: %s\n",
-    //         type.c_str() );
+#if DEBUG
+    printf( "WARNING: Could not remove type from Object type database: %s\n",
+      type.c_str() );
+#endif
   }
   else
   {
@@ -194,7 +206,7 @@ Piostream::Piostream(Direction dir, int version, const string &name,
 {
   if (reporter_ == NULL)
   {
-    reporter_ = scinew ProgressReporter();
+    reporter_ = new ProgressReporter();
     own_reporter_ = true;
   }
 }
@@ -301,6 +313,11 @@ Piostream::io(bool& data)
   {
     data = tmp;
   }
+}
+
+void
+Persistent::io(Piostream&)
+{
 }
 
 //----------------------------------------------------------------------
@@ -458,7 +475,7 @@ Piostream::io(Persistent*& data, const PersistentTypeID& pid)
       // Insert this pointer in the database.
       if (!inpointers)
       {
-	inpointers = scinew MapIntPersistent;
+	inpointers = new MapIntPersistent;
       }
       (*inpointers)[pointer_id] = data;
     }
@@ -515,7 +532,7 @@ Piostream::io(Persistent*& data, const PersistentTypeID& pid)
       pointer_id = current_pointer_id++;
       if (!outpointers)
       {
-	outpointers = scinew MapPersistentInt;
+	outpointers = new MapPersistentInt;
       }
       (*outpointers)[data] = pointer_id;
     }
@@ -595,13 +612,13 @@ auto_istream(const string& filename, ProgressReporter *pr)
     }
 
     if (file_endian == machine_endian) 
-      return scinew BinaryPiostream(filename, Piostream::Read, version, pr);
+      return new BinaryPiostream(filename, Piostream::Read, version, pr);
     else 
-      return scinew BinarySwapPiostream(filename, Piostream::Read, version,pr);
+      return new BinarySwapPiostream(filename, Piostream::Read, version,pr);
   }
   else if (m1 == 'A' && m2 == 'S' && m3 == 'C')
   {
-    return scinew TextPiostream(filename, Piostream::Read, pr);
+    return new TextPiostream(filename, Piostream::Read, pr);
   }
 
   if (pr) pr->error(filename + " is an unknown type!");
@@ -624,19 +641,19 @@ auto_ostream(const string& filename, const string& type, ProgressReporter *pr)
   Piostream* stream;
   if (type == "Binary")
   {
-    stream = scinew BinaryPiostream(filename, Piostream::Write, -1, pr);
+    stream = new BinaryPiostream(filename, Piostream::Write, -1, pr);
   }
   else if (type == "Text")
   {
-    stream = scinew TextPiostream(filename, Piostream::Write, pr);
+    stream = new TextPiostream(filename, Piostream::Write, pr);
   }
   else if (type == "Fast")
   {
-    stream = scinew FastPiostream(filename, Piostream::Write, pr);
+    stream = new FastPiostream(filename, Piostream::Write, pr);
   }
   else
   {
-    stream = scinew BinaryPiostream(filename, Piostream::Write, -1, pr);
+    stream = new BinaryPiostream(filename, Piostream::Write, -1, pr);
   }
   return stream;
 }
@@ -776,6 +793,7 @@ void Pio_index(Piostream& stream, Persistent::index_type* data,
   }
   else
   {
+    std::cerr << "data_size = "<<data_size<< " and index_type size = "<< sizeof(Persistent::index_type) << "\n";
     std::cerr << "FILE FORMAT ERROR\n";
   }
 }

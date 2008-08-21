@@ -49,9 +49,10 @@
 #include <Core/Basis/CrvLinearLgn.h>
 #include <Core/Datatypes/CurveMesh.h>
 #include <Core/Datatypes/PointCloudMesh.h>
-#include <Core/Datatypes/FieldInterface.h>
 #include <Dataflow/Network/Ports/FieldPort.h>
-#include <Dataflow/Modules/Fields/GeneratePointSamplesFromFieldOrWidget.h>
+#include <Core/Datatypes/GenericField.h>
+#include <Core/Algorithms/Fields/SampleField/GeneratePointSamplesFromField.h>
+
 #include <Core/Geometry/BBox.h>
 
 namespace SCIRun {
@@ -73,14 +74,11 @@ public:
 
   FieldHandle seed_fieldH;
   FieldHandle compare_fieldH;
-  ScalarFieldInterfaceHandle cfi;
 
   FieldHandle src_fieldH;
-  ScalarFieldInterfaceHandle sfi;
   FieldHandle weighting_fieldH;
-  ScalarFieldInterfaceHandle wfi;
+  VField* vfield;
   FieldHandle pts_fieldH;
-  VectorFieldInterfaceHandle vfi;
 
   int numsl; // number of streamlines
   int numpts;  // number of trials
@@ -107,8 +105,7 @@ public:
     weighting_fieldH=NULL;
     pts_fieldH=NULL;
 
-    sfi=NULL;
-    wfi=NULL;
+    vfield=0;
 
     minper=0.;
     maxper=1.;
@@ -154,8 +151,7 @@ public:
 template <class FSRC, class FVEC, class FSP>
 class GenerateStreamLinesWithPlacementHeuristicAlgoT
   : virtual public GenerateStreamLinesWithPlacementHeuristicAlgo,
-    virtual public GenerateStreamLinesWithPlacementHeuristicData,
-    public GeneratePointSamplesFromFieldOrWidgetRandomAlgoT<typename FSP::mesh_type>
+    virtual public GenerateStreamLinesWithPlacementHeuristicData
 {
 public:
   FSRC *src_field;
@@ -216,24 +212,34 @@ public:
     seed_field = dynamic_cast<FSP *>(seed_fieldH.get_rep());
     ASSERT(seed_field);
 
-    msl=scinew HSLStreamLines_FSL();
+    msl=new HSLStreamLines_FSL();
     HSLStreamLines_FSL::mesh_type *mslm=dynamic_cast<typename HSLStreamLines_FSL::mesh_type *>(msl->mesh().get_rep());
     ASSERT(mslm);
 
-    GeneratePointSamplesFromFieldOrWidgetRandomAlgoT<typename FSP::mesh_type> SFalgo;
+    SCIRunAlgo::GeneratePointSamplesFromFieldAlgo SFalgo;
     unsigned int inumpts = (int)numpts;
     double rmsmin;
 
+    SFalgo.set_int("num_seed_points",1);
+    SFalgo.set_option("method","uniuni");
+    SFalgo.set_bool("clamp",false);
+    SFalgo.set_progress_reporter(mod);
+    
     //for each streamline, try placing it in a number of random points, and keep the best one
-    for(int i=0; i<numsl; i++) {
+    for(int i=0; i<numsl; i++) 
+    {
       cerr << "\n" << "streamline: "<< i <<"\n";
       rmsmin=HUGE;
       bool found=false;
       FieldHandle mslminH;
 
-      for(int j=0 ; j<inumpts; ++j) {
+      
+      for(int j=0 ; j<inumpts; ++j) 
+      {
         cerr<<"trial: "<<j<<"\n";
-        FieldHandle rph=SFalgo.execute(mod, seed_fieldH, 1, (int)(pow(2.,31.)*drand48()), "uniuni", 0);
+        SFalgo.set_int("rgn_seed",(int)(pow(2.,31.)*drand48()));
+        FieldHandle rph;
+        SFalgo.run(seed_fieldH,rph);
 
         HSLPoints_FPTS::mesh_type *rp_mesh = dynamic_cast<typename HSLPoints_FPTS::mesh_type *>(rph->mesh().get_rep());
         ASSERT(rp_mesh);
@@ -261,7 +267,8 @@ public:
         pts_fieldH=NULL;
       }
 
-      if (found) {
+      if (found) 
+      {
         //          cerr << "GenerateStreamLinesWithPlacementHeuristicAlgoT::execute best assigned " << rmsmin << "\n";
         pts_fieldH=mslminH;
         renderPointSet(1);
@@ -394,7 +401,7 @@ public:
     typename FSRC::mesh_type::Node::array_type na;
 
     double l;
-    wfi->interpolate(l, seed);
+    vfield->interpolate(l, seed);
     if (l<ming) l=ming;
     else if (l>maxg) l=maxg;
 
@@ -485,7 +492,7 @@ public:
   //! interpolate using the generic linear interpolator
   bool interpolate(const Point &p, Vector &v)
   {
-    if (vfi->interpolate(v, p)) {
+    if (vfield->interpolate(v, p)) {
       double a=v.safe_normalize();
       /*         if (a <= minmag) */
       /*           cerr << "Stopped minmag\n"; */
@@ -578,7 +585,7 @@ public:
   FieldHandle createStreamLine(Point seed)
   {
     numsteps=0;
-    HSLStreamLines_SLHandle cmesh = scinew HSLStreamLines_Mesh();
+    HSLStreamLines_SLHandle cmesh = new HSLStreamLines_Mesh();
     cf = new HSLStreamLines_FSL(cmesh);
 
     // Find the negative streamlines.
@@ -682,14 +689,16 @@ public:
     }
 
     // Check that the flow field input is a vector field.
-    vfi = vf->query_vector_interface(this);
-    if (!vfi.get_rep()) {
+    
+    if (!(vf->vfield()->is_vector())) 
+    {
       error("Flow is not a Vector field.");
       return;
     }
 
     FieldIPort *src_port = (FieldIPort *)get_iport("Source");
-    if(!src_port) {
+    if(!src_port) 
+    {
       error("Unable to initialize iport 'Source'.");
       return;
     }
@@ -699,17 +708,17 @@ public:
     }
 
     // Check that the source field input is a scalar field.
-    sfi =src_fieldH.get_rep()->query_scalar_interface(this);
-    if (!sfi.get_rep()) {
+    if (!(src_fieldH.get_rep()->vfield()->is_scalar())) 
+    {
       error("Source is not a Scalar field.");
       return;
     }
 
     src_fieldH.detach();
-    sfi=src_fieldH.get_rep()->query_scalar_interface(this);
 
     FieldIPort *weighting_port = (FieldIPort *)get_iport("Weighting");
-    if(!weighting_port) {
+    if(!weighting_port) 
+    {
       error("Unable to get weighting field.");
       return;
     }
@@ -719,8 +728,10 @@ public:
       return;
     }
 
-    wfi =weighting_fieldH.get_rep()->query_scalar_interface(this);
-    if (!wfi.get_rep()) {
+
+    vfield = weighting_fieldH->vfield();
+    if (!(vfield->is_scalar())) 
+    {
       error("Weighting is not a scalar field.");
       return;
     }
@@ -735,8 +746,8 @@ public:
       return;
     }
 
-    cfi =compare_fieldH.get_rep()->query_scalar_interface(this);
-    if (!cfi.get_rep()) {
+    if (!(compare_fieldH->vfield()->is_scalar())) 
+    {
       error("Compare is not a Scalar field.");
       return;
     }

@@ -31,7 +31,6 @@
 
 #include <StandAlone/Apps/Seg3D/ZoomTool.h>
 #include <StandAlone/Apps/Seg3D/Painter.h>
-#include <Core/Math/Expon.h>
 
 namespace SCIRun {
 

@@ -34,7 +34,7 @@
 #include <Core/Skinner/Color.h>
 
 #ifdef _WIN32
-#include <Core/OS/Rand.h>
+#include <Core/Util/Rand.h>
 #endif
 
 #include <iostream>

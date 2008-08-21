@@ -49,7 +49,7 @@ template class GenericWriter<PathHandle>;
 class WritePath : public GenericWriter<PathHandle> {
 public:
   WritePath(GuiContext* ctx);
-  virtual ~WritePath();
+  virtual ~WritePath() {}
 };
 
 
@@ -59,10 +59,5 @@ WritePath::WritePath(GuiContext* ctx)
   : GenericWriter<PathHandle>("WritePath", ctx, "DataIO", "SCIRun")
 {
 }
-
-WritePath::~WritePath()
-{
-}
-
 
 } // End namespace SCIRun

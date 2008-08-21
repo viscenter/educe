@@ -33,7 +33,7 @@
 #include <Dataflow/Network/Ports/NrrdPort.h>
 
 #include <Dataflow/Network/Module.h>
-#include <Core/Malloc/Allocator.h>
+
 
 namespace SCITeem {
 
@@ -59,21 +59,23 @@ void
 ConvertFieldToNrrd::execute()
 {
   // Define local handles of data objects:
-  NrrdDataHandle nrrd;
-  FieldHandle ofield;
+  FieldHandle field_handle;
 
   // Get the new input data: 
-  if (!(get_input_handle("Field",ofield,true))) return;
+  if (!(get_input_handle("Field",field_handle,true))) return;
 
   // Only reexecute if the input changed. SCIRun uses simple scheduling
   // that executes every module downstream even if no data has changed:  
-  if (inputs_changed_ || !oport_cached("Nrrd"))
+  if (inputs_changed_ ||
+      !oport_cached("Nrrd"))
   {
-    SCIRunAlgo::ConverterAlgo algo(this);
-    if (!(algo.FieldToNrrd(ofield,nrrd))) return;
+    NrrdDataHandle nrrd_handle;
 
-    // send new output if there is any:    
-    send_output_handle("Nrrd",nrrd,false);
+    SCIRunAlgo::ConverterAlgo algo(this);
+
+    if (!(algo.FieldToNrrd(field_handle, nrrd_handle))) return;
+
+    send_output_handle("Nrrd", nrrd_handle);
   }
 }
 

@@ -213,8 +213,6 @@ public:
 private:
   ViewWindow(const ViewWindow&); // Should not be called
   void			do_mouse(MouseHandler, GuiArgs&);
-  void			update_mode_string(const string&);
-  void			update_mode_string(GeomHandle);
   void			animate_to_view(const View& v, double time);
   void			redraw();
   void			redraw(double tbeg, double tend, 

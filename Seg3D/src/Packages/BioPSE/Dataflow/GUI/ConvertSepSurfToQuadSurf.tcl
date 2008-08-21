@@ -50,8 +50,8 @@ itcl_class BioPSE_Modeling_ConvertSepSurfToQuadSurf {
         set_defaults
     }
     method set_defaults {} {
-	global $this-data
-	set $this-data "material"
+        global $this-data
+        set $this-data "material"
     }
     method ui {} {
         set w .ui[modname]
@@ -60,19 +60,19 @@ itcl_class BioPSE_Modeling_ConvertSepSurfToQuadSurf {
             return;
         }
 
-        toplevel $w
+        sci_toplevel $w
         wm minsize $w 100 30
         set n "$this-c needexecute "
-	frame $w.data
-	label $w.data.label -text "Data values based on:"
-	radiobutton $w.data.material -text "Material" \
-		-variable $this-data -value material
-	radiobutton $w.data.cindex -text "Component index" \
-		-variable $this-data -value cindex
-	radiobutton $w.data.size -text "Size (voxels)" \
-		-variable $this-data -value size
-	pack $w.data.label $w.data.material $w.data.cindex $w.data.size \
-	    -side top -anchor w
-        pack $w.data -side top -expand yes
+        sci_frame $w.data
+        sci_label $w.data.label -text "Data values based on:"
+        sci_radiobutton $w.data.material -text "Material" \
+          -variable $this-data -value material
+        sci_radiobutton $w.data.cindex -text "Component index" \
+          -variable $this-data -value cindex
+        sci_radiobutton $w.data.size -text "Size (voxels)" \
+          -variable $this-data -value size
+        pack $w.data.label $w.data.material $w.data.cindex $w.data.size \
+            -side top -anchor w
+              pack $w.data -side top -expand yes
     }
 }

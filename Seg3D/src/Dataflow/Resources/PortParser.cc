@@ -27,7 +27,7 @@
 */
 
 #include <iostream>
-#include <Core/Malloc/Allocator.h>
+
 #include <Dataflow/Resources/PortParser.h>
 #include <Dataflow/Resources/Resources.h>
 
@@ -53,7 +53,7 @@ PortParser::startElement( const XMLCh * const uri,
   string tag ( XMLString::transcode(localname) );
   if ( tag == "port" ) {
     string name = XMLString::transcode(attrs.getValue( t_name ) );
-    info_ = scinew PortInfo;
+    info_ = new PortInfo;
     info_->type_ = package_->name_ + "::" + name;
     info_->package_ = package_->name_;
     info_->imaker_ = "make_" + name + "IPort";

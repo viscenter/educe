@@ -105,7 +105,7 @@ BuildEITMatrix::execute()
 	error("The 'Inside Conductivity' of the Surface port '" + to_string(pi->second) + "' was not set. It assumes to be zero!");
         condVal = 0;
       }
-      else condVal = atof(condStr.c_str());
+      else from_string(condStr,condVal);
 
       fields.push_back(field);
       meshes.push_back(mesh);

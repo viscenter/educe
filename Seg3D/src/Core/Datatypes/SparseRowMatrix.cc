@@ -46,7 +46,7 @@
 #include <Core/Math/MiscMath.h>
 #include <Core/Math/MinMax.h>
 #include <Core/Util/Assert.h>
-#include <Core/Malloc/Allocator.h>
+
 
 #include <iostream>
 #include <algorithm>
@@ -62,18 +62,27 @@ namespace SCIRun {
 Persistent*
 SparseRowMatrix::maker()
 {
-  return scinew SparseRowMatrix;
+  return new SparseRowMatrix;
 }
 
 
 PersistentTypeID SparseRowMatrix::type_id("SparseRowMatrix", "Matrix",
 					  SparseRowMatrix::maker);
 
+int
+SparseRowMatrix::compute_checksum()
+{
+  int sum = 0;
+  sum += SCIRun::compute_checksum(rows,nrows_+1);
+  sum += SCIRun::compute_checksum(columns,nnz);
+  sum += SCIRun::compute_checksum(a,nnz);
+  return (sum);
+}
 
 SparseRowMatrix*
 SparseRowMatrix::clone()
 {
-  return scinew SparseRowMatrix(*this);
+  return new SparseRowMatrix(*this);
 }
 
 
@@ -184,9 +193,9 @@ SparseRowMatrix::SparseRowMatrix(size_type nnrows, size_type nncols,
   nnz(nnz),
   a(a_)
 {
-  if (a == 0) { a = scinew double[nnz]; }
+  if (a == 0) { a = new double[nnz]; }
   if (sort_columns) order_columns();
-  ASSERT(validate());
+//  ASSERTL3(validate());
 }
 
 
@@ -198,9 +207,9 @@ SparseRowMatrix::SparseRowMatrix(size_type nnrows, size_type nncols,
   columns(columns),
   nnz(nnz)
 {
-  a = scinew double[nnz];
+  a = new double[nnz];
   if (sort_columns) order_columns();
-  ASSERT(validate());
+//  ASSERTL3(validate());
 }
 
 
@@ -208,13 +217,13 @@ SparseRowMatrix::SparseRowMatrix(const SparseRowMatrix& copy) :
   Matrix(copy.nrows_, copy.ncols_),
   nnz(copy.nnz)
 {
-  rows = scinew index_type[nrows_+1];
-  columns = scinew index_type[nnz];
-  a = scinew double[nnz];
+  rows = new index_type[nrows_+1];
+  columns = new index_type[nnz];
+  a = new double[nnz];
   memcpy(a, copy.a, sizeof(double)*nnz);
   memcpy(rows, copy.rows, sizeof(index_type)*(nrows_+1));
   memcpy(columns, copy.columns, sizeof(index_type)*nnz);
-  ASSERT(validate());
+//  ASSERTL3(validate());
 }
 
 
@@ -269,7 +278,7 @@ SparseRowMatrix::sparse()
 DenseMatrix *
 SparseRowMatrix::dense()
 {
-  DenseMatrix *dm = scinew DenseMatrix(nrows_, ncols_);
+  DenseMatrix *dm = new DenseMatrix(nrows_, ncols_);
   if (nrows_ == 0) return dm;
   dm->zero();
   index_type count=0;
@@ -290,7 +299,7 @@ SparseRowMatrix::dense()
 DenseColMajMatrix *
 SparseRowMatrix::dense_col_maj()
 {
-  DenseColMajMatrix *dm = scinew DenseColMajMatrix(nrows_, ncols_);
+  DenseColMajMatrix *dm = new DenseColMajMatrix(nrows_, ncols_);
   if (nrows_ == 0) return dm;
   dm->zero();
   index_type count = 0;
@@ -311,7 +320,7 @@ SparseRowMatrix::dense_col_maj()
 ColumnMatrix *
 SparseRowMatrix::column()
 {
-  ColumnMatrix *cm = scinew ColumnMatrix(nrows_);
+  ColumnMatrix *cm = new ColumnMatrix(nrows_);
   if (nrows_)
   {
     cm->zero();
@@ -349,14 +358,14 @@ SparseRowMatrix::get_data_size() const
 SparseRowMatrix *
 SparseRowMatrix::transpose() const
 {
-  double *t_a = scinew double[nnz];
-  index_type *t_columns = scinew index_type[nnz];
-  index_type *t_rows = scinew index_type[ncols_+1];
+  double *t_a = new double[nnz];
+  index_type *t_columns = new index_type[nnz];
+  index_type *t_rows = new index_type[ncols_+1];
   size_type t_nnz = nnz;
   size_type t_nncols = nrows_;
   size_type t_nnrows = ncols_;
 
-  index_type *at = scinew index_type[t_nnrows+1];
+  index_type *at = new index_type[t_nnrows+1];
   index_type i;
   for (i=0; i<t_nnrows+1;i++)
   {
@@ -386,7 +395,7 @@ SparseRowMatrix::transpose() const
   }
 
   delete at;
-  return scinew SparseRowMatrix(t_nnrows, t_nncols, t_rows,
+  return new SparseRowMatrix(t_nnrows, t_nncols, t_rows,
                                 t_columns, t_nnz, t_a);
 }
 
@@ -564,9 +573,8 @@ SparseRowMatrix::solve(ColumnMatrix&)
 
 void
 SparseRowMatrix::mult(const ColumnMatrix& x, ColumnMatrix& b,
-		      int& flops, int& memrefs, 
-          index_type beg, index_type end,
-		      int) const
+                      index_type beg, index_type end,
+                      int) const
 {
   // Compute A*x=b
   ASSERT(x.nrows() == ncols_);
@@ -589,18 +597,12 @@ SparseRowMatrix::mult(const ColumnMatrix& x, ColumnMatrix& b,
     }
     bp[i]=sum;
   }  
-
-  size_type nnz=2*(rows[end]-rows[beg]);
-  flops+=2*(rows[end]-rows[beg]);
-  size_type nr=end-beg;
-  memrefs+=2*sizeof(size_type)*nr+nnz*sizeof(size_type)+2*nnz*sizeof(double)+nr*sizeof(double);
 }
 
 
 void
 SparseRowMatrix::mult_transpose(const ColumnMatrix& x, ColumnMatrix& b,
-				int& flops, int& memrefs,
-				index_type beg, index_type end, int) const
+                                index_type beg, index_type end, int) const
 {
   // Compute At*x=b
   ASSERT(x.nrows() == nrows_);
@@ -621,10 +623,6 @@ SparseRowMatrix::mult_transpose(const ColumnMatrix& x, ColumnMatrix& b,
     for (; i<next_idx && columns[i] < end; i++)
       bp[columns[i]] += a[i]*xj;
   }
-  size_type nnz=2*(rows[end]-rows[beg]);
-  flops+=2*(rows[end]-rows[beg]);
-  size_type nr=end-beg;
-  memrefs+=2*sizeof(size_type)*nr+nnz*sizeof(size_type)+2*nnz*sizeof(double)+nr*sizeof(double);
 }
 
 
@@ -789,9 +787,9 @@ SparseRowMatrix::sparse_sparse_mult(const SparseRowMatrix &b) const
   }
   if (nelems) if (elems[s].val) nnz++;
   
-  index_type *rr = scinew index_type[nrows_+1];
-  index_type *cc = scinew index_type[nnz];
-  double *vv = scinew double[nnz];
+  index_type *rr = new index_type[nrows_+1];
+  index_type *cc = new index_type[nnz];
+  double *vv = new double[nnz];
   
   if ((rr == 0) || (cc == 0) || (vv == 0))
   {
@@ -818,7 +816,7 @@ SparseRowMatrix::sparse_sparse_mult(const SparseRowMatrix &b) const
     rr[p+1] = q;
   }   
     
-  MatrixHandle output = scinew SparseRowMatrix(nrows_,bncols,rr,cc,nnz,vv);
+  MatrixHandle output = new SparseRowMatrix(nrows_,bncols,rr,cc,nnz,vv);
   return output;
 }
 
@@ -866,9 +864,9 @@ SparseRowMatrix::io(Piostream& stream)
   
   if (stream.reading())
   {
-    a = scinew double[nnz];
-    columns = scinew index_type[nnz];
-    rows = scinew index_type[nrows_+1];
+    a = new double[nnz];
+    columns = new index_type[nnz];
+    rows = new index_type[nrows_+1];
   }
   
   stream.begin_cheap_delim();  
@@ -892,7 +890,7 @@ AddSparse(const SparseRowMatrix &a, const SparseRowMatrix &b)
 {
   ASSERT(a.nrows() == b.nrows() && a.ncols() == b.ncols());
 
-  Matrix::index_type *rows = scinew index_type[a.nrows() + 1];
+  Matrix::index_type *rows = new index_type[a.nrows() + 1];
   vector<Matrix::index_type> cols;
   vector<double> vals;
 
@@ -949,21 +947,21 @@ AddSparse(const SparseRowMatrix &a, const SparseRowMatrix &b)
     }
   }
 
-  Matrix::index_type *vcols = scinew Matrix::index_type[cols.size()];
+  Matrix::index_type *vcols = new Matrix::index_type[cols.size()];
   Matrix::size_type csz = static_cast<Matrix::size_type>(cols.size());
   for (Matrix::index_type i = 0; i < csz; i++)
   {
     vcols[i] = cols[i];
   }
 
-  double *vvals = scinew double[vals.size()];
+  double *vvals = new double[vals.size()];
   Matrix::size_type vsz = static_cast<Matrix::size_type>(vals.size());
   for (Matrix::index_type i = 0; i < vsz; i++)
   {
     vvals[i] = vals[i];
   }
 
-  return scinew SparseRowMatrix(a.nrows(), a.ncols(), rows,
+  return new SparseRowMatrix(a.nrows(), a.ncols(), rows,
 				vcols, static_cast<Matrix::size_type>(vals.size()), vvals);
 }
 
@@ -973,7 +971,7 @@ SubSparse(const SparseRowMatrix &a, const SparseRowMatrix &b)
 {
   ASSERT(a.nrows() == b.nrows() && a.ncols() == b.ncols());
 
-  Matrix::index_type *rows = scinew Matrix::index_type[a.nrows() + 1];
+  Matrix::index_type *rows = new Matrix::index_type[a.nrows() + 1];
   vector<Matrix::index_type> cols;
   vector<double> vals;
 
@@ -1031,19 +1029,19 @@ SubSparse(const SparseRowMatrix &a, const SparseRowMatrix &b)
   }
 
   Matrix::index_type i;
-  Matrix::index_type *vcols = scinew Matrix::index_type[cols.size()];
+  Matrix::index_type *vcols = new Matrix::index_type[cols.size()];
   for (i = 0; i < static_cast<Matrix::index_type>(cols.size()); i++)
   {
     vcols[i] = cols[i];
   }
 
-  double *vvals = scinew double[vals.size()];
+  double *vvals = new double[vals.size()];
   for (i = 0; i < static_cast<Matrix::index_type>(vals.size()); i++)
   {
     vvals[i] = vals[i];
   }
 
-  return scinew SparseRowMatrix(a.nrows(), a.ncols(), rows,
+  return new SparseRowMatrix(a.nrows(), a.ncols(), rows,
 				vcols, static_cast<Matrix::size_type>(vals.size()), vvals);
 }
 
@@ -1058,7 +1056,7 @@ SparseRowMatrix::submatrix(index_type r1, index_type c1,
   ASSERTRANGE(c2, c1, ncols_);
 
   index_type i, j;
-  index_type *rs = scinew index_type[r2-r1+2];
+  index_type *rs = new index_type[r2-r1+2];
   vector<index_type> csv;
   vector<double> valsv;
 
@@ -1077,15 +1075,15 @@ SparseRowMatrix::submatrix(index_type r1, index_type c1,
     }
   }
 
-  index_type *cs = scinew index_type[csv.size()];
-  double *vals = scinew double[valsv.size()];
+  index_type *cs = new index_type[csv.size()];
+  double *vals = new double[valsv.size()];
   for (i = 0; i < static_cast<index_type>(csv.size()); i++)
   {
     cs[i] = csv[i];
     vals[i] = valsv[i];
   }
 
-  return scinew SparseRowMatrix(r2-r1+1, c2-c1+1, rs, cs,
+  return new SparseRowMatrix(r2-r1+1, c2-c1+1, rs, cs,
                            static_cast<size_type>(valsv.size()), vals);
 }
 
@@ -1093,9 +1091,9 @@ SparseRowMatrix::submatrix(index_type r1, index_type c1,
 SparseRowMatrix *
 SparseRowMatrix::identity(size_type size)
 { 
-  index_type *r = scinew index_type[size+1];
-  index_type *c = scinew index_type[size];
-  double *d = scinew double[size];
+  index_type *r = new index_type[size+1];
+  index_type *c = new index_type[size];
+  double *d = new double[size];
 
   index_type i;
   for (i=0; i<size; i++)
@@ -1105,7 +1103,7 @@ SparseRowMatrix::identity(size_type size)
   }
   r[i] = i;
 
-  return scinew SparseRowMatrix(size, size, r, c, size, d);
+  return new SparseRowMatrix(size, size, r, c, size, d);
 }
 
 } // End namespace SCIRun

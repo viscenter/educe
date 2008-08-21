@@ -62,7 +62,7 @@ void MapFieldDataOntoFieldNodes::execute()
   if (!(get_input_handle("Source",fsrc,true))) return;
   if (!(get_input_handle("Destination",fdst,true))) return;
   
-  if (inputs_changed_ || mappingmethod_.changed() || !oport_cached("Desitination"))
+  if (inputs_changed_ || mappingmethod_.changed() || def_value_.changed() || !oport_cached("Destination"))
   {
     std::string mappingmethod = mappingmethod_.get();
     double def_value = def_value_.get();

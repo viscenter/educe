@@ -33,7 +33,6 @@
 #include <Core/Util/Assert.h>
 
 #include <Core/Basis/share.h>
-
 namespace SCIRun {
 
 class SCISHARE TetSamplingSchemes
@@ -55,7 +54,7 @@ class SCISHARE TetSamplingSchemes
       weights.resize(num_points);
       for (unsigned int i=0; i<num_points; i++)
       {
-        coords[i].resize(num_points);
+        coords[i].resize(num_coords);
         for (unsigned int j=0; j<num_coords; j++)
           coords[i][j] = static_cast<typename coords_type::value_type>(gaussian_coords[i][j]);
         weights[i] = static_cast<typename ARRAY2::value_type>(gaussian_weights[i]);
@@ -76,7 +75,7 @@ class SCISHARE TetSamplingSchemes
       weights.resize(num_points);
       for (unsigned int i=0; i<num_points; i++)
       {
-        coords[i].resize(num_points);
+        coords[i].resize(num_coords);
         for (unsigned int j=0; j<num_coords; j++)
           coords[i][j] = static_cast<typename coords_type::value_type>(gaussian_coords[i][j]);
         weights[i] = static_cast<typename ARRAY2::value_type>(gaussian_weights[i]);
@@ -115,7 +114,7 @@ class SCISHARE TetSamplingSchemes
       weights.resize(num_points);
       for (unsigned int i=0; i<num_points; i++)
       {
-        coords[i].resize(num_points);
+        coords[i].resize(num_coords);
         for (unsigned int j=0; j<num_coords; j++)
           coords[i][j] = static_cast<typename coords_type::value_type>(gaussian_coords[i][j]);
         weights[i] = static_cast<typename ARRAY2::value_type>(gaussian_weights[i]);
@@ -142,53 +141,53 @@ class SCISHARE TetSamplingSchemes
           if (p+q+r == (order-1))
           {
             coords_type c(3);
-            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/3.0)/static_cast<double>(order));
-            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/3.0)/static_cast<double>(order));
-            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/3.0)/static_cast<double>(order));
+            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/4.0)/static_cast<double>(order));
+            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/4.0)/static_cast<double>(order));
+            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/4.0)/static_cast<double>(order));
             coords.push_back(c); m++;
           }
           if (p+q+r == (order-2))
           {
             coords_type c(3);
-            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+2.0/3.0)/static_cast<double>(order));
-            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/3.0)/static_cast<double>(order));
-            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/3.0)/static_cast<double>(order));
+            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+2.0/4.0)/static_cast<double>(order));
+            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/4.0)/static_cast<double>(order));
+            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/4.0)/static_cast<double>(order));
+            coords.push_back(c); m++;
+            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/4.0)/static_cast<double>(order));
+            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+2.0/4.0)/static_cast<double>(order));
+            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/4.0)/static_cast<double>(order));
+            coords.push_back(c); m++;
+            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/4.0)/static_cast<double>(order));
+            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/4.0)/static_cast<double>(order));
+            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+2.0/4.0)/static_cast<double>(order));
             coords.push_back(c); m++;
             c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/3.0)/static_cast<double>(order));
-            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+2.0/3.0)/static_cast<double>(order));
-            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/3.0)/static_cast<double>(order));
-            coords.push_back(c); m++;
-            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/3.0)/static_cast<double>(order));
             c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/3.0)/static_cast<double>(order));
-            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+2.0/3.0)/static_cast<double>(order));
-            coords.push_back(c); m++;
-            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/2.0)/static_cast<double>(order));
-            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/2.0)/static_cast<double>(order));
-            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/2.0)/static_cast<double>(order));
+            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/3.0)/static_cast<double>(order));
             coords.push_back(c); m++;
           }
           if (p+q+r < (order-2))
           {
             coords_type c(3);
-            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+2.0/3.0)/static_cast<double>(order));
+            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+2.0/4.0)/static_cast<double>(order));
+            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/4.0)/static_cast<double>(order));
+            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/4.0)/static_cast<double>(order));
+            coords.push_back(c); m++;
+            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/4.0)/static_cast<double>(order));
+            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+2.0/4.0)/static_cast<double>(order));
+            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/4.0)/static_cast<double>(order));
+            coords.push_back(c); m++;
+            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/4.0)/static_cast<double>(order));
+            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/4.0)/static_cast<double>(order));
+            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+2.0/4.0)/static_cast<double>(order));
+            coords.push_back(c); m++;
+            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/3.0)/static_cast<double>(order));
             c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/3.0)/static_cast<double>(order));
             c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/3.0)/static_cast<double>(order));
             coords.push_back(c); m++;
-            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/3.0)/static_cast<double>(order));
-            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+2.0/3.0)/static_cast<double>(order));
-            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/3.0)/static_cast<double>(order));
-            coords.push_back(c); m++;
-            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/3.0)/static_cast<double>(order));
-            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/3.0)/static_cast<double>(order));
-            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+2.0/3.0)/static_cast<double>(order));
-            coords.push_back(c); m++;
-            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+1.0/2.0)/static_cast<double>(order));
-            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+1.0/2.0)/static_cast<double>(order));
-            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+1.0/2.0)/static_cast<double>(order));
-            coords.push_back(c); m++;
-            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+2.0/3.0)/static_cast<double>(order));
-            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+2.0/3.0)/static_cast<double>(order));
-            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+2.0/3.0)/static_cast<double>(order));
+            c[0] = static_cast<typename coords_type::value_type>((static_cast<double>(p)+2.0/4.0)/static_cast<double>(order));
+            c[1] = static_cast<typename coords_type::value_type>((static_cast<double>(q)+2.0/4.0)/static_cast<double>(order));
+            c[2] = static_cast<typename coords_type::value_type>((static_cast<double>(r)+2.0/4.0)/static_cast<double>(order));
             coords.push_back(c); m++;
           } 
         }
