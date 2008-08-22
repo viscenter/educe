@@ -101,21 +101,32 @@ enum
     MENU_VIEW_SINGLE,
     MENU_VIEW_VOLUME_RENDER,
 
-    MENU_TOOL_AUTOVIEW = 300,
-    MENU_TOOL_PAINT_BRUSH,
+    MENU_EDIT_AUTOVIEW = 300,
+    MENU_EDIT_SET_MASK_LAYER,
+    MENU_EDIT_CLEAR_MASK_LAYER,
+    MENU_EDIT_ISOSURFACE_ONE,
+    MENU_EDIT_ISOSURFACE_ALL,
+    MENU_EDIT_SET_VRTARGET,
+    MENU_EDIT_RESET_CLUT,
+    MENU_EDIT_MOVE_LAYER_UP,
+    MENU_EDIT_MOVE_LAYER_DOWN,
+    MENU_EDIT_UNDO,
+    MENU_EDIT_PREFS,
+    
+    MENU_PREFS_FATLINES = 350,
+    MENU_PREFS_STIPPLE,
+
+    MENU_TOOL_PAINT_BRUSH = 400,
     MENU_TOOL_CROP_VOLUME,
     MENU_TOOL_CROP_CYLINDER,
-		MENU_TOOL_ISOSURFACE_ONE,
-    MENU_TOOL_ISOSURFACE_ALL,
-    MENU_TOOL_SET_VRTARGET,
     MENU_TOOL_FLIP,
     MENU_TOOL_RESAMPLE,
-    MENU_TOOL_RESET_CLUT,
-    MENU_TOOL_SET_MASK_LAYER,
-    MENU_TOOL_CLEAR_MASK_LAYER,
     MENU_TOOL_POLYLINE,
+    MENU_TOOL_THRESHOLD,
+    MENU_TOOL_MOVESCALE,
+    MENU_TOOL_MEASUREMENT,
 
-    MENU_FILTER_C_A_D_F = 400,
+    MENU_FILTER_C_A_D_F = 500,
     MENU_FILTER_C_C_F,
     MENU_FILTER_N_C_F,
     MENU_FILTER_B_D_E_F,
@@ -133,21 +144,29 @@ enum
     MENU_FILTER_MASK_DATA,
     MENU_FILTER_MASK_LABEL,
     MENU_FILTER_MASK_AND,
+    MENU_FILTER_MASK_REMOVE,
     MENU_FILTER_MASK_OR,
+    MENU_FILTER_MASK_XOR,
+    MENU_FILTER_INHOMO_CORRECTION,
+
+    MENU_FILTER_S_T_P_G_D_F,
+    MENU_FILTER_S_T_P_R_S_G_D_F,
+    MENU_FILTER_S_T_P_I_N_F,
 
     MENU_HELP_UNDO,
     MENU_HELP_INDEX, // TODO: Fix later (wxID_HELP or wxID_HELP_INDEX?),
     MENU_HELP_ABOUT = wxID_ABOUT,
 		
-		MENU_PLUGIN_START = 500
+		MENU_PLUGIN_START = 700,
 
+    VOLUME_INFO_OK_BUTTON = 600
     // Don't add any here without setting the value correctly.
 };
 
 namespace SCIRun {
 
 
-struct colour_picker_data
+struct colour_picker_data_t
 {
   double r;
   double g;
@@ -155,14 +174,29 @@ struct colour_picker_data
   string layername;
 };
 
+struct export_label_selection_data_t
+{
+  export_label_selection_data_t() : choices_(NULL), nchoices_(0) {}
+  wxString *choices_;
+  size_t    nchoices_;
+  wxArrayInt selections_;
+};
+
+struct update_undo_state_t
+{
+  bool enable_;
+  string label_;
+};
 
 DECLARE_EVENT_TYPE(wxEVT_COMMAND_STATUS_BAR_TEXT_CHANGE, -100)
 DECLARE_EVENT_TYPE(wxEVT_COMMAND_COLOUR_PICKER, -101)
 DECLARE_EVENT_TYPE(wxEVT_COMMAND_HIDE_TOOL, -102)
 DECLARE_EVENT_TYPE(wxEVT_COMMAND_OK_DIALOG, -103)
 DECLARE_EVENT_TYPE(wxEVT_COMMAND_LAYER_DELETE_DIALOG, -104)
-DECLARE_EVENT_TYPE(wxEVT_COMMAND_UNWRAP_WINDOW, -105)
-
+DECLARE_EVENT_TYPE(wxEVT_COMMAND_EXPORT_LABEL_SELECTION, -105)
+DECLARE_EVENT_TYPE(wxEVT_COMMAND_UPDATE_UNDO_STATE, -106)
+DECLARE_EVENT_TYPE(wxEVT_COMMAND_UNWRAP_WINDOW, -107)
+ 
 
 class Seg3DFrame : public wxFrame
 {
@@ -185,26 +219,30 @@ public:
   void ViewOneByThree( wxCommandEvent& WXUNUSED(event) );
   void ViewSingle( wxCommandEvent& WXUNUSED(event) );
   void ViewVolumeRender( wxCommandEvent& WXUNUSED(event) );
-
-  void ToolAutoview( wxCommandEvent& WXUNUSED(event) );
-  void ToolIsosurfaceOne( wxCommandEvent& WXUNUSED(event) );
-  void ToolIsosurfaceAll( wxCommandEvent& WXUNUSED(event) );
-  void ToolSetVRTarget( wxCommandEvent& WXUNUSED(event) );
+  void EditAutoview( wxCommandEvent& WXUNUSED(event) );
+  void EditSetMaskLayer( wxCommandEvent& WXUNUSED(event) );
+  void EditClearMaskLayer( wxCommandEvent& WXUNUSED(event) );
+  void EditIsosurfaceOne( wxCommandEvent& WXUNUSED(event) );
+  void EditIsosurfaceAll( wxCommandEvent& WXUNUSED(event) );
+  void EditSetVRTarget( wxCommandEvent& WXUNUSED(event) );
+  void EditResetCLUT( wxCommandEvent& WXUNUSED(event) );
+  void EditMoveLayerUp( wxCommandEvent& WXUNUSED(event) );
+  void EditMoveLayerDown( wxCommandEvent& WXUNUSED(event) );
+  void EditUndo( wxCommandEvent& WXUNUSED(event) );
+ 
   void ToolPaintBrush( wxCommandEvent& WXUNUSED(event) );
-  void ToolCrop( wxCommandEvent& WXUNUSED(event) );
+
 
   void ToolCropVolume( wxCommandEvent& WXUNUSED(event) );
   void ToolCropCylinder( wxCommandEvent& WXUNUSED(event) );
   void ToolFlip( wxCommandEvent& WXUNUSED(event) );
 
-  void ToolFlipC( wxCommandEvent& WXUNUSED(event) );
-  void ToolFlipA( wxCommandEvent& WXUNUSED(event) );
-  void ToolFlipS( wxCommandEvent& WXUNUSED(event) );
   void ToolResample( wxCommandEvent& WXUNUSED(event) );
-  void ToolResetCLUT( wxCommandEvent& WXUNUSED(event) );
-  void ToolSetMaskLayer( wxCommandEvent& WXUNUSED(event) );
-  void ToolClearMaskLayer( wxCommandEvent& WXUNUSED(event) );
   void ToolPolyline( wxCommandEvent& WXUNUSED(event) );
+  void ToolThreshold( wxCommandEvent& WXUNUSED(event) );
+  void ToolMoveScale( wxCommandEvent& WXUNUSED(event) );
+  void ToolMeasurement( wxCommandEvent& WXUNUSED(event) );
+ 
 
 	void PluginEvent( wxCommandEvent& event );
 
@@ -291,6 +329,9 @@ private:
   void OnHideTool(wxCommandEvent &event);
   void OnOKDialog(wxCommandEvent &event);
   void OnLayerDeleteDialog(wxCommandEvent &event);
+  void OnExportLabelSelection(wxCommandEvent &event);
+  void OnUpdateUndoState(wxCommandEvent &event);
+ 
   void OnUnwrapWindow(wxCommandEvent &event);
 
   static void PainterShowVisibleItem(const string &id, const string &group);

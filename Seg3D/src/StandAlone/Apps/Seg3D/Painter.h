@@ -225,8 +225,12 @@ private:
   CatcherFunction_t     StartBrushTool;
   CatcherFunction_t     StartCropTool;
   CatcherFunction_t     StartCropCylinder;
-  CatcherFunction_t     StartFloodFillTool;
   CatcherFunction_t     StartPolylineTool;
+  CatcherFunction_t     StartResampleTool;
+  CatcherFunction_t     StartThresholdTool;
+  CatcherFunction_t     StartMeasurementTool;
+
+  CatcherFunction_t     VolumeInformation;
 
 public:
   CatcherFunction_t     Autoview;

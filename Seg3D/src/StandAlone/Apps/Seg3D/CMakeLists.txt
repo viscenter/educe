@@ -98,13 +98,14 @@ SET(Seg3D_SRCS
   main.cc
   PluginManager.cc
 	AutoviewTool.cc 
-  BrushTool.cc 
   BrushFloodFill.cc 
+  BrushTool.cc 
   CLUTLevelsTool.cc
   CropTool.cc
   CropCylinder.cc
-  FloodfillTool.cc
   FloodFillCopyTool.cc
+  FloodfillTool.cc
+	InhomogeneityCorrectionFilter.cc
   ITKNeighborhoodConnectedImageFilterTool.cc
   ITKConfidenceConnectedImageFilterTool.cc
   ITKCurvatureAnisotropicDiffusionImageFilterTool.cc
@@ -118,6 +119,7 @@ SET(Seg3D_SRCS
   KeyToolSelectorTool.cc
   LayerButton.cc
   LayerMergeTool.cc
+	LineTool.cc
   NrrdVolume.cc
   Painter.cc 
   PainterSignalTargets.cc 
@@ -125,22 +127,25 @@ SET(Seg3D_SRCS
   ProbeTool.cc 
   PointerToolSelectorTool.cc
   PolylineTool.cc
-  StatisticsTool.cc
   SeedTool.cc
   Seg3DFrame.cc
+	Seg3DwxGuiUtils.cc
   SessionReader.cc
   SessionWriter.cc
   SliceWindow.cc
+	SpeedToPathTool.cc
+  StatisticsTool.cc
+	ThresholdTool.cc
+	Undo.cc
   VolumeFilter.cc
   VolumeOps.cc
   VolumeSlice.cc
   WXOpenGLContext.cc
-  Seg3DwxGuiUtils.cc
   ZoomTool.cc
   GuiCode/seg3devents.cpp
   GuiCode/brushpanel.cpp
-  GuiCode/croppanel.cpp
   GuiCode/histoeqfilter.cpp
+	GuiCode/intensitycorrectionfilterpanel.cpp
   GuiCode/itkcurvatureanistopricdiffusionfilter.cpp
   GuiCode/itkconfidenceconnectedfilter.cpp
   GuiCode/itkneighbourhoodconnectedfilter.cpp
@@ -191,6 +196,7 @@ SET(Seg3D_LIBS
   ITKCommon
   ITKBasicFilters
   ITKIO 
+	ITKNumerics
   boost_filesystem
 	dl
 	cv

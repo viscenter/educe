@@ -113,25 +113,6 @@ ensure $cmakebin --version
 # Get the latest SCIRun Core Thirdparty
 try cd $DIR
 
-if [ -d "$DIR/3P" ]; then
-    try cd $DIR/3P
-    tpurl=`$svnbin info . | grep URL | cut -d" " -f 2`
-    local=`$svnbin info . | grep Revision | cut -d" " -f 2`
-    remote=`$svnbin info $tpurl | grep Revision | cut -d" " -f 2`
-    try echo "local=$local remote=$remote tpurl=$tpurl"
-    if test "$local" = "$remote"; then
-        rebuldtp=0
-    else
-        try cd $DIR/3P
-        try $svnbin update
-        rebuildtp=1
-    fi
-else
-    tpurl="https://code.sci.utah.edu/svn/Thirdparty/3.0.0"
-    try $svnbin co $tpurl 3P
-    rebuildtp=1
-fi
-
 if test "$rebuildtp" = "1"; then
     # rebuild the Thirdparty from scratch
     try rm -rf $DIR/Thirdparty
@@ -163,15 +144,6 @@ try make $makeflags
 try make install
 # ensure that the insight installation suceeded
 try cd $TP/lib/InsightToolkit
-
-# Get the latest SVN version of SCIRun Core
-try cd $DIR
-if [ -d "$DIR/src" ]; then
-    try cd $DIR/src
-    try $svnbin update
-else
-    try $svnbin co https://code.sci.utah.edu/svn/SCIRun/branches/cibc/src src
-fi
 
 # Build SCIRun Core w/ cmake in SCIRunCore-bin
 try mkdir -p $DIR/bin

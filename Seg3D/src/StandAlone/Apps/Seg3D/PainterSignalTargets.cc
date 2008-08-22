@@ -34,11 +34,12 @@
 #include <StandAlone/Apps/Seg3D/CropTool.h>
 #include <StandAlone/Apps/Seg3D/CropCylinder.h>
 #include <StandAlone/Apps/Seg3D/BrushTool.h>
+#include <StandAlone/Apps/Seg3D/ResampleTool.h>
+#include <StandAlone/Apps/Seg3D/InhomogeneityCorrectionFilter.h>
 #include <StandAlone/Apps/Seg3D/ITKConfidenceConnectedImageFilterTool.h>
 #include <StandAlone/Apps/Seg3D/ITKCurvatureAnisotropicDiffusionImageFilterTool.h>
 #include <StandAlone/Apps/Seg3D/ITKNeighborhoodConnectedImageFilterTool.h>
 #include <StandAlone/Apps/Seg3D/ITKThresholdSegmentationLevelSetImageFilterTool.h>
-#include <StandAlone/Apps/Seg3D/ITKThresholdImageFilterTool.h>
 #include <StandAlone/Apps/Seg3D/ITKDiscreteGaussianImageFilterTool.h>
 #include <StandAlone/Apps/Seg3D/ITKOtsuImageFilterTool.h>
 #include <StandAlone/Apps/Seg3D/ITKGradientMagnitudeImageFilterTool.h>
@@ -47,18 +48,23 @@
 #include <StandAlone/Apps/Seg3D/BrushFloodFill.h>
 #include <StandAlone/Apps/Seg3D/FloodfillTool.h>
 #include <StandAlone/Apps/Seg3D/FloodFillCopyTool.h>
+#include <StandAlone/Apps/Seg3D/LineTool.h>
 #include <StandAlone/Apps/Seg3D/PolylineTool.h>
+#include <StandAlone/Apps/Seg3D/ThresholdTool.h>
 #include <StandAlone/Apps/Seg3D/SessionReader.h>
 #include <StandAlone/Apps/Seg3D/SessionWriter.h>
 #include <StandAlone/Apps/Seg3D/VolumeOps.h>
 #include <StandAlone/Apps/Seg3D/VolumeFilter.h>
 #include <StandAlone/Apps/Seg3D/FilterPlugin.h>
+#include <StandAlone/Apps/Seg3D/ITKSpeedToPathGradientDescentImageFilterTool.h>
+#include <StandAlone/Apps/Seg3D/ITKSpeedToPathRegularStepGradientDescentImageFilterTool.h>
+#include <StandAlone/Apps/Seg3D/ITKSpeedToPathIterateNeighborhoodImageFilterTool.h>
 
 #include <sci_comp_warn_fixes.h>
 #include <iostream>
 #include <sci_gl.h>
 #include <Core/Datatypes/Field.h> 
-#include <Core/Geom/Material.h>
+#include <Core/Geom/GeomMaterial.h>
 #include <Core/Geom/ColorMappedNrrdTextureObj.h>
 #include <Core/Geom/GeomSwitch.h>
 #include <Core/Geom/GeomCull.h>
@@ -118,20 +124,27 @@ Painter::InitializeSignalCatcherTargets(event_handle_t &)
     
   REGISTER_CATCHER_TARGET(Painter::StartBrushTool);
   REGISTER_CATCHER_TARGET(Painter::StartCropTool);
+  REGISTER_CATCHER_TARGET(Painter::VolumeInformation);
   REGISTER_CATCHER_TARGET(Painter::StartCropCylinder);
-  REGISTER_CATCHER_TARGET(Painter::StartFloodFillTool);
   REGISTER_CATCHER_TARGET(Painter::StartPolylineTool);
+  REGISTER_CATCHER_TARGET(Painter::StartResampleTool);
+  REGISTER_CATCHER_TARGET(Painter::StartThresholdTool);
+  REGISTER_CATCHER_TARGET(Painter::StartMeasurementTool);
 
   REGISTER_CATCHER_TARGET(Painter::Autoview);
   REGISTER_CATCHER_TARGET(Painter::CopyLabel);
   REGISTER_CATCHER_TARGET(Painter::DeleteLayer);
   REGISTER_CATCHER_TARGET(Painter::DeleteLayer2);
 
+  REGISTER_CATCHER_TARGET(Painter::MoveLayerUp);
+  REGISTER_CATCHER_TARGET(Painter::MoveLayerDown);
+
+  REGISTER_CATCHER_TARGET(Painter::FinishTool);
   REGISTER_CATCHER_TARGET(Painter::FinishTool);
   REGISTER_CATCHER_TARGET(Painter::ClearTools);  
   REGISTER_CATCHER_TARGET(Painter::SetLayer);
 
-  REGISTER_CATCHER_TARGET(Painter::ITKThresholdSegmentationLevelSetImageFilterToolSetDataLayer);
+  REGISTER_CATCHER_TARGET(Painter::SetDataLayer);
 
   REGISTER_CATCHER_TARGET(Painter::ITKBinaryDilate);
   REGISTER_CATCHER_TARGET(Painter::ITKBinaryErode);  
@@ -1299,7 +1312,13 @@ Painter::CombineMaskOr(event_handle_t &)
   // Copy what was in the current volume into the new volume.
   VolumeOps::bit_or(dnrrd, dlabel, cnrrd, clabel, mnrrd, mlabel);
 
+	UndoHandle undo =
+		new UndoReplaceLayer(this, "Undo Logical Or",
+												 0, current_volume_, 0);
+	push_undo(undo);
+
   extract_all_window_slices();
+	rebuild_layer_buttons();
   redraw_all();
 
   hide_tool_panel();
