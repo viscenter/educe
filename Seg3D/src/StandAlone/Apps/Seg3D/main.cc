@@ -36,6 +36,7 @@
 #include <Core/Skinner/Window.h>
 #include <StandAlone/Apps/Seg3D/Seg3DFrame.h>
 #include <StandAlone/Apps/Seg3D/Painter.h>
+#include <StandAlone/Apps/Seg3D/Seg3DwxGuiUtils.h>
 #include <StandAlone/Apps/Seg3D/config.h>
 #include <StandAlone/Apps/Seg3D/plugins.h>
 
