@@ -57,6 +57,8 @@ using namespace SCIRun;
 #include <wx/xrc/xmlres.h>
 #include <wx/fs_zip.h>
 
+#define SYSDATAPATH "/usr/share/Seg3D/" SEG3D_VERSION_STRING "/data"
+
 class Seg3D : public wxApp 
 {
 public:
