@@ -149,7 +149,7 @@ BEGIN_EVENT_TABLE(Seg3DFrame, wxFrame)
   EVT_MENU(MENU_TOOL_POLYLINE, Seg3DFrame::ToolPolyline)
   EVT_MENU(MENU_TOOL_THRESHOLD, Seg3DFrame::ToolThreshold)
   EVT_MENU(MENU_TOOL_MOVESCALE, Seg3DFrame::ToolMoveScale)
-  EVT_MENU(MENU_TOOL_POLYLINE, Seg3DFrame::ToolPolyline)
+	EVT_MENU(MENU_TOOL_MEASUREMENT, Seg3DFrame::ToolMeasurement)
 
   EVT_MENU(MENU_FILTER_C_A_D_F, Seg3DFrame::Filter_CADF)
   EVT_MENU(MENU_FILTER_C_C_F, Seg3DFrame::Filter_CCF)
@@ -1141,6 +1141,28 @@ Seg3DFrame::ToolPolyline( wxCommandEvent& WXUNUSED(event) )
 {
   ShowTool(itk_NCF_, "Painter::StartPolylineTool", "Polyline Tool");
   itk_NCF_->SetShowProgress(false);
+}
+
+void
+Seg3DFrame::ToolThreshold( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(thresholdtoolpanel_,
+           "Painter::StartThresholdTool", "Threshold Tool");
+  itk_NCF_->SetShowProgress(false);
+}
+
+void
+Seg3DFrame::ToolMoveScale( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(movescaletoolpanel_, "", "Move/Scale Tool");
+  SCIRun::Painter::ThrowSkinnerSignal("Painter::MoveScaleLayerUpdateGUI");
+}
+
+void
+Seg3DFrame::ToolMeasurement( wxCommandEvent& WXUNUSED(event) )
+{
+  ShowTool(measurementtoolpanel_, "", "Measurement Tool");
+  SCIRun::Painter::ThrowSkinnerSignal("Painter::StartMeasurementTool");
 }
 
 void
