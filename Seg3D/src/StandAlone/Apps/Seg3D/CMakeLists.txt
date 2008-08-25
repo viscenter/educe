@@ -79,7 +79,7 @@ ENDIF(ITK_FOUND)
 
 FIND_PACKAGE(Boost COMPONENTS filesystem REQUIRED)
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIRS} )
-LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+LINK_DIRECTORIES("${Boost_LIBRARY_DIRS}/boost")
 
 FIND_PACKAGE(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIR} )
@@ -106,16 +106,18 @@ SET(Seg3D_SRCS
   FloodFillCopyTool.cc
   FloodfillTool.cc
 	InhomogeneityCorrectionFilter.cc
-  ITKNeighborhoodConnectedImageFilterTool.cc
+  ITKBinaryDilateErodeImageFilterTool.cc
   ITKConfidenceConnectedImageFilterTool.cc
   ITKCurvatureAnisotropicDiffusionImageFilterTool.cc
-  ITKThresholdSegmentationLevelSetImageFilterTool.cc
-  ITKOtsuImageFilterTool.cc
+  ITKDiscreteGaussianImageFilterTool.cc
   ITKGradientMagnitudeImageFilterTool.cc
   ITKHoleFillImageFilterTool.cc
-  ITKBinaryDilateErodeImageFilterTool.cc
-  ITKThresholdImageFilterTool.cc
-  ITKDiscreteGaussianImageFilterTool.cc
+  ITKNeighborhoodConnectedImageFilterTool.cc
+  ITKOtsuImageFilterTool.cc
+	ITKSpeedToPathGradientDescentImageFilterTool.cc
+  ITKThresholdSegmentationLevelSetImageFilterTool.cc
+  ITKSpeedToPathRegularStepGradientDescentImageFilterTool.cc
+  ITKSpeedToPathIterateNeighborhoodImageFilterTool.cc
   KeyToolSelectorTool.cc
   LayerButton.cc
   LayerMergeTool.cc
@@ -124,9 +126,10 @@ SET(Seg3D_SRCS
   Painter.cc 
   PainterSignalTargets.cc 
   PanTool.cc 
-  ProbeTool.cc 
   PointerToolSelectorTool.cc
   PolylineTool.cc
+  ProbeTool.cc 
+	ResampleTool.cc
   SeedTool.cc
   Seg3DFrame.cc
 	Seg3DwxGuiUtils.cc
