@@ -25,7 +25,7 @@ SHOW_MESSAGE=yes
 ###    NOTE: There must be an $osname/install-$package.sh file for each of these.
 
 
-package_list="zlib png freetype Teem mpeg libxml2 tcl tk itcl blt"
+package_list="png Teem mpeg libxml2 tcl tk itcl blt"
 # 10 packages must pass before the 3p is considered successfully
 # installed.  Do not change this number when testing build of only one
 # (or a few) packages.  Otherwise, the script will erroneously report
@@ -387,8 +387,8 @@ parse_args()
 
     if test "$1" = "--seg3d-only"; then
         echo "Building only the packages necessary for Seg3D."
-        package_list="zlib png freetype Teem mpeg libxml2"
-        number_of_packages=6
+        package_list="png Teem mpeg libxml2"
+        number_of_packages=4
         remove_shared_libs=1
         shift 1
     fi

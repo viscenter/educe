@@ -252,7 +252,7 @@ configure_scirun_bin() {
     else
       macflags=
     fi
-    $cmakebin ../src -DBUILD_SHARED_LIBS=$buildsharedlibs -DBUILD_DATAFLOW=$builddataflow -DCMAKE_BUILD_TYPE=$buildtype -DLOAD_PACKAGE=$scirunpackages -DWITH_X11=$withx11 -DBUILD_TESTING=$testnetworks -DBUILD_UTILS=$buildutils $cmakewxargs $cmakeargs $macflags
+    $cmakebin ../src -DBUILD_SHARED_LIBS=$buildsharedlibs -DBUILD_DATAFLOW=$builddataflow -DCMAKE_BUILD_TYPE=$buildtype -DLOAD_PACKAGE=$scirunpackages -DWITH_SYSTEM_ZLIB=$withsystemzlib -DWITH_SYSTEM_FREETYPE=$withsystemfreetype -DWITH_X11=$withx11 -DBUILD_TESTING=$testnetworks -DBUILD_UTILS=$buildutils $cmakewxargs $cmakeargs $macflags
 }
 
 build_scirun_bin() {
@@ -299,6 +299,8 @@ usectest="0"
 testnetworks="0"
 buildutils="1"
 darwin64="0"
+withsystemzlib="0"
+withsystemfreetype="0"
 
 echo "Parsing arguments..."
 while [ "$1" != "" ]; do
@@ -329,6 +331,10 @@ while [ "$1" != "" ]; do
             buildutils="0"
             if [ "$osx" == "1" ]; then
                 withx11="0"
+            fi;
+            if [ "$linux" == "1" ]; then
+                withsystemzlib="1"
+                withsystemfreetype="1"
             fi;;
        --64bit)
 	    if [ "$osx" == "1" ]; then
@@ -367,6 +373,8 @@ echo "Get CMake: $getcmake"
 echo "Make Flags: $makeflags"
 echo "Build Shared Libs: $buildsharedlibs"
 echo "With X11: $withx11"
+echo "With system zlib: $withsystemzlib"
+echo "With system freetype: $withsystemfreetype"
 
 ensure make --version # ensure make is on the system
 
