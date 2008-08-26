@@ -536,29 +536,37 @@ ENDIF(ENABLE_SCI_MALLOC)
 SET(DEF_MALLOC_LINENUMBERS "")
 MARK_AS_ADVANCED(ENABLE_SCI_MALLOC)
 
-#-----------------------------------------------------------------------------
-# Z lib in Thirdparty
-FIND_LIBRARY(ZLIB_LIBRARY 
-  NAMES z zlib zdll
-  PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
-  NO_DEFAULT_PATH
-  )
+OPTION(WITH_SYSTEM_ZLIB "Compile with system zlib" OFF)
+MARK_AS_ADVANCED(WITH_SYSTEM_ZLIB)
 
-FIND_PATH(ZLIB_INCLUDE zlib.h
-  ${SCIRUN_THIRDPARTY_DIR}/include/
-  NO_DEFAULT_PATH
-  )
+IF(WITH_SYSTEM_ZLIB)
+  FIND_PACKAGE(ZLIB)
+ELSE(WITH_SYSTEM_ZLIB)
+  #-----------------------------------------------------------------------------
+  # Z lib in Thirdparty
+  FIND_LIBRARY(ZLIB_LIBRARY 
+    NAMES z zlib zdll
+    PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+    NO_DEFAULT_PATH
+    )
 
-IF(MINIMAL_CORE AND NOT ZLIB_LIBRARY)
-  # min core and thirdparty - look in system.  Base scirun will not touch this
-  FIND_LIBRARY(ZLIB_LIBRARY NAMES z zlib zdll)
-  FIND_PATH(ZLIB_INCLUDE zlib.h)
-ENDIF(MINIMAL_CORE AND NOT ZLIB_LIBRARY)
+  FIND_PATH(ZLIB_INCLUDE zlib.h
+    ${SCIRUN_THIRDPARTY_DIR}/include/
+    NO_DEFAULT_PATH
+    )
+
+  IF(MINIMAL_CORE AND NOT ZLIB_LIBRARY)
+    # min core and thirdparty - look in system.  Base scirun will not touch this
+    FIND_LIBRARY(ZLIB_LIBRARY NAMES z zlib zdll)
+    FIND_PATH(ZLIB_INCLUDE zlib.h)
+  ENDIF(MINIMAL_CORE AND NOT ZLIB_LIBRARY)
 
 
-IF(NOT ZLIB_LIBRARY)
-   MESSAGE(FATAL_ERROR "z library required to be in SCIRun's Thirdparty. Please re-install your Thirdparty and verify that the z library installed propery.")
-ENDIF(NOT ZLIB_LIBRARY)
+  IF(NOT ZLIB_LIBRARY)
+     MESSAGE(FATAL_ERROR "z library required to be in SCIRun's Thirdparty. Please re-install your Thirdparty and verify that the z library installed propery.")
+  ENDIF(NOT ZLIB_LIBRARY)
+ENDIF(WITH_SYSTEM_ZLIB)
+
 
 #-----------------------------------------------------------------------------
 # png lib in Thirdparty
@@ -707,20 +715,32 @@ IF(BUILD_DATAFLOW)
   ENDIF(WIN32)
 ENDIF(BUILD_DATAFLOW)
 
-#-----------------------------------------------------------------------------
-# Freetype in Thirdparty
-FIND_LIBRARY(FREETYPE_LIBRARY 
-             NAMES freetype
-             PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
-              NO_DEFAULT_PATH
-             )
+OPTION(WITH_SYSTEM_FREETYPE "Compile with system freetype" OFF)
+MARK_AS_ADVANCED(WITH_SYSTEM_FREETYPE)
 
-FIND_PATH(FREETYPE_INCLUDE freetype/freetype.h
-           ${SCIRUN_THIRDPARTY_DIR}/include/freetype2/
-           ${SCIRUN_THIRDPARTY_DIR}/include/
-           /usr/include/freetype2/
-           NO_DEFAULT_PATH
-           )
+IF(WITH_SYSTEM_FREETYPE)
+  FIND_LIBRARY(FREETYPE_LIBRARY
+    NAMES freetype
+    )
+  FIND_PATH(FREETYPE_INCLUDE freetype/freetype.h
+    /usr/include/freetype2/
+    )
+ELSE(WITH_SYSTEM_FREETYPE)
+  #-----------------------------------------------------------------------------
+  # Freetype in Thirdparty
+  FIND_LIBRARY(FREETYPE_LIBRARY 
+               NAMES freetype
+               PATHS ${SCIRUN_THIRDPARTY_DIR}/lib/
+                NO_DEFAULT_PATH
+               )
+
+  FIND_PATH(FREETYPE_INCLUDE freetype/freetype.h
+             ${SCIRUN_THIRDPARTY_DIR}/include/freetype2/
+             ${SCIRUN_THIRDPARTY_DIR}/include/
+             /usr/include/freetype2/
+             NO_DEFAULT_PATH
+             )
+ENDIF(WITH_SYSTEM_FREETYPE)
 
 IF(FREETYPE_LIBRARY)
   SET(DEF_FREETYPE "#define HAVE_FREETYPE 1")
@@ -728,6 +748,7 @@ IF(FREETYPE_LIBRARY)
 ELSE(FREETYPE_LIBRARY)
   SET(DEF_FREETYPE "")
 ENDIF(FREETYPE_LIBRARY)
+
 
 #-----------------------------------------------------------------------------
 # MPEG sometimes in Thirdparty (not in Windows?)
