@@ -1,0 +1,5 @@
+bin/**
+InsightToolkit-*/**
+wxGTK-*/**
+thirdparty.bin/**
+*.tar.gz
