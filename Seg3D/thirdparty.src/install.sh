@@ -271,7 +271,7 @@ determine_compiler_version()
     	else
     		cc_exec=$CC
     	fi
-        number=`$CC --version | head -1 | cut -f3 -d" "`
+        number=`$CC --version | head -1 | cut -f3 -d" " | sed -e "s/[)]//"`
     	compiler_version="$cc_exec-$number"
     elif test "$osname" = "IRIX64"; then
         # 2>&1 redirects stderr to stdout
